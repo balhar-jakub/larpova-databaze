@@ -1,0 +1,93 @@
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+}
+
+.archive-banner {
+  background: #ffc107;
+  color: #333;
+  text-align: center;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.navbar-brand img {
+  max-height: 30px;
+}
+
+.bg-primary, .navbar-dark.bg-primary {
+  background-color: #091EA8 !important;
+}
+
+.badge-primary {
+  background-color: #091EA8;
+}
+
+.game-card {
+  transition: box-shadow 0.2s;
+}
+
+.game-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.game-description {
+  line-height: 1.6;
+}
+
+.game-description p {
+  margin-bottom: 0.5rem;
+}
+
+.comment-text {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.comment-text p {
+  margin-bottom: 0.4rem;
+}
+
+.rating-display .display-4 {
+  font-weight: 700;
+  color: #091EA8;
+}
+
+.rating-histogram {
+  font-size: 12px;
+}
+
+.text-truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.footer {
+  border-top: 1px solid #dee2e6;
+}
+
+.footer p {
+  margin-bottom: 0.25rem;
+}
+
+.nav-tabs .nav-link.active {
+  font-weight: 600;
+}
+
+#label-filters {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .game-row td:nth-child(4),
+  .game-row td:nth-child(5),
+  thead th:nth-child(4),
+  thead th:nth-child(5) {
+    display: none;
+  }
+}

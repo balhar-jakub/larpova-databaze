@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hry — Larpová databáze</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700&subset=latin,latin-ext">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="archive-banner">Toto je archiv webu larpovadatabaze.cz. Data jsou pouze ke čtení.</div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <img src="/images/logo.png" alt="Larpová databáze" height="30">
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item"><a class="nav-link" href="/games/recentAndMostPlayed/">Hry</a></li>
+          <li class="nav-item"><a class="nav-link" href="/kalendar/">Kalendář akcí</a></li>
+        </ul>
+        <form class="form-inline" action="/search/" method="get">
+          <input class="form-control form-control-sm mr-2" type="text" id="searchInput" placeholder="Hledaný výraz" name="q">
+          <button class="btn btn-outline-light btn-sm" type="submit">Hledat</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-4 mb-4">
+    <div class="row">
+  <div class="col-md-9">
+    <div class="mb-3">
+      
+      <ul class="nav nav-tabs">
+        
+        <li class="nav-item">
+          <a class="nav-link "
+             href="/games/recentAndMostPlayed/">
+            Nejhranější nové
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link active"
+             href="/games/recent/">
+            Nové
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link "
+             href="/games/best/">
+            Nejlepší
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link "
+             href="/games/mostPlayed/">
+            Nejhranější
+          </a>
+        </li>
+        
+        <li class="nav-item">
+          <a class="nav-link "
+             href="/games/mostCommented/">
+            Nejkomentovanější
+          </a>
+        </li>
+        
+      </ul>
+    </div>
+
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="width:80px">Hodnocení</th>
+          <th>Název</th>
+          <th style="width:60px">Rok</th>
+          <th style="width:80px">👁</th>
+          <th style="width:80px">💬</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr class="game-row" data-labels="10,20,4,21,12">
+          <td>
+            
+            <span class="badge badge-primary">9.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/krusada/cs/2750/">Krusáda</a>
+            
+            <br><small class="text-muted">akční, dřevárna, bitva, střelné zbraně (airsoft), fantasy</small>
+            
+          </td>
+          <td>2026</td>
+          <td>0x</td>
+          <td>2x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="33,1,14,77,50">
+          <td>
+            
+            <span class="badge badge-primary">10.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/metro-leningrad-1947/cs/2717/">Metro - Leningrad 1947</a>
+            
+            <br><small class="text-muted">experimentální, komorní, postapo, sandbox, simulace</small>
+            
+          </td>
+          <td>2026</td>
+          <td>0x</td>
+          <td>5x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="13,77,2,11,19">
+          <td>
+            
+            <span class="badge badge-primary">8.5</span>
+            
+          </td>
+          <td>
+            <a href="/larp/projekt-alice/cs/2684/">Projekt Alice</a>
+            
+            <br><small class="text-muted">sci-fi, sandbox, dramatický, sociální drama, opakovatelný</small>
+            
+          </td>
+          <td>2018</td>
+          <td>0x</td>
+          <td>0x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="33,1,15,77,19">
+          <td>
+            
+            <span class="badge badge-secondary">-</span>
+            
+          </td>
+          <td>
+            <a href="/larp/v-pasti/cs/2651/">V pasti</a>
+            
+            <br><small class="text-muted">experimentální, komorní, historický, sandbox, opakovatelný</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>0x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="1,15,199,19,200">
+          <td>
+            
+            <span class="badge badge-primary">10.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/dopisy-od-ester/cs/2618/">Dopisy od Ester</a>
+            
+            <br><small class="text-muted">komorní, historický, psychologický, opakovatelný, konverzační</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>1x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="13,7,14,77,22,5,50,9">
+          <td>
+            
+            <span class="badge badge-primary">9.6</span>
+            
+          </td>
+          <td>
+            <a href="/larp/methancity-dno-spiraly/cs/2552/">MethanCity: Dno spirály</a>
+            
+            <br><small class="text-muted">sci-fi, detektivní, postapo, sandbox, mystický, svět, simulace, horor</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>12x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="10,2,12">
+          <td>
+            
+            <span class="badge badge-primary">9.4</span>
+            
+          </td>
+          <td>
+            <a href="/larp/dragon-age-vzestup/cs/2519/">Dragon Age Vzestup </a>
+            
+            <br><small class="text-muted">akční, dramatický, fantasy</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>1x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="10,3,1,7,16,11">
+          <td>
+            
+            <span class="badge badge-primary">7.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/vedlejsi-pripad/cs/2486/">Vedlejší případ</a>
+            
+            <br><small class="text-muted">akční, městský, komorní, detektivní, současnost, sociální drama</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>2x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="21,13,14,22,2,19">
+          <td>
+            
+            <span class="badge badge-primary">8.3</span>
+            
+          </td>
+          <td>
+            <a href="/larp/de-profundis-cislo-selmy/cs/2453/">De Profundis: Číslo šelmy</a>
+            
+            <br><small class="text-muted">střelné zbraně (airsoft), sci-fi, postapo, mystický, dramatický, opakovatelný</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>1x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="8,17,1,22">
+          <td>
+            
+            <span class="badge badge-secondary">-</span>
+            
+          </td>
+          <td>
+            <a href="/larp/u-strelene-kobyly/cs/2420/">U střelené kobyly</a>
+            
+            <br><small class="text-muted">komedie, western, komorní, mystický</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>0x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="20,4,12">
+          <td>
+            
+            <span class="badge badge-primary">9.3</span>
+            
+          </td>
+          <td>
+            <a href="/larp/bitva-o-blata-iii/cs/2387/">Bitva o Blata III</a>
+            
+            <br><small class="text-muted">dřevárna, bitva, fantasy</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>0x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="20,4,15">
+          <td>
+            
+            <span class="badge badge-primary">9.7</span>
+            
+          </td>
+          <td>
+            <a href="/larp/or-a-cepel-vaegirsky-vpad-10-5-2025/cs/2354/">Oř a Čepel: Vaegirský vpád 10. 5: 2025</a>
+            
+            <br><small class="text-muted">dřevárna, bitva, historický</small>
+            
+          </td>
+          <td></td>
+          <td>0x</td>
+          <td>1x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="77,5,12">
+          <td>
+            
+            <span class="badge badge-secondary">-</span>
+            
+          </td>
+          <td>
+            <a href="/larp/fsl-2025-inter-solem-et-lunam/cs/2321/">FSL 2025: Inter solem et lunam</a>
+            
+            <br><small class="text-muted">sandbox, svět, fantasy</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>0x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="10,39,20,6,2,19,12">
+          <td>
+            
+            <span class="badge badge-primary">8.6</span>
+            
+          </td>
+          <td>
+            <a href="/larp/pravda-26-jeviste-lzi/cs/2289/">Pravda 26: Jeviště lží</a>
+            
+            <br><small class="text-muted">akční, dlouhodobý, dřevárna, družinovka, dramatický, opakovatelný, fantasy</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>0x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="10,20,6,2,19,12">
+          <td>
+            
+            <span class="badge badge-primary">9.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/pravda-25-stiny-zeme/cs/2288/">Pravda 25: Stíny země</a>
+            
+            <br><small class="text-muted">akční, dřevárna, družinovka, dramatický, opakovatelný, fantasy</small>
+            
+          </td>
+          <td>2024</td>
+          <td>0x</td>
+          <td>0x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="16,22,2">
+          <td>
+            
+            <span class="badge badge-primary">9.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/musi-se-zit-larp/cs/2255/">Musí se žít larp</a>
+            
+            <br><small class="text-muted">současnost, mystický, dramatický</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>4x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="13,1,7,14,9,26">
+          <td>
+            
+            <span class="badge badge-primary">8.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/silo-7-2-0/cs/2222/">Silo 7 2.0</a>
+            
+            <br><small class="text-muted">sci-fi, komorní, detektivní, postapo, horor, argumentační</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>0x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="13,17,2,19,133">
+          <td>
+            
+            <span class="badge badge-primary">8.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/nesmirna-odysea/cs/2189/">Nesmírná odysea</a>
+            
+            <br><small class="text-muted">sci-fi, western, dramatický, opakovatelný, Feel good</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>1x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="1">
+          <td>
+            
+            <span class="badge badge-primary">8.7</span>
+            
+          </td>
+          <td>
+            <a href="/larp/lecebna-u-svateho-mikulase/cs/2156/">Léčebna u svatého Mikuláše</a>
+            
+            <br><small class="text-muted">komorní</small>
+            
+          </td>
+          <td></td>
+          <td>0x</td>
+          <td>3x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="1,15,11,19">
+          <td>
+            
+            <span class="badge badge-primary">7.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/nebojte-soudruhu-uciteli/cs/2123/">Nebojte, soudruhu učiteli</a>
+            
+            <br><small class="text-muted">komorní, historický, sociální drama, opakovatelný</small>
+            
+          </td>
+          <td>2023</td>
+          <td>0x</td>
+          <td>0x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="15,7,22,2,19,9,12,100">
+          <td>
+            
+            <span class="badge badge-primary">7.3</span>
+            
+          </td>
+          <td>
+            <a href="/larp/vigilie/cs/2090/">Vigilie</a>
+            
+            <br><small class="text-muted">historický, detektivní, mystický, dramatický, opakovatelný, horor, fantasy, Vigilie</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>1x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="15,22,2,11,19">
+          <td>
+            
+            <span class="badge badge-primary">8.8</span>
+            
+          </td>
+          <td>
+            <a href="/larp/konec-zazraku-aneb-pravdivy-pribeh-o-velkem-suchu-roku-1931-a-podivuhodnem-cirkusu/cs/2057/">Konec zázraku aneb Pravdivý příběh o velkém suchu roku 1931 a podivuhodném cirkusu</a>
+            
+            <br><small class="text-muted">historický, mystický, dramatický, sociální drama, opakovatelný</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>2x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="20,4,8,12">
+          <td>
+            
+            <span class="badge badge-primary">8.5</span>
+            
+          </td>
+          <td>
+            <a href="/larp/vidlacke-valky-vi/cs/2024/">Vidlácké války VI</a>
+            
+            <br><small class="text-muted">dřevárna, bitva, komedie, fantasy</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>1x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="21,13,14,77,5,9">
+          <td>
+            
+            <span class="badge badge-primary">10.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/stalker-3-2-objekt-lambda/cs/1991/">Stalker 3.2 - Objekt Lambda</a>
+            
+            <br><small class="text-muted">střelné zbraně (airsoft), sci-fi, postapo, sandbox, svět, horor</small>
+            
+          </td>
+          <td>2025</td>
+          <td>0x</td>
+          <td>1x</td>
+        </tr>
+        
+        <tr class="game-row" data-labels="1,15,11,19,26">
+          <td>
+            
+            <span class="badge badge-primary">9.0</span>
+            
+          </td>
+          <td>
+            <a href="/larp/vlastni-cestou/cs/1958/">Vlastní cestou</a>
+            
+            <br><small class="text-muted">komorní, historický, sociální drama, opakovatelný, argumentační</small>
+            
+          </td>
+          <td>2024</td>
+          <td>0x</td>
+          <td>4x</td>
+        </tr>
+        
+      </tbody>
+    </table>
+
+    
+    <nav>
+      <ul class="pagination justify-content-center">
+        
+        
+        <li class="page-item active">
+          <a class="page-link" href="/games/recent/">1</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/2/">2</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/3/">3</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/4/">4</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/5/">5</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/6/">6</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/7/">7</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/8/">8</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/9/">9</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/10/">10</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/11/">11</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/12/">12</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/13/">13</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/14/">14</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/15/">15</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/16/">16</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/17/">17</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/18/">18</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/19/">19</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/20/">20</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/21/">21</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/22/">22</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/23/">23</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/24/">24</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/25/">25</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/26/">26</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/27/">27</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/28/">28</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/29/">29</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/30/">30</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/31/">31</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/32/">32</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/33/">33</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/34/">34</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/35/">35</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/36/">36</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/37/">37</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/38/">38</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/39/">39</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/40/">40</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/41/">41</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/42/">42</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/43/">43</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/44/">44</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/45/">45</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/46/">46</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/47/">47</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/48/">48</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/49/">49</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/50/">50</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/51/">51</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/52/">52</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/53/">53</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/54/">54</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/55/">55</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/56/">56</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/57/">57</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/58/">58</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/59/">59</a>
+        </li>
+        
+        <li class="page-item ">
+          <a class="page-link" href="/games/recent/60/">60</a>
+        </li>
+        
+        
+        <li class="page-item"><a class="page-link" href="/games/recent/2/">&raquo;</a></li>
+        
+      </ul>
+    </nav>
+    
+  </div>
+
+  <div class="col-md-3">
+    <div id="label-filters">
+      
+      <h6>Povinné</h6>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="650" id="label-650">
+        <label class="form-check-label small" for="label-650">LarpCz</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="3" id="label-3">
+        <label class="form-check-label small" for="label-3">městský</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="4" id="label-4">
+        <label class="form-check-label small" for="label-4">bitva</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="1" id="label-1">
+        <label class="form-check-label small" for="label-1">komorní</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="6" id="label-6">
+        <label class="form-check-label small" for="label-6">družinovka</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="2" id="label-2">
+        <label class="form-check-label small" for="label-2">dramatický</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="5" id="label-5">
+        <label class="form-check-label small" for="label-5">svět</label>
+      </div>
+      
+      
+      
+      <h6 class="mt-2">Volitelné</h6>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="150" id="label-150">
+        <label class="form-check-label small" for="label-150">slovenský</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="40" id="label-40">
+        <label class="form-check-label small" for="label-40">steampunk</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="10" id="label-10">
+        <label class="form-check-label small" for="label-10">akční</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="33" id="label-33">
+        <label class="form-check-label small" for="label-33">experimentální</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="53" id="label-53">
+        <label class="form-check-label small" for="label-53">turnaje</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="39" id="label-39">
+        <label class="form-check-label small" for="label-39">dlouhodobý</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="20" id="label-20">
+        <label class="form-check-label small" for="label-20">dřevárna</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="8" id="label-8">
+        <label class="form-check-label small" for="label-8">komedie</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="21" id="label-21">
+        <label class="form-check-label small" for="label-21">střelné zbraně (airsoft)</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="13" id="label-13">
+        <label class="form-check-label small" for="label-13">sci-fi</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="17" id="label-17">
+        <label class="form-check-label small" for="label-17">western</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="46" id="label-46">
+        <label class="form-check-label small" for="label-46">zahraniční</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="18" id="label-18">
+        <label class="form-check-label small" for="label-18">jeepforma</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="300" id="label-300">
+        <label class="form-check-label small" for="label-300">world of darkness</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="15" id="label-15">
+        <label class="form-check-label small" for="label-15">historický</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="7" id="label-7">
+        <label class="form-check-label small" for="label-7">detektivní</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="14" id="label-14">
+        <label class="form-check-label small" for="label-14">postapo</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="35" id="label-35">
+        <label class="form-check-label small" for="label-35">večírek</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="16" id="label-16">
+        <label class="form-check-label small" for="label-16">současnost</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="77" id="label-77">
+        <label class="form-check-label small" for="label-77">sandbox</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="22" id="label-22">
+        <label class="form-check-label small" for="label-22">mystický</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="24" id="label-24">
+        <label class="form-check-label small" for="label-24">E-larp</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="11" id="label-11">
+        <label class="form-check-label small" for="label-11">sociální drama</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="50" id="label-50">
+        <label class="form-check-label small" for="label-50">simulace</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="19" id="label-19">
+        <label class="form-check-label small" for="label-19">opakovatelný</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="9" id="label-9">
+        <label class="form-check-label small" for="label-9">horor</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="26" id="label-26">
+        <label class="form-check-label small" for="label-26">argumentační</label>
+      </div>
+      
+      <div class="form-check">
+        <input class="form-check-input label-filter" type="checkbox" value="12" id="label-12">
+        <label class="form-check-label small" for="label-12">fantasy</label>
+      </div>
+      
+      
+    </div>
+  </div>
+</div>
+
+<script>
+// Client-side tag filtering
+document.querySelectorAll('.label-filter').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const checked = [...document.querySelectorAll('.label-filter:checked')].map(c => c.value);
+    document.querySelectorAll('.game-row').forEach(row => {
+      if (checked.length === 0) {
+        row.style.display = '';
+        return;
+      }
+      const labels = row.dataset.labels.split(',');
+      const match = checked.every(id => labels.includes(id));
+      row.style.display = match ? '' : 'none';
+    });
+  });
+});
+</script>
+
+  </div>
+
+  <footer class="footer bg-light py-3 mt-4">
+    <div class="container text-center text-muted">
+      <p>&copy; 2013&ndash;2026 Larpová databáze (archiv)</p>
+      <p>Tým LD: Jakub Balhar &bull; Michal Havelka &bull; Petr Kuběnský &bull; Filip Appl &bull; Tomáš Felcman &bull; Michal Kára</p>
+    </div>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

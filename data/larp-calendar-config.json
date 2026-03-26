@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "larp-calendar-309507",
+  "private_key_id": "d13d74cdab08ad3b95d8df32fbaf7bd87a4613fa",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDCTUSeyS2J64m/\nWqD8fUQyf4mUS5jFHT/qU9kgnALD++bkbE1xf+5ER4nVkCZCfIyQUsO8o0y9I1dA\nADX1ZROjWtkYr/5QJZ7QcIuoUoN7mjzA42eK8VI/eecpX9TeEUGyUcRN7itPOloh\njK9UuY20UMYvqQ71UyrIapGMtHaZnV30rsPKPggagXDi8CzDTDsSILOvQDD7RVrk\nCCUa/rcFFpL5SQ0bPJH0+HXM2g1IYOuNRaf3Zwzlcnma/W9z6Pt1CTle0x6QqQKJ\ntADlcay9Yf396dxXUeQXxjvNl4iVTm/Y2ybycVtUgQpkYxytHjJfl17M0Sm82CvK\ns8Q5I8dtAgMBAAECggEABt2waTbfj8yJGJJhts70rUOTDSd5kz65yQtNL+bO2aOD\nAMjQGOg6iaLaqndvsqxU5PeOmtrfjJ29Ox+ZEavZs1+hd29vg5bzBZdyPswF7tc2\n3hhYysMgl6DGt2KRrhjtJ4dD39pARdNywnorM+4+pTqwViqHVTeq/u5RsYMGcd5I\nqJZ/R8PXJxdgcS9uRqLIfNuAnEMsb3voQp+7aaqyKPbTO3b2AuaBldCuwWX4lkp4\nhpCJAh17BVCYOwVzajGpkreFdVWJxJMWqdWSZHpZmKbitKj8AOx/boPLKVk8PQvO\nKzT4uAiP7Nvmmvi60jcCwyi1bFYYws023/kpP30o4QKBgQDpoj8J/DOzt2VK6aid\nIt2o3yVakLhhsSRLBaKPHani8krbj2GJcQKrosaaYNNg6i7fsBUAiCTxTUoT4iA2\nmWqhbAp0+N+0m+6LK87fxwUq3EoQPhbTZfRdQvPLZPAwrkVORLC9mJmzBRMIAbAi\nWf0tm+/xm1eJGoFwZoLAxOTzlQKBgQDU5xk3puEXN6vnoQSJihyVHOv+hDSzF36X\n2xzsjCPQbnfvcT3v8s+dbCR/VNOexh1VAeo5Ao6Whi6TJmpF68LdwnFpY/44T1+C\n1xIYUT0TlunrXhuSb5i02NsItFjXQ22nST/5t/IpG8tNkYAam/KP0sspfTPFE7HW\nuNDBDpCOeQKBgHz6j+JViYrPxl3GlK5KYmzdweuqkxefXRzMzOLmKWT/28+L6c9O\nJvGNx9P5i9nCLIT4eqOoMKrsf34XbsgGVaY4V3evUmwZJghIzQekPT1qTixWKnu3\nhHsHP8dEHcDM2MI/uJQTt9SuGDomPQSDQw5M5pRGVxM+nJN2Iuff6+HpAoGARaCC\njcHE0WwCi1EMg9KoQFfiEi24cm2XmCAvmGjIeaz3Cla1k9iL74bjdMUQJFfUVe23\nZQeiDDY72yHwFYfiBdZGctoh1NaYfNjLcSp4WAS94Zy4Va6reVGGaJVajKPfo5sA\nEjIHP0x4s5iHFay0qjac/KeWm7gyK+/rTYfu3LkCgYBj4cJkl7PvGxjBxroV59bF\nGdrTi8dV1THQYTcltPXOgmJ0il2ai/bgozpGgEOGGX1UHrQmgC09pB6NeUn3TL9X\nKTtNB7r3gxFuH1SLyz1HLrrmeZ0CXQjYxGJsSn1Nvnghn8FAiQzW0HzHDMb97Jbv\nRsZAS/1tbFA+T9tCBj+g2g==\n-----END PRIVATE KEY-----\n",
+  "client_email": "larp-calendar-prod@larp-calendar-309507.iam.gserviceaccount.com",
+  "client_id": "108759019499025540643",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/larp-calendar-prod%40larp-calendar-309507.iam.gserviceaccount.com"
+}

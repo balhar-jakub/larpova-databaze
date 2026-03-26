@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Melloria 7 — Larpová databáze</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700&subset=latin,latin-ext">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="archive-banner">Toto je archiv webu larpovadatabaze.cz. Data jsou pouze ke čtení.</div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <img src="/images/logo.png" alt="Larpová databáze" height="30">
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item"><a class="nav-link" href="/games/recentAndMostPlayed/">Hry</a></li>
+          <li class="nav-item"><a class="nav-link" href="/kalendar/">Kalendář akcí</a></li>
+        </ul>
+        <form class="form-inline" action="/search/" method="get">
+          <input class="form-control form-control-sm mr-2" type="text" id="searchInput" placeholder="Hledaný výraz" name="q">
+          <button class="btn btn-outline-light btn-sm" type="submit">Hledat</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-4 mb-4">
+    <div class="row">
+  <div class="col-md-8">
+    <h1>Melloria 7</h1>
+    <div class="row mb-3">
+      <div class="col-sm-6">
+        <p>👥 250 hráčů</p>
+        
+        <p>⏱
+          4 dní
+          60 hodin,
+          2021
+        </p>
+        
+        <p>Web: <a href="http://www.melloria.cz" rel="nofollow">http://www.melloria.cz</a></p>
+      </div>
+      <div class="col-sm-6">
+        
+        <p>Autoři:
+          
+            <a href="/profile/91450/">Arling Luboš Brhel</a>
+          
+        </p>
+        
+        
+        <p>Skupiny:
+          
+            <a href="/group/142/">Uroboroslarp Brno</a>
+          
+        </p>
+        
+      </div>
+    </div>
+
+    
+    <div class="game-description mb-3">
+      <p>Roku 5000 měl skončit svět. Nespokojení marniví bohové měli tak, jak bývalo po celé éry jejich zvykem, přinést na Mellorii přírodní pohromy, války, hladomory a nemoci, na jejichž konci měla být lidská civilizace zničena, města rozprášena a ten zbytek obyvatelstva měl se vším začít zase nanovo, pod pečlivým drobnohledem bohů. Opět jako kdysi měli být lidé zcela závislí na milosti nebeských stvořitelů a svými modlitbami své stvořitele prosit o pomoc. Stalo se tak ostatně již mnohokrát v historii planety a kam sedlák kopne, tam nalezne ruiny starých zničených civilizací.<br>Místo toho však vznikla nová církev Li-Ar, která přetrhla stále se opakující schéma a pokusila se s bohy dohodnout dříve, než události nabraly nevratný spád. S pomocí blahořečeného rytíře Sijbrandta, jenž stal se v následující dekádě prvním světcem nové víry, byla do éteru odvysílána úmluva mezi bohy a lidmi. Nová církev slíbila, že přesně bude řídit modlitby lidí, aby bohové dostali svou porci pozornosti a za to bohové již nikdy nevztáhnou ruku na planetu a nebudou se plést do vnitřních záležitostí běžných lidí i šlechty.<br>Ještě ten samý rok byla nová organizace otestována, když bohové, uspokojeni novou vírou, sdělili svým novým uctívačům z řad Li-Ar některá svá tajemství a mimo jiné jim prozradili, že planetu bohové nevytvořili. Na to nikdy neměli dost síly. Mellorie zde byla již před jejich příchodem a síla, která na ní udržovala po celé ty věky život, nepramenila z božské moci, ale ze síly sídlící v jádře planety, se kterou bohové v minulosti válčili, porazili ji a nakonec ji uvěznili uprostřed planety. Tato síla nazývala se Orra a její dlouhé věznění ji přivedlo až na práh smrti. Její konec znamenal by zamrznutí celé Mellorie a smrt všemu živému.<br>A tak Li-Ar ukázal svou sílu a s pomocí místních i cizích osvobodil Orru v sérii hrdinských výprav. Planeta byla zachráněna, bohové uspokojeni a život vrátil se po letech zmatků a nejistoty zase zpátky k normálu.<br>Patnáct let uplynulo a v novém kalendáři se začal psát 16 rok nového věku. Města a státy prosperovaly. Po celých tisíciletích byla obnovena Ignerská říše, Sidorijské císařství získalo na moci a Mrellané integrovali svou novou magickou technologii do běžného života. Nová církev Li-Ar sílila a postupně odstraňovala poslední zbytky náboženské rebelie, která by mohla vyprovokovat bohy k ustoupení od svaté úmluvy.<br>Svaté město Ardenis prosperovalo a rostlo. Místní obyvatelé zakládali rodiny a radovali se ze života a nových příležitostí.<br>Mezitím, daleko na západě ve Velké poušti za hranicemi Sidorie probouzeli se Orsettové, původní obyvatelstvo planety, vyhlazené bohy po jejich příchodu na Mellorii. Osvobozená Orra nabírala síly a uprostřed pouště začala vyvěrat znovu po desítkách tisíc let voda, kolem které probouzela se k životu rozsáhlá tropická oáza. Lidem nepřístupné prastaré ruiny Orsettských měst se znovu zazelenaly. Podle posledních zpráv se na místě horečně staví a opravuje. Tisíce Orsettů povstávají z podsvětí a znovu budují svou říši.<br>V Ardenis však byl i nadále klid. Jen skon prvního Otce víry, Dictuse Mrell Furry, narušil každodenní život. Stalo se tak již před pěti lety a od té doby Li-Ar nedokázal najít vhodného náhradníka. Každá frakce protěžovala někoho jiného a do toho všeho, začaly se nakonec vkládat všechna tři velká císařství Střední Mellorie. Sidorie, Igner i Mrellie, ti všichni chtěli, aby zrovna ten jejich kandidát stal se novým Otcem Víry. A tak uplynulo pět let a místo Otce Víry, jsou jen tři kandidáti, kteří stále se dohadují, kdo bude tím opravdovým a posvěceným otcem všech věřících.<br>Jistě by se hádali i nadále, možná celé generace, když by se nestalo něco velmi podivného. Ze světa se začala vytrácet božská magie. Nejprve ubývala pomalu, aniž by si toho někdo výrazněji povšimnul. proces však zrychloval a nyní jí ve světě zůstalo naprosté minimum. Zvýšila se kojenecká úmrtnost a mnozí mágové přišli kvůli nesplnitelným nárokům na manu o možnost čarovat. I sama církev Li-Ar, ač velmi nerada, musela připustit, že produkce many z bohoslužeb velmi razantně poklesla. Z many se tak během dvou let stala luxusní velice drahá surovina a mudrcové světa stáli před velmi důležitou otázkou.<br>Proč ve světě ubývá božské pozornosti? Je to snad proto, že bohové již nejsou? Nebo je to pro to, že bohové si energii šetří na nějakou důležitou událost? Může to být všechno naopak znakem, že se bohové skutečně přestali vměšovat do záležitostí lidí a už o ně nemají tolik zájmu? Možností je spoustu a podle úmluvy bohové mohou promlouvat pouze s Otcem Víry, který je bohužel již pět let po smrti. Jestli se mají lidé dozvědět co se děje, musí být okamžitě zvolen nový Otec, aby mohl být obnoven komunikační kanál s bohy. Je to životně důležité, protože pokud bohové pouze šetří svou energii, všichni mudrcové se shodli, že taková věc může znamenat jediné, přípravu na útok.<br>Celou Mellorii zachvátil neklid. Různí zaručení prorokové tvrdí, že k nim promlouvají bohové staří, noví a občas i samotná duše planety Orra. Hlásají válku, hlásají zradu a hlásají že bohové jsou jistě již patnáct let mrtví. Li-Ar všechny tyto věštce a proroky pronásleduje a upaluje s takovou rychlostí, že z hranic ve velkých městech nepřestává plynout dým ve dne v noci. I přes to vznikají nové sekty každou chvíli a jejich neochota modlit se k bohům může vyústit ve zlou mstu a konec pro celé lidstvo.<br>A v této napjaté atmosféře sjíždí se do Ardenis šlechtický sněm, aby konečně zvolil nového Otce Víry a nastolil tak ve světě pořádek a jednotu. Nastal den první schůze a město Ardenis je živé jako nikdy. Na každém rohu stojí stany majestátných delegací, všude jsou vidět rytíři v lesklých zbrojích. Umělci a hudebníci vyhrávají v městských ulicích, když tu přichází nečekaná zpráva od samotných bohů...&nbsp;</p> 
+<p></p>
+    </div>
+    
+
+    
+    <div class="mb-3">
+      
+      <span class="badge badge-info mr-1">sandbox</span>
+      
+      <span class="badge badge-info mr-1">svět</span>
+      
+      <span class="badge badge-info mr-1">fantasy</span>
+      
+    </div>
+    
+
+    
+
+    
+
+    <h4 class="mt-4">Komentáře (4)</h4>
+    
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/104452/"><strong>Jointstein</strong></a>
+              <span class="text-muted small">16. 09. 2021</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Toto byl druhý ročník, kterého jsem se účastnil. Jel jsem za postavu <strong>Benzenus Octan (Mistr alchymista města).</strong>&nbsp;&nbsp;</p> 
+<p>Osobně jsem si hru velice užil, i když musím říct, že to bylo občas náročné. U své postavy jsem s tím nicméně počítal; je jasné, že městskému alchymistovi se v krámu dveře prakticky nezavřou.&nbsp;&nbsp;&nbsp;</p> 
+<p>Larp má dvě roviny, provázané ale přesto dost oddělené: hra šlechty a hra plebsu. Já jel za plebs, tedy se moje kritika týká pouze této půlky larpu.&nbsp;&nbsp;&nbsp;</p> 
+<p>Lore, pravidla, herní systémy, i herní lokace jsou v tomto larpu velmi pěkně zpracované a je vidět, že to organizátoři už několik let v kuse pečlivě pilují. Odvrácená strana mince spočívá v tom, že když si hráč pravidla a lore pořádně nenastuduje dopředu a jede náročnější postavu (jako například já s alchymií), může se zpočátku cítit naprosto ztracen.&nbsp;&nbsp;&nbsp;</p> 
+<p>Celý larp se odehrává v kulisách westernového městečka a přilehlých lesů. Pravda, není to úplně standardní fantasy architektura, ale člověk si zvykne rychle a je fajn, že herní budouvy jsou (povětšinou) skutečnými budovami. V lese je krásně, a je třeba ocenit výborné zpracování dungeonů.&nbsp;&nbsp;</p> 
+<p>Rovněž je potřeba ocenit herní kulisy, které organizátoři pro hru nachystali: herní měna, krásné plastové byliny, knihy, já jsem dostal i alchymistickou laboratoř. A co nebylo, orgové ochotně podle potřeby dodali.&nbsp;&nbsp;&nbsp;</p> 
+<p>Herní zázemí je taky na velmi vysoké úrovni - pro mnoho postav jsou k dispozici postele, akce má funkční sprchy, splachovací záchod a dostupné jídlo i pití. Vzhledem ke úrovni zázemí i larpu je cena (cca 1000 Kč za cca 3 dny hracího času) velice přívětivá.&nbsp;&nbsp;</p> 
+<p>Na larpu je velké množství zábavy a aktivit, kterých se může člověk účastnit - profese, pravidlené skupinové dungeony, sólové dobrovolné aktivity na herním území, apod. Roleplay není vyžadován, nicméně každý hráč dostane na začátek popis postavy, kde jsou popsány její základní charakterové vlastnosti a questy (kterými se hráč může a nemusí řídit - postihy za nehraní postavy nejsou).&nbsp;&nbsp;&nbsp;</p> 
+<p>Bohužel v systému questů a profesí vidím největší slabinu tohoto larpu - hra hodně stojí na hráčích samotných, a pokud je hráč, kterého k vlastnímu progressu potřebujete, z jakéhokoli důvodu nedostupný (dělá něco jiného, nemůžete ho najít, vůbec na akci nepřijel, vykašlal se na svou roli a běhá po lese), může vám to kompletně zaseknout hru. V takové situaci poškozenému hráči nezbývá, než udělat to samé, a jít si vlastní cestou k zábavě (toto se mi stalo na minulém ročníku a mým kamarádům na tomto).&nbsp;&nbsp;&nbsp;</p> 
+<p>Kdybych měl popsat nejlepší způsob, jak si "Mellorku" co nejvíc užít, bylo by to následovně: na 1. ročník jeďte za málo důležitou postavu, a jeďte s kamarády, kteří s vámi budou v případě potřeby/nudy hrát. Využijte čas pro seznámení se s celou akcí. Pokud se vám svět, hra a larp obecně bude líbit, vemte si na další ročník něco náročnějšího. Hlavní je si vybrat postavu, která se vám bude dobře hrát - pro tyto účely musím ocenit komunikativnost orgů a ochotu dělat drobné změny pro hráče.&nbsp;&nbsp;</p> 
+<p>Sečteno a podtrženo akci určitě doporučuji. Ale není to pro úplné herní nováčky nebo pro pasivnější lidi, kteří si nedokážou v případě potřeby najít vlastní zábavu.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/113/"><strong>Eliška</strong></a>
+              <span class="text-muted small">13. 09. 2021</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p><strong><em>Tai-li Sylas (akolytka církve Li-Ar)</em></strong>&nbsp;&nbsp;</p> 
+<p>Na hru jsem jela jako náhradnice. Vlastně jsem neměla očekávání, protože jsem na podobném typu larpu (hybrid sandboxu a skriptovanýho larpu) ještě nebyla. A taky protože jsem před larpem nedostala téměř žádné informace o tom, jaká hra vlastně bude, co mám očekávat, ale ani, kdy vlastně končí a nebo od kdy do kdy máme zajištěné jídlo. Nu, vlastně to nepíšu přesně - kvůli výše zmíněnému a navíc velmi nepřehledným pravidlům (rozvedu později) jsem se hry vlastně celkem bála. A nakonec jsem si ji jakože fakt užila - číselně hodnotím podle subjektivného dojmu, slovně pár objektivnějších postřehů:&nbsp;&nbsp;</p> 
+<p><strong>Plus</strong>&nbsp;&nbsp;</p> 
+<p>Propracovaný svět / setting. A fungovalo to. Městečko žilo, války se vedly, bohové pičovali do lidí a lidi do bohů. Koho to bavilo / zajímalo, mohl se ponořit do knih a počíst si o historii nebo fungování kdečeho.&nbsp;&nbsp;</p> 
+<p><strong>Mínus</strong>&nbsp;&nbsp;</p> 
+<p>Bohužel není pro hráče, který na Mellorku jede poprvé, moc jednoduchý do settingu proniknout. Na webu toho moc nenajdete, mailem toho taky moc nepřijde. Takže na hru jedete s pár střípky, během hraní sbíráte další a po dohrání máte pocit, že jste pojali nějaký základní minimum, který se týkalo frakce, za kterou jste jeli. Hra dost počítá s tím, že jste pravidelný hráč, s prvohráči pracovat neumí.&nbsp;&nbsp;</p> 
+<p><strong>Plus</strong>&nbsp;&nbsp;</p> 
+<p>Složitost pravidel tak akorát. Vlastně jsem se obsáhlosti pravidel jakože dost bála. Na larpech, kam obvykle jezdim, si nelevluju skilly, nepočítám životy ani zranění a umírám jen tehdy, když mi to jako hráči přijde dramaticky zajímavý. A vlastně (by) mi nakonec jejich obsáhlost nevadila, vlastně to celkem fungovalo, co jsem si nepamatovala, to jsem nosila na papíře u sebe. A i tak jsem prostě často improvizovala a naštěstí se mi nikdy nestalo, že by mě někdo vyřval za to, že pravidla porušuju. Jenže...&nbsp;&nbsp;</p> 
+<p><strong>Mínus</strong>&nbsp;&nbsp;</p> 
+<p>...jenže to by ta pravidla musel někdo číst. A tím myslím i organizátory. V pravidlech totiž vládne totální chaos a neuspořádanost. Jsou dlouhá jak seznam nepřátel Li-Ar. Ve výčtu obsáhlých pravidel pro jednotlivá povolání se vám potuluje tu odstavec pravidel pro boj, tu pro zranění, znásilnění (!!! to je tak špatný pravidlo) nebo smrt. Taky se v různých částech pravidel dozvíte vzájemně si odporující informace - a tady je celkem zřejmé, že se vzala část pravidel z minulého ročníku a k nim se přilípla navazující pravidla pro letošek. Aniž by došlo ke korekci a čeknutí, jestli jsou si k sobě kompatibilní. A pak ještě na místě zjistíte, že existují <em>další </em>pravidla, ale ty vám dopředu orgové neřeknou, abyste jimi nebyli před hrou zahlceni (viz třeba pravidla pro skill mučení).&nbsp;&nbsp;&nbsp;</p> 
+<p>Osobně vidím tento bod jako nejvíc zásadní mínus, protože hráč to má buď v píči a na čtení pravidel se po prvním odstavci vysere, nebo je teda dočte, ale má v tom strašný bordel a jede na hru akorát zbytečně vynervovaný a negativně naladěný.&nbsp;&nbsp;</p> 
+<p><strong>Plus</strong>&nbsp;&nbsp;</p> 
+<p>CPčka - nejvíc obětaví lidi, fakt díky, muselo to bejt náročný a oni zas a znova šli nechat se zabít. A nebo dlouho dlouho dlouho do noci zabíjet (viz pátečná bitva, která byla prostě nekonečná a musela bejt strašně náročná).&nbsp;&nbsp;</p> 
+<p><strong>Mínus</strong>&nbsp;&nbsp;</p> 
+<p>Myslím, že by se mělo počítat s tím, že CPčka nebudou jen bojová, ale že čas od času půjdou do městečka udělat nějakou dramatickou scénu. Což potřebuje dvě věci: detailní brífing nejen o té konkrétní postavě, ale i o kontextu (že se třeba prostě za herezi posledních 15 let normálně upaluje je fakt, o kterým se nebudu hádat a vtipkovat). A pak dramaticky založené hráče těch CP. Někoho, kdo to nevytáhne do haha absurdity, ale uhraje vážnou scénu, aniž by si z ní dělal prdel (viz Katův komentář, také stejně jako on dodávám, že to není myšleno zle vůči letošním CP, jen chci říct, že by měli orgové počítat s tím, že potřebují hráče i na tento typ CP).&nbsp;&nbsp;</p> 
+<p><strong>Plus</strong>&nbsp;&nbsp;</p> 
+<p>Produkce. Ať už dungeony, tak malý serepetičky (artefakty, knížky, tpč !Mellorianineninjaksetokurvajmenovalo!). Velká nádhera!&nbsp;&nbsp;</p> 
+<p><strong>Plus</strong>&nbsp;&nbsp;</p> 
+<p>Arling musí být upír a cucat energii z jiných. Jinak si nedokážu vysvětlit, jak zládal téměř nespat a být neustále k zastižení a pomáhat řešit všechno, kvůli čemu za ním někdo přišel. Tu si střihnul CP roli, neustále doprovázel hráče do dungů, tamhle pomáhal konzultovat i ty nejšílenější hráčský nápady. Nedivila bych se, kdyby to ještě dneska dospával. Celkově dávám velký plus za velkou vstřícnost org týmu, očividnou snahu řešit věci a aby se hráči cítili dobře a případnou schopnost se kdyžtak omluvit, když se něco posere. A za schopnost improvizovat.&nbsp;&nbsp;</p> 
+<p><strong>Plus</strong>&nbsp;&nbsp;</p> 
+<p>Člověk dostal, oč si napsal. Naše skupina si přála být v centru dění, mít napsaný postavy (což se dělo ve spolupráci hráč + org), rozhodovat o věcech a dělat dramatický veřejný scény. A přesně tak se stalo. Vedle toho si některý jiný lidi třeba přáli nic moc nemuset řešit a jen tak si felit s přáteli. A to mi na tomhle larpu přijde vůbec nejvíc nejepší. Že je tu taková škála možností! Za mě největší plus.&nbsp;&nbsp;</p> 
+<p><strong>(Mínus)</strong>&nbsp;&nbsp;</p> 
+<p>Někteří hráči si stěžují na to, že je nefér platit stejně vysoký vstup, když dostanu napsanou postavu a mám vstupy ze hry (třeba občas přijde CPčko a hraje na mě), a nebo když není v mé postavě ani řádek. Osobně myslím, že tohle nemá jednoduchý řešení. Pokud se hráčům, kteří nedostanou postavy, hra zlevní, rozpočet to neunese a hra půjde do mínusu. Pokud zůstanou ceny pro všechny stejný, někteří hráči bez postav budou brblat (a můžeme se bavit, jestli oprávněně, popravdě je vlastně chápu). Takže jediný další řešení je celkově hru mírně zdražit. A o získanou částku ji naopak zlevnit hráčům bez postav. Ale zas budou brblat jiní (já ne, podle mě je současná cena podhodnocená). Toto mínus dávám do závorky, protože vlastně není moje, ale některých mých spoluhráčů.&nbsp;&nbsp;</p> 
+<p>Podle mě to hodně souvisí s tím, co už píšu v prvním mínusu. A co už psal Drirr. Nefunkční hráčská očekávání. Když nevím, co dopředu čekat, může to dopadnout všelijak no.&nbsp;&nbsp;</p> 
+<p><strong>Mínus</strong>&nbsp;&nbsp;</p> 
+<p>Jak mi přišla moje postava tak akorát obsáhlá a obsah pro naši skupinu přiměřený - a tedy i co se skriptu týče - tak teda ale skript chyběl hromadným scénám. Jasně, teď se nebavím o scénách, které vyplynou z dění během hry - tam naopak oceňuju schopnost improvizace! Mám na mysli velké scény dopředu naplánované. Příkladem budiž páteční večerní bitva, která se nekonečně táhla do pozdních nočních hodin, ale úplně jí chyběl jak dramatický oblouk, tak epické zakončení. Takže se po skončení nedostavila katarze, člověk byl akorát strašně unavený a úplně ho ničila představa, že larp končí až za další den a půl. Přitom by stačil lehčí skript a zkrácení a byl by to skoro highlite larpu.&nbsp;&nbsp;</p> 
+<p><strong>(Plus)</strong>&nbsp;&nbsp;</p> 
+<p>Opět dávám do závorky, protože jde o subjektivní záležitost, navíc platnou pro všechny larpy. Ale prostě spoluhráči ♥ Naše skupina, co jsme spolu jeli, plus další, co se k nám z logiky hry přichomejtli (speciální díky patří inkvizitoru Santalovi), byla prostě skvělá a hru jsem si užila z velký části díky ní.&nbsp;&nbsp;</p> 
+<p><strong>(Ani plus ani mínus)</strong>&nbsp;&nbsp;</p> 
+<p>Vypadávání z rolí. Bála jsem se toho, protože na to nejsem zvyklá. A fakt mě to na hře občas sralo (hlavně ve chvílích, kdy se skoro všechny konflikty prokládaly tím, že protějšek dával porůznu ruku na hlavu a vstupoval do toho neherními komentáři), často to ale bylo naopak ku prospěchu (hlavně když jsme si občas potřebovali ve skupině ulevit, taky to pomohlo si odpočinout, bez toho si 4 herní dnny spíš nedovedu představit).&nbsp;&nbsp;</p> 
+<p><strong>(Ani plus ani mínus)</strong>&nbsp;&nbsp;</p> 
+<p>Hra je silně gamistická. Většina skupin a postav mají cíle, kterých se snaží dosáhnout. Ty cíle jsou povětšinou kompetitivní. A nevede se play-to-lose přístup, naopak, hráči se snaží vyhrát spolu s postavou. Což rozhodně nehodnotím špatně, i když to není typ hry, na kterou bych jela víc jak jednou do roka, ale to je fakt čistě o hráčské preferenci. Bohužel to ale nese nebezpečí, že někdo bude mančkynit / podvádět.&nbsp;&nbsp;</p> 
+<p><strong>Závěrem</strong>&nbsp;&nbsp;</p> 
+<p>Jak jsem psala na začátku, Mellorka překonala má očekávání. Strašně mě bavila. A myslím, že vlastně stačí jen pár úprav (zpřehlednění pravidel, popsání a zveřejnění settingu a prostě všech potřebných informací k tomu, aby měl hráč dopředu realistická očekávání (a taky třeba věděl, kdy hra končí), skriptovanější hromadné scény a zlepšení dramatických CP vstupů), které ale kvalitě hry megamoc pomůžou.&nbsp;&nbsp;</p> 
+<p>PS: Poprvý jsem si na hře fakt užila věci, kterým se normálně vyhýbám: kariérní růst, náboženství, mečákování. Díky!</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/97901/"><strong>Kat</strong></a>
+              <span class="text-muted small">13. 09. 2021</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p><strong>Otec Santal, inkvizitor církve Li-Ar</strong>&nbsp;</p> 
+<p>Prvně upozorním, že jsem se už trochu rozmazlil a jezdím na jiné akce, ve kterých je větší důraz na příběh, atmosférické scény a tak. Sandboxový přístup (ačkoliv akce má k sandboxu docela skok daleko) Mellorie tedy není to, co bych běžně vyhledával a pochopím, když některé mé výtky budou jiným hráčům připadat poměrně z cesty.&nbsp;&nbsp;</p> 
+<p>Akci jsem si užil. Měl jsem kolem sebe v církvi spoustu skvělých spoluhráčů, se kterými jsem zažil hezké momenty. Měl jsem výraznou postavu, která byla v centru dění, měl jsem přístup do několika linek a řešil jsem i věci, které asi nebyli zcela v mé kompetenci. Já zábavu na hře měl. Když jsem potřeboval orga, tak stačilo přijít a on se mi okamžitě, stručně a věcně věnoval. Hru jsem si tedy fakt užil, i když rozumím tomu, že někdo ne.&nbsp;&nbsp;</p> 
+<p>Trochu se chci omluvit kultu, který jsem možná nechtěně paralyzoval, když jsem odhalil a popravil jejich vůdkyni. Další den po její reinkarnaci jsem s ní spolupracoval, ale kdybych věděl, že není jediná, ale je vás víc, běžel bych za vámi a zkusil se s vámi domluvit (na opravdové spolupráci, nikoliv na popravě).&nbsp;&nbsp;&nbsp;</p> 
+<p>Co se věcí, které byli méně fajn, týče, zkusím to nějak stručně popsat.&nbsp;&nbsp;</p> 
+<p>37 stran pravidel fakt jako ne. Jsou nepřehledná a mám pocit, že každý s kým sem se o nich bavil, mi potvrdil, že je nepřečetl. Je potřeba je zkrátit, výrazně, a hlavně uspořádat do nějakých logických celků.&nbsp;&nbsp;</p> 
+<p>K pravidlům ještě jedna věc. V náhodném listování pravidly jsem zjistil, že hra obsahuje pravidlo pro herní znásilnění. Já se přiznám, neumím si představit jedinou horotvornou situaci, kdy by se to pravidlo dalo využít. Hraní znásilnění, které chce jen jedna postava, strašně narušuje hru postavy druhé. Ta se buď rozhodne – buď to bude hrát a jde o nechtěný zásah do postavy nebo - a to je dle mě častější – se dotyčná bude tvářit, jakoby se nikdy nic nestalo, jen bude mít lehkou pachuť po zbytek hry – tedy hře to nic nedalo, jen otrávilo dotyčného. Neříkám, že znásilnění nemůže být zajímavý roleplayový prvek, ale nejsem si jistý, zda zrovna na akci typu Mellorie. A věřím, že pokud by si to oba dva chtěli odehrát, není pro ně potřeba pravidlo. Mechanika o chytání zezadu dle mě fakt hře nic zajímavého nedává a mohou se stát situace, kdy naopak někomu hru budou kazit.&nbsp;&nbsp;</p> 
+<p>Já daně neplatil, ale spousta hráčů ano. A musím říct, bylo znepokojivé, jaké fronty se v tom největším horku dělali před šerifárnou. Hráči vám tam samozřejmě budou stát, jen aby stihli zaplatit daně a neměli problémy. Ale na druhé straně je zde riziko, že hráč nenazná svou hranici a na sluníčku se zraní. Spousta lidí nemá ohledně zůstávání na slunci příliš velký pud sebezáchovy a bojím se o nemilé situace s úžehem atd. Bylo by lepší zkusit vymyslet, jak přílišnému frontování na slunci zabránit.&nbsp;&nbsp;</p> 
+<p>Za mě byl ještě problém s informovaností, jak to ve městě funguje. To že cizinecké družiny neznají zdejší pravidla je v pořádku, to že místní neví, jak to ve městě a s církví posledních 15 let funguje, je nešťastné. Strašně smutného mě dělali lidi, kteří si mysleli, že Li-ar je bohyně, kteří na veřejnosti přede mnou vykřikovali heretické věci ze srandy, kteří se hádali, zda je nutné chodit na bohoslužbu. Já to vzal celkem s klidem, vykašlal jsem se na nějaké drastické řešení a začal jsem lidem připomínat, jak to má být. Ale i tak jsem poté viděl lidi, co nevěděli, jak funguje placení daní nebo kdo je kdo a zpočátku byla neinformovanost docela velká.&nbsp;&nbsp;</p> 
+<p>Bojová CPka neposoudím, na to jsou lepší jiní. Ale jako inkvizitor jsem řešil situaci s jinými CP a musím říct, tak dlouho jsem z jejich rolí otráven nebyl. Hned upozorním, že se nejedná o kritiku konkrétních lidí, co jeli za CPka, s těmi jsem většinou problém neměl. Můj problém bylo s určitými rolemi. Když jsme měli upalovat hloupého vesničana, vše bylo v pořádku. Pak za mnou ale přiběhla jeho rodina a snažila se ho zachránit. To by bylo v pohodě, to bych si docela užil. Ale poté jsem zjistil, že jednám s incestními vidláky, kteří po patnácti letech neví, že je nějaká církev, že je nějaká hereze a tak. Nelogičnost přichází zejména po uvědomění, že na tak hloupé lidi měl údajně fungovat nějaký artefakt a obrátit je na poslušné ovečky. Vím, že mám specifický smysl pro humor, ale nevěřím tomu, že stereotypní incestní vidlák je pro kohokoliv vtipný. Do dvou minut jsem je odehnal a okamžitě jsem šel za organizátorem mu oznámit, že takhle fakt ne. Naštěstí Arling si sám uvědomoval, že je to naprosto trapný nehrotvorný koncept a slíbil nápravu. Na samotném upálení byla vážnost scény narušena nebohým upalovaným, který začal během hoření mluvit o opékání buřtů a celkový fraškoidní dojem umocnil nálet jeho incestních příbuzných. Budiž Arlingovi ke cti, že se mi za to hned po upálení omluvil, došel sám, aniž bych ho zrovna hledal. Další CPka, chodící po městě, veřejně vyznávající temné bohy aniž by si uvědomovali, že dané město je 15 let pod kontrolou církve, byli něco, s čím jsem nevěděl, co mám dělat. Ano, můžu je zajmout a upálit, ale to opravdu není zábava. Chytat heretiky, kteří si jen tak chodí, čekají, až je někdo zajme, upálí a je jim to jedno, protože za chvíli jdou hrát jinou CP roli, prostě není taková zábava. Kdyby místo několika byl jeden, kterého bych já musel vypátrat, místo vyřvávání nahlas by se snažil aspoň církevním představitelům vyhýbat a šířil to skrytě, to by třeba i zábava byla.&nbsp;&nbsp;&nbsp;</p> 
+<p>Co se tím snažím říct – pro mě osobně byla interakce s většinou CP utrpení – netvořili mi hru, ničili mi pokusy o hezký roleplay náhodnýma vtípkama, celkově zabíjeli vážnost jakékoliv situace. Je těžké hrát vážného inkvizitora, který ve skutečnosti nechce upalovat, když kolem mě CPka si ze všeho dělají trapnou srandu.&nbsp;&nbsp;</p> 
+<p>Ještě jednou zdůrazňuju, že to není dle mě tolik o těch lidech, jako o špatně vytvořených rolích pro nějaké tvoření a podporu hry u hráčů. Ale mělo by se CPkům vždy vysvětlit, jak hrát tu jejich roli ne pro sebe, ale pro své okolí, jak tvořit hru ostatním a ne si jen dělat zábavu pro sebe.&nbsp;&nbsp;</p> 
+<p>Posledním bodem je pro mě spíše apel na hráče než na organizátory. Asi už poněkolikáté budu mluvit o tvorbě hry pro ostatní, ale zde je to dle mě nutné zmínit. Když hrajete svou postavu, zkuste myslet na to, že vaše postava má pomáhat ostatním a tvořit pro ně hru. Zbytečné zadržování informací, odfláknutě provedené vraždy a to všechno je něco, co hře víc bere než dává. Ano, stále jsem salty z atentátu na mou osobu. Nevadí mi to mechanicky, údajně si dali čas na výrobu zbraně, která bude schopná mě účině zabít. Mrzí mě provedení. To že ke mně někdo přijde, vezme si mě bokem od ostatních, mlčky mě sekne a jen zařve „hoříš, instakill“ byl pro mě fakt trapný moment. Já jsem někdo, kdo by si svou smrt hezky odehrál, klidně bych se nechal zapálit, vím že poblíž byli lidi, se kterými bychom si udělali hezkou scénku. Ale místo toho jsem jen shořel, aniž by si toho kdo pořádně všiml a o tom, že to byl atentát a ne rozmar inkvizitora, který se rozhodl se z nějakého důvodu zapálit. Rozumím tomu, že pláču na špatné akci, která není stavěna na dramatických scénách, i tak ale věřím, že se to dalo udělat jinak&nbsp;&nbsp;</p> 
+<p>Další a pro mě celkem prasácký moment, který se mi stal, byl půlhodiny před zmíněným atentátem. Rozumím, že daná postava se možná obávala, že bych jí zkusil překazit plán. Ale určitě se to dalo řešit lépe, než zvolenou metodou seslání kouzla, které způsobilo, že „pokud chceš cokoliv říct nebo udělat proti, tak nemůžeš“. Tohle je naprosto hru-beroucí a jde dle mě o těžký munchkin. I kdyby daná osoba mě chtěla vyhnat z místnosti, zajmout, vyhrožovala mi, uplatila mě nebo mě přesvědčila, bylo by to rozhodně zajímavější, než velmi krátké tiché pošeptání do ucha tak, abych to slyšel jen já a paralyzovalo to mou hru. Takže prosím, lidi, když něco ve hře děláte, přemýšlejte i nad tím, jaký obsah to generuje do hry.&nbsp;&nbsp;</p> 
+<p>Ještě jednou bych rád řekl, že akci jsem si užil, i přes to, že daný typ akce není úplně moje krevní skupina. Měl jsem kolem sebe skvělé lidi, hlavně v rámci Li-ar – nejvíce bych chtěl zmínit kněžku Samar, protože scény s ní, zejména během vyslíchání Arjy, byli pro mě strašně skvělé a silné. Dále bych chtěl zmínit akolytku Tai-Lee, protože hra s ní mi dost sedla a mohl jsem si užít jak odlehčené tak i vážné momenty. Mé díky patří místnímu katovi, který jednak vytvořil mezi známými docela pobavení, než jsem mu začal říkat mistr popravčí, druhak jsem si užil rozhovory s ním a hlavně mučení, které ztvárňoval hezky. A taky bych rád poděkoval městské správkyni, která mi hodně generovala obsah nebo mě upozorňovala na jedince, kteří naopak obsahu tolik nemají a já se jim tak mohl věnovat.&nbsp;&nbsp;</p> 
+<p>Zatím nevím, zda budu chtít jet příští rok, ale celkově jsem odjel s dobrým pocitem. Otec Santal si bere historku o své rodině sebou do hrobu, aniž by ji komukoliv předal, ale odchází s pocitem, že si něco zajímavého prožil. Děkuji vám za zážitek.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/6/"><strong>Drirr</strong></a>
+              <span class="text-muted small">10. 09. 2021</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>&nbsp;Na hru jsem jel potom, co jsem Arlinga potkal ve Stonetownu, kde děláme jinou hru. Slovo dalo slovo a o den později už jsme si psali. Napsal jsem, že chcem hrát ve skupině, co je vidět a co může dělat dramatický věci, ale že nám nevadí i nějaký ten gamistický prvek. Z nabízených jsme vybrali li-ar, napsali co chcem a co nechcem hrát a zažít a následně dostali postavy, který tomu naprosto odpovídaly.&nbsp;&nbsp;</p> 
+<p>Těšil jsem se na nostalgii z velkých otevřených her a doufal, že tam budou i nějaké cool scény a připravené linky. A přesně tak to bylo, takže díky. Hra mě bavila, užil jsem si to a skláním hold za tunu práce, kterou to muselo sežrat.&nbsp;&nbsp;</p> 
+<p>Specificky chci vypíchnout jako pozitivní:&nbsp;</p> 
+<p>- <strong>Vstřícný přístup orgů</strong>. Nic nebylo problém, vždycky byli ochotní řešit jakoukoliv blbost včetně "nevím, co dál".&nbsp;&nbsp;</p> 
+<p>- Velmi <strong>osvěžující kombinace sandboxu a osobních skriptovanějších linek.</strong> Za mě velmi funkční (a dozajista náročné na přípravu jak prase), tam kde to nezafungovalo, bych viděl problém spíš v komunikaci a očekáváních (píšu o tom pak níže). Během hry se ke mně někdo přitočil se slovy "vidíš, jde to i bez scénáře", což mě pobavilo nejen proto, že se nepovažuju za žádnýho ambasadora skriptovaných her a také proto, že i tady jde jen o míru a počet skriptů - ve velkých scénách i připravených linkách se ve skutečnosti hra téměř nijak neliší od dramatických a víc sevřených her, byť samozřejmě celkové rozkročení příběhů a zápletek je jako u většiny sandboxů hlavně do šířky spíše než do hloubky (teď nemyslím samotný setting a jeho mytologii, ten je hluboký až až) a na dramatické oblouky scén a linek tu není kladený důraz (byť <strong>některým scénám by přísnější dramaturgické oko obrovsky prospělo</strong> - třeba té sobotní večerní bitvě). Abych to shrnul: koncept hry mi sedl a bavil mě a přijde mi vlastně docela inovativní s velkým dalším potenciálem.&nbsp;</p> 
+<p>- <strong>Produkce</strong> byla moc fajnová. Městečko, stany, kupa serepetiček (tuna deníků a všeho). Všichni tam pořád něco řešili, městečko bzučelo životem.&nbsp;</p> 
+<p>- <strong>Spoluhráči</strong>. Většina lidí měla krásný kostýmy a parádně vytvářeli dojem vrstevnatého světa. Císařové byli megadůstojní (a na zabití), póvl byl správně otravný a tak vůbec.&nbsp;&nbsp;</p> 
+<p><strong>Pár věcí k zamyšlení:</strong>&nbsp;</p> 
+<p>-<strong>Pravidla jsou jeden velký punk </strong>a je vidět, že jsou dělaná hlavně pro lidi, kteří už všechno nějak znají. Moc by se mi líbilo, kdyby bylo dokumentů méně (veškerá mytologie a politika v jednom, pravidla v druhém, schopnosti ve třetím například), měly nějakou jasnou strukturu a logickou návaznost (od obecného ke konkrétnímu, od klíčových všeobecných mechanik ke konkrétním schopnostem atd.), některé věci tam vůbec nejsou, protože nám starým dinosaurům (nebo lidem, co jezdí teď více) jsou známé, ale nováčkovi to zbytečně vytváří stres a nutí ho to ptát se (ruka za hlavou, rudé stop atd...).&nbsp;</p> 
+<p>- Asymetričnost hry je podle mě úplně v pohodě a umožňuje, že si hru můžou užít hráči dramatičtí, gamističtí i ti, co chtějí prožívat příběh. Jen je potřeba to otevřeně a jasně komunikovat, připomínat a jasně <strong>nastavit funkční hráčská očekávání</strong>. Tedy říct: Tahle a tahle skupina nemá žádný obsah a je jen o tom, co si uděláte. Tahle a tahle má jen základní obrysy postav, ale vztahy a náplň je na vás. Tahle a tahle zahrnuje postavy nosné pro hlavní příběh hry a většina obsahu je od nás. Plus samozřejmě specifikovat, zda si v té skupině budu spíš užívat hraní scén, zabíjení potvor nebo tahání figurek po mapě. Do určité míry to samozřejmě komunikováno je, ale asi to chce ještě vylepšit a klidně to i vyjádřit finančně, ať je to zřejmé. (jinak za tisícovku je to levný, i kdybych tam jen celou dobu seděl a chodil hrát kostky do hospody nebo se nechal masírovat od lazebnic).&nbsp;</p> 
+<p>- Náhodné a divné umírání - Naštěstí se nestalo, že by mě někdo z nudy podříznul na záchodě, přesto <strong>k nějakým těm "meh" úmrtím došlo. </strong>Není to tak ani na orgy jako spíš na hráče - když už vaše postava zprovodí jinou postavu ze světa, je dost fajn, aby ta postava věděla, proč se to stalo a někdy je dokonce i fajn jí předem naznačit, že to plánujete (třeba přes orgy, když to s tím hráčem nechcete řešit sami) - může z toho být potom daleko zajímavější a silnější scéna a hra, než když se ze tmy vyřítí náhodný týpek se zapalovačem a slovy "hoříš, jseš mrtvej, čau!".&nbsp;&nbsp;</p> 
+<p>Celkově ještě tedy zopakuju, že<strong> hra je super</strong>, užil jsem si to, byla to trochu nostalgie ale i překvapení z nových věcí a jsem rád, že máme tak pestrej a širokej koníček. Díky.&nbsp;&nbsp;</p> 
+<p><strong><em>Niralon Sylas (soudní vikář z Li-Ar)</em></strong></p></div>
+        </div>
+      </div>
+      
+    
+  </div>
+
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-body text-center">
+        
+        <div class="rating-display mb-2">
+          <span class="display-4">6.8</span>
+          <div class="text-muted">⭐ 9 hodnocení</div>
+        </div>
+        
+        <div class="rating-histogram">
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">10</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 50%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">1</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">9</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 50%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">1</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">8</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 50%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">1</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">7</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 100%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">2</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">6</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 100%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">2</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">5</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 0%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">0</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">4</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 100%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">2</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">3</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 0%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">0</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">2</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 0%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">0</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">1</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 0%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">0</span>
+          </div>
+          
+        </div>
+        
+      </div>
+    </div>
+
+    
+
+    
+
+    
+    <h5>Larpy autorů</h5>
+    <div class="list-group mb-3">
+      
+      <a href="/larp/melloria-6-rudy-uplnek/cs/1189/" class="list-group-item list-group-item-action py-2">
+        <small>Melloria 6: Rudý úplněk (2020)</small>
+      </a>
+      
+      <a href="/larp/melloria-1-mellorienin/cs/46100/" class="list-group-item list-group-item-action py-2">
+        <small>Melloria 1: Mellorienin (2016)</small>
+      </a>
+      
+      <a href="/larp/prvni-vek-ii-povstani/cs/46701/" class="list-group-item list-group-item-action py-2">
+        <small>První věk II: Povstání (2012)</small>
+      </a>
+      
+      <a href="/larp/prvni-vek-iii-sily-bohu/cs/46702/" class="list-group-item list-group-item-action py-2">
+        <small>První věk III: Síly bohů (2013)</small>
+      </a>
+      
+      <a href="/larp/melloria-3/cs/48200/" class="list-group-item list-group-item-action py-2">
+        <small>Melloria 3 (2017)</small>
+      </a>
+      
+      <a href="/larp/melloria-4-odkaz-arju/cs/54050/" class="list-group-item list-group-item-action py-2">
+        <small>Melloria 4: Odkaz Árjů (2018)</small>
+      </a>
+      
+      <a href="/larp/melloria-5-ztracena-rise/cs/54561/" class="list-group-item list-group-item-action py-2">
+        <small>Melloria 5: Ztracená říše (2019)</small>
+      </a>
+      
+      <a href="/larp/melloria-7/cs/1219/" class="list-group-item list-group-item-action py-2">
+        <small>Melloria 7 (2021)</small>
+      </a>
+      
+    </div>
+    
+  </div>
+</div>
+
+  </div>
+
+  <footer class="footer bg-light py-3 mt-4">
+    <div class="container text-center text-muted">
+      <p>&copy; 2013&ndash;2026 Larpová databáze (archiv)</p>
+      <p>Tým LD: Jakub Balhar &bull; Michal Havelka &bull; Petr Kuběnský &bull; Filip Appl &bull; Tomáš Felcman &bull; Michal Kára</p>
+    </div>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

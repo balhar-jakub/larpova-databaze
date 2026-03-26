@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moon — Larpová databáze</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700&subset=latin,latin-ext">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="archive-banner">Toto je archiv webu larpovadatabaze.cz. Data jsou pouze ke čtení.</div>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <img src="/images/logo.png" alt="Larpová databáze" height="30">
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item"><a class="nav-link" href="/games/recentAndMostPlayed/">Hry</a></li>
+          <li class="nav-item"><a class="nav-link" href="/kalendar/">Kalendář akcí</a></li>
+        </ul>
+        <form class="form-inline" action="/search/" method="get">
+          <input class="form-control form-control-sm mr-2" type="text" id="searchInput" placeholder="Hledaný výraz" name="q">
+          <button class="btn btn-outline-light btn-sm" type="submit">Hledat</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-4 mb-4">
+    <div class="row">
+  <div class="col-md-8">
+    <h1>Moon</h1>
+    <div class="row mb-3">
+      <div class="col-sm-6">
+        <p>👥 10 hráčů</p>
+        
+        <p>⏱
+          
+          6 hodin,
+          2011
+        </p>
+        
+        <p>Web: <a href="http://moon.madfairy.cz" rel="nofollow">http://moon.madfairy.cz</a></p>
+      </div>
+      <div class="col-sm-6">
+        
+        <p>Autoři:
+          
+            <a href="/profile/62/">Filip Kábrt</a>, 
+          
+            <a href="/profile/104/">Estanor Jindřich Mašek</a>, 
+          
+            <a href="/profile/112/">Drrak Petr Platil</a>, 
+          
+            <a href="/profile/94/">Gordhart Roman Čech</a>, 
+          
+            <a href="/profile/167/">Pirosh Martin Buchtík</a>
+          
+        </p>
+        
+        
+        <p>Skupiny:
+          
+            <a href="/group/10/">Mad Fairy</a>
+          
+        </p>
+        
+      </div>
+    </div>
+
+    
+    <div class="game-description mb-3">
+      <p>Jednoho dne n&aacute;m začala Země b&yacute;t mal&aacute;. Objevili jsme nov&yacute; sol&aacute;rn&iacute; syst&eacute;m, s des&iacute;tkami planet a stovkami měs&iacute;ců. Postupně jsme je terraformovali, uzpůsobili k životu a kolonizovali. Centr&aacute;ln&iacute; planety se staly vrcholem na&scaron;&iacute; civilizace, s nejnověj&scaron;&iacute;mi technologiemi, l&eacute;ky a kulturou. Časem utvořily Alianci, vedenou parlamentem. Planety na Okraji zůstaly Nez&aacute;visl&eacute;, i když život na nich byl mnohem tvrd&scaron;&iacute;. Ale tak&eacute; svobodněj&scaron;&iacute; a sv&yacute;m způsobem bohat&scaron;&iacute;, &uacute;plněj&scaron;&iacute;, opravdověj&scaron;&iacute;. A toho si v&aacute;ž&iacute;me nade v&scaron;e. Moon je kr&aacute;tk&yacute; komorn&iacute; LARP vych&aacute;zej&iacute;c&iacute; volně z prostřed&iacute; světa zn&aacute;m&eacute;ho sci-fi seri&aacute;lu Firefly. Znalcům můžeme prozradit, že děj na&scaron;&iacute; hry se odehr&aacute;v&aacute; je&scaron;tě před v&aacute;lkou mezi Alianc&iacute; a Nez&aacute;visl&yacute;mi, tedy před dějem samotn&eacute;ho seri&aacute;lu. Ty, kteř&iacute; o seri&aacute;lu nikdy nesly&scaron;eli, naopak můžeme uklidnit, že jejich z&aacute;žitek ze hry nebude nijak ochuzen. Řekněme jenom, že jde o svět, ve kter&eacute;m vedle velmi vyspěl&yacute;ch planet ve Středu, kter&eacute; jsou pod vl&aacute;dou Aliance, existuj&iacute; tak&eacute; Nez&aacute;visl&aacute; vněj&scaron;&iacute; &uacute;zem&iacute;, kter&aacute; nejsou svou atmosf&eacute;rou nepodobn&aacute; obdob&iacute; kolonizov&aacute;n&iacute; Ameriky. Tedy sci-fi ve westernov&eacute;m h&aacute;vu.</p>
+<p>&nbsp; A hlavně je v&scaron;echno na webu:&nbsp;http://moon.madfairy.cz/</p>
+<p>O hře si můžete přeč&iacute;st o v The Nordic larp yearbook 2014 (OBSAHUJE SPOILERY!)&nbsp;&nbsp;http://www.rollespilsakademiet.dk/webshop/nordiclarpyearbook2014.pdf</p>
+    </div>
+    
+
+    
+    <div class="mb-3">
+      
+      <span class="badge badge-info mr-1">sci-fi</span>
+      
+      <span class="badge badge-info mr-1">komorní</span>
+      
+    </div>
+    
+
+    
+    <h5 class="mt-4">Fotogalerie</h5>
+    <div class="row mb-3">
+      
+      <div class="col-4 col-md-3 mb-2">
+        <a href="/data/Y/K/YKVtw1ccivcGUreM.jpeg" target="_blank">
+          <img src="/data/Y/K/YKVtw1ccivcGUreM.jpeg" alt="" class="img-fluid rounded">
+        </a>
+      </div>
+      
+      <div class="col-4 col-md-3 mb-2">
+        <a href="/data/M/g/MgdchCr8S3ur898k.jpeg" target="_blank">
+          <img src="/data/M/g/MgdchCr8S3ur898k.jpeg" alt="" class="img-fluid rounded">
+        </a>
+      </div>
+      
+      <div class="col-4 col-md-3 mb-2">
+        <a href="/data/t/I/tITLVT7riqc4qbvl.jpeg" target="_blank">
+          <img src="/data/t/I/tITLVT7riqc4qbvl.jpeg" alt="" class="img-fluid rounded">
+        </a>
+      </div>
+      
+      <div class="col-4 col-md-3 mb-2">
+        <a href="/data/3/a/3aVb7LfVCKsKfWhR.jpeg" target="_blank">
+          <img src="/data/3/a/3aVb7LfVCKsKfWhR.jpeg" alt="" class="img-fluid rounded">
+        </a>
+      </div>
+      
+      <div class="col-4 col-md-3 mb-2">
+        <a href="/data/x/K/xK1wJ81vspcknnvH.jpeg" target="_blank">
+          <img src="/data/x/K/xK1wJ81vspcknnvH.jpeg" alt="" class="img-fluid rounded">
+        </a>
+      </div>
+      
+      <div class="col-4 col-md-3 mb-2">
+        <a href="/data/c/f/cfyW46XlLLos30yS.jpeg" target="_blank">
+          <img src="/data/c/f/cfyW46XlLLos30yS.jpeg" alt="" class="img-fluid rounded">
+        </a>
+      </div>
+      
+      <div class="col-4 col-md-3 mb-2">
+        <a href="/data/L/1/L1trayY1fkXrCU5h.jpeg" target="_blank">
+          <img src="/data/L/1/L1trayY1fkXrCU5h.jpeg" alt="" class="img-fluid rounded">
+        </a>
+      </div>
+      
+      <div class="col-4 col-md-3 mb-2">
+        <a href="/data/U/R/URPkpC7wEcYXhrxY.jpeg" target="_blank">
+          <img src="/data/U/R/URPkpC7wEcYXhrxY.jpeg" alt="" class="img-fluid rounded">
+        </a>
+      </div>
+      
+      <div class="col-4 col-md-3 mb-2">
+        <a href="/data/h/7/h7QEpgktxJfKPLok.jpeg" target="_blank">
+          <img src="/data/h/7/h7QEpgktxJfKPLok.jpeg" alt="" class="img-fluid rounded">
+        </a>
+      </div>
+      
+    </div>
+    
+
+    
+
+    <h4 class="mt-4">Komentáře (76)</h4>
+    
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1047/"><strong>wojta</strong></a>
+              <span class="text-muted small">27. 05. 2024</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p><strong>květen 2024, John Raw </strong></p> 
+<p>Velmi pěkně zpracovaný larp s historickými paralelami. Myslím, že je dobře zpracovaný na daný čas, možná jen má na komorák příliš dlouhé texty postav.&nbsp;</p> 
+<p></p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/2433/"><strong>Johny</strong></a>
+              <span class="text-muted small">16. 01. 2024</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p><strong>2024, John Raw, Hraní Komorních Larpů v Praze, 8*</strong>&nbsp;&nbsp;</p> 
+<p>Věděl jsem, že to bude kvalitní zážitek. Ale marně jsem doufal jsem že bude i pozitivní. Prožil jsem si zoufalost, neschopnost něco změnit a nejsilnější byl až dojezd po hře, kdy mi došly všechny ty paralely s historií. Šel jsem do toho s odhodláním klidně umřít za správnou věc - a postupně zjišťoval, že nejlepší možná bude prostě jen "umřít" :-D. A i tak to bylo dobrý.</p> 
+<p>Je to ten pocit, co v životě nechci zažít, ale prožít ho mi otevřelo oči. Hej, ale neboj, ty to třeba budeš mít jiný...&nbsp;</p> 
+<p>Jinak řemeslně perfektní hra, všecko šlape, v podání Gavroche - precizní práce!</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/94950/"><strong>sirien</strong></a>
+              <span class="text-muted small">05. 11. 2017</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">&nbsp; 
+<p><strong>[Festival elitn&iacute;ch larpů | Estanor] / 9*</strong><em>; hr&aacute;no bez těhotn&yacute;ch hr&aacute;ček</em></p> 
+<p>Moon samozřejmě předch&aacute;zela jeho ohromn&aacute; pověst a nav&iacute;c hr&aacute;t ho na Elitn&iacute;m festivalu... oček&aacute;v&aacute;n&iacute; byla značn&aacute; a trošku škodolibě jsem čekal, jak moc budou přehnan&aacute;. Což se při proč&iacute;t&aacute;n&iacute; materi&aacute;lů k postavě, kter&eacute; jsem obdržel před hrou zd&aacute;lo, že se napln&iacute;. Leč nestalo se.</p> 
+<p>Subjektivně mus&iacute;m ocenit jak postavy a př&iacute;běh, tak cel&eacute; zpracov&aacute;n&iacute; a strukturu, s n&iacute;ž Moon hr&aacute;če sv&yacute;m př&iacute;během prov&aacute;z&iacute;. &Uacute;vodn&iacute; skriptovan&eacute; sc&eacute;ny hru kr&aacute;sně nakopnou (a to i když se věci pokaz&iacute; a hr&aacute;či je zcela neelitně odehraj&iacute; ve špatn&eacute;m pořad&iacute;). Průběh hry, kdy se řeš&iacute; hlavn&iacute; probl&eacute;m, zat&iacute;mco postavy různě zakop&aacute;vaj&iacute; jak o sv&eacute; vztahy a rozd&iacute;ln&eacute; z&aacute;jmy, tak o ud&aacute;losti z minulosti, je v&yacute;borně jemně přihř&iacute;van&yacute; př&iacute;choz&iacute;mi zpr&aacute;vami a ud&aacute;lostmi, kter&eacute; postupně měn&iacute; atmosf&eacute;ru z uvolněn&eacute; na dusnou. A z&aacute;věr je kr&aacute;sn&aacute; vygradovan&aacute; tečka, o to silnějš&iacute;, že ji vid&iacute;te přich&aacute;zet.</p> 
+<p>Spolu s atmosf&eacute;rou se měn&iacute; i podstata hry - na zač&aacute;tku vše působ&iacute; jako argumentačka (pro někter&eacute; i vztahovka), ale postupně se věci st&aacute;vaj&iacute; tak nějak proc&iacute;těnějš&iacute; a hlubš&iacute; a hr&aacute;či zač&iacute;naj&iacute; hr&aacute;t i v&iacute;ce introvertně spolu s t&iacute;m, jak k nim pronikaj&iacute; jednotliv&aacute; t&eacute;mata a jejich z&aacute;važnost. Což - a to je nejv&iacute;c super - se děje plynule a postupně, bez velk&yacute;ch teatr&aacute;ln&iacute;ch zvratů. Hra trv&aacute; dost dlouho na to, abyste si ten přechod užili a je hezk&eacute; vidět, jak to na jednotliv&eacute; hr&aacute;če/postavy dopad&aacute; v různou chv&iacute;li.</p> 
+<p>Co je trochu zr&aacute;dn&eacute; je t&eacute;ma Moonu, kter&eacute; někter&eacute; hr&aacute;če (mysl&iacute;m, že zejm&eacute;na ty, kteř&iacute; neviděli Firefly) trošku překvapilo - nicm&eacute;ně z&aacute;žitek ze hry jim to rozhodně nezmenšilo.</p> 
+<p>Objektivně vzato mě docela zklamaly materi&aacute;ly k postav&aacute;m - &uacute;vodn&iacute; medailonky na mě působily dost nejasně a bylo pro mě docela těžk&eacute; si z nich vybrat (nav&iacute;c nebylo nijak naznačen&eacute;, jak&aacute; t&eacute;mata se s tou kterou postavou poj&iacute;). Po přečten&iacute; detailů postavy, kterou jsem dostal, na mě už působila v&yacute;razně l&eacute;pe a propracovaněji a i ostatn&iacute; postavy co jsem tak viděl byly podobně kvalitn&iacute;. Text k postavě ale bohužel obsahuje dost balastu a někter&eacute; důležit&eacute; informace v něm jsou předan&eacute; trochu zmatečně - z&aacute;roveň dodatečn&eacute; tematick&eacute; h&aacute;čky a z&aacute;pletky byly slabš&iacute; (i když hra je naštěst&iacute; nijak moc nepotřebuje). Kdyby to chtěl ještě někdo někdy brousit, tady by bylo dost prostoru ke zlepšen&iacute; - jinak to je jen rada &quot;nenechte se odradit, ty postavy jsou lepš&iacute;, než vypadaj&iacute;&quot;.</p> 
+<p>Moon m&aacute; 10 v&yacute;borně prov&aacute;zan&yacute;ch postav se siln&yacute;m př&iacute;během, což si určitě zaslouž&iacute; minim&aacute;lně 6* do zač&aacute;tku. Struktura vypr&aacute;věn&iacute; si určitě zaslouž&iacute; dalš&iacute; +2 a dalš&iacute; +1 za to, že věci v Moonu nejsou př&iacute;močar&eacute; a postavy v důsledku řeš&iacute; v&iacute;ce t&eacute;mat nar&aacute;z - sice souvisej&iacute;c&iacute;ch, ale pocitově rozd&iacute;ln&yacute;ch. Za ty postavy bych ale dal -2 (bez konzultace s dř&iacute;vějš&iacute;mi hr&aacute;či bych nevěděl, jak si vybrat a snadno bych skončil s postavou, kterou bych &uacute;plně nechtěl) - na druhou stranu, subjektivně mi to v&yacute;borně sedlo a přihod&iacute;m ještě +2*, č&iacute;mž se dost&aacute;v&aacute;m na 9*.</p> 
+<p><em>(William Tyler - obchodn&iacute;k)</em></p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1648/"><strong>Drake</strong></a>
+              <span class="text-muted small">05. 11. 2017</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Festival elitn&iacute;ho hr&aacute;če - listopad 2017</p> 
+<p>Zahral&nbsp; som si<strong> Johna Raw</strong>-a. A hoci nie som fan&uacute;šik argumentačn&yacute;ch larpov, tak z Moonu si odn&aacute;šam dobr&yacute; z&aacute;žitok. Určite k tomu prispela stupňuj&uacute;ca sa atmosf&eacute;ra, ale aj to, že hra nevyžadovala aby som 100% času akt&iacute;vne hral na ostatn&yacute;ch. Občas stačilo len tak sa posadiť a započ&uacute;vať sa čo riešia ostatn&iacute;.</p> 
+<p>Celkovo hodnot&iacute;m 9/10. Ten jeden bod d&aacute;vam dole za z&aacute;ver, ktor&yacute; bol s&iacute;ce dramatick&yacute; a veľmi siln&yacute;, ale vn&uacute;torne ma deptal a n&uacute;til škr&iacute;pať zubami. John Raw by tak&yacute; z&aacute;ver proste nedopustil ...</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/94900/"><strong>Maro</strong></a>
+              <span class="text-muted small">04. 12. 2016</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Co v&iacute;ce si př&aacute;t, než zač&iacute;t larpovou kari&eacute;ru pr&aacute;vě t&iacute;mto klenotem. Hra m&aacute; na poměry komor&aacute;ků extr&eacute;mně dobře připraven&eacute; postavy s množstv&iacute;m odbočn&yacute;ch linek a vz&aacute;jemn&yacute;ch vztahů, takže je neust&aacute;le co hr&aacute;t a co rozv&iacute;jet - naopak někter&eacute; z linek se v r&aacute;mci hry ani zahr&aacute;t nestač&iacute;, jelikož hra dynamicky posouv&aacute; př&iacute;běh d&aacute;l chytr&yacute;mi z&aacute;sahy z venč&iacute;. Př&iacute;běh je dynamicky, jasn&yacute;, zřeteln&yacute;, směřuj&iacute;c&iacute; k jednomu z nevyhnuteln&yacute;ch rozuzlen&iacute;. Hra m&aacute; na komor&aacute;ky velmi dobrou v&yacute;pravu, zaj&iacute;mav&eacute; mechaniky a mraziv&yacute; z&aacute;věr. V r&aacute;mci komor&aacute;ků šlo o mou nejsilnějš&iacute; zkušenost. 9/10</p> 
+<p>Hr&aacute;no v květnu 2016 v Brně, postava otce Josepha, d&iacute;ky kter&eacute; jsem si užil i zaj&iacute;mav&aacute; vnitřn&iacute; dilemata.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/308/"><strong>Ťofka</strong></a>
+              <span class="text-muted small">07. 10. 2016</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Do Moonu jsem šla s t&iacute;m, že to bude takov&eacute; nostalgick&eacute; zavzpom&iacute;n&aacute;n&iacute; na to, jak&eacute; larpy se hr&aacute;valy a připadaly n&aacute;m dobr&eacute; před lety... A byla jsem hodně zklaman&aacute;, protože to byla skvěl&aacute; akce i na dnešn&iacute; poměry :)</p> 
+<p>Nechci to př&iacute;liš rozepisovat, tak vyzdvihnu jen p&aacute;r bodů: prostřed&iacute;, mechanika vyj&aacute;dřen&iacute; n&aacute;zorů skrz kost&yacute;m, gradace, z&aacute;věrečn&yacute; proslov(y) - a hlavně, hlavně samotn&yacute; z&aacute;věr.&nbsp;</p> 
+<p>Ty hajzl&iacute;ci organiz&aacute;toři to vygradovali tak, že se mi v jednu chv&iacute;li fakt podlomily kolena a měla jsme co dělat, abych nevykřikla šokem...</p> 
+<p>&nbsp;</p> 
+<p>Jakože jo, no. To chceš!</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1132/"><strong>Destil</strong></a>
+              <span class="text-muted small">01. 05. 2016</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p><strong>Benedikt Grey</strong></p> 
+<p>Hru jsem hr&aacute;l v Hradci Kr&aacute;lov&eacute; v podniku Hn&iacute;zdo snů. Měl jsem o hře velk&eacute; oček&aacute;v&aacute;n&iacute; tady z datab&aacute;ze a jsem velk&yacute; fanoušek Firefly. Trochu mě to zklamalo, čekal jsem v&iacute;c emoc&iacute; a dilemat. Na běhu byli 4 prvohr&aacute;či, což hru ovlivnilo. Ale nen&iacute; to v&yacute;mluva, měli jsme se my zkušenějš&iacute; v&iacute;c snažit :) V prvn&iacute; č&aacute;sti hry bylo možn&eacute; řešit svoje osobn&iacute; linky a tajemstv&iacute; a ta byla docela kr&aacute;tk&aacute; - jenom tak hodinu. Spoustu hr&aacute;čů nestihlo svoje linky rozjet. Pak se něco stalo a vzhledem k z&aacute;važnosti situace už osobn&iacute; linky nebyly tak důležit&eacute;. Ta druh&aacute; č&aacute;st byla zas možn&aacute; zbytečně dlouh&aacute;, často jsme se v argumentech točili v kruz&iacute;ch.</p> 
+<p>Hru guvern&eacute;ra jsem si užil, bavilo mě přerušovat ostatn&iacute;, ř&iacute;dit trochu diskuzi, předn&aacute;šet z&aacute;věrečn&yacute; proslov. Začal jsem jako maminčin maz&aacute;nek a pl&aacute;noval jsem se matce vzepř&iacute;t. Vzhledem k z&aacute;važn&eacute; situaci k tomu nakonec nedošlo, to mě trochu mrz&iacute;.</p> 
+<p>Nicm&eacute;ně hra je to i na dnešn&iacute; poměry velmi kvalitn&iacute;. Oceňuji organizaci Riwiho, řekl n&aacute;m všechno podstatn&eacute; a pom&aacute;hal hr&aacute;čům i během hry. Rekvizity byly super, předevš&iacute;m vyj&aacute;dřen&iacute; n&aacute;zoru př&iacute;slušnosti k Alianci/Hnědokab&aacute;tn&iacute;kům kost&yacute;mem a efektn&iacute; změny n&aacute;zorů. Tak&eacute; oceňuju jemn&eacute; nar&aacute;žky na seri&aacute;l a jeden moment z historie Československa.&nbsp;</p> 
+<p><strong>7/10</strong> - velmi kvalitn&iacute; hra, ale n&aacute;š běh mohl b&yacute;t emotivnějš&iacute;.&nbsp;</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1568/"><strong>Nif</strong></a>
+              <span class="text-muted small">22. 04. 2016</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Ze zač&aacute;tku jsem se docela b&aacute;la, že se vysok&aacute; oček&aacute;v&aacute;n&iacute; nenapln&iacute; a že to ještě zkaz&iacute;m ostatn&iacute;m, protože se mi &uacute;plně nedařilo hr&aacute;t jak jsem si představovala. Moje postava (TJ Stone) neměla moc prostor něco řešit (alespoň se mi to tak zd&aacute;lo) a sama jsem byla prvn&iacute;ch p&aacute;r minut dost nejist&aacute; (&uacute;nava, nervozita a podobn&eacute; z&aacute;ležitosti).<br /><br />Ale to se brzy změnilo a už nebyl čas na &quot;z&aacute;ležitosti,&quot; &uacute;vanu ani chybov&aacute;n&iacute;. <br /><br />Miluju Firefly, a b&yacute;t &quot;tam&quot; &nbsp;v tomhle okamžiku, pro mě byl hodně siln&yacute; z&aacute;žitek. &nbsp;Technicky zm&aacute;knut&eacute; perfektně. A vš&iacute;mavějš&iacute; lidi pobav&iacute; (a zamraz&iacute;) z hromady &quot;easter egů&quot;</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/85750/"><strong>Lucie Nováková</strong></a>
+              <span class="text-muted small">04. 10. 2015</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p></p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1663/"><strong>Bellg</strong></a>
+              <span class="text-muted small">24. 07. 2015</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Tento Larp kde se</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/675/"><strong>Viper</strong></a>
+              <span class="text-muted small">07. 07. 2015</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p><strong>Postava:&nbsp;Ian Nest</strong></p> 
+<p><strong>Hr&aacute;no v r&aacute;mci: Larpov&yacute; d&yacute;ch&aacute;nek 2014</strong></p> 
+<p>Hře mus&iacute;m pochv&aacute;lit kt&aacute;sn&yacute; setting, kter&yacute; pro mě byl dost nov&yacute;. Ano, seri&aacute;l Firefly jsem neznal. Tak&eacute; mus&iacute;m pochv&aacute;lit myšlenku &quot;kost&yacute;mů&quot; vyjadřuj&iacute;c&iacute;ch n&aacute;zory postavy. Postavu Iana jsem si maxim&aacute;lně užil a dokonce jsem d&iacute;ky n&iacute; snad poprv&eacute; poc&iacute;til potřebu si jako postava sednout do kouta a tam skoro 20minut jen sedět a mlčet a přem&yacute;šlet o sobě a sv&eacute; budoucnosti. A nutno ř&iacute;ci, že těch 20minut pro mě bylo nejsilnějš&iacute;ch 20minut jak&yacute;ch jsem snad na komor&aacute;ku kdy zažil.</p> 
+<p><strong>Hodnocen&iacute;: 9/10</strong> (hra 8/10, +1 za pro mě nov&yacute; &quot;introvertn&iacute;&quot; z&aacute;řitek)</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1273/"><strong>FoxxX</strong></a>
+              <span class="text-muted small">12. 05. 2015</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Zat&iacute;m asi nejlepš&iacute; larp, co jsem hr&aacute;l. L&iacute;bila se mi hutn&aacute; atmosf&eacute;ra, napět&iacute; a v&aacute;žnost situace. A je to ten typ komor&aacute;ku, jak&eacute; m&aacute;m r&aacute;d. Tedy bez dělen&iacute; na sc&eacute;ny a bez předepsan&eacute;ho jedn&aacute;n&iacute;. Každ&aacute; postava m&aacute; o ostatn&iacute;ch v&iacute;ce či m&eacute;ně omezen&eacute; informace a př&iacute;padně nějak&aacute; tajemstv&iacute;. Když se prořeknete, m&aacute;te probl&eacute;m. Nejen takto můžete děj ovlivnit. Nicm&eacute;ně... v Moonu zjist&iacute;te, že osud je někdy pěkn&aacute; svině. A že m&aacute; občas smysl pro dost čern&yacute; humor :)</p> 
+<p>Hr&aacute;no na GameConu 2014.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/962/"><strong>Daniela Procházková</strong></a>
+              <span class="text-muted small">31. 03. 2015</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Tehle kr&aacute;sn&yacute; kousek jsem si zahr&aacute;la teprve včera, někdy se doporučuje hodnotit s odstupem, zrovna j&aacute;, podle toho, jak jsem dopadla, bych asi měla. Ale neodol&aacute;m. Ještě nikdy mě nic nedostalo tolik do kolen. Možn&aacute; je to i okolnostmi a v&iacute;kendovou brut&aacute;ln&iacute; sp&aacute;nkovou deprivac&iacute;, kterou jsem ještě zdaleka nenapravila, ale role Sofie mě na konci tot&aacute;lně pohltila a hrozně všem děkuji za par&aacute;dn&iacute; z&aacute;žitek.&nbsp; Prostě děkuji, že jsem si mohla vyzkoušet situaci, o kter&eacute; často přem&yacute;šl&iacute;m, jak bych se v n&iacute; zachovala a zachovat se tak, jak bych si od sebe představovala a př&aacute;la, bylo to moje osobn&iacute; v&iacute;tězstv&iacute;. A ještě teď jsem z toho cel&aacute; hrozně špatn&aacute;. D&iacute;ky lidi, d&iacute;ky...</p> 
+<p>&nbsp;</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1040/"><strong>Triss</strong></a>
+              <span class="text-muted small">10. 03. 2015</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Zahr&aacute;la jsem si TJ pod veden&iacute;m Tar&iacute; a Chyna na Komorn&iacute;m Lipn&iacute;ku, a mus&iacute;m ř&iacute;ct že to byl zaručeně jeden z nejvypjatějš&iacute;ch, nejlepš&iacute;ch a nejemotivnějš&iacute;ch larpů kter&eacute; jsem kdy hr&aacute;la. Ačkoliv jsem před hrou slyšela nesčetně spoilerů, prostě ž&aacute;dn&yacute; mě nedok&aacute;zal připravit na ten kruto-husto-epickej v&iacute;r emoc&iacute; a torn&aacute;do citů a nerozhodnosti. Do posledn&iacute; chv&iacute;le jsem si myslela že v&iacute;m jak se rozhodnu, že uděl&aacute;m to, co bude třeba, ale stejně se to v jeden moment všechno zvr&aacute;tilo jinak. Jsem strašně r&aacute;da že jsem měla možnost si tenhle larp zahr&aacute;t a skl&aacute;d&aacute;m obrovskou poklonu jeho tvůrcům a samozřejmě sv&yacute;m spoluhr&aacute;čům :) &nbsp;</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1039/"><strong>Caitlin</strong></a>
+              <span class="text-muted small">10. 03. 2015</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Hr&aacute;no na Komorn&iacute;m Lipn&iacute;ku (postava Sofie), 8. 3. 2015, uv&aacute;děno Tari a spol.</p> 
+<p>S&iacute;la. Dokonalost. Wow. Pro mě jednoznačně zat&iacute;m nejlepš&iacute; larpov&yacute; z&aacute;žitek. Byl to prvn&iacute; larp, kter&yacute; mě dohnal k slz&aacute;m a tak monstr&oacute;zn&iacute;mu v&iacute;řen&iacute; pocitů, že jsem se z toho musela celkem dlouho vzpamatov&aacute;vat. Larp je &uacute;žasn&yacute; nejen proto, že dok&aacute;že vzbudit emoce v snad &uacute;plně každ&eacute;m, ale tak&eacute; kvůli tomu, že když v&aacute;m jen na chvilinku přijde, že nějak moment&aacute;lně nem&aacute;te co řešit, hned se stane něco a vy opět nev&iacute;te, s k&yacute;m mluvit dř&iacute;v, takže zapomeňte na to, že byste se během larpu byť jen chv&iacute;li nudili.</p> 
+<p>Už velmi dobře ch&aacute;pu, proč m&aacute; Moon ten cejch něčeho &uacute;žasn&eacute;ho a must-to-play, protože... ano, je to na 100% must-to-play :) Čistě 10/10.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1523/"><strong>Bambi</strong></a>
+              <span class="text-muted small">08. 03. 2015</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p><strong>Komorn&iacute; Lipn&iacute;k 8.3. 2015</strong> - <em>John Raw </em></p> 
+<p><strong>Hra</strong>: Jak se měn&iacute; naše n&aacute;zory? Jak se měn&iacute;me my? Co lid&eacute; okolo n&aacute;s? Jak&aacute; je cena za svobodu? Můžeme ji někomu vnutit? Jde na to vůbec odpovědět spr&aacute;vně?</p> 
+<p><strong>Usnesen&iacute;</strong>: &nbsp;Jsem vděčn&yacute; Moonu za můj prvn&iacute; velice intenzivn&iacute; larpov&yacute; z&aacute;žitek, ne nadarmo mi byl doporučen jako Must-to-play.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/519/"><strong>Smaydy</strong></a>
+              <span class="text-muted small">08. 03. 2015</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Moon jsem hr&aacute;l dvakr&aacute;t. A podruh&eacute; to pro mě byl siln&yacute; z&aacute;žitek a dlouho jsem z toho byl na dně a klepal jsem se. Fakt jsem si to na produh&eacute; moc užil, jednak potože tam byli skvěl&iacute; hr&aacute;či, jednak postavou, kterou jsem si vybral. Mus&iacute;m ř&iacute;ct, že se opravdu povedl. Doporučuji si jej zahr&aacute;t.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1446/"><strong>RoMi</strong></a>
+              <span class="text-muted small">28. 12. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Skvěl&yacute; LARP, ačkoliv se mi v průběhu zd&aacute;l docela rozvlekl&yacute;, děj v&yacute;borně gradoval a konec naprosto nečekan&yacute;. Rozhodně doporučuju.</p> 
+<p>&nbsp;</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1015/"><strong>Termot</strong></a>
+              <span class="text-muted small">21. 12. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Bylo to super a všem doporučuji :)</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1023/"><strong>Kukulín</strong></a>
+              <span class="text-muted small">18. 11. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Měl jsem možnost si MOON vyzkoušet na letošn&iacute; CVVZce a mus&iacute;m ř&iacute;ci, že se opravdu jedn&aacute; o naprosto &uacute;žasnou věc. M&aacute;loco mě tolik dostalo, jako pr&aacute;vě tento larp....prostě skvěl&eacute;. D&iacute;ky za to.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/473/"><strong>Tirius</strong></a>
+              <span class="text-muted small">11. 11. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Jeden z komorn&iacute;ch LARPů, kter&eacute; na mě nejv&iacute;ce zapůsobily... Atmosf&eacute;rou, v&yacute;pravnost&iacute;, vyvrcholen&iacute;m.</p> 
+<p>Bylo o čem jednat a děj se posouval dopředu. Nav&iacute;c jsem si jist&yacute;, že kdybych měl př&iacute;ležitost hr&aacute;t ho znovu, za jinou postavu a s jin&yacute;mi c&iacute;ly, užil bych si ho &uacute;plně stejně.</p> 
+<p>Takřka povinnost pro každ&eacute;ho př&iacute;vržence komor&aacute;ků. 9/10</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1041/"><strong>Jarik</strong></a>
+              <span class="text-muted small">28. 09. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Tenhle larp byl opravdu ten nejdrsnějš&iacute; larp co jsem kdy hr&aacute;l, i když moje postava nakonec z&iacute;skala co chtěla, neradovala se dlouho.Atmosf&eacute;ra života na jin&eacute; planetě, popř. měs&iacute;ci je &uacute;chvatn&aacute; a celkov&eacute; se miten larp zd&aacute;l dobře udělan&yacute;. Určitě stoj&iacute; za zahr&aacute;n&iacute;.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/614/"><strong>Gavroche</strong></a>
+              <span class="text-muted small">30. 07. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Moon mi byl dlouho předkl&aacute;d&aacute;n jako jak&yacute;si etalon komorn&iacute;ho larpu. Ot&aacute;zka “Ty jsi ještě nehr&aacute;l Moon?” doprov&aacute;zen&aacute; nevěř&iacute;cn&yacute;m v&yacute;razem na mě ze všech stran vyskakovala a byl jen jeden způsob, jak se j&iacute; navždy zbavit a zjistit, nakolik splniteln&aacute; jsou ona vysok&aacute; oček&aacute;v&aacute;n&iacute;.</p> 
+<p>Pro ty, kteř&iacute; nechtěj&iacute; č&iacute;st do konce: Ano, jsou splniteln&aacute;.</p> 
+<p>Hr&aacute;l jsem guvern&eacute;ra a ta role mě přinutila citovat špičkov&eacute; (byť fiktivn&iacute;) vědce a (naprosto skutečn&eacute;) prezidenty. Tak&eacute; mi umožnila si vyzkoušet, jak zahr&aacute;t dynamicky se vyv&iacute;jej&iacute;c&iacute; vztah ke skupině lid&iacute;, kde byste spr&aacute;vně neměli nikomu stranit, ale re&aacute;lně něco takov&eacute;ho prostě nejde. A pak přišel čas nesnadn&yacute;ch rozhodnut&iacute;...</p> 
+<p>Určitě si chci guvern&eacute;ra někdy zahr&aacute;t ještě jednou. Zůst&aacute;v&aacute; ve mně mnoho ot&aacute;zek, zpětně vid&iacute;m řadu alternativn&iacute;ch možnost&iacute;, jak někter&eacute; situace řešit. I po dohr&aacute;n&iacute; ve mně zůst&aacute;v&aacute; velk&aacute; zvědavost nad t&iacute;m, co všechno by šlo a jak. A to je vlastně dost vz&aacute;cn&yacute; pocit.</p> 
+<p>Celkově je Moon skvěl&yacute;, do detailů promyšlen&yacute; a na poměry komorn&iacute;ho larpu nečekaně v&yacute;pravn&yacute;. Pro mě je ale hlavn&iacute;, že obsahuje v&yacute;razn&yacute; mor&aacute;ln&iacute; přesah, jehož dilemata vedou k důležit&yacute;m ot&aacute;zk&aacute;m i dlouho po skončen&iacute; akce. <strong>9/10</strong></p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1224/"><strong>Dukolm</strong></a>
+              <span class="text-muted small">27. 07. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Moon jsem hr&aacute;l na GameConu 2014 p&aacute;tečn&iacute; ran&iacute; běh.</p> 
+<p>Jako fanouškovy Firefly mi byl larp doporučov&aacute;n a veleben. D&iacute;ky tomu jsem pak měl i trošku větš&iacute; oček&aacute;v&aacute;n&iacute;.</p> 
+<p>Rozděl&iacute;m to tedy na hru a jej&iacute; z&aacute;věr. Hru jsem si užil diky p&aacute;r hr&aacute;čům i dost intenzivně ale pouze jen v několika okamžic&iacute;ch a n&eacute; celkově. Z&aacute;věr ten mě opravdu dostal tak, až jsem r&aacute;d že jsem byl popraven.&nbsp;</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/794/"><strong>Jindři:)</strong></a>
+              <span class="text-muted small">21. 07. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Na Moonu byla př&iacute;jemn&aacute; hudba a velmi siln&yacute; z&aacute;věr, kde jsem dostala i možnost volby - tedy jako postava ve skutečnosti moc ne, ale jako hr&aacute;čka ano. Čekala jsem silnějš&iacute; atmosf&eacute;ru, kterou m&aacute; Firefly... A pak jsem si zase ověřila, že když hraju matku (Caroline Grey) a m&aacute;m podporovat sv&eacute;ho syna, kter&eacute;ho hraje člověk, jenž mi nesedl (měl b&yacute;t silně ovlivňov&aacute;n matkou, jenže ten dotyčn&yacute; si nehleděl vůbec toho, co bylo k t&eacute; postavě naps&aacute;no a to už ani v předsc&eacute;n&aacute;ch), hraje se to cel&eacute; dost těžko a hlavně si to člověk pak moc neužije. Ale věř&iacute;m, že jin&eacute; postavy z toho mohou m&iacute;t silnějš&iacute; z&aacute;žitky.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/565/"><strong>Mu</strong></a>
+              <span class="text-muted small">21. 07. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Hodnotil jsem: nehodnotil, protože to prostě nejde.</p> 
+<p>&nbsp;</p> 
+<p>Na Moonu jsem kr&aacute;sně viděl, jak hru dělaj&iacute; hr&aacute;či spolu s organiz&aacute;tory. J&aacute; to hr&aacute;l na GC 2014 a můžu ř&iacute;ci bohužel, protože GC je určen nejen pro larpaře, ale i pro lidi, kteř&iacute; si chtěj&iacute; larp zkusit. Naše hra byla tragick&aacute;. Měli jsme tam 3 prvohr&aacute;če z nichž dva č&aacute;st hry nechali sklouznout do parodie a ti zbyl&iacute; to zachr&aacute;nili jen občas. Už minul&yacute; rok jsem byl podobně zklam&aacute;n...</p> 
+<p>Jsem si prostě jist, že autoři Moonu nechtěli hru, kde by se dva hr&aacute;či sm&aacute;li a kněz v šortk&aacute;ch dělal (parodoval) požehn&aacute;n&iacute;. Takže j&aacute; si z cel&eacute; hry pamatuji 4 hr&aacute;če (i se mnou) z 6. A jen stěž&iacute; jsem se přem&aacute;hal, abych neposlal (jako mrz&aacute;k) na smrt člověka, kter&yacute; tu hru kazil.&nbsp;</p> 
+<p>Hrozně mě to mrz&iacute;, protože v&iacute;m, že bych si Moon neskutečně užil s lidmi, kter&eacute; bych si vybral. Takhle bych mohl hodnotit jen dobře napsan&eacute; postavy a předpřipraven&yacute; backround světa a č&aacute;st př&iacute;běhu - je mi jasn&eacute;, že bych hodnotil 8 - 10, ale takhle nev&iacute;m.</p> 
+<p>Sorry, v&iacute;m, že autoři nemohou za hr&aacute;če na GC, ale 3 prvohr&aacute;či a dva jednoročn&iacute; larp&aacute;ci prostě neudělaj&iacute; ze sebelepš&iacute; hry suprov&yacute; z&aacute;žitek.</p> 
+<p>Ty vole, ale i přesto jsem se slušně bavil.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/966/"><strong>Sojka</strong></a>
+              <span class="text-muted small">17. 06. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Moon pro mě byl jestli ne nejsilnějš&iacute; larp, kter&yacute; jsem kdy hr&aacute;la, tak jeden asi ze dvou. Při v&yacute;běru postav jsem hned věděla, kter&aacute; mi sedne - nem&yacute;lila jsem se a na z&aacute;žitku se to určitě podepsalo. Měla jsem ale taky štěst&iacute; na spoluhr&aacute;če a t&eacute;ž mus&iacute;m moc poděkovat Arwi a Kubovi za uveden&iacute; hry. Prož&iacute;vala jsem neuvěřitelně siln&eacute; emoce, na konci jsem měla v oč&iacute;ch opravdick&eacute; slzy a nemohla jsem ani pomoct s ukl&iacute;zen&iacute;m rekvizit, protože se mi ruce tř&aacute;sly natolik, že jsem v nich nic neudržela. Což je velk&aacute; pochvala. Znovu bych Moon hr&aacute;t nechtěla, protože už by tam nebyl ten prvek překvapen&iacute; a atmosf&eacute;ra strašn&eacute; nejistoty, kter&aacute; k z&aacute;žitku ohdně přispěla, ale jsem velmi r&aacute;da, že jsem měla možnost to zaž&iacute;t.&nbsp;</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1083/"><strong>Eva Pavlorková</strong></a>
+              <span class="text-muted small">16. 06. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Moon mě v&iacute;cem&eacute;ně zklamal. Navzdory oček&aacute;v&aacute;n&iacute;m jsem během hry neměla emoce t&eacute;měř ž&aacute;dn&eacute;, dilemata taky ne, často jsem si ani nebyla jist&aacute;, co hr&aacute;t. Bylo zaj&iacute;mav&eacute; pozorovat někter&eacute; vypjat&eacute; sc&eacute;ny ostatn&iacute;ch a oceňuju origin&aacute;ln&iacute; mechaniku vyj&aacute;dřen&iacute; n&aacute;zoru skrz kost&yacute;m baretu nebo kab&aacute;tu a zaj&iacute;mavě zpracovanou zpětnou vazbu, v&iacute;c mi to asi nedalo. Nejv&iacute;c mě zamrzelo, že vysvětlen&iacute;, co se na sc&eacute;ně celou dobu dělo (jak to bylo doopravdy, o čemž mi často chyběly informace - každ&yacute; tvrdil něco jin&eacute;ho), jsme nedostali na m&iacute;stě a budu si na něj muset počkat mailem. :(</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1086/"><strong>Martin Pém</strong></a>
+              <span class="text-muted small">14. 04. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Můj &uacute;plně prvn&iacute; larp&iacute;k, takže nemůžu srovn&aacute;vat. Ale udělalo to na mě velkej dojem, mohl jsem kecat &uacute;pln&yacute; kraviny a nikdo ani pohoršeně nezvedal oboč&iacute;, good. Zač&aacute;tek byl trošku rozpačitej, možn&aacute; kdyby organiz&aacute;tor vběhl do m&iacute;stnosti a někomu dal na &uacute;vod pěst&iacute; nebo ho polil studenou vodou...ale to bude třeba jinde. Naštěst&iacute; se to rychle rozjelo, začly h&aacute;dky a intriky...nečekan&eacute; situace...a bezvadnej z&aacute;věr. Jo, za mě supr!</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/743/"><strong>Katoo</strong></a>
+              <span class="text-muted small">14. 04. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Luxusn&iacute; larp s hustokrutopř&iacute;sn&yacute;m rozuzlen&iacute;m.&nbsp; Tak siln&eacute; emoce ve mě zanechalo jen m&aacute;lo larpů. :)</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/339/"><strong>Rado</strong></a>
+              <span class="text-muted small">13. 04. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Miluju když se d&aacute; do př&iacute;běhu vr&aacute;titia vyzkoušet co by, kdyby...takže Moon určitě někdy znova. Setk&aacute;n&iacute; u čaj&iacute;čku postupně graduje a nakonec všichni (?) skliz&iacute; n&aacute;sledky sv&yacute;ch rozhodnut&iacute;. Z&aacute;věr pro mě max. siln&yacute;...</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1048/"><strong>John Jarik</strong></a>
+              <span class="text-muted small">19. 03. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Jedna z her, kter&eacute; mi sedly. Siln&yacute; z&aacute;žitek.<br />Když se hra (a zlv&aacute;ště postava) tref&iacute; do vašeho moment&aacute;ln&iacute;ho zdravotn&iacute;ho stavu (a t&iacute;m nemysl&iacute;m HAPPY),...<br />užijete si ji jinak. Nemus&iacute;te přem&yacute;šlet nad t&iacute;m, jak ji hr&aacute;t, Vy totiž přesně v&iacute;te, jak se c&iacute;t&iacute;.<br />---<br />Druh&eacute; kolo. Stejně dobr&yacute; z&aacute;žitek. Ta hra je prostě dobr&aacute;.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/20/"><strong>Dikobraz</strong></a>
+              <span class="text-muted small">10. 03. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Moon mě bavil a mysl&iacute;m, že je to super larp. Um&iacute; velmi silně zprostředkovat jednu těžkou situaci a dobře s n&iacute; pracuje v pohern&iacute;ch workshopech. Moc se mi tak&eacute; l&iacute;b&iacute; promyšlenost a propracovanost postav, skryt&eacute; odkazy a m&iacute;ra detailu ve hře. V někter&yacute;ch momentech jsem měl pocit (předevš&iacute;m uprostřed hry), že nen&iacute; co dělat, ale zpětně hodnot&iacute;m, že je to tak spr&aacute;vně. Hr&aacute;l jsem běh uv&aacute;děn&yacute; Tar&iacute; a Wladkem v Ostravě, březen 2014.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/271/"><strong>Wlern</strong></a>
+              <span class="text-muted small">24. 02. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Hr&aacute;l jsem za Gideona na pivku 12&deg; a byl to skvěl&yacute; Larp. A nav&iacute;c</p> 
+<p>se s t&iacute;m Aki, Stopka a Tygr &quot;popraly&quot; skvěle a uvedli to opravdu pěkně. Rekvizity &uacute;žasně důmysln&eacute; (ampule na l&eacute;ky) a vlastně všechno.<br /><br />Jedin&yacute;, co mi na moonu vadilo bylo to, že si mě Sofie nevzala, ale to je moje chyba...<br /><br />A nav&iacute;c jsem se s postavou doktora t&eacute;měř dokonale stotožnil...</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1031/"><strong>Yeny</strong></a>
+              <span class="text-muted small">16. 02. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Z m&eacute; vlastn&iacute; zkušenosti film, o kter&eacute;m se hodně mluv&iacute;, stoj&iacute; většinou za houby. Stejně tak jsem si myslela, že to bude is &nbsp;Moonem. Lidi se z toho mohli zbl&aacute;znit. Ř&iacute;kala jsem si, že je to nějak&yacute; davov&yacute; š&iacute;lenstv&iacute;. A pak jsem začala hr&aacute;t...</p> 
+<p>Moon mě pohltil během prvn&iacute; půl hodiny (možn&aacute; i dř&iacute;v), postava a j&aacute; se vě mně slily a najendou šlo o osud naš&iacute; osady. &nbsp;V&yacute;čitky svědom&iacute;, pocity podveden&iacute;, strach a napět&iacute;. A nakonec pocit zmaru a pr&aacute;zdnoty. Tma a křik, pak nějak&eacute; oficiality, kter&eacute; se mě už net&yacute;kali. Byla jsem d&aacute;vno v jin&eacute;m světě. Poslušně jsem se odebrala, kam jsem měla. Z tranzu mě probral až v&yacute;střel. R&aacute;na, kter&aacute; zarezonovala cel&yacute;m m&yacute;m tělem. Společně s dut&yacute;m n&aacute;razem těla někoho, na kom mi z&aacute;leželo, jsem klesla k zemi i j&aacute;.&nbsp;</p> 
+<p>Moon už hr&aacute;t nechci, ale jednou je to must!</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1027/"><strong>Isa</strong></a>
+              <span class="text-muted small">12. 02. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Na rozd&iacute;l zřejmě asi od každ&eacute;ho jsem o Moonu nikdy předt&iacute;m než jsem dostala možnost si ho zahr&aacute;t neslyšela. Ne, neslyšela jsem ani o Firefly. A vůbec ničemu to nevadilo.&nbsp;</p> 
+<p>Před hrou jsem měla dojem, že svoji postavu (<em>Caroline Grey</em>) absolutně nepob&iacute;r&aacute;m. Byla jsem si celkem jist&aacute;, že jsem konečně narazila na něco, co prostě nedok&aacute;žu zahr&aacute;t. Během hry ten pocit nějak zmizel, protože na moje vlastn&iacute; emoce prostě nezbylo m&iacute;sto. Slzy jsem nemusela hr&aacute;t. A nikdy v životě se mi nestalo, ani by mě nenapadlo že se to může st&aacute;t, že se mi po hře budou tř&aacute;st ruce tak, že m&aacute;lem rozliju zdravotn&iacute; doušek na posilněnou. Moon se mnou otř&aacute;sl tak, jako ještě nic předt&iacute;m. Což je možn&aacute; dobře- možn&aacute; ne.&nbsp;</p> 
+<p>Nicm&eacute;ně moje hodnocen&iacute; je čist&yacute;ch 10/10. A ř&iacute;k&aacute;m: hr&aacute;t Moon a klidně umř&iacute;t.&nbsp;</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/395/"><strong>Chyn</strong></a>
+              <span class="text-muted small">11. 02. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>J&aacute; d&aacute;v&aacute;m 10/10. Už se mi p&aacute;rkr&aacute;t stalo, že jsem byl po larpu emocion&aacute;lně nabit&yacute;, abych na něj vzpom&iacute;nal ještě dlouho pot&eacute; a abych si ho opravdu užil. Ale MOON mi dal ještě něco nav&iacute;c. I přesto, že jsem hr&aacute;l za postavu kter&aacute; se mnou moc společn&eacute;ho neměla (<em>Ian Nest</em>), tak jsem si hru užil natolik že bych se na konci i rozbrečel. Vlastně jsem slzy neuronil jen proto, že jsem byl natolik unešen cel&yacute;m larpem, že jsem tak nějak zapomněl na to že bych mněl brečet. Po ukončen&iacute; hry jsem zůstal na m&iacute;stě, neschopen nějak&eacute;ho větš&iacute;ho pohybu. jen jsem se klepal.</p> 
+<p>Jestli jste moon nehr&aacute;li, pak nev&aacute;hejte. Opravdu <strong>nejlepš&iacute;</strong> larp jak&yacute; jsem kdy hr&aacute;l (a to už jsem si toho odehr&aacute;l docela dost)</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/484/"><strong>Diké</strong></a>
+              <span class="text-muted small">11. 02. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Stejně jako Ferda pode mnou, ani j&aacute; nemůžu d&aacute;t pln&yacute; počet bodů. Za prv&eacute; mě opravdu mrzely chyby/překlepy v postav&aacute;ch, př&iacute;padně někter&aacute; fakta, kter&aacute; nebyla &uacute;plně vysvětlena nebo věty, kter&eacute; si člověk musel přeč&iacute;st čtyřikr&aacute;t, aby d&aacute;valy smysl. Nicm&eacute;ně Moon byl pro mě velmi siln&yacute; (Sofie Troy), prožila jsem si něco naprosto neuvěřiteln&eacute;ho, a mus&iacute;m ř&iacute;ct, že to st&aacute;lo za to. Klidně bych si to dala ještě jednou.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/492/"><strong>Ferda</strong></a>
+              <span class="text-muted small">09. 02. 2014</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>O Moonu jsem slyšel vždy jen sam&aacute; superlativa, chtěl jsem tedy vyzkoušet, zda se můj n&aacute;zor nebude lišit. Neliš&iacute;.</p> 
+<p>Larp je opravdu svou kvalitou velmi na &uacute;rovni, což bylo u mě okořeněno i t&iacute;m, že mi doopravdy sedla postava (Otec Joseph). Slzy na larpech se objevuj&iacute;, ale ještě jsem nezažil hru, kde by na konci tekly tolika hr&aacute;čům/postav&aacute;m. Takov&aacute; d&aacute;vka emoc&iacute; v člověku zanech&aacute; opravdu hlobok&yacute; dojem.</p> 
+<p>Jedin&aacute; věc, kter&aacute; mi zabr&aacute;nila d&aacute;t 10 m&iacute;sto 9/10, byly pravopisn&eacute; chyby či překlepy v materi&aacute;lech ke hře (popisy postav, hern&iacute; informace atp.). Věř&iacute;m, že pokud autoři sv&eacute; materi&aacute;ly hod&iacute; někomu na korekturu, bude vše už opravdu bez poskvrnky ;) D&iacute;ky moc za prožit&iacute; Firefly na vlastn&iacute; kůži!</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/236/"><strong>Ciri</strong></a>
+              <span class="text-muted small">22. 12. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Monn je dobr&aacute; hra. Užila jsem si předevš&iacute;m sledov&aacute;n&iacute; ostatn&iacute;ch osobn&iacute;ch př&iacute;běhů a pozn&aacute;v&aacute;n&iacute; charakterů lid&iacute;. Postava mi vůbec nesedla (TJ Stone), což neberu nutně jako negativum, byla to velk&aacute; v&yacute;zva, drsňačky prostě moc neum&iacute;m. Možn&aacute; proto jsem se c&iacute;tila sp&iacute;š jako pozorovatel. Teprve zpětně mi došlo, jak&yacute; pro mě měla hra v&yacute;znam. V&iacute;c než o svobodě pro mě byla o hled&aacute;n&iacute; př&aacute;telstv&iacute;. Nepomohlo ani se obětovat ani svěřit, ale nechat si poř&aacute;dně vynadat. D&iacute;ky!</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/371/"><strong>Nilwine</strong></a>
+              <span class="text-muted small">02. 12. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Sofie Troy</p> 
+<p>Velmi dobr&yacute; larp, ze kter&eacute;ho p&aacute;r naoko jednoduch&yacute;ch mechanismů, skvěle vyv&aacute;žen&eacute; nastaven&iacute; postav a v&yacute;born&aacute; zpětn&aacute; vazba (kdy autoři opravdu věd&iacute;, k čemu je zpětn&aacute; vazba dobr&aacute; :) ) dělaj&iacute; larp nezapomenuteln&yacute;! Asi ještě nikdy jsem u komorn&iacute;ho larpu neměla tak siln&yacute; pocit, že organiz&aacute;toři přesně věd&iacute;, co chtěj&iacute; larpem sdělit, a maj&iacute; celou hru tak pevně v ruce, že hr&aacute;če t&eacute;měř neviditelně, ale z&aacute;roveň &uacute;plně precizně, dok&aacute;ž&iacute; v&eacute;st tam, kam je potřeba. Takhle si představuji opravdu kvalitně zvl&aacute;dnut&yacute; komor&aacute;k.</p> 
+<p>Larp pro mě byl o rozhodnut&iacute;ch a přijet&iacute; zodpovědnosti za ně a po lehce pomal&eacute; prvn&iacute; č&aacute;sti hra vygradovala tak, že jsem se nestačila divit a v z&aacute;věru nutil notně přem&yacute;šlet o sv&yacute;ch činech nejen postavu, ale i hr&aacute;če, takže za mě 9/10 a poklona autorům.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/113/"><strong>Eliška</strong></a>
+              <span class="text-muted small">04. 11. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Jsem moc ráda, že mi Moon skrz Sofii umožnil rozhodovat se ve věcech, který v běžným životě snad nikdy nebudu muset řešit. Jsem ráda, že jsem mohla hrát za postavu, která měla pohled na svět odlišný od toho mého.
+<br/>Všechny postavy mi přišly ohromně zajímavý a propracovaný, ani nemluvím o volbách, které musely činit.
+<br/>Byla to silná hra, na některé okamžiky budu ještě dlouho vzpomínat!</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/951/"><strong>Daniel</strong></a>
+              <span class="text-muted small">03. 11. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Jedním slovem: geniální. </div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/111/"><strong>LV</strong></a>
+              <span class="text-muted small">03. 11. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">nastrel komentare, mozna doplnim, az se mi to trosku rozlezi<br/><br/>Ptal jsem se: &quot;Jaky je nejlepsi komorak, co jsem jeste nehral?&quot;<br/>Rekli mi: &quot;Moon.&quot;<br/><br/>Neni to pravda, po dnesku je Moon asi nejlepsi komorni larp, ktery jsem kdy hral.<br/><br/>Pokud by se me nekdo zeptal, jak ma vypadat skutecne kvalitni komorni larp, uvedl bych Moon jako priklad, mozna ne po strance herniho designu, ale celkove proste od uvedeni, po reflexi, pres dejove posuny a organizatorkse vstupy obecne.<br/><br/>Az vyrostu, chtel bych byt jako Estanor s Filipem (a taky mit po ruce ty zbyle autory do party :)</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/172/"><strong>Morgain</strong></a>
+              <span class="text-muted small">07. 10. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Hodnotím 9/10.<br/><br/>Hrála jsem ho po mnoha letech jeho uvádění a moho jsem o něm slyšela a i tak hra naplnila moje očekávání. Ačkoliv jsem asi neměla nejzábavnější postavu pod sluncem, tak mě hra vtáhla natolik, že jsem v rámci ní udělala jako postava rozhodnutí, které bych jako hráč při zdravém rozumu neudělala. V rámci reflexe, která byla v této hře výjimečně dobře pojatá, jsem si to i uvědomila a toho si cením.<br/>Jeden z nejlepších komoráků, co jsem kdy hrála.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/807/"><strong>Sotkis</strong></a>
+              <span class="text-muted small">14. 08. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Hral jsem na &quot;Komorni Trebici 2011&quot;. Jedna z neintenzivnejsich komorin, jake jsem hral. 2 body dolu vlastne nespravedlive strhavam hlavne za to, ze je to &quot;komorina&quot; a ty mi dokonale sednout nemuzou, protoze mam rad Sandboxovost.<br/>8/10</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/508/"><strong>Shaika</strong></a>
+              <span class="text-muted small">25. 06. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Pro mě zatím jeden z nejlepších komorních larpů. Pěkná atmosféra, dobře zpracované prostředí. Přestože mi postava dost nesedla, spoustu jejích motivací mě míjelo a první půlka hry mě moc neoslovila, druhá polovina hry trochu rozpačité pocity hodně napravila a závěr byl vskutku epický. <br/>Hodně oceňuju výběr postav předem, tedy možnost si pořádně pročíst postavu a trochu si připravit kostým. </div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/460/"><strong>Druid</strong></a>
+              <span class="text-muted small">14. 06. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Moon byl pro mě dlouhou dobu nejlepší LARP, co sem hrál, kterýmu se ostatní (s výjimkou Never Let Me Go) ani nepřiblížily a i poté, co byl na prvním místě vystřídán Doktorovým Iure, zůstává LARPem, na kterej strašně rád vzpomínám a kterej si někdy rád zahraju znovu. <br/>Vyzdvihnout musim výběr a rozdělení rolí dopředu - věc, kterou by měly (podle mě) využívat všechny LARPy, kde je to možný a smysluplný. Protože mít možnost si postavu pořádně prostudovat a rozmyslet si jak jí chci hrát má určitě smysl. Během těch 15 minut, co má člověk obvykle, je rád, že si zapamatuje vlastní jméno, natož nějaký složitý vztahy, události z minulosti a bůhvíco ještě a lovení informací z papíru atmosféře nepřidává.<br/>Připravený scény na začátku sloužící k dostání se do rolí, vžití se do situace a k vybudování atmosféry jsou taky skvělej nápad.  <br/>Moon má skvěle propracovaný postavy (na někoho možná informací moc, ale já oceňuju, když o postavě vim víc než jen to nejnutnější minimum, líp se mi pak do ní vžívá a postavy jsou pak obecně takový &quot;živější&quot;. Navíc tu má člověk čas si postavu nastudovat). <br/>Jinak můžu jenom zopakovat, co již bylo napsáno pode mnou: Skvělej příběh s úžasnou atmosférou, gradací a velmi velmi silnym závěrem. <br/>9/10<br/><br/>P.S. Kvůli Moonu sem skouknul Firefly, za což díky. Firefly je supr :)</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/174/"><strong>Zappo</strong></a>
+              <span class="text-muted small">03. 06. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Komorní larp, který jsem si zahrál tak jak mám rád - čili při betatestu, s koherentní skupinou spoluhráčů a pocitem něčeho nového. Přestože neznám Firefly, tak jsem se do role dostal poměrně v pohodě, byť míra textu ke vstřebání s místy nejasným vyzněním byla velká.<br/>Komorní larpy nejsou moje parketa, ale když už, takhle nějak si představuju počin, který má na to, aby se mu říkalo &quot;larp&quot; a ne &quot;etuda u stolu&quot; případně &quot;hříčka na odpoledne&quot;. Můžu určitě doporučit. 8/10</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/697/"><strong>Pavel</strong></a>
+              <span class="text-muted small">16. 05. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Firefly neznám. Leda vim, že je to spojení westernu a sci-fi. Ani jedno z toho nemam moc rád. A přece byl Moon naprosto skvělej.<br/>Precizně připravený postavy, počáteční a pak i průběžná zápletka, ač neznalec taxonomie bych tomuhle typu LARPu řikal LARP psychologickej - jde hlavně o postavu jako takovou - jakej má názor na svět, názor na ostatní, názor na sebe samotnou... Jaký má potřeby, touhy, chyby... To všechno dohromady udělalo z Moonu senzační LARP, kterej určitě doporučuju (pokud máte styl LARPu, co jsem tu popsal, rádi, pak je pro vás Moon přímo povinnost).<br/>Snad jen kvůli úplnýmu konci, kterej mi přišel trochu protahovanej, dávám &quot;jenom&quot; 9/10</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/6/"><strong>Drirr</strong></a>
+              <span class="text-muted small">23. 04. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Přidávám se k pochvalným hodnocením. Roli guvernéra jsem si prožil opravdu silně a musím říct, že jde o jeden z největších larpových zážitků. Hra je jinak veskrze jednoduchá a těží z mistrně napsaných postav a několika detailů (projevy, rádio, oděvní doplňky...), které ji posunují nad většinu ostatní produkce. Přiznám se, že závěrečná reflexe na mě byla až moc dlouhá a až moc podrobná. Raději bych si hru promyslel, sám se s ní vypořádal a až pak ji třeba rozebíral. Takhle, byť se orgové snažili nijak netlačit, jsem cítil, že se ode mě očekává ke všemu se nějak vyjádřit. Jinak ale klobouky dolů. 9/10</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/654/"><strong>Slaven</strong></a>
+              <span class="text-muted small">13. 04. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Musel jsem si 3 roky počkat, než jsem si konečně Moon zahrál (parně zázrakem se mi podařilo udržet se stranou úplně všech informací a spoilerů) a dostal jsem všechno, o čem jsem snil a ještě pár vychytávek navíc. Když jsem se dnes ráno probudil a tlačila mě levá ruka od berle, vybavily se mi znovu všechny fantastické scény, jichž jsem byl svědkem i těch, kterých jsem se sám účastnil. Mám rád westerny, mám rád sci-fi, mám rád Firefly, mám rád, když se na larpu brečí, nejvíc mám rád, když se tam brečí kvůli mně a tím je to ložený. Náš běh byl složený částečně ze zkušených hráčů a částečně z nováčků, mně se ale se všemi hrálo dobře, speciální dík míří naší Sofii. 10/10</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/85/"><strong>Patrik Krupička</strong></a>
+              <span class="text-muted small">02. 04. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Jako larp podle Firefly? Jako westernoscifi? Jako prokleslené postavy? Jako spousta překvapení? Jako hodně hustě!<br/>Mám za to, že to byl druhý komorák, který jsem hrál a do komorákového světa mě vcucnul a už nepustil.<br/>A při závěru se mi klepaly ruce a to se počítá!<br/>9/10</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/624/"><strong>PEEPA</strong></a>
+              <span class="text-muted small">28. 03. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Ackoliv se nepovazuji za znalce Firefly, na LARP jsem se diky jeho settingu tesil jako na neco kapku netradicniho a nebyl jsem zklaman. Jednalo se predevsim o supr praci s atmosferou a stupnujicim se napetim s vybornym zaverem. Silny zazitek zarucen, urcite i diky skvelym hracum, na ktere jsem mel stesti. Za 9.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/518/"><strong>benzin</strong></a>
+              <span class="text-muted small">23. 02. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Zajímavý seting westernoscifi. Nicméně jde spíše o průměrný larp, kde nic nepřekvapí. Musíte hrát opravdu zásadně nechápavou postavu a ještě být hodně dobrý hráč, aby jste zápletky neprokoukli. Nebo musíte mít víru v neočekávaný zvrat, který se ale nedostaví.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/23/"><strong>Rozum</strong></a>
+              <span class="text-muted small">22. 02. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Kombinace westernu a sci-fi? Může být něco lepšího? Nicméně i pokud by vás tato kombinace spíše děsila, není to příliš důležité. Důležité je, že larp zpracovává nadčasová témata o zodpovědnosti nejen za sebe, za svoje blízké, ale i za celý svět. Díky tomu, ale i díky silným dramatickým scénám, díky finále a díky zakončení zpětnou vazbou, která vám pomůže ještě více si z larpu odnést a víc o jeho tématech přemýšlet, je to jeden z nejlepších komoráků. 10/10</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/77/"><strong>Ainé</strong></a>
+              <span class="text-muted small">09. 02. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Mám trochu problém tuhle hru hodnotit. Ač uznávám všechny její kvality, dost výrazně mi nesedla přidělená postava a v důsledku toho jsem si hru nedokázala moc vychutnat. </div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/417/"><strong>Feain</strong></a>
+              <span class="text-muted small">06. 02. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Hrála jsem betatest této hry a vím, že došlo k několika úpravám. Už v době, kdy jsem ji hrála mě nic méně velmi zaujala, jak silným příběhem tak pěkným názorovým rozložením postav. Kouzlem hry je mimo jiné i její logistická nenáročnost. Drobnosti, které bych vytkla byly myslím již napraveny- jednalo se zejména o trochu problematickou práci s časováním (volnější začátek a pak se vše tak semele, že už není kdy co řešit...) a problematické zapojení jedné až dvou postav ve všech fázích hry. I tak to byla švanda!</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/455/"><strong>Pyverrn</strong></a>
+              <span class="text-muted small">24. 01. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Vše již napsáno. V mém běhu se sešla velmi silná sestava hráčů a díky tomu se tento LARP pro mě stal jedním z nejlepších, na které vzpomínám jen v dobrém. Klobouk dolů.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/309/"><strong>Hroše</strong></a>
+              <span class="text-muted small">12. 01. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Pro mě se Moon řadí mezi tři nejlepší larpy, jaké jsem zatím hrála. Výborně napsaná postava, vyhrocené debaty, gradující atmosféra a hlavně neuvěřitelně silný závěr. Myslím že nemá smysl psát nic dalšího, protože víceméně všechno už tady bylo řečeno. :-) </div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/394/"><strong>Shuniik</strong></a>
+              <span class="text-muted small">12. 01. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Pro mě zatím nejlepší komorní larp, kterého jsem se zúčastnil. Pro ideálně nastavená postupná gradace společně s nečekaně silným závěrem ve mně nechala silné dojem ještě dlouho poté. Všechny postavy dohromady tvořily skvělý celek a dobře se doplňovaly, odděleně byly uvěřitelné a zajímavé. Jako jediné drobné negativum pro mě byly oděvních doplňků jako vyjádření podpory jedné či druhé straně konfliktu, které mě spíše rušily a přišly mi nadbytečné.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/426/"><strong>Harald</strong></a>
+              <span class="text-muted small">11. 01. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Velmi povedená hra. Postupně gradující atmosféra s naprosto dokonalým finále. V naší skupině - ačkoliv jsme měli polovinu hráčů, kteří předtím žádný LARP nehráli - se podařilo velmi dobře vyhrotit vztahy a zažít si několik emocionálně vyhraněných chvil. Chytře udělané rekvizity hru jenom podtrhují. Rozhodně patří k tomu nejlepšímu komorních LARPů, které jsem kdy hrál. 8/10.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/422/"><strong>Tari</strong></a>
+              <span class="text-muted small">11. 01. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Hra, která se mi dostala pod kůži, uvědomit si, jak je snadné přijmout životní &nbsp;rozhodnutí ve hře a jak jiné by bylo rozhodnutí ve stejné situaci v životě. Hodně přemýšlení při hře i po ní o ní. Díky moc za skvělou hru.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/25/"><strong>Kamil Buchtík</strong></a>
+              <span class="text-muted small">10. 01. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Velmi povedená hra, objektivně kvalitní a propracovaná. Osobně jsem si ji bohužel moc neužil, ale znám takovou pouze jednu další osobu. Musím ocenit závěr, zpětnou vazbu a rozhodnuutí tvůrců, že nemusí být cílem larpu pouze pobavit hráče.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/18/"><strong>Arwi</strong></a>
+              <span class="text-muted small">07. 01. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Hra, o které jsem přemýšlela ještě dlouho potom, co jsem ji dohrála. Ústřední příběh byl doprovázen řadou vedlejších linek, prostoje jsem z pohledu postavy obchodnice nezaznamenala. Bezvadně našlapaný a promyšlený příběh s dobrým rozjezdem v podobě rozehřívacích scén a silným závěrem. U jiného larpu bych nejspíš řekla, že mi chyběl sparing pro hraní (jediný víceméně pozitivní vztah mé role se zkrátka nestíhal), ale tady to ještě přispělo k umocnění dojmu z postavy.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/385/"><strong>Reinita</strong></a>
+              <span class="text-muted small">05. 01. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Jak už to tak bývá u kvalitních (a opěvovaných) her, laťka mých očekávání byla vskutku velmi vysoko. Bylo pěkné tu hru sledovat - funkční mechaniky, plynoucí děj, postupná gradace. Jen jsem to celé sledovala zvenčí. Moje postava mi prostě nesedla a v podstatě mi neumožnila se hry plnohodnotně účastnit (pak jsem zjistila, že tento problém měli v této roli i někteří moji předchůdci).<br/>Takže za mě 6/10.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/30/"><strong>Lischai</strong></a>
+              <span class="text-muted small">03. 01. 2013</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Moon je král mezi komorními larpy. Silné téma, pečlivě vedené motivy, dobrá pointa, zábavný herní průběh - všechno je tam, kde má být. 9/10, od maximálního hodnocení mě dělí jen to, že jsem Moon hrál ve skautské klubovně, ne v nějaké haciendě v polích.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/325/"><strong>Zevla</strong></a>
+              <span class="text-muted small">28. 12. 2012</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Hrála jsem jen betatest, takže ani nevím, jak moc to od té doby orgové ještě vychytali, ale už tehdy ta hra byla strašně silná.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/1/"><strong>Balda</strong></a>
+              <span class="text-muted small">28. 12. 2012</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Jeden z nejlepších komorních larpů, které jsem kdy hrál. <br/>Seriál jsem před hrou neznal, hra mě přesto velmi nadchla. Postav a pozadí světa bylo na můj vkus poněkud příliš mnoho, ale díky tomu, že bylo vše podstatné na konci krátce shrnuto, bylo možné se v tom neztratit a tak to vše dostat do hry. <br/>Hra je především konverzační. Moc technik jsem v ní nezaregistroval ale nastavení postav mi přišlo super. Celou hru jsem měl hodně co řešit s ostatními i když se mé postavy příliš netýkala dilemata zda aliance nebo hnědokabátníci.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/258/"><strong>Genevieve</strong></a>
+              <span class="text-muted small">26. 12. 2012</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Za mě asi nejlepší komorní larp, který jsem zatím hrála. <br/>Před hrou jsem neznala Firefly, seriál jsem zkoukla vlastně až pod vlivem zážitků ze hry, ale neznalost mě absolutně neomezovala. Vše jsem se dozvěděla před hrou, co ne, zeptala jsem se. Dostala jsem roli, kterou jsem chtěla a k tomu ještě výjimečné spoluhráče, kteří moji hru udělali nezapomenutelnou a i po čase se k tomu člověk vrací. Skvěle napsané a provázané postavy. Jediná postava mi nepřišla zbytečná nebo že by neměla prostor. Ten dostali všichni hráči a v mém případě ho i využili. Gradace, efekty, drobné kostýmy a podobně jsou všechny perfektně připravené. Některé detaily a nápady tvůrců mě opravdu nadchly.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/107/"><strong>Monty</strong></a>
+              <span class="text-muted small">17. 12. 2012</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Moon jsem si skvěle užil včetně veškerých propriet kolem. Příběh dostatečně silný a rozhodnutí se podařila udělat tak silná, že každý měl pocit, že mají opravdu váhu a má tedy smysl je zkoušet rozmyslet do důsledku.<br/>Já jsem kvitoval s potěšením dlouhé postavy ke čtení pro proniknutí do postavy. I když konečné shrnutí těch podstatných bodů mohlo být lepší-vyrobil jsem si vlastní a nebyl problém.<br/>Hra celou dobu běžela bez problémů a bez nutnosti jakéhokoliv zásahu a pořád bylo, co řešit, protože se pořád něco objevovalo nového a různě se do hry pouštěly informace od hráčů a celkově se dařilo, že hra nikdy nezastavila na mrtvém bodě za celou dobu.<br/>Samotné vyvrcholení hry bylo jedním z nejlépe vymyšlených konců LARPů, co jsem zažil a jedním z nejsilnějších konců. Poherní diskuze byly taky hodně zajímavé a možná díky nedostatku času mi přišly až moc krátké, že bych snesl i delší reflexi.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/92/"><strong>Fionor</strong></a>
+              <span class="text-muted small">17. 12. 2012</span>
+            </div>
+            
+          </div>
+          <div class="comment-text"><p>Hru jsem si užil - rozhodně jsem se nenudil a měl jsem st&aacute;le o čem mluvit, ale celkově jsem čekal trochu v&iacute;c. Možn&aacute; byl probl&eacute;m ve volbě postavy a kombinaci s dalš&iacute;mi hr&aacute;či při m&eacute;m běhu, ale oproti jin&yacute;m jsem nedostal zdaleka takovou d&aacute;vku emoc&iacute;, abych h&yacute;řil bezmezn&yacute;m nadšen&iacute;m.</p> 
+<p>Moon je ale i přesto n&aacute;padit&aacute; a kvalitně zpracovan&aacute; hra, kterou stoj&iacute; za to si zahr&aacute;t.</p></div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/105/"><strong>Louda</strong></a>
+              <span class="text-muted small">16. 12. 2012</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Moon mozná neumí zklamat, mě ale ani nenadchnul. Konec je vskutku vynikajicí, průběh hry byl ale pro mě prostě průměrný. Postava byla napsána až příliš mnoha slovy, "divadelní" scény takřka nikdy nevyšly tak jak měly a jinak se prostě tak jako mluvilo. Co se mi velmi líbilo bylo nicméně použití oděvních doplňků jako vyjádření smýšlení postavy, to je skvěle symbolické.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/75/"><strong>David František Wagner</strong></a>
+              <span class="text-muted small">16. 12. 2012</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Moon neumí zklamat. Kvalitně napsaný a výborně přímočarý průběh hry, který od nějaké třicáté minuty směřuje k jasnému konci a po cestě se dějí akorát drobounké vedlejší zápletky, které neodvádějí pozornost jinam. Kromě střízlivých a výborných rekvizit bych ještě vyzdvihl jednu věc: jedná se imo o jeden z prvních českých larpů, který vědomě pracuje s nějakým druhým plánem.
+To, že neumí zklamat má ale i svoje minusy: celkem snadno se stane, že ze začátku tu pointu prohlédnete a pak si tak nějak dodriftujete do konce bez toho, aby tam k nějakým těm emocím nebo zajímavostem došlo. Objektivně se ale stále jedná o jednu z nejlepších znovuhratelných her k dostání.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/78/"><strong>Jezevec</strong></a>
+              <span class="text-muted small">16. 12. 2012</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Jeden z nejlepších larpů na scéně i v roce 2012. Ač nejsem příznivcem žánru sci-fi, slouží setting jen jako ideální prostředek k vyznění myšlenky celé hry. Velmi dobře propracovaná dramaturgie hry, svižně a uchopitelně napsané postavy (ač na můj vkus až příliš dlouhé a některé informace jsem považoval za nadbytečné, věřím, že mohou jiným pomoci se dostat do atmosféry a prostředí lépe) a velmi silný závěr. Velmi pěkně a přitom relativně nenáročně zpracované rekvizity a kostýmové doplňky skvěle fungují a přidávají atmosféře.</div>
+        </div>
+      </div>
+      
+      
+      <div class="card mb-2">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between mb-2">
+            <div>
+              <a href="/profile/9/"><strong>Čiki</strong></a>
+              <span class="text-muted small">15. 12. 2012</span>
+            </div>
+            
+          </div>
+          <div class="comment-text">Jeden z nejlepších komorních larpů na současné tuzemské scéně. Přiznávám, že nálepka sci-fi western ve mě vzbuzovala dost silné obavy, ale pověst Moonu už před rokem byla tak velká, že mi to nedalo se nezúčastnit. Ve skutečnosti je Moon hlavně silné vztahové drama, příběh osobní zodpovědnosti, které vyžaduje těžké rozhodování. Herní mechanismy jsou výborně nastavené a (malý spoiler) závěrečné "soudní stání", je asi nejepičtějším a nejsilnějším koncem larpu, jaký jsem kdy viděl. Spolu se zpětnou vazbou - podtrženo, sečteno - pro mě není jiné volby než plnej počet.</div>
+        </div>
+      </div>
+      
+    
+  </div>
+
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-body text-center">
+        
+        <img src="/data/X/m/XmpPvE1H3GcmESJI.jpeg" alt="Moon" class="img-fluid rounded mb-2">
+        
+        <div class="rating-display mb-2">
+          <span class="display-4">8.5</span>
+          <div class="text-muted">⭐ 263 hodnocení</div>
+        </div>
+        
+        <div class="rating-histogram">
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">10</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 71.91011235955057%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">64</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">9</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 100%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">89</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">8</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 70.78651685393258%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">63</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">7</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 29.213483146067414%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">26</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">6</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 13.48314606741573%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">12</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">5</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 8.98876404494382%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">8</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">4</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 1.1235955056179776%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">1</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">3</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 0%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">0</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">2</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 0%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">0</span>
+          </div>
+          
+          
+          
+          
+          <div class="d-flex align-items-center mb-1">
+            <span class="small mr-2" style="width: 20px; text-align: right;">1</span>
+            <div class="flex-grow-1 bg-light rounded" style="height: 12px;">
+              <div class="bg-primary rounded" style="height: 12px; width: 0%;"></div>
+            </div>
+            <span class="small ml-2" style="width: 25px;">0</span>
+          </div>
+          
+        </div>
+        
+      </div>
+    </div>
+
+    
+    <h5>Podobné larpy</h5>
+    <div class="list-group mb-3">
+      
+      <a href="/larp/moon/cs/20/" class="list-group-item list-group-item-action py-2">
+        <small>Moon (2011)</small>
+      </a>
+      
+      <a href="/larp/inception-live/cs/217/" class="list-group-item list-group-item-action py-2">
+        <small>Inception-Live (2011)</small>
+      </a>
+      
+      <a href="/larp/taurea-42k/cs/39650/" class="list-group-item list-group-item-action py-2">
+        <small>Taurea 42k (2015)</small>
+      </a>
+      
+      <a href="/larp/star-crime/cs/226/" class="list-group-item list-group-item-action py-2">
+        <small>Star Crime (2011)</small>
+      </a>
+      
+      <a href="/larp/poselstvi-kremiku/cs/39/" class="list-group-item list-group-item-action py-2">
+        <small>Poselství křemíku (2011)</small>
+      </a>
+      
+      <a href="/larp/star-wars-treason/cs/317/" class="list-group-item list-group-item-action py-2">
+        <small>Star Wars: Treason (2011)</small>
+      </a>
+      
+      <a href="/larp/den-bez-trifidu/cs/49300/" class="list-group-item list-group-item-action py-2">
+        <small>Den bez trifidů (2017)</small>
+      </a>
+      
+      <a href="/larp/kolonie-alfa/cs/624/" class="list-group-item list-group-item-action py-2">
+        <small>Kolonie Alfa (2014)</small>
+      </a>
+      
+      <a href="/larp/horsi-nez-smrt/cs/458/" class="list-group-item list-group-item-action py-2">
+        <small>Horší než smrt (2013)</small>
+      </a>
+      
+    </div>
+    
+
+    
+    <h5>Události</h5>
+    <div class="list-group mb-3">
+      
+      <a href="/event/festival-elitnich-larpu/111/" class="list-group-item list-group-item-action py-2">
+        <small>Festival elitních larpů (03. 11. 2017 - 05. 11. 2017)</small>
+      </a>
+      
+      <a href="/event/gamecon-2015/413/" class="list-group-item list-group-item-action py-2">
+        <small>GameCon 2015 (16. 07. 2015 - 19. 07. 2015)</small>
+      </a>
+      
+      <a href="/event/gamecon-2014/412/" class="list-group-item list-group-item-action py-2">
+        <small>GameCon 2014 (17. 07. 2014 - 20. 07. 2014)</small>
+      </a>
+      
+    </div>
+    
+
+    
+    <h5>Larpy autorů</h5>
+    <div class="list-group mb-3">
+      
+      <a href="/larp/rosada-iii/cs/1266/" class="list-group-item list-group-item-action py-2">
+        <small>Rošáda III (2021)</small>
+      </a>
+      
+      <a href="/larp/princuv-gambit/cs/65/" class="list-group-item list-group-item-action py-2">
+        <small>Princův Gambit (2012)</small>
+      </a>
+      
+      <a href="/larp/zeme-snu-sen-o-hrichu/cs/653/" class="list-group-item list-group-item-action py-2">
+        <small>Země Snů: Sen o Hříchu (2010)</small>
+      </a>
+      
+      <a href="/larp/bitva-peti-armad-b5a-2015/cs/770/" class="list-group-item list-group-item-action py-2">
+        <small>Bitva pěti armád [B5A, 2015] (2015)</small>
+      </a>
+      
+      <a href="/larp/dedictvi-boure/cs/48500/" class="list-group-item list-group-item-action py-2">
+        <small>Dědictví Bouře (2017)</small>
+      </a>
+      
+      <a href="/larp/kdo-si-hraje/cs/569/" class="list-group-item list-group-item-action py-2">
+        <small>Kdo si hraje (2014)</small>
+      </a>
+      
+      <a href="/larp/fk-perseus/cs/177/" class="list-group-item list-group-item-action py-2">
+        <small>FK Perseus (2012)</small>
+      </a>
+      
+      <a href="/larp/pribehy-divokych-planet-2018-firefly/cs/53100/" class="list-group-item list-group-item-action py-2">
+        <small>Příběhy divokých planet 2018 (Firefly) (2018)</small>
+      </a>
+      
+      <a href="/larp/the-night-before/cs/1103/" class="list-group-item list-group-item-action py-2">
+        <small>The Night Before (2020)</small>
+      </a>
+      
+      <a href="/larp/bucanero/cs/644/" class="list-group-item list-group-item-action py-2">
+        <small>Bucañero (2014)</small>
+      </a>
+      
+      <a href="/larp/kmeny/cs/776/" class="list-group-item list-group-item-action py-2">
+        <small>Kmeny (2015)</small>
+      </a>
+      
+      <a href="/larp/i-speak-only-da-truth/cs/25/" class="list-group-item list-group-item-action py-2">
+        <small>I speak only da Truth (2011)</small>
+      </a>
+      
+      <a href="/larp/osada-12/cs/42/" class="list-group-item list-group-item-action py-2">
+        <small>Osada 12 (2011)</small>
+      </a>
+      
+      <a href="/larp/za-obzor/cs/45451/" class="list-group-item list-group-item-action py-2">
+        <small>ZA OBZOR (2016)</small>
+      </a>
+      
+      <a href="/larp/odznak/cs/23/" class="list-group-item list-group-item-action py-2">
+        <small>Odznak (2010)</small>
+      </a>
+      
+      <a href="/larp/nikdykde-i-iii/cs/157/" class="list-group-item list-group-item-action py-2">
+        <small>NikdyKde I - III (2004)</small>
+      </a>
+      
+      <a href="/larp/vyvrat/cs/1283/" class="list-group-item list-group-item-action py-2">
+        <small>Vývrat (2022)</small>
+      </a>
+      
+      <a href="/larp/skoro-rassvet/cs/146/" class="list-group-item list-group-item-action py-2">
+        <small>Skoro Rassvet (2012)</small>
+      </a>
+      
+      <a href="/larp/tak-zpival-listopad/cs/43/" class="list-group-item list-group-item-action py-2">
+        <small>Tak Zpíval Listopad (2008)</small>
+      </a>
+      
+      <a href="/larp/obora-2p915/cs/123/" class="list-group-item list-group-item-action py-2">
+        <small>Obora 2P915 (2012)</small>
+      </a>
+      
+      <a href="/larp/moon/cs/20/" class="list-group-item list-group-item-action py-2">
+        <small>Moon (2011)</small>
+      </a>
+      
+      <a href="/larp/daidalos/cs/1212/" class="list-group-item list-group-item-action py-2">
+        <small>Daidalos  (2021)</small>
+      </a>
+      
+      <a href="/larp/pomezi-larp/cs/48600/" class="list-group-item list-group-item-action py-2">
+        <small>Pomezí larp (2017)</small>
+      </a>
+      
+      <a href="/larp/erebos/cs/1760/" class="list-group-item list-group-item-action py-2">
+        <small>Erebos (2024)</small>
+      </a>
+      
+    </div>
+    
+  </div>
+</div>
+
+  </div>
+
+  <footer class="footer bg-light py-3 mt-4">
+    <div class="container text-center text-muted">
+      <p>&copy; 2013&ndash;2026 Larpová databáze (archiv)</p>
+      <p>Tým LD: Jakub Balhar &bull; Michal Havelka &bull; Petr Kuběnský &bull; Filip Appl &bull; Tomáš Felcman &bull; Michal Kára</p>
+    </div>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
