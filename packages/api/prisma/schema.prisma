@@ -1,0 +1,304 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model csld_comment {
+  user_id             Int?
+  game_id             Int?
+  comment             String
+  added               DateTime?             @default(now()) @db.Timestamp(6)
+  is_hidden           Boolean               @default(false)
+  id                  Int                   @id(map: "csld_comment_pk") @default(autoincrement())
+  amount_of_upvotes   Int?
+  csld_game           csld_game?            @relation(fields: [game_id], references: [id], onDelete: Restrict, map: "csld_comment_game_fk")
+  csld_csld_user      csld_csld_user?       @relation(fields: [user_id], references: [id], onDelete: Restrict, map: "csld_comment_user_fk")
+  csld_comment_upvote csld_comment_upvote[]
+
+  @@index([added], map: "comment_added_idx")
+}
+
+model csld_comment_upvote {
+  id             Int             @id @default(autoincrement())
+  comment_id     Int?
+  user_id        Int?
+  added          DateTime?       @default(now()) @db.Timestamp(6)
+  csld_csld_user csld_csld_user? @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKolgxe7lbwwvh5bfboev7sxare")
+  csld_comment   csld_comment?   @relation(fields: [comment_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKq86ju9n3jnsefnnaosun3sgk6")
+}
+
+model csld_csld_group {
+  id                  Int                   @id @default(autoincrement())
+  image               Int?
+  administrator_id    Int?
+  name                String?
+  csld_csld_user      csld_csld_user?       @relation(fields: [administrator_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKca03ex20heis9f6voo7xtqxsw")
+  csld_image          csld_image?           @relation(fields: [image], references: [id], onDelete: Restrict, map: "csld_group_image_pk")
+  csld_game_has_group csld_game_has_group[]
+}
+
+model csld_csld_user {
+  id                        Int                         @id @default(autoincrement())
+  password                  String
+  role                      Int                         @db.SmallInt
+  name                      String?
+  nickname                  String?
+  birth_date                DateTime?                   @db.Date
+  email                     String?                     @unique(map: "unique_email") @db.VarChar(200)
+  image                     Int?
+  address                   String?
+  description               String?
+  is_author                 Boolean?                    @default(false)
+  amount_of_comments        Int?                        @default(0)
+  amount_of_played          Int?                        @default(0)
+  amount_of_created         Int?                        @default(0)
+  best_game_id              Int?
+  last_rating               Int?
+  default_lang              String?                     @db.VarChar(10)
+  csld_comment              csld_comment[]
+  csld_comment_upvote       csld_comment_upvote[]
+  csld_csld_group           csld_csld_group[]
+  csld_image                csld_image?                 @relation(fields: [image], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKo1rwv4yy7imwowct55qidvrt5")
+  csld_email_authentication csld_email_authentication[]
+  csld_game                 csld_game[]
+  csld_game_has_author      csld_game_has_author[]
+  csld_label                csld_label[]
+  csld_photo                csld_photo[]
+  csld_rating               csld_rating[]
+  event                     event[]
+
+  @@index([amount_of_comments], map: "user_amount_of_comments_idx")
+  @@index([amount_of_played], map: "user_amount_of_played_idx")
+  @@index([best_game_id], map: "user_best_game_idx")
+  @@index([name], map: "user_name_idx")
+}
+
+model csld_email_authentication {
+  id             Int            @id @default(autoincrement())
+  auth_token     String
+  user_id        Int
+  csld_csld_user csld_csld_user @relation(fields: [user_id], references: [id], map: "csld_email_authentication_user_fk")
+}
+
+model csld_game {
+  id                                              Int                    @id @default(autoincrement())
+  year                                            Int?
+  web                                             String?
+  hours                                           Int?
+  days                                            Int?
+  players                                         Int?
+  men_role                                        Int?
+  women_role                                      Int?
+  both_role                                       Int?
+  added                                           DateTime               @default(now()) @db.Timestamp(6)
+  video                                           Int?
+  image                                           Int?
+  added_by                                        Int?
+  total_rating                                    Float?
+  amount_of_comments                              Int?                   @default(0)
+  amount_of_played                                Int?                   @default(0)
+  amount_of_ratings                               Int?                   @default(0)
+  gallery_url                                     String?
+  photo_author                                    String?
+  average_rating                                  Float?
+  deleted                                         Boolean?
+  lang                                            String?                @default("cs") @db.VarChar(32)
+  ratingsdisabled                                 Boolean                @default(false)
+  commentsdisabled                                Boolean                @default(false)
+  cover_photo                                     Int?
+  cover_image                                     Int?
+  show_in_advertisements                          Boolean?               @default(false)
+  name                                            String?
+  description                                     String?
+  blueprint_path                                  String?
+  csld_comment                                    csld_comment[]
+  csld_csld_user                                  csld_csld_user?        @relation(fields: [added_by], references: [id], onDelete: Restrict, map: "csld_game_added_by_fk")
+  csld_image_csld_game_imageTocsld_image          csld_image?            @relation("csld_game_imageTocsld_image", fields: [image], references: [id], onDelete: Restrict, map: "csld_game_image_fk")
+  csld_video                                      csld_video?            @relation(fields: [video], references: [id], onDelete: Restrict, map: "csld_game_video_fk")
+  csld_image_csld_game_cover_imageTocsld_image    csld_image?            @relation("csld_game_cover_imageTocsld_image", fields: [cover_image], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "game_cover_image_fk")
+  csld_photo_csld_game_cover_photoTocsld_photo    csld_photo?            @relation("csld_game_cover_photoTocsld_photo", fields: [cover_photo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "game_photo_cover_fk")
+  csld_game_has_author                            csld_game_has_author[]
+  csld_game_has_event                             csld_game_has_event[]
+  csld_game_has_group                             csld_game_has_group[]
+  csld_game_has_label                             csld_game_has_label[]
+  csld_photo_csld_photo_gameTocsld_game           csld_photo[]           @relation("csld_photo_gameTocsld_game")
+  csld_rating                                     csld_rating[]
+  similar_games_similar_games_id_game1Tocsld_game similar_games[]        @relation("similar_games_id_game1Tocsld_game")
+  similar_games_similar_games_id_game2Tocsld_game similar_games[]        @relation("similar_games_id_game2Tocsld_game")
+
+  @@index([added], map: "game_added_idx")
+  @@index([amount_of_comments], map: "game_amount_of_comments_idx")
+  @@index([amount_of_played], map: "game_amount_of_played_idx")
+  @@index([amount_of_ratings], map: "game_amount_of_ratings_idx")
+  @@index([total_rating], map: "total_rating_idx")
+}
+
+model csld_game_has_author {
+  id_user        Int
+  id_game        Int
+  csld_csld_user csld_csld_user @relation(fields: [id_user], references: [id], map: "csld_user_fk")
+  csld_game      csld_game      @relation(fields: [id_game], references: [id], map: "game_fk")
+
+  @@id([id_user, id_game])
+}
+
+model csld_game_has_event {
+  game_id   Int
+  event_id  Int
+  csld_game csld_game @relation(fields: [game_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK2mms2rr7bdltm6vomirbj105")
+  event     event     @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKecmspf5rpsu6hk2hvninqh11j")
+
+  @@id([game_id, event_id])
+}
+
+model csld_game_has_group {
+  id_group        Int
+  id_game         Int
+  csld_game       csld_game       @relation(fields: [id_game], references: [id], map: "game_fk")
+  csld_csld_group csld_csld_group @relation(fields: [id_group], references: [id], map: "group_fk")
+
+  @@id([id_group, id_game])
+}
+
+model csld_game_has_label {
+  id_label   Int
+  id_game    Int
+  csld_game  csld_game  @relation(fields: [id_game], references: [id], map: "game_fk")
+  csld_label csld_label @relation(fields: [id_label], references: [id], onDelete: Cascade, map: "label_fk")
+
+  @@id([id_label, id_game])
+}
+
+model csld_image {
+  id                                          Int               @id @default(autoincrement())
+  path                                        String?
+  contenttype                                 String?           @db.VarChar(256)
+  csld_csld_group                             csld_csld_group[]
+  csld_csld_user                              csld_csld_user[]
+  csld_game_csld_game_imageTocsld_image       csld_game[]       @relation("csld_game_imageTocsld_image")
+  csld_game_csld_game_cover_imageTocsld_image csld_game[]       @relation("csld_game_cover_imageTocsld_image")
+  csld_photo                                  csld_photo[]
+}
+
+model csld_label {
+  id                  Int                   @id @default(autoincrement())
+  is_required         Boolean?              @default(false)
+  is_authorized       Boolean?              @default(false)
+  added_by            Int
+  name                String?
+  description         String?
+  csld_game_has_label csld_game_has_label[]
+  csld_csld_user      csld_csld_user        @relation(fields: [added_by], references: [id], map: "csld_label_user_fk")
+  event_has_labels    event_has_labels[]
+}
+
+model csld_photo {
+  id                                          Int             @id @default(autoincrement())
+  image                                       Int
+  author                                      Int?
+  game                                        Int?
+  orderseq                                    Int             @default(0)
+  description                                 String?         @db.VarChar(2048)
+  fullwidth                                   Int             @default(0)
+  fullheight                                  Int             @default(0)
+  featured                                    Boolean?        @default(false)
+  csld_game_csld_game_cover_photoTocsld_photo csld_game[]     @relation("csld_game_cover_photoTocsld_photo")
+  csld_game_csld_photo_gameTocsld_game        csld_game?      @relation("csld_photo_gameTocsld_game", fields: [game], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK4vs16vhiveflo1laqnlu1pb6g")
+  csld_image                                  csld_image      @relation(fields: [image], references: [id], map: "csld_photo_image_fk")
+  csld_csld_user                              csld_csld_user? @relation(fields: [author], references: [id], onDelete: Restrict, map: "csld_photo_person_fk")
+}
+
+model csld_rating {
+  user_id        Int
+  game_id        Int
+  rating         Int?
+  added          DateTime?       @default(now()) @db.Timestamp(6)
+  id             Int             @id @default(autoincrement())
+  state          Int?
+  by_author      Boolean?        @default(false)
+  csld_game      csld_game?      @relation(fields: [game_id], references: [id], onDelete: Restrict, map: "csld_rating_game_fk")
+  csld_csld_user csld_csld_user? @relation(fields: [user_id], references: [id], onDelete: Restrict, map: "csld_rating_user_fk")
+
+  @@unique([game_id, user_id])
+}
+
+model csld_video {
+  id        Int         @id @default(autoincrement())
+  path      String?
+  type      Int
+  csld_game csld_game[]
+}
+
+model donation {
+  id          Int       @id @default(autoincrement())
+  donor       String?
+  date        DateTime? @db.Date
+  amount      Float?
+  description String?
+}
+
+model event {
+  id                   Int                   @id @default(autoincrement())
+  name                 String?
+  description          String?
+  loc                  String?
+  source               String?
+  amountofplayers      Int?
+  from                 DateTime?             @db.Timestamptz(6)
+  to                   DateTime?             @db.Timestamptz(6)
+  language             String?               @db.VarChar(50)
+  latitude             Float?
+  longitude            Float?
+  added_by             Int?
+  web                  String?
+  deleted              Boolean?              @default(false)
+  lang                 String?
+  gcaleventid          String?               @db.VarChar(100)
+  gcaleventlastupdated BigInt?
+  csld_game_has_event  csld_game_has_event[]
+  csld_csld_user       csld_csld_user?       @relation(fields: [added_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "event_added_by")
+  event_has_labels     event_has_labels[]
+}
+
+model event_has_labels {
+  event_id   Int
+  label_id   Int
+  event      event      @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK340a57aimx0etc1f0rk9qujta")
+  csld_label csld_label @relation(fields: [label_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKf3egluya6u415d84qgady980e")
+
+  @@id([event_id, label_id])
+}
+
+model fb_search_queries {
+  id    Int     @id @default(autoincrement())
+  query String?
+  type  String?
+}
+
+model flyway_schema_history {
+  installed_rank Int      @id(map: "flyway_schema_history_pk")
+  version        String?  @db.VarChar(50)
+  description    String   @db.VarChar(200)
+  type           String   @db.VarChar(20)
+  script         String   @db.VarChar(1000)
+  checksum       Int?
+  installed_by   String   @db.VarChar(100)
+  installed_on   DateTime @default(now()) @db.Timestamp(6)
+  execution_time Int
+  success        Boolean
+
+  @@index([success], map: "flyway_schema_history_s_idx")
+}
+
+model similar_games {
+  id                                          Int        @id @default(autoincrement())
+  id_game1                                    Int?
+  id_game2                                    Int?
+  similarity_coefficient                      Float?
+  csld_game_similar_games_id_game1Tocsld_game csld_game? @relation("similar_games_id_game1Tocsld_game", fields: [id_game1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "similar_games_game_1_fk")
+  csld_game_similar_games_id_game2Tocsld_game csld_game? @relation("similar_games_id_game2Tocsld_game", fields: [id_game2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "similar_games_game_2_fk")
+}
