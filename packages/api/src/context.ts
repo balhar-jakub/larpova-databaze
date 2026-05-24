@@ -8,13 +8,17 @@ import type { FileService } from './files/fileService.js';
 // Load .env from the api package directory
 config({ path: new URL('../.env', import.meta.url).pathname });
 
-// Ensure DATABASE_URL has SSL for RDS connections
-if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('sslmode')) {
-  process.env.DATABASE_URL = process.env.DATABASE_URL + '?sslmode=require';
-  console.log('SSL added to DATABASE_URL');
-}
+const dbUrl = process.env.DATABASE_URL || '';
+const url = new URL(dbUrl);
+url.searchParams.set('sslmode', 'require');
 
-export const prisma = new PrismaClient();
+export const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: url.toString(),
+    },
+  },
+});
 
 export interface Context {
   db: PrismaClient;
