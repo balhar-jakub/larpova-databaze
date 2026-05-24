@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "npx tsx src/index.ts",
-    "postinstall": "npx prisma generate",
+    "postinstall": "prisma generate",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --passWithNoTests",
     "prisma:pull": "DATABASE_URL=postgresql://csld:csld@localhost/csld npx prisma db pull",
     "prisma:generate": "prisma generate",
