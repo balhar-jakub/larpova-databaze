@@ -1,0 +1,24 @@
+fragment gameRatingsUpdate on Game {
+    id
+    averageRating
+    totalRating
+    amountOfRatings
+    amountOfPlayed
+    currentUsersRating {
+        id
+        rating
+        state
+    }
+    ratingStats {
+        count
+        rating
+    }
+    ratings {
+        id
+        rating
+        user {
+            id
+            name
+        }
+    }
+}

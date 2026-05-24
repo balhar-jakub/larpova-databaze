@@ -1,0 +1,29 @@
+#import '../../../graphql/fragments/baseGameData.graphql'
+
+fragment userProfileData on User {
+    id
+    amountOfPlayed
+    amountOfCreated
+    image {
+        id
+    }
+    email
+    name
+    nickname
+    birthDate
+    city
+    authoredGames {
+        ...baseGameData
+    }
+    playedGames {
+        game {
+            ...baseGameData
+            year
+        }
+        rating
+    }
+    wantedGames {
+        ...baseGameData
+        year
+    }
+}

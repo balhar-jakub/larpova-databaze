@@ -1,0 +1,12 @@
+fragment calendarEventData on Event {
+    id
+    name
+    from
+    to
+    web
+    loc
+    labels {
+        id
+        name
+    }
+}

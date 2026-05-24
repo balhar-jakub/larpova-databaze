@@ -1,0 +1,9 @@
+#import "./userFragment.graphql"
+
+mutation UpdateUserRole($userId: ID!, $role: UserRoleIn!) {
+    admin {
+        setUserRole(userId: $userId, role: $role) {
+            ...adminUserFields
+        }
+    }
+}

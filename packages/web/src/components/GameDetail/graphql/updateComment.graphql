@@ -1,0 +1,7 @@
+mutation UpdateComment($gameId: ID!, $comment: String!) {
+    game {
+        createOrUpdateComment(gameId: $gameId, comment: $comment) {
+            id
+        }
+    }
+}

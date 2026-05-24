@@ -1,0 +1,19 @@
+#import "src/graphql/fragments/baseGameData.graphql"
+
+fragment baseCommentData on Comment {
+    id
+    commentAsText
+    added
+    game {
+        ...baseGameData
+    }
+    user {
+        id
+        name
+        nickname
+        image {
+            id
+            path
+        }
+    }
+}

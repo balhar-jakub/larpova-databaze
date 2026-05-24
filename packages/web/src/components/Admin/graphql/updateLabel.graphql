@@ -1,0 +1,9 @@
+#import "./labelFragment.graphql"
+
+mutation UpdateLabel($input: UpdateLabelInput!) {
+    admin {
+        updateLabel(input: $input) {
+            ...adminLabelFields
+        }
+    }
+}

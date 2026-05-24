@@ -1,0 +1,12 @@
+query LoadStats {
+    admin {
+        stats {
+            id
+            year
+            month
+            averageRating
+            numRatings
+            numComments
+        }
+    }
+}

@@ -1,0 +1,12 @@
+#import "src/graphql/fragments/ladderGameData.graphql"
+
+query SearchPageGames($query: String!, $limit: Int!, $offset: Int!) {
+    games {
+        byQueryWithTotal(query: $query, offset: $offset, limit: $limit) {
+            games {
+                ...ladderGameData,
+            }
+            totalAmount
+        }
+    }
+}

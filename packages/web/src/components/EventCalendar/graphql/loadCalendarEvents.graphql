@@ -1,0 +1,12 @@
+#import "./fragments.graphql"
+#import "src/graphql/fragments/authorizedLabels.graphql"
+
+query LoadCalendarEvents($from: String, $to: String, $offset: Int!, $limit: Int!, $requiredLabels: [ID!], $optionalLabels: [ID!]) {
+    eventCalendar(from: $from, to: $to, offset: $offset, limit: $limit, requiredLabels: $requiredLabels, otherLabels: $optionalLabels) {
+        events {
+            ...calendarEventData
+        }
+        totalAmount
+    }
+    ...authorizedLabels
+}

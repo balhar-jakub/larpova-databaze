@@ -1,0 +1,8 @@
+query CheckEmail($email: String!) {
+    userByEmail(email: $email) {
+        id
+        email
+        name
+        nickname
+    }
+}

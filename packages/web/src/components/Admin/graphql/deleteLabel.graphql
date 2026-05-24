@@ -1,0 +1,7 @@
+mutation deleteLabel($labelId: ID!) {
+    admin {
+        deleteLabel(labelId: $labelId) {
+            id
+        }
+    }
+}

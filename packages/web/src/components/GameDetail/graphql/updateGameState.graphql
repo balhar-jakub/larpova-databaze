@@ -1,0 +1,9 @@
+#import "./fragments.graphql"
+
+mutation UpdateGameState($gameId: ID!, $state: Int!) {
+    game {
+        setGamePlayedState(gameId: $gameId, state: $state) {
+            ...gameRatingsUpdate
+        }
+    }
+}

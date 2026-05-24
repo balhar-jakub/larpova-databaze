@@ -1,0 +1,39 @@
+#import "src/graphql/fragments/authorizedLabels.graphql"
+
+query LoadGameForEdit($gameId: ID!) {
+    gameById(gameId: $gameId) {
+        id
+        name
+        description
+        authors {
+            id
+            name
+            nickname
+        }
+        groupAuthor {
+            id
+            name
+        }
+        year
+        players
+        womenRole
+        menRole
+        bothRole
+        hours
+        days
+        web
+        photoAuthor
+        galleryURL
+        video {
+            id
+            path
+        }
+        ratingsDisabled
+        commentsDisabled
+        labels {
+            id
+            isRequired
+        }
+    }
+    ...authorizedLabels
+}

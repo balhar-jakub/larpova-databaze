@@ -1,0 +1,18 @@
+#import '../../../graphql/fragments/gameDetailComment.graphql'
+#import '../../../graphql/fragments/baseGameData.graphql'
+#import './fragments.graphql'
+
+query LoadCurrentUserProfile($commentsLimit: Int!) {
+    loggedInUser {
+        ...userProfileData
+        commentsPaged(offset: 0, limit: $commentsLimit) {
+            totalAmount
+            comments {
+                ...gameDetailComment
+                game {
+                    ...baseGameData
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,17 @@
+#import '../../../graphql/fragments/gameDetailComment.graphql'
+
+query MoreComments($gameId: ID!, $commentsOffset: Int!, $commentsLimit: Int!) {
+    gameById(gameId: $gameId) {
+        id
+        commentsPaged(offset: $commentsOffset, limit: $commentsLimit) {
+            comments {
+                ...gameDetailComment
+            }
+            totalAmount
+        }
+        currentUsersComment {
+            id
+            comment
+        }
+    }
+}

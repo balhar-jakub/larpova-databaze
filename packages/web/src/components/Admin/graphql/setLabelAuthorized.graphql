@@ -1,0 +1,9 @@
+#import "./labelFragment.graphql"
+
+mutation setLabelAuthorized($labelId: ID!, $authorized: Boolean!) {
+    admin {
+        setLabelAuthorized(labelId: $labelId, authorized: $authorized) {
+            ...adminLabelFields
+        }
+    }
+}

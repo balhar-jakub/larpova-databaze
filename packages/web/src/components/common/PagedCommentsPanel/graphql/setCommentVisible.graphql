@@ -1,0 +1,7 @@
+mutation SetCommentVisible($commentId: ID!, $visible: Boolean!) {
+    game {
+        setCommentVisible(commentId: $commentId, visible: $visible) {
+            id
+        }
+    }
+}

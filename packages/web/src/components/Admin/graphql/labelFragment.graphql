@@ -1,0 +1,7 @@
+fragment adminLabelFields on Label {
+    id
+    name
+    description
+    isAuthorized
+    isRequired
+}

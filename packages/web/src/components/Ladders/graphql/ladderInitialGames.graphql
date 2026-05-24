@@ -1,0 +1,14 @@
+#import "src/graphql/fragments/authorizedLabels.graphql"
+#import "src/graphql/fragments/ladderGameData.graphql"
+
+query LadderInitialGames($ladderType: LadderType!, $offset: Int!, $limit: Int!, $requiredLabels: [ID!], $optionalLabels: [ID!]) {
+    games {
+        ladder(ladderType: $ladderType, offset: $offset, limit: $limit, requiredLabels: $requiredLabels, otherLabels: $optionalLabels) {
+            games {
+                ...ladderGameData
+            }
+            totalAmount
+        }
+    }
+    ...authorizedLabels
+}

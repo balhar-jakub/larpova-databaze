@@ -1,0 +1,11 @@
+#import "src/graphql/fragments/baseGameData.graphql"
+
+query LoadGroup($groupId: ID!) {
+    groupById(groupId: $groupId) {
+        id
+        name
+        authorsOf {
+            ...baseGameData
+        }
+    }
+}

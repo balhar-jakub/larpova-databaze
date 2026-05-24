@@ -1,0 +1,7 @@
+mutation DeleteUser($userId: ID!) {
+    admin {
+        deleteUser(userId: $userId) {
+            id
+        }
+    }
+}

@@ -1,0 +1,8 @@
+query SearchAuthors($query: String!, $offset: Int!, $limit: Int!) {
+    usersByQuery(query: $query, offset: $offset, limit: $limit) {
+        id
+        name
+        nickname
+        birthDate
+    }
+}

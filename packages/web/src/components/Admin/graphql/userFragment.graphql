@@ -1,0 +1,6 @@
+fragment adminUserFields on User {
+    id
+    name
+    nickname
+    role
+}

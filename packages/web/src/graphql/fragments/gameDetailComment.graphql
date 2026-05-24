@@ -1,0 +1,15 @@
+fragment gameDetailComment on Comment {
+    id
+    added
+    amountOfUpvotes
+    comment
+    isHidden
+    user {
+        id
+        name
+        nickname
+        image {
+            id
+        }
+    }
+}

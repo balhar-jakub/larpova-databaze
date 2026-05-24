@@ -1,0 +1,13 @@
+fragment ladderGameData on Game {
+    id
+    name
+    year
+    amountOfComments
+    amountOfRatings
+    averageRating
+    totalRating
+    labels {
+        id
+        name
+    }
+}

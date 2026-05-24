@@ -1,0 +1,10 @@
+#import "./fragments.graphql"
+
+query GetMoreLastComments($offset: Int, $limit: Int) {
+    homepage {
+        lastComments(offset: $offset, limit: $limit) {
+            ...baseCommentData
+        }
+    }
+}
+

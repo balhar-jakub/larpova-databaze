@@ -1,0 +1,9 @@
+#import "./labelFragment.graphql"
+
+mutation setLabelRequired($labelId: ID!, $required: Boolean!) {
+    admin {
+        setLabelRequired(labelId: $labelId, required: $required) {
+            ...adminLabelFields
+        }
+    }
+}

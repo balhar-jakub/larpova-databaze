@@ -1,0 +1,9 @@
+#import "./labelFragment.graphql"
+
+query LoadAllLabels {
+    admin {
+        allLabels {
+            ...adminLabelFields
+        }
+    }
+}

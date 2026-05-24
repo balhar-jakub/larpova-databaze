@@ -1,0 +1,7 @@
+mutation UpdateUserSettings($input: UpdateLoggedInUserInput!) {
+    user {
+        updateLoggedInUser(input: $input) {
+            id
+        }
+    }
+}

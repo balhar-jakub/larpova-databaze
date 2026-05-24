@@ -1,0 +1,6 @@
+fragment cachedGameData on Game {
+    id
+    name
+    averageRating
+    amountOfRatings
+}

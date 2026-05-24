@@ -1,0 +1,26 @@
+#import "src/graphql/fragments/authorizedLabels.graphql"
+
+query LoadEventForEdit($eventId: ID!) {
+    eventById(eventId: $eventId) {
+        id
+        name
+        from
+        to
+        amountOfPlayers
+        web
+        loc
+        description
+        games {
+            id
+            name
+            year
+        }
+        labels {
+            id
+            name
+            description
+            isRequired
+        }
+    }
+    ...authorizedLabels
+}

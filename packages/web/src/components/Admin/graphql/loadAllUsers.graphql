@@ -1,0 +1,9 @@
+#import "./userFragment.graphql"
+
+query LoadAllUsers {
+    admin {
+        allUsers {
+            ...adminUserFields
+        }
+    }
+}

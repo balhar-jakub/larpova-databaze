@@ -1,0 +1,15 @@
+query LoadCurrentUserSettings {
+    loggedInUser {
+        id
+        amountOfPlayed
+        amountOfCreated
+        image {
+            id
+        }
+        email
+        name
+        nickname
+        birthDate
+        city
+    }
+}

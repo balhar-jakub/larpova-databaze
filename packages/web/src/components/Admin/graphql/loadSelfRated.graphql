@@ -1,0 +1,16 @@
+query LoadSelfRated {
+    admin {
+        selfRated {
+            game {
+                id
+                name
+            }
+            user {
+                id
+                email
+                name
+                nickname
+            }
+        }
+    }
+}

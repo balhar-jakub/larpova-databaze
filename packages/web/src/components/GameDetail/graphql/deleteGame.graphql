@@ -1,0 +1,7 @@
+mutation DeleteGame($gameId: ID!) {
+    game {
+        deleteGame(gameId: $gameId) {
+            id
+        }
+    }
+}

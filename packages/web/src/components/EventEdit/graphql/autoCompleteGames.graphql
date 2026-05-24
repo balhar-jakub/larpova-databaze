@@ -1,0 +1,9 @@
+query AutoCompleteGames($query: String!, $offset: Int!, $limit: Int!) {
+    games {
+        byQuery(query: $query, offset: $offset, limit: $limit) {
+            id
+            name
+            year
+        }
+    }
+}

@@ -1,0 +1,453 @@
+{
+  "PageHeader": {
+    "csld": "Larpová databáze",
+    "games": "Hry",
+    "calendar": "Kalendář akcí",
+    "blog": "Články",
+    "addEvent": "+ Přidat událost do kalendáře",
+    "addGame": "+ Přidat hru",
+    "addEventShort": "+ Událost",
+    "addGameShort": "+ Hra",
+    "search": {
+      "placeholder": "Hledaný výraz",
+      "showMore": "Zobrazit více"
+    },
+    "signIn": "Přihlášení",
+    "signUp": "Registrace",
+    "myPage": "Moje stránka",
+    "settings": "Nastavení",
+    "changePassword": "Změna hesla",
+    "admin": "Administrace",
+    "logOut": "Odhlásit se"
+  },
+
+  "PageFooter": {
+    "copyright": "© 2013–2021 Larpová databáze",
+    "team": "Tým LD: Jakub Balhar • Michal Havelka • Petr Kuběnský • Filip Appl • Tomáš Felcman • Michal Kára"
+  },
+
+  "HomePage": {
+    "pageTitle": "Česko-slovenská larpová databáze",
+    "pageDescription": "Všechny larpy na jednom místě. Larpová databáze.",
+    "lastAddedGames": "Naposledy přidáno",
+    "bestGames": "Nejoblíbenější",
+    "recent": "Nedávné",
+    "recentComments": "Poslední komentáře",
+    "nextEvents": "Kalendář akcí",
+    "commentMore": "více",
+    "commentAbout": "o larpu",
+    "commentsExpand": "+ Více...",
+    "commentsShrink": "+ Méně..."
+  },
+
+  "Game": {
+    "players_0": "{{count}} hráč",
+    "players_1": "{{count}} hráči",
+    "players_2": "{{count}} hráčů",
+    "menRole_0": "{{count}} muž",
+    "menRole_1": "{{count}} muži",
+    "menRole_2": "{{count}} mužů",
+    "womenRole_0": "{{count}} žena",
+    "womenRole_1": "{{count}} ženy",
+    "womenRole_2": "{{count}} žen",
+    "bothRole_0": "{{count}} obojetný",
+    "bothRole_1": "{{count}} obojetní",
+    "bothRole_2": "{{count}} obojetných",
+    "hours_0": "{{count}} hodina",
+    "hours_1": "{{count}} hodiny",
+    "hours_2": "{{count}} hodin",
+    "days_0": "{{count}} den",
+    "days_1": "{{count}} dny",
+    "days_2": "{{count}} dní",
+    "year": "{{count}}",
+    "web": "Web:",
+    "gallery": "Galerie:",
+    "photoAuthor": "Autor fotografií:",
+    "authors": "Autoři:",
+    "groups": "Skupiny:",
+    "ratingInList": "hodnocení",
+    "aboutGame": "o hře"
+  },
+
+  "GameDetail": {
+    "logInToRateBefore": "Pro hodnocení se musíte ",
+    "logInToRateButton": "přihlásit",
+    "logInToRateAfter": ".",
+    "totalPlayed": "{{amountOfRatings}} celkem",
+    "similarGames": "Podobné larpy",
+    "comments": "Komentáře",
+    "photos": "Fotky",
+    "video": "Video",
+    "events": "Události",
+    "gamesOfAuthors": "Larpy autorů",
+    "noSearchResults": "Žádná hra nenalezena",
+    "yourRating": "Vaše hodnocení je: {{rating}}",
+    "notPlayed": "Nehrál jsem",
+    "iPlayed": "Hrál jsem",
+    "wantToPlay": "Chci hrát",
+    "rate": "Vaše hodnocení je:",
+    "addComment": "Přidat váš komentář",
+    "updateComment": "Upravit váš komentář",
+    "ratings": "Hodnocení",
+    "editGame": "Upravit hru",
+    "deleteGame": "Smazat hru",
+    "deleteGameConfirmation": "Opravdu smazat hru?",
+    "commentAdded": "Váš komentář byl přidán",
+    "commentUpdated": "Váš komentář byl aktualizován",
+    "gameDeleted": "Hra byla vymazána",
+    "ratingDeleted": "Hodnocení bylo odstraněno",
+    "ownRatingWarning": "Jste uveden/a jako autor této hry. Silně nedoporučujeme autorům hodnotit vlastní hry. Nezakazujeme to pouze proto, že existují výjimečné případy, kdy to smysl má, například freeformové hry, překlad zahraniční hry, uváděný někým jiným, atp.",
+    "ownRatingWarningDismiss": "Rozumím, přesto chci hodnotit svojit hru",
+    "ratingsDisabled": "Autoři hry si nepřejí, aby byla hodnocena",
+    "commentsDisabled": "Autoři hry si nepřejí, aby byla komentována"
+  },
+
+  "SignIn": {
+    "header": "Přihlášení",
+    "email": "Email",
+    "password": "Heslo",
+    "forgotPassword":  "Zapomenuté heslo",
+    "signUp":  "Registrace",
+    "submit": "Přihlásit",
+    "error": "Přihlašovací údaje nesouhlasí. Zkuste to znovu, nebo použijte odkaz pro zapomenuté heslo pod formulářem."
+  },
+
+  "Errors": {
+    "emailRequired": "Neplatná emailová adresa",
+    "required": "Povinná hodnota",
+    "integerRequired": "Musíte zadat kladné celé číslo",
+    "invalidDate": "Datum není platné",
+    "invalidTimeFormat": "Formát času musí být HH:MM",
+    "invalidTime": "Neplatný čas"
+  },
+
+  "RecoverPassword": {
+    "header": "Zapomenuté heslo",
+    "sent": "Na zadanou adresu byl odeslán email s instrukcemi pro obnovu hesla.",
+    "error": "Zadaný email není evidován v databázi.",
+    "email": "Zadejte email",
+    "submit": "Odeslat",
+    "password": "Heslo",
+    "passwordConfirmation": "Heslo znovu",
+    "passwordConfirmationError": "Hesla jsou různá",
+    "changeError": "Nastavení hesla nebylo úspěšné, odkaz nejspíš již není platný. Zkuste si nechat poslat nový.",
+    "changed": "Vaše heslo bylo změněno"
+  },
+
+  "UserFields": {
+    "email": "Email",
+    "password": "Heslo",
+    "passwordAgain": "Heslo znovu",
+    "passwordAgainError": "Hesla jsou různá",
+    "profilePicture": "Váš profilový obrázek",
+    "name": "Jméno",
+    "nameHint": "Zadejte své celé jméno",
+    "nickName": "Přezdívka",
+    "nickNameHint": "Chcete-li, zadejte svoji přezdívku",
+    "city": "Město",
+    "cityHint": "Chcete-li, zadejte město, ve kterém bydlíte (studujete, pracujete, ...)",
+    "birthDate": "Datum narození",
+    "birthDateHint": "Chcete-li, zadejte své datum narození ve formátu DD.MM.YYYY"
+  },
+
+  "SignUp": {
+    "header": "Registrace",
+    "subheader": "Vítejte na česko-slovenské larpové databázi. Po vyplnění formuláře se stanete registrovaným uživatelem a můžete tak využít všech funkcí jako hodnocení a a komentování jednotlivých larpů, stejně jako jejich zařazení do vaší larpotéky.",
+    "submit": "Registrovat",
+    "emailAlreadyUsed": "Tento e-mail je již používán uživatelem {{name}}. Pokud je účet váš, můžete si obnovit heslo na stránce",
+    "forgotPassword": "Zapomenuté heslo",
+    "profilePictureHint": "Vyberte svoji profilovou fotografii o rozměrech 120x120px. Maximální velikost fotografie jsou 2MB."
+  },
+
+  "FormFileInput": {
+    "defaultLabel": "Vybrat...",
+    "defaultPlaceholder": "Soubor není vybraný",
+    "fileTooBig": "Soubor je příliš velký, limit je {{limit}}"
+  },
+
+  "ReCaptchaField": {
+    "required": "Vyplňte, prosím, ověření"
+  },
+
+  "UserSettings": {
+    "header": "Úprava informací o vás",
+    "profilePictureHint": "Vyberte svoji profilovou fotografii o rozměrech 120x120px. Maximální velikost fotografie jsou 2MB.",
+    "emailAlreadyUsed": "Tento e-mail je již používán uživatelem {{name}}.",
+    "submit": "Uložit",
+    "settingsUpdated": "Vaše nastavení bylo aktualizováno"
+  },
+
+  "UserDetail": {
+    "player_0": "Hráč jednoho larpu",
+    "player_1": "Hráč {{count}} larpů",
+    "player_2": "Hráč {{count}} larpů",
+    "author_0": ", tvůrce jednoho larpu",
+    "author_1": ", tvůrce {{count}} larpů",
+    "author_2": ", tvůrce {{count}} larpů",
+    "age": " / {{age}} let",
+    "profile": "Profil",
+    "settings": "Nastavení",
+    "changePassword": "Změna hesla",
+    "gamesPlayed": "Hrál jsem",
+    "gamesWanted": "Chci hrát",
+    "wantedICal": "ICal s hrami, které chcete hrát"
+  },
+
+  "ChangePassword": {
+    "header": "Změna hesla",
+    "oldPassword": "Staré heslo",
+    "newPassword": "Nové heslo",
+    "newPasswordAgain": "Nové heslo znovu",
+    "passwordAgainError": "Hesla jsou různá",
+    "submit": "Nastavit heslo",
+    "error": "Chyba při nastavování hesla",
+    "oldPasswordError": "Staré heslo nesouhlasí",
+    "changed": "Vaše heslo bylo změněno"
+  },
+
+  "EditCommentModal": {
+    "title": "Váš komentář",
+    "cancel": "Storno",
+    "save": "Uložit"
+  },
+
+  "GroupDetail": {
+    "createGroup": "Přidat skupinu",
+    "editGroup": "Upravit skupinu",
+    "authorsOf_0": "Tvůrci jednoho larpu",
+    "authorsOf_1": "Tvůrci {{count}} larpů",
+    "authorsOf_2": "Tvůrci {{count}} larpů",
+    "groupCreated": "Skupina byla vytvořena",
+    "groupUpdated": "Skupina byla aktualizována"
+  },
+  "GroupEditModal": {
+    "titleCreate": "Přidat skupinu",
+    "titleEdit": "Upravit skupinu",
+    "cancel": "Storno",
+    "save": "Uložit",
+    "name": "Název"
+  },
+  "Event": {
+    "web": "Web",
+    "loc": "Místo"
+  },
+  "EventDetail": {
+    "players_0": "jeden hráč",
+    "players_1": "{{count}} hráči",
+    "players_2": "{{count}} hráčů",
+    "date": "Datum",
+    "edit": "Upravit událost",
+    "delete": "Smazat událost",
+    "eventDeleted": "Událost byla vymazána",
+    "deleteEventConfirmation": "Opravdu smazat událost?"
+  },
+  "GameEdit": {
+    "help": "Nápověda",
+    "help1": "Je záměrem, aby každý larp měl více štítků.",
+    "help2": "Každý larp musí mít alespoň jeden štítek ze sekce povinné.",
+    "help3": "Pokud larp nespadá jednoznačně pod jeden štítků, zaškrtněte jich více a upřesněte rozdíl v popisu.",
+    "help4": "Každý nový štítek musí být schválen moderátorem.",
+    "gameFields": "Údaje hry",
+    "requiredFields": "Povinné údaje",
+    "additionalFields": "Rozšiřující údaje",
+    "presentationFields": "Prezentace hry",
+    "settingsFields": "Nastavení hry",
+    "name": "Název hry",
+    "description": "Zde zadejte popis hry",
+    "authors": "Autoři hry",
+    "groups": "Skupiny podílející se na hře",
+    "year": "Rok vytvoření",
+    "players": "Hráčů",
+    "womenRole": "Ženské role",
+    "menRole": "Mužské role",
+    "bothRole": "Obojetné role",
+    "hours": "Hodin",
+    "days": "Dní",
+    "coverImage": "Titulní obrázek",
+    "coverImageHint": "Maximální velikost souboru jsou 2MB.",
+    "web": "Webová stránka",
+    "photoAuthor": "Autor fotografií",
+    "galleryUrl": "Odkaz na fotogalerii",
+    "video": "Video ze hry",
+    "ratingsDisabled": "Zakázat hodnocení",
+    "ratingsDisabledHint": "Již existující hodnocení budou zachována, uživatelé je však nebudou moci měnit, ani nebude možné přidávat nová hodnocení.",
+    "commentsDisabled": "Zakázat komentování",
+    "commentsDisabledHint": "Pokud nějaké komentáře ke hře již existují, budou nadále vidět a jejich autoři je budou moci upravovat, nebude ale možno přidávat komentáře nové.",
+    "save": "Uložit",
+    "createAuthor": "Vytvořit autora",
+    "profileLink": "Profil",
+    "createGroup": "Vytvořit skupinu",
+    "groupLink": "Profil",
+    "formError": "Formulář obsahuje chyby",
+    "back": "Zpět",
+    "addGameTab": "Přidat hru",
+    "editGameTab": "Upravit hru",
+    "gameCreated": "Hra byla vytvořena",
+    "gameUpdated": "Hra byla aktualizována"
+  },
+  "AutoComplete": {
+    "startTyping": "Napište alespoň tři znaky pro vyhledání",
+    "noResults": "Žádné výsledky nenalezeny",
+    "searching": "Vyhledávám..."
+  },
+  "NewGroupModal": {
+    "title": "Nová skupina",
+    "name": "Název",
+    "cancel": "Storno",
+    "save": "Uložit"
+  },
+  "NewAuthorModal": {
+    "title": "Nový autor",
+    "email": "Email",
+    "emailHint": "Email není povinný",
+    "name": "Jméno",
+    "nickname": "Přezdívka",
+    "cancel": "Storno",
+    "save": "Uložit",
+    "emailAlreadyUsed": "Tento email je již používán uživatelem {{name}}.",
+    "addUser": "Přidat jako autora"
+  },
+  "NewLabelsField": {
+    "newLabel": "Nový štítek"
+  },
+  "LabelEditModal": {
+    "titleNew": "Vytvořit štítek",
+    "titleEdit": "Upravit štítek",
+    "name": "Název",
+    "description": "Popis",
+    "cancel": "Storno",
+    "save": "Uložit",
+    "labelExists": "Tento štítek už existuje"
+  },
+  "ConfirmationModal": {
+    "title": "Potvrzení",
+    "confirm": "Potvrdit",
+    "cancel": "Storno"
+  },
+  "EventEdit": {
+    "eventFields": "Údaje události",
+    "requiredFields": "Povinné údaje",
+    "additionalFields": "Doplňující údaje",
+    "showFields": "Zobrazit doplňující údaje",
+    "name": "Název",
+    "fromDate": "Začátek události (datum)",
+    "fromTime": "Začátek události (čas)",
+    "toDate": "Konec události (datum)",
+    "toTime": "Konec události (čas)",
+    "timeHint": "Ve formátu HH:MM",
+    "amountOfPlayers": "Počet hráčů",
+    "web":  "Webová stránka",
+    "loc": "Místo události",
+    "description": "Popis události",
+    "games": "Spárovat s existujícími hrami",
+    "formError": "Formulář obsahuje chyby",
+    "save": "Uložit",
+    "createGame": "Založit novou hru",
+    "gameLink": "Detail",
+    "dateMismatch": "Koncové datum nesmí být dřívější, než počáteční datum",
+    "timeMismatch": "Koncový čas nesmí být dřívější, než počáteční čas",
+    "fillBothTimes": "Časy musí být oba vyplněny nebo oba prázdné",
+    "editEventTab": "Upravit událost",
+    "addEventTab": "Přidat událost",
+    "addGameTab": "Přidat hru",
+    "eventCreated": "Událost byla vytvořena",
+    "eventUpdated": "Událost byla aktualizována"
+  },
+  "LabelsEditColumn": {
+    "labels": "Štítky",
+    "requiredLabels": "Povinné",
+    "optionalLabels": "Volitelné",
+    "labelsHint": "Označte štítky, které vystihují váš larp. Pokud nespadá jednoznačně pod jednu kategorii, vyberte jich více."
+  },
+  "Ladder": {
+    "recentAndMostPlayedTab": "Nejhranější nové",
+    "recent": "Nové",
+    "best": "Nejlepší",
+    "mostPlayed": "Nejhranější",
+    "mostCommented": "Nejkomentovanější"
+  },
+  "LabelFilterFields": {
+    "required": "Povinné",
+    "optional": "Volitelné"
+  },
+  "EventCalendar": {
+    "pageTitle": "Larpový kalendář",
+    "pageDescription": "Všechny larpy v jednom kalendáři",
+    "events": "Události",
+    "link": "Web akce",
+    "eventFrom": "Od",
+    "eventTo": "Do",
+    "gCalLink": "Přidejte si ",
+    "gCalUrl": "https://calendar.google.com/calendar/u/0?cid=M2EyOHMwc2UxcHE2cXM3NmZwbWZ0bGRzcjhAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ",
+    "gCalText": "larpový kalendář do svého google kalendáře."
+  },
+  "Admin": {
+    "tabIntro": "Úvod",
+    "tabUsers": "Uživatelé",
+    "tabLabels": "Štítky",
+    "tabStats": "Statistiky",
+    "tabSelfRating": "Sebehodnocení",
+    "intro": "With great power comes great responsibility."
+  },
+  "GraphQLError": {
+    "NETWORK": "Chyba spojení se serverem. Zkuste znovu načíst stránku.",
+    "NOT_FOUND": "Chyba serveru: Objekt nenalezen",
+    "INVALID_VALUE": "Chyba serveru: Neplatná hodnota na cestě {{valuePath}}",
+    "INVALID_STATE": "Chyba serveru: Objekt v není ve správném stavu pro danou operaci",
+    "ACCESS_DENIED": "Chyba serveru: Přístup zamítnut",
+    "DUPLICATE_VALUE": "Chyba serveru: Hodnota již existuje",
+    "UNKNOWN": "Neznámá chyba serveru"
+  },
+  "SignInRequired": {
+    "signInRequired": "Prosíme, nejprve se přihlaste",
+    "accessDenied": "Pro přístup na tuto stránku nemáte dostatečná oprávnění",
+    "backToHomepage": "Zpět na hlavní stránku"
+  },
+  "AdminUsers": {
+    "filterPlaceholder": "Část jména nebo přezdívky...",
+    "showPrivileged": "Zobrazit pouze editory a administrátory",
+    "delete": "Smazat",
+    "deleteConfirm": "Opravdu si přejete uživatele smazat? Tato operace je nevratná!",
+    "showAll": "Zobrazit všech {{recordCount}} vyhovujících záznamů"
+  },
+  "UserRole": {
+    "ADMIN": "Admin",
+    "EDITOR": "Editor",
+    "USER": "Uživatel"
+  },
+  "AdminLabels": {
+    "authorized": "Schváleno",
+    "required": "Vyžadováno",
+    "editTitle": "Úprava štítku",
+    "description": "Popisek",
+    "cancel": "Storno",
+    "save": "Uložit",
+    "deleteConfirm": "Opravdu štítek smazat? Tato operace je nevratná!"
+  },
+  "AdminRatingStats": {
+    "month": "Měsíc",
+    "numRatings": "Počet hodnocení",
+    "averageRating": "Průměrné hodnocení",
+    "numComments": "Počet komentářů"
+  },
+  "Search": {
+    "tabGames": "Hry",
+    "tabUsers": "Uživatelé",
+    "searchButton": "Hledat",
+    "query": "Hledaný výraz",
+    "queryHint": "Hledání probíhá po slovech. Vyhovují ty položky, jejichž název obsahuje slova začínající stejně, jako slova výrazu, ve stejném pořadí. Velikost písmen a diakritika nerozhoduje.",
+    "enterQuery": "Vložte dotaz do pole v horní části stránky a stiskněte Enter.",
+    "notFound": "Dotazu nic nevyhovuje",
+    "moreUsers": "Zobrazit další uživatele",
+    "userAge": "{{age}} let",
+    "example1": "Dotaz <b>he whe</b> najde <b><u>He</u>ll on <u>Whe</u>els</b>.",
+    "example2": "Dotaz <b>na so</b> najde <b><u>Ná</u>rod <u>So</u>bě</b> a <b><u>Na</u>rutoLARP 2020: <u>So</u>umrak shinobi</b>.",
+    "example3": "Dotaz <b>D L B</b> najde <b><u>D</u>e <u>l</u>a <u>B</u>ête</b>."
+  },
+
+  "Error": {
+    "notFound": "Omlouváme se, stránka neexistuje",
+    "otherError": "Omlouváme se, na stránce se vyskytla chyba (kód {{statusCode}})",
+    "toHomepage": "Na domovskou stránku"
+  }
+}

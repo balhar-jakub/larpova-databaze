@@ -1,0 +1,82 @@
+query GameDetail($gameId: ID!) {
+    gameById(gameId: $gameId) {
+        id
+        name
+        players
+        menRole
+        womenRole
+        bothRole
+        hours
+        days
+        year
+        web
+        galleryURL
+        photoAuthor
+        description
+        averageRating
+        amountOfRatings
+        amountOfPlayed
+        commentsDisabled
+        ratingsDisabled
+        coverImage {
+            id
+        }
+        currentUsersRating {
+            id
+            rating
+            state
+        }
+        labels {
+            id
+            name
+            description
+            isRequired
+        }
+        ratingStats {
+            count
+            rating
+        }
+        video {
+            id
+            path
+        }
+        authors {
+            id
+            name
+            nickname
+        }
+        groupAuthor {
+            id
+            name
+        }
+        similarGames {
+            id
+            name
+            averageRating
+            amountOfRatings
+            year
+        }
+        gamesOfAuthors {
+            id
+            name
+            averageRating
+            amountOfRatings
+            year
+        }
+        events {
+            id
+            name
+            from
+            to
+        }
+        ratings {
+            id
+            rating
+            user {
+                id
+                name
+            }
+        }
+        allowedActions
+    }
+}

@@ -1,0 +1,12 @@
+fragment authorizedLabels on Query {
+    authorizedRequiredLabels {
+        id
+        name
+        description
+    }
+    authorizedOptionalLabels {
+        id
+        name
+        description
+    }
+}
