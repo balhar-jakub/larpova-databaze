@@ -1,1 +1,1 @@
-web: npx tsx src/index.ts
+web: bash start.sh

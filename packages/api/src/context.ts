@@ -8,16 +8,7 @@ import type { FileService } from './files/fileService.js';
 // Load .env from the api package directory
 config({ path: new URL('../.env', import.meta.url).pathname });
 
-const dbUrl = process.env.DATABASE_URL || '';
-const sslUrl = `${dbUrl}?sslmode=require&sslaccept=accept_invalid_certs`;
-
-export const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: sslUrl,
-    },
-  },
-});
+export const prisma = new PrismaClient();
 
 export interface Context {
   db: PrismaClient;
