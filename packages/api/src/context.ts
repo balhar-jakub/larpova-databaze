@@ -9,8 +9,7 @@ import type { FileService } from './files/fileService.js';
 config({ path: new URL('../.env', import.meta.url).pathname });
 
 const dbUrl = process.env.DATABASE_URL || '';
-const sslUrl = dbUrl.includes('?') ? `${dbUrl}&sslmode=require` : `${dbUrl}?sslmode=require`;
-console.log('Database URL configured');
+const sslUrl = `${dbUrl}?sslmode=require&sslaccept=accept_invalid_certs`;
 
 export const prisma = new PrismaClient({
   datasources: {
