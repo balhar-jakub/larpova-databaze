@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "npx tsx src/index.ts",
-    "postinstall": "prisma generate",
+    "postinstall": "npx prisma generate",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --passWithNoTests",
     "prisma:pull": "DATABASE_URL=postgresql://csld:csld@localhost/csld npx prisma db pull",
     "prisma:generate": "prisma generate",
@@ -31,7 +31,7 @@
     "nodemailer": "^6.9.0",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "pg": "^8.13.0",
+    "prisma": "^5.10.0",
     "sanitize-html": "^2.12.0",
     "sharp": "^0.33.0"
   },
@@ -47,10 +47,9 @@
     "@types/passport": "^1.0.0",
     "@types/passport-local": "^1.0.0",
     "@types/sanitize-html": "^2.11.0",
-    "jest": "^29.0.0",
-    "prisma": "^5.10.0",
-    "supertest": "^6.0.0",
     "@types/supertest": "^6.0.0",
+    "jest": "^29.0.0",
+    "supertest": "^6.0.0",
     "ts-jest": "^29.0.0",
     "tsx": "^4.7.0",
     "typescript": "^5.4.0"
