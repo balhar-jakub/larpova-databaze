@@ -1,5 +1,5 @@
 import React from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { createUseStyles } from 'react-jss'
 import AdminTabs from './AdminTabs'
 import { darkTheme } from '../../theme/darkTheme'

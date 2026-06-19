@@ -1,7 +1,7 @@
 import React from 'react'
 import { useQuery } from '@apollo/client'
 import { createUseStyles } from 'react-jss'
-// import { useTranslation } from 'react-i18next'
+// import { useTranslation } from 'src/lib/i18n'
 import isInBrowser from 'is-in-browser'
 import { LoadSelfRatedQuery, LoadSelfRatedQueryVariables } from '../../graphql/__generated__/typescript-operations'
 import { darkTheme } from '../../theme/darkTheme'

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Form as FinalForm } from 'react-final-form'
 import { Button, Modal } from 'react-bootstrap'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import FormTextInputField from '../common/form/FormTextInputField'
 import { useFocusInput } from '../../hooks/useFocusInput'
 import { fieldValidator, validateRequired } from '../../utils/validationUtils'

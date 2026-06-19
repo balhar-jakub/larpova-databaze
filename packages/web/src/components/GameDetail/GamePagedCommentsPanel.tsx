@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { Button } from 'react-bootstrap'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { createUseStyles } from 'react-jss'
 import isInBrowser from 'is-in-browser'
 import {
@@ -52,13 +52,15 @@ export const GamePagedCommentsPanel = ({ gameId, commentsDisabled }: Props) => {
             commentsOffset: offset,
             commentsLimit: PAGE_SIZE,
         },
-        fetchPolicy: 'cache-and-network',
-        skip: !isInBrowser,
-        ssr: false,
-        onCompleted: data => {
-            setCachedPage(data?.gameById?.commentsPaged as CommentsPaged | undefined)
-        },
+        fetchPolicy: 'network-only',
     })
+    
+    // Replace deprecated onCompleted with useEffect
+    useEffect(() => {
+        if (query.data?.gameById?.commentsPaged) {
+            setCachedPage(query.data.gameById.commentsPaged as CommentsPaged)
+        }
+    }, [query.data])
 
     const currentUsersComment = query.data?.gameById?.currentUsersComment?.comment
 

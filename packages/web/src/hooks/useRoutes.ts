@@ -46,7 +46,7 @@ export const useRoutes = () => {
 
     return useMemo(
         () => ({
-            push: (r: Route) => router.push(r.as),
+            push: (r: Route) => router.push(r.href, r.as),
 
             homepage: (): Route => route('/'),
 

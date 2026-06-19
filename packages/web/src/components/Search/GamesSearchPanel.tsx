@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useQuery } from '@apollo/client'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import {
     GamesPaged,
     LadderGameDataFragment,

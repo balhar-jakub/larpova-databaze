@@ -1,5 +1,5 @@
 import React, { useMemo, useState, Fragment } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { createUseStyles } from 'react-jss'
 import { useApolloClient, useQuery } from '@apollo/client'
 import { Form as FinalForm } from 'react-final-form'

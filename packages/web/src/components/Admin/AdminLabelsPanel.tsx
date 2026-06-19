@@ -2,7 +2,7 @@ import React, { useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@apollo/client'
 import isInBrowser from 'is-in-browser'
 import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { Button } from 'react-bootstrap'
 import {
     LoadAllLabelsQuery,

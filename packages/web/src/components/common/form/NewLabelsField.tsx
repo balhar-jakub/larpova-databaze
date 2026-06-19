@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useField } from 'react-final-form'
 import { Button, Form } from 'react-bootstrap'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import FormCheckLabelWithTooltip from './FormCheckLabelWithTooltip'
 import LabelEditModal from '../LabelEditmodal/LabelEditModal'
 

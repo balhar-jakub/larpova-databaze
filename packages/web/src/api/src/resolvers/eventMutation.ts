@@ -2,6 +2,7 @@ import type { Context } from '../context.js';
 import { isSignedIn } from '../auth/appUsers.js';
 import { GraphQLError } from 'graphql';
 import { syncEventToCalendar, deleteCalendarEvent } from '../external/googleCalendar.js';
+import { normalizeGame } from './mappers.js';
 
 function requireAuth(ctx: Context) {
   if (!isSignedIn(ctx)) {
@@ -34,7 +35,7 @@ function mapEvent(e: any) {
       ? { lattitude: e.latitude, longtitude: e.longitude }
       : null,
     labels: (e.event_has_labels ?? []).map((j: any) => j.csld_label).filter(Boolean),
-    games: (e.csld_game_has_event ?? []).map((j: any) => j.csld_game).filter(Boolean),
+    games: (e.csld_game_has_event ?? []).map((j: any) => j.csld_game).filter(Boolean).map((g: any) => normalizeGame(g)),
     allowedActions: null,
   };
 }

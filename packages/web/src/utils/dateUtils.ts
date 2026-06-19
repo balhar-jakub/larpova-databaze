@@ -6,6 +6,12 @@ export const parseDateTime = (isoString?: string | null) => {
         return undefined
     }
 
+    // Handle Java timestamp strings (milliseconds since epoch)
+    const num = Number(isoString);
+    if (!isNaN(num) && num > 0) {
+        return new Date(num);
+    }
+
     return new Date(isoString)
 }
 

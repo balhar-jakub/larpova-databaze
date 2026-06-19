@@ -1,6 +1,6 @@
 import React from 'react'
 import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { WidthFixer } from '../WidthFixer/WidthFixer'
 import { darkTheme } from '../../../theme/darkTheme'
 import { IconFacebook } from '../Icons/Icons'

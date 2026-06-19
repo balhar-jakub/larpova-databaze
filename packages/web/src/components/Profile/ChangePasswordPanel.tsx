@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useApolloClient, useQuery } from '@apollo/client'
 import { Form as FinalForm } from 'react-final-form'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { TFunction } from 'i18next'
 import { useRoutes } from 'src/hooks/useRoutes'
 import isInBrowser from 'is-in-browser'

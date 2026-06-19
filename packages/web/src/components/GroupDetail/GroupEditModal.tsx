@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button, Modal } from 'react-bootstrap'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { useMutation } from '@apollo/client'
 import { Form as FinalForm } from 'react-final-form'
 import { useFocusInput } from 'src/hooks/useFocusInput'

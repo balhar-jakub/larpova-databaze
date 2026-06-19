@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { format } from 'date-fns-tz'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import classNames from 'classnames'
 import { Comment, Game, Image, User } from '../../../graphql/__generated__/typescript-operations'
 import { darkTheme } from '../../../theme/darkTheme'

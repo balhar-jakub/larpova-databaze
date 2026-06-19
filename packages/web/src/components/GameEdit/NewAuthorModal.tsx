@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { Button, Modal, Form as BSForm } from 'react-bootstrap'
 import { Form as FinalForm } from 'react-final-form'
 import { createUseStyles } from 'react-jss'

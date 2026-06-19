@@ -1,4 +1,5 @@
 import React from 'react'
+import Head from 'next/head'
 import { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { getLabelIds } from 'src/utils/roleUtils'
@@ -11,10 +12,13 @@ const CalendarPage: NextPage<Props, InitialProps> = () => {
     const router = useRouter()
 
     return (
-        <EventCalendarListPanel
-            initialRequiredLabelIds={getLabelIds(router.query.initialRequiredLabelIds)}
-            initialOptionalLabelIds={getLabelIds(router.query.initialOptionalLabelIds)}
-        />
+        <>
+            <Head><title>Kalendář akcí — Larpová databáze</title></Head>
+            <EventCalendarListPanel
+                initialRequiredLabelIds={getLabelIds(router.query.initialRequiredLabelIds)}
+                initialOptionalLabelIds={getLabelIds(router.query.initialOptionalLabelIds)}
+            />
+        </>
     )
 }
 

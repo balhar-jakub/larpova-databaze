@@ -1,5 +1,5 @@
 import React from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { TabDefinition, Tabs } from '../common/Tabs/Tabs'
 import { useRoutes } from '../../hooks/useRoutes'
 

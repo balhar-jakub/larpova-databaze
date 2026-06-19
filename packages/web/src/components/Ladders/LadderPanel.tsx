@@ -118,7 +118,6 @@ const LadderPanel = ({ ladderType, initialRequiredLabelIds, initialOptionalLabel
             limit: PAGE_SIZE,
         },
         fetchPolicy: 'cache-first',
-        ssr: true,
         onCompleted: response => {
             setLoading(false)
             setPage(response?.games?.ladder || [])

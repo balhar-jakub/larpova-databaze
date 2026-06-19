@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { Col } from 'react-bootstrap'
 import { GameBaseData } from '../common/GameBaseDataPanel/GameBaseDataPanel'
 import { GridHeader } from './GridHeader'

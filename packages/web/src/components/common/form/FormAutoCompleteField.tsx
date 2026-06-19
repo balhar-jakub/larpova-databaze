@@ -10,7 +10,7 @@ import {
     TypeaheadResult,
 } from 'react-bootstrap-typeahead'
 import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { Button } from 'react-bootstrap'
 import { useField } from 'react-final-form'
 import { darkTheme } from '../../../theme/darkTheme'

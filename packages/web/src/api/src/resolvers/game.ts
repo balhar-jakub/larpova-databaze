@@ -188,3 +188,81 @@ export function gamesQueryResolver() {
   return {};
 }
 
+// ── Game type field resolvers ────────────────────────────
+
+export async function gamesOfAuthorsResolver(
+  parent: { id: number | string },
+  _args: unknown,
+  ctx: Context,
+) {
+  try {
+    const gameId = typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id;
+    if (!gameId || isNaN(gameId)) return [];
+    
+    const authorLinks = await ctx.db.csld_game_has_author.findMany({
+      where: { id_game: gameId },
+      select: { id_user: true },
+    });
+    const authorIds = authorLinks.map((l) => l.id_user).filter(Boolean);
+    if (authorIds.length === 0) return [];
+    
+    const otherGames = await ctx.db.csld_game.findMany({
+      where: {
+        id: { not: gameId },
+        deleted: false,
+      csld_game_has_author: {
+        some: { id_user: { in: authorIds } },
+      },
+      },
+      take: 9,
+      orderBy: { total_rating: 'desc' },
+      include: {
+        csld_game_has_label: { include: { csld_label: true } },
+        csld_image_csld_game_cover_imageTocsld_image: true,
+      },
+    });
+    
+    return otherGames.map((g) => normalizeGame(g));
+  } catch (e) {
+    console.error('gamesOfAuthors resolver error:', e);
+    return [];
+  }
+}
+
+export async function commentsPagedResolver(
+  parent: { id: number | string },
+  args: { offset: number; limit: number },
+  ctx: Context,
+) {
+  try {
+    const gameId = typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id;
+    if (!gameId || isNaN(gameId)) return { comments: [], totalAmount: 0 };
+    
+    const comments = await ctx.db.csld_comment.findMany({
+      where: { game_id: gameId, is_hidden: false },
+      orderBy: { added: 'desc' },
+      skip: args.offset ?? 0,
+      take: args.limit ?? 10,
+      include: { csld_csld_user: true, csld_game: true },
+    });
+    const total = await ctx.db.csld_comment.count({
+      where: { game_id: gameId, is_hidden: false },
+    });
+    
+    return {
+      comments: comments.map((c) => ({
+        ...c,
+        amountOfUpvotes: c.amount_of_upvotes ?? 0,
+        amount_of_upvotes: c.amount_of_upvotes ?? 0,
+        commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
+        user: c.csld_csld_user ?? null,
+        game: normalizeGame(c.csld_game),
+      })),
+      totalAmount: total,
+    };
+  } catch (e) {
+    console.error('commentsPaged resolver error:', e);
+    return { comments: [], totalAmount: 0 };
+  }
+}
+

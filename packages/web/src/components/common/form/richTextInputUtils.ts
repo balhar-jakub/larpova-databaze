@@ -1,4 +1,3 @@
-import htmlToDraft from 'html-to-draftjs'
 import { ContentState, convertToRaw, EditorState, RawDraftContentBlock } from 'draft-js'
 import draftToHtml from 'draftjs-to-html'
 
@@ -10,8 +9,19 @@ const removeEntities = (blocks: RawDraftContentBlock[]) => {
     return blocks
 }
 
-export const htmlToEditorState = (html: string) => {
-    const blocksFromHtml = htmlToDraft(html)
+// Dynamic import — html-to-draftjs references `window` and cannot be loaded during SSR
+let htmlToDraft: ((html: string) => { contentBlocks: any; entityMap: any }) | null = null;
+async function getHtmlToDraft() {
+    if (!htmlToDraft) {
+        const mod = await import('html-to-draftjs');
+        htmlToDraft = mod.default;
+    }
+    return htmlToDraft;
+}
+
+export const htmlToEditorState = async (html: string) => {
+    const fn = await getHtmlToDraft();
+    const blocksFromHtml = fn(html)
     const { contentBlocks, entityMap } = blocksFromHtml
     const contentState = ContentState.createFromBlockArray(contentBlocks, entityMap)
     return EditorState.createWithContent(contentState)

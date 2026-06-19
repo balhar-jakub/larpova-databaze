@@ -158,7 +158,7 @@ const FormRichTextInputField = ({
         if (!value) {
             setEditorState(EditorState.createEmpty())
         } else if (typeof value === 'string') {
-            setEditorState(htmlToEditorState(value))
+            htmlToEditorState(value).then(setEditorState)
         }
 
         if (autoFocus && !autoFocusedRef.current) {

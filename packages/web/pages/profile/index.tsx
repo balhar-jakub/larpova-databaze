@@ -1,4 +1,5 @@
 import React from 'react'
+import Head from 'next/head'
 import { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import UserSettingsPanel from '../../src/components/Profile/UserSettingsPanel'
@@ -14,15 +15,21 @@ const Profile: NextPage<Props, InitialProps> = () => {
     const router = useRouter()
 
     const id = router.query.id as string
-    const idNum = parseInt(id, 10)
+    // Fallback: extract ID from the path (e.g., /profile/1 → id=1) for direct URL navigation
+    const pathId = !id ? (router.asPath.match(/\/profile\/(\d+)/) ?? [])[1] : undefined
+    const resolvedId = id || pathId || ''
+    const idNum = parseInt(resolvedId, 10)
 
     return (
-        <SignInRequiredWrapper requiredRole={idNum > 0 ? 'ANONYMOUS' : 'USER'}>
-            {id === 'settings' && <UserSettingsPanel />}
-            {id === 'current' && <CurrentUserProfileContainer />}
-            {id === 'changePassword' && <ChangePasswordPanel />}
-            {idNum > 0 && <OtherUserProfileContainer userId={id} />}
-        </SignInRequiredWrapper>
+        <>
+            <Head><title>Profil — Larpová databáze</title></Head>
+            <SignInRequiredWrapper requiredRole={idNum > 0 ? 'ANONYMOUS' : 'USER'}>
+                {id === 'settings' && <UserSettingsPanel />}
+                {id === 'current' && <CurrentUserProfileContainer />}
+                {id === 'changePassword' && <ChangePasswordPanel />}
+                {idNum > 0 && <OtherUserProfileContainer userId={resolvedId} />}
+            </SignInRequiredWrapper>
+        </>
     )
 }
 

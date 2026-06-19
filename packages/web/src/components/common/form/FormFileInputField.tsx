@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useState } from 'react'
 import { useField } from 'react-final-form'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { Form } from 'react-bootstrap'
 import { createUseStyles } from 'react-jss'
 import { darkTheme } from '../../../theme/darkTheme'

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { FieldValidator } from 'final-form'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { useQuery } from '@apollo/client'
 import { useField } from 'react-final-form'
 import { SearchGroupsQuery, SearchGroupsQueryVariables } from '../../graphql/__generated__/typescript-operations'

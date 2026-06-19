@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useApolloClient } from '@apollo/client'
 import { createUseStyles } from 'react-jss'
 import classNames from 'classnames'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import {
     UpdateGameRatingMutation,
     UpdateGameRatingMutationVariables,

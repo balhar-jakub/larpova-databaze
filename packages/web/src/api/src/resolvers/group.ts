@@ -1,4 +1,5 @@
 import type { Context } from '../context.js';
+import { normalizeGame } from './mappers.js';
 
 export async function groupByIdResolver(
   _parent: unknown,
@@ -21,7 +22,7 @@ export async function groupByIdResolver(
 
   return {
     ...row,
-    authorsOf: (row.csld_game_has_group ?? []).map((j) => j.csld_game).filter(Boolean),
+    authorsOf: (row.csld_game_has_group ?? []).map((j) => j.csld_game).filter(Boolean).map((g: any) => normalizeGame(g)),
   };
 }
 

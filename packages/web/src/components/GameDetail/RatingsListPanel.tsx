@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { useApolloClient } from '@apollo/client'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { createUseStyles } from 'react-jss'
 import classNames from 'classnames'
 import {

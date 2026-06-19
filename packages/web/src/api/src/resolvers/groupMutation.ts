@@ -1,6 +1,7 @@
 import type { Context } from '../context.js';
 import { isSignedIn, isAdminOfGroup } from '../auth/appUsers.js';
 import { GraphQLError } from 'graphql';
+import { normalizeGame } from './mappers.js';
 
 function requireAdminOfGroup(ctx: Context) {
   if (!isAdminOfGroup(ctx)) {
@@ -28,7 +29,7 @@ export async function createGroupResolver(
 
   return {
     ...group,
-    authorsOf: (group.csld_game_has_group ?? []).map((j) => j.csld_game).filter(Boolean),
+    authorsOf: (group.csld_game_has_group ?? []).map((j) => j.csld_game).filter(Boolean).map((g: any) => normalizeGame(g)),
   };
 }
 
@@ -54,6 +55,6 @@ export async function updateGroupResolver(
 
   return {
     ...group,
-    authorsOf: (group.csld_game_has_group ?? []).map((j) => j.csld_game).filter(Boolean),
+    authorsOf: (group.csld_game_has_group ?? []).map((j) => j.csld_game).filter(Boolean).map((g: any) => normalizeGame(g)),
   };
 }

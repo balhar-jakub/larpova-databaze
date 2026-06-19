@@ -32,7 +32,7 @@ export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Co
       take: 5,
       include: {
         csld_game: true,
-        csld_csld_user: true,
+        csld_csld_user: { include: { csld_image: true } },
       },
     }),
   ]);
@@ -44,7 +44,7 @@ export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Co
     lastComments: lastComments.map((c) => ({
       ...c,
       commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
-      user: c.csld_csld_user,
+      user: c.csld_csld_user?.id ? { ...c.csld_csld_user, image: c.csld_csld_user.csld_image?.id ? c.csld_csld_user.csld_image : null } : null,
       game: c.csld_game ? normalizeGame(c.csld_game) : null,
     })),
   };

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { createUseStyles } from 'react-jss'
 import classNames from 'classnames'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { labelMapper, useLoadLabels } from '../../../hooks/usePredefinedLabels'
 import { formClasses } from '../../../utils/formClasses'
 import { Label } from '../../../graphql/__generated__/typescript-operations'

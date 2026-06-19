@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { useApolloClient } from '@apollo/client'
 import { Form as FinalForm } from 'react-final-form'
 import { TFunction } from 'i18next'

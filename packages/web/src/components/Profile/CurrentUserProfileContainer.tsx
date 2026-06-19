@@ -12,7 +12,6 @@ const userDataGql = require('./graphql/loadCurrentUserProfile.graphql')
 
 const CurrentUserProfileContainer = () => {
     const userDataQuery = useQuery<LoadCurrentUserProfileQuery, LoadCurrentUserProfileQueryVariables>(userDataGql, {
-        skip: !isInBrowser,
         fetchPolicy: 'cache-and-network',
         variables: {
             commentsLimit: PAGE_SIZE,

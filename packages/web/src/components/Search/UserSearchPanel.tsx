@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { useQuery } from '@apollo/client'
 import { Button } from 'react-bootstrap'
 import { SearchPageUsersQuery, SearchPageUsersQueryVariables } from '../../graphql/__generated__/typescript-operations'

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@apollo/client'
 import isInBrowser from 'is-in-browser'
 import { UserContext, UserContextShape, UserContextValue } from './UserContext'
@@ -16,23 +16,24 @@ const UserContextProvider: React.FC = ({ children }) => {
     const query = useQuery<LoggedInUserQuery, LoggedInUserQueryVariables>(loggedInUserGql, {
         skip: !isInBrowser,
         fetchPolicy: 'network-only',
-        onCompleted: (data: LoggedInUserQuery) => {
-            const loggedInUser = data?.loggedInUser
-            setValue(
-                loggedInUser
-                    ? {
-                          id: loggedInUser.id,
-                          name: loggedInUser.name,
-                          nickName: loggedInUser.nickname ?? undefined,
-                          imageId: loggedInUser.image?.id,
-                          role: loggedInUser.role ?? UserRole.Anonymous,
-                      }
-                    : undefined,
-            )
-        },
         notifyOnNetworkStatusChange: true,
     })
     const { loading } = query
+
+    useEffect(() => {
+        if (query.data?.loggedInUser) {
+            const loggedInUser = query.data.loggedInUser
+            setValue({
+                id: loggedInUser.id,
+                name: loggedInUser.name,
+                nickName: loggedInUser.nickname ?? undefined,
+                imageId: loggedInUser.image?.id,
+                role: loggedInUser.role ?? UserRole.Anonymous,
+            })
+        } else if (!loading && !query.data?.loggedInUser) {
+            setValue(undefined)
+        }
+    }, [query.data, loading])
 
     const providerValue: UserContextShape | undefined = useMemo(() => {
         return {

@@ -1,8 +1,9 @@
 import React, { useContext, useMemo, useRef, useState } from 'react'
+import Head from 'next/head'
 import { createUseStyles } from 'react-jss'
 import { useQuery } from '@apollo/client'
 import { Row } from 'react-bootstrap'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { darkTheme } from '../../theme/darkTheme'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
 import { HomePageGamesPanel } from './HomePageGamesPanel'
@@ -89,9 +90,9 @@ export const HomePagePanel = () => {
     const isFirstRenderRef = useRef<boolean>(isFirstRender) // Freeze value on our first render
     const handleToggleExpanded = () => setExpanded(old => !old)
     const homePageQuery = useQuery<GetHomePageDataQuery, GetHomePageDataQueryVariables>(getHomePageDataQuery, {
-        ssr: true,
-        // Use cache-first on first render so that query is not repeated on the first render but when we come
-        // back to the page, it is fired to fetch fresh data
+        // SSR queries disabled — ApolloProvider context propagates but
+        // network fetch during SSR is unreliable in Pages Router setup.
+        // Data loads client-side on hydration.
         fetchPolicy: isFirstRenderRef.current ? 'cache-first' : 'cache-and-network',
         nextFetchPolicy: 'cache-and-network',
     })
@@ -121,6 +122,7 @@ export const HomePagePanel = () => {
 
     return (
         <>
+            <Head><title>{t('HomePage.pageTitle')}</title></Head>
             <OpenGraphMeta
                 isHomepage
                 title={t('HomePage.pageTitle')}

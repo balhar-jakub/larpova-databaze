@@ -1,5 +1,5 @@
 import React, { MouseEventHandler, useContext } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { useApolloClient } from '@apollo/client'
 import { Dropdown } from 'react-bootstrap'
 import { createUseStyles } from 'react-jss'

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { Button, Modal } from 'react-bootstrap'
 import { EditorState } from 'draft-js'
 import { Form as FinalForm } from 'react-final-form'

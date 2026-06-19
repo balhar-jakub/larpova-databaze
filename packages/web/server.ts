@@ -30,6 +30,39 @@ import { generateIcal } from './src/api/src/external/ical.js';
 
 // ── Env setup ───────────────────────────────────────────
 
+// Mock browser globals for SSR (draft-js, html-to-draftjs, jss, etc.)
+if (typeof window === 'undefined') {
+  const noop = () => {};
+  (global as any).window = {
+    location: { protocol: 'https:', hostname: 'localhost', host: 'localhost', href: 'https://localhost/', },
+    navigator: { userAgent: 'node.js' },
+    addEventListener: noop,
+  };
+  const docEl = { childNodes: [], children: [] };
+  (global as any).document = {
+    createElement: (tag: string) => {
+      const el: any = { style: {}, classList: null };
+      // FontAwesome calls styleEl.setAttribute() during SSR
+      if (tag === 'style') {
+        el.setAttribute = noop;
+        el.appendChild = noop;
+        el.sheet = { cssRules: [], insertRule: noop };
+      }
+      return el;
+    },
+    createTextNode: () => ({}),
+    getElementsByTagName: () => [],
+    querySelectorAll: () => [],
+    querySelector: () => null,
+    getElementById: () => null,
+    addEventListener: noop,
+    documentElement: docEl,
+    body: docEl,
+    head: docEl,
+  };
+  (global as any).HTMLElement = function() {} as any;
+}
+
 const dev = process.env.NODE_ENV !== 'production';
 const port = parseInt(process.env.PORT || '3000', 10);
 
@@ -107,7 +140,7 @@ app.use('/graphql', expressMiddleware(apolloServer, {
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
 app.get('/data/*', async (req, res) => {
-  const relativePath = req.params[0] as string;
+  const relativePath: string = req.params[0];
   if (!relativePath || relativePath.includes('..')) return res.status(400).end();
   try {
     const stream = await fileService.getFileStream(relativePath);
@@ -118,7 +151,7 @@ app.get('/data/*', async (req, res) => {
 });
 
 app.get('/ical', async (req, res) => {
-  const id = req.query.id as string | undefined;
+    const id: string | undefined = req.query.id as string | undefined;
   let userId: number | undefined;
   if (id && id !== 'all') { userId = parseInt(id, 10); if (isNaN(userId)) userId = undefined; }
   try {
@@ -126,6 +159,34 @@ app.get('/ical', async (req, res) => {
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
     res.send(cal);
   } catch { res.status(500).end(); }
+});
+
+// ── Image serving (resolves image IDs to file paths) ─────
+
+app.get('/game-image/', async (req, res) => {
+  const imageId = req.query.imageId as string;
+  if (!imageId) return res.status(400).end();
+  try {
+    const img = await prisma.csld_image.findUnique({ where: { id: parseInt(imageId, 10) }, select: { path: true } });
+    if (!img?.path) return res.status(404).end();
+    const stream = await fileService.getFileStream(img.path);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Cache-Control', 'public, max-age=31536000');
+    stream.pipe(res);
+  } catch { res.status(404).end(); }
+});
+
+app.get('/user-icon', async (req, res) => {
+  const imageId = req.query.imageId as string;
+  if (!imageId) return res.status(404).end();
+  try {
+    const img = await prisma.csld_image.findUnique({ where: { id: parseInt(imageId, 10) }, select: { path: true } });
+    if (!img?.path) return res.status(404).end();
+    const stream = await fileService.getFileStream(img.path);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Cache-Control', 'public, max-age=31536000');
+    stream.pipe(res);
+  } catch { res.status(404).end(); }
 });
 
 // ── Next.js ─────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { useMutation, useQuery } from '@apollo/client'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { Col, Row } from 'react-bootstrap'
 import classNames from 'classnames'
 import isInBrowser from 'is-in-browser'
@@ -87,9 +87,7 @@ const EventDetailPanel = ({ eventId }: Props) => {
     const [deleteConfirmShown, setDeleteConfirmShown] = useState(false)
     const { t } = useTranslation('common')
     const { data } = useQuery<LoadEventQuery, LoadEventQueryVariables>(loadEventGql, {
-        ssr: true,
         fetchPolicy: isInBrowser ? 'cache-and-network' : 'cache-first',
-        nextFetchPolicy: 'network-only',
         variables: { eventId },
     })
     const [deleteEvent, { loading: deleteLoading }] = useMutation<DeleteEventMutation, DeleteEventMutationVariables>(

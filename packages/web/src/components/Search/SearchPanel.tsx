@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { Form as FinalForm } from 'react-final-form'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { Button } from 'react-bootstrap'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
 import { darkTheme } from '../../theme/darkTheme'

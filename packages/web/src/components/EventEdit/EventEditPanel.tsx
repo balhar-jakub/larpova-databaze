@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { useQuery } from '@apollo/client'
 import { createUseStyles } from 'react-jss'
 import isInBrowser from 'is-in-browser'

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { Game, User, Group, Label } from 'src/graphql/__generated__/typescript-operations'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { i18n as Ti18n, TFunction } from 'i18next'
 import { Row, Col } from 'react-bootstrap'
 import { darkTheme } from '../../theme/darkTheme'
@@ -93,7 +93,7 @@ const useStyles = createUseStyles({
 
 const buildFacts = (t: TFunction, i18n: Ti18n, facts: Array<{ count?: number | null; key: string }>) =>
     facts.reduce((str, fact) => {
-        if (fact.count) {
+        if (fact.count != null) {
             return `${str}${str.length > 0 ? ', ' : ''}${t(fact.key, {
                 count: fact.count,
             })}`

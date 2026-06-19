@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@apollo/client'
 import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { Row, Col } from 'react-bootstrap'
 import {
     CachedGameDataFragment,
@@ -131,8 +131,7 @@ export const GameDetailPanel = ({ gameId }: Props) => {
         variables: {
             gameId,
         },
-        fetchPolicy: 'cache-first',
-        ssr: true,
+        fetchPolicy: 'network-only',
     })
     let gameFragment: CachedGameDataFragment | undefined | null
 

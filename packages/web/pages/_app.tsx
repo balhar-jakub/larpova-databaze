@@ -3,12 +3,11 @@ import App, { AppInitialProps, AppContext } from 'next/app'
 
 import { appWithTranslation } from 'src/lib/i18n'
 import { ErrorBoundary } from 'src/components/common/ErrorBoundary/ErrorBoundary'
-import { ApolloProvider } from '@apollo/react-hooks'
+import { ApolloProvider } from '@apollo/client/index.js'
+import { makeClient } from 'src/with/apolloClient'
 import { config } from '@fortawesome/fontawesome-svg-core'
-import { WithApolloProps } from 'next-with-apollo'
 import UserContextProvider from 'src/context/UserContext/UserContextProvider'
 import { Router } from 'next/router'
-import { withApolloWrapper } from 'src/with/withApolloProvider'
 import ToastContextProvider from 'src/context/ToastContext/ToastContextProvider'
 import { PageHeader } from 'src/components/common/PageHeader/PageHeader'
 import { PageFooter } from 'src/components/common/PageFooter/PageFooter'
@@ -17,34 +16,30 @@ import InPlaceSignInWrapper from 'src/components/common/InPlaceSignInWrapper/InP
 
 import '@fortawesome/fontawesome-svg-core/styles.css'
 import 'react-bootstrap-typeahead/css/Typeahead.css'
-import { registerGTagPageview } from '../../src/utils/gtag'
-import FirstRenderContextProvider from '../../src/context/FirstRenderContext/FirstRenderContextProvider'
+import { registerGTagPageview } from '../src/utils/gtag'
+import FirstRenderContextProvider from '../src/context/FirstRenderContext/FirstRenderContextProvider'
 
-// Import the CSS
-config.autoAddCss = false // Tell Font Awesome to skip adding the CSS automatically since it's being imported above
+config.autoAddCss = false
 
 const handlePageChange = (url: URL) => {
-    // Reset window scroll on route change (= when we went to another page)
-    window.scroll({
-        top: 0,
-        left: 0,
-    })
-
-    // Register page change to GTag
+    window.scroll({ top: 0, left: 0 })
     registerGTagPageview(url)
 }
 
-class WebApp extends App<AppInitialProps & WithApolloProps<any>> {
+const useIsBrowser = () => {
+    const [isBrowser, setIsBrowser] = React.useState(false)
+    React.useEffect(() => setIsBrowser(true), [])
+    return isBrowser
+}
+
+class WebApp extends App<AppInitialProps> {
     static async getInitialProps({ Component, ctx }: AppContext): Promise<AppInitialProps> {
         const pageProps = Component.getInitialProps ? await Component.getInitialProps(ctx) : {}
-
         return { pageProps }
     }
 
     componentDidMount() {
-        // Remove styles sent from server - we have generated out own
         document.getElementById('server-side-styles')?.remove()
-
         Router.events.on('routeChangeComplete', handlePageChange)
     }
 
@@ -53,19 +48,21 @@ class WebApp extends App<AppInitialProps & WithApolloProps<any>> {
     }
 
     render() {
-        const { Component, pageProps, apollo } = this.props
+        const { Component, pageProps } = this.props
+        const apolloClient = makeClient()
 
         return (
             <ErrorBoundary>
                 <ToastContextProvider>
-                    <ApolloProvider client={apollo}>
+                    <ApolloProvider client={apolloClient}>
                         <UserContextProvider>
                             <FirstRenderContextProvider>
                                 <InPlaceSignInContextProvider>
                                     <PageHeader />
                                     <InPlaceSignInWrapper>
-                                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                                        <Component {...pageProps} />
+                                        <ClientHydrationWrapper>
+                                            <Component {...pageProps} />
+                                        </ClientHydrationWrapper>
                                     </InPlaceSignInWrapper>
                                     <PageFooter />
                                 </InPlaceSignInContextProvider>
@@ -78,4 +75,20 @@ class WebApp extends App<AppInitialProps & WithApolloProps<any>> {
     }
 }
 
-export default appWithTranslation(withApolloWrapper(WebApp))
+// Wraps children so they only render after client hydration.
+// This avoids the React 18 SSR context propagation issue with ApolloProvider.
+// During SSR, renders a hidden placeholder that Next.js hydrates into the real page.
+const ClientHydrationWrapper = ({ children }: { children: React.ReactNode }) => {
+    const isBrowser = useIsBrowser()
+    // suppressHydrationWarning prevents React from complaining about
+    // the SSR/client HTML mismatch (SSR renders empty, client renders content)
+    return (
+        <div suppressHydrationWarning>
+            {isBrowser ? children : null}
+        </div>
+    )
+}
+
+ClientHydrationWrapper.displayName = 'ClientHydrationWrapper'
+
+export default appWithTranslation(WebApp)

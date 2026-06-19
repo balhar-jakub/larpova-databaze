@@ -1,6 +1,6 @@
 import React from 'react'
 import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import { Game } from '../../../graphql/__generated__/typescript-operations'
 import { DetailListHeader } from '../DetailListHeader/DetailListHeader'
 import { darkTheme } from '../../../theme/darkTheme'

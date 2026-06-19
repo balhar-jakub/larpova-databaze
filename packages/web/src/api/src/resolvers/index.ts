@@ -4,6 +4,8 @@ import {
   byQueryResolver,
   byQueryWithTotalResolver,
   gamesQueryResolver,
+  gamesOfAuthorsResolver,
+  commentsPagedResolver,
 } from './game.js';
 import { homepageResolver } from './homepage.js';
 import { configResolver } from './config.js';
@@ -13,6 +15,7 @@ import {
   usersByQueryResolver,
   loggedInUserResolver,
 } from './user.js';
+import { normalizeGame } from './mappers.js';
 import { groupByIdResolver, groupsByQueryResolver } from './group.js';
 import { eventByIdResolver, eventCalendarResolver } from './event.js';
 import { authorizedRequiredLabelsResolver, authorizedOptionalLabelsResolver } from './label.js';
@@ -90,6 +93,42 @@ export const resolvers: any = {
     allUsers: adminAllUsersResolver,
     stats: adminStatsResolver,
     selfRated: adminSelfRatedResolver,
+  },
+
+  // Type-level field resolvers
+  Game: {
+    gamesOfAuthors: gamesOfAuthorsResolver,
+    commentsPaged: commentsPagedResolver,
+  },
+  User: {
+    commentsPaged: async (
+      parent: { id: number | string },
+      args: { offset: number; limit: number },
+      ctx: Context,
+    ) => {
+      const userId = typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id;
+      if (!userId || isNaN(userId)) return { comments: [], totalAmount: 0 };
+      const comments = await ctx.db.csld_comment.findMany({
+        where: { user_id: userId, is_hidden: false },
+        orderBy: { added: 'desc' },
+        skip: args.offset ?? 0,
+        take: args.limit ?? 10,
+        include: { csld_game: true },
+      });
+      const total = await ctx.db.csld_comment.count({
+        where: { user_id: userId, is_hidden: false },
+      });
+      return {
+        comments: comments.map((c) => ({
+          ...c,
+          amountOfUpvotes: c.amount_of_upvotes ?? 0,
+          commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
+          game: normalizeGame(c.csld_game),
+          user: { id: userId, name: (parent as any).name ?? '' },
+        })),
+        totalAmount: total,
+      };
+    },
   },
 
   // Mutations — stubs for now

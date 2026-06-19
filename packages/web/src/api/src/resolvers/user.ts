@@ -1,4 +1,38 @@
 import type { Context } from '../context.js';
+import { normalizeGame } from './mappers.js';
+
+export function normalizeUser(row: any) {
+  if (!row) return null;
+  return {
+    ...row,
+    role: ['ANONYMOUS', 'USER', 'EDITOR', 'ADMIN', 'AUTHOR'][row.role] ?? 'USER',
+    image: row.csld_image?.id ? row.csld_image : null,
+    lastRating: row.last_rating,
+    birthDate: row.birth_date?.toISOString().split('T')[0] ?? null,
+    amountOfComments: row.amount_of_comments,
+    amountOfPlayed: row.amount_of_played,
+    amountOfCreated: row.amount_of_created,
+    authoredGames: (row.csld_game_has_author ?? []).map((j: any) => normalizeGame(j.csld_game)).filter(Boolean),
+    playedGames: [],
+    wantedGames: [],
+    ratings: (row.csld_rating ?? []).map((r: any) => ({
+      ...r,
+      game: normalizeGame(r.csld_game),
+      user: null,
+    })),
+    commentsPaged: ({ offset, limit }: { offset: number; limit: number }) => {
+      const comments = (row.csld_comment ?? [])
+        .slice(offset, offset + limit)
+        .map((c: any) => ({
+          ...c,
+          commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
+          user: { id: row.id, name: row.name },
+          game: normalizeGame(c.csld_game),
+        }));
+      return { comments, totalAmount: (row.csld_comment ?? []).length };
+    },
+  };
+}
 
 export async function userByIdResolver(
   _parent: unknown,
@@ -25,39 +59,7 @@ export async function userByIdResolver(
     },
   });
 
-  if (!row) return null;
-
-  return {
-    ...row,
-    image: row.csld_image ?? null,
-    lastRating: row.last_rating,
-    birthDate: row.birth_date?.toISOString().split('T')[0] ?? null,
-    amountOfComments: row.amount_of_comments,
-    amountOfPlayed: row.amount_of_played,
-    amountOfCreated: row.amount_of_created,
-    authoredGames: (row.csld_game_has_author ?? []).map((j) => j.csld_game).filter(Boolean),
-    playedGames: [], // populated by dedicated resolver
-    wantedGames: [], // populated by dedicated resolver
-    ratings: (row.csld_rating ?? []).map((r) => ({
-      ...r,
-      game: r.csld_game ?? null,
-      user: null, // self — hidden
-    })),
-    commentsPaged: ({ offset, limit }: { offset: number; limit: number }) => {
-      const comments = (row.csld_comment ?? [])
-        .slice(offset, offset + limit)
-        .map((c) => ({
-          ...c,
-          commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
-          user: { id: row.id, name: row.name },
-          game: c.csld_game ?? null,
-        }));
-      return {
-        comments,
-        totalAmount: (row.csld_comment ?? []).length,
-      };
-    },
-  };
+  return normalizeUser(row);
 }
 
 export async function userByEmailResolver(
@@ -98,5 +100,5 @@ export async function loggedInUserResolver(
   _args: unknown,
   ctx: Context,
 ) {
-  return ctx.user;
+  return ctx.user ? normalizeUser(ctx.user) : null;
 }

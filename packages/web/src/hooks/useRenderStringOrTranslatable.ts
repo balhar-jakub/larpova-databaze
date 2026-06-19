@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 
 /**
  * Renders StringOrTranslatable - either renders string directly or translates it.

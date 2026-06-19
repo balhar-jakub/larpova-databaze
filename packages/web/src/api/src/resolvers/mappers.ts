@@ -6,7 +6,7 @@ export function normalizeGame(row: any) {
   return {
     ...row,
     totalRating: row.total_rating,
-    averageRating: row.average_rating,
+    averageRating: row.average_rating ?? 0,
     amountOfComments: row.amount_of_comments,
     amountOfPlayed: row.amount_of_played,
     amountOfRatings: row.amount_of_ratings,
@@ -29,25 +29,21 @@ export function normalizeGame(row: any) {
       fullWidth: p.fullwidth,
       fullHeight: p.fullheight,
       image: p.csld_image ?? null,
-      game: p.csld_game_csld_photo_gameTocsld_game ?? null,
+      game: normalizeGame(p.csld_game_csld_photo_gameTocsld_game),
     })),
     similarGames: (row.similar_games_similar_games_id_game1Tocsld_game ?? []).map(
       (s: any) => s.csld_game_similar_games_id_game2Tocsld_game
-    ).filter(Boolean),
-    gamesOfAuthors: (row.csld_game_has_author ?? [])
-      .flatMap((j: any) => j.csld_csld_user?.csld_game_has_author ?? [])
-      .map((a: any) => a.csld_game)
-      .filter((g: any) => g && g.id !== row.id),
+    ).filter(Boolean).map((g: any) => normalizeGame(g)),
     ratingStats: computeRatingStats(row.csld_rating ?? []),
     comments: (row.csld_comment ?? []).map((c: any) => ({
       ...c,
       commentAsText: stripHtml(c.comment),
       user: c.csld_csld_user ?? null,
-      game: c.csld_game ?? null,
+      game: normalizeGame(c.csld_game),
     })),
     ratings: (row.csld_rating ?? []).map((r: any) => ({
       ...r,
-      game: r.csld_game ?? null,
+      game: normalizeGame(r.csld_game),
       user: r.csld_csld_user ?? null,
     })),
     allowedActions: null, // computed field — needs auth context

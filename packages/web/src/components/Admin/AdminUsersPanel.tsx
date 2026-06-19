@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@apollo/client'
 import isInBrowser from 'is-in-browser'
 import { createUseStyles } from 'react-jss'
 import { Button, Dropdown, DropdownButton, Form } from 'react-bootstrap'
-import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'src/lib/i18n'
 import classNames from 'classnames'
 import {
     AdminUserFieldsFragment,
