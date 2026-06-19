@@ -243,7 +243,7 @@ export async function commentsPagedResolver(
       orderBy: { added: 'desc' },
       skip: args.offset ?? 0,
       take: args.limit ?? 10,
-      include: { csld_csld_user: true, csld_game: true },
+      include: { csld_csld_user: { include: { csld_image: true } }, csld_game: true },
     });
     const total = await ctx.db.csld_comment.count({
       where: { game_id: gameId, is_hidden: false },
@@ -255,7 +255,10 @@ export async function commentsPagedResolver(
         amountOfUpvotes: c.amount_of_upvotes ?? 0,
         amount_of_upvotes: c.amount_of_upvotes ?? 0,
         commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
-        user: c.csld_csld_user ?? null,
+        user: c.csld_csld_user ? {
+          ...c.csld_csld_user,
+          image: c.csld_csld_user.csld_image ?? null,
+        } : null,
         game: normalizeGame(c.csld_game),
       })),
       totalAmount: total,
