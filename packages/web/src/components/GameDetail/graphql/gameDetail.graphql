@@ -70,5 +70,13 @@ query GameDetail($gameId: ID!) {
             to
         }
         allowedActions
+        ratings {
+            id
+            rating
+            user {
+                id
+                name
+            }
+        }
     }
 }

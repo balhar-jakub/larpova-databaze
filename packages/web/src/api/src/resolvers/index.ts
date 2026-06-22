@@ -61,6 +61,7 @@ import {
   setUserRoleResolver,
   deleteUserResolver,
 } from './adminMutation.js';
+import { isAtLeastEditor } from '../auth/appUsers.js';
 
 export const resolvers: any = {
   Query: {
@@ -96,9 +97,45 @@ export const resolvers: any = {
   },
 
   // Type-level field resolvers
+  HomepageQuery: {
+    lastComments: async (
+      _parent: unknown,
+      args: { offset?: number; limit?: number },
+      ctx: any,
+    ) => {
+      const offset = args.offset ?? 0;
+      const limit = args.limit ?? 6;
+      const comments = await ctx.db.csld_comment.findMany({
+        where: { is_hidden: false, csld_game: { deleted: false } },
+        orderBy: { added: 'desc' },
+        skip: offset,
+        take: limit,
+        include: {
+          csld_game: true,
+          csld_csld_user: { include: { csld_image: true } },
+        },
+      });
+      return comments.map((c: any) => ({
+        ...c,
+        commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
+        user: c.csld_csld_user?.id
+          ? { ...c.csld_csld_user, image: c.csld_csld_user.csld_image?.id ? c.csld_csld_user.csld_image : null }
+          : null,
+        game: c.csld_game ? normalizeGame(c.csld_game) : null,
+        amountOfUpvotes: c.amount_of_upvotes ?? 0,
+      }));
+    },
+  },
+
   Game: {
     gamesOfAuthors: gamesOfAuthorsResolver,
     commentsPaged: commentsPagedResolver,
+    allowedActions: (_parent: unknown, _args: unknown, ctx: any) =>
+      isAtLeastEditor(ctx) ? ['Edit', 'Delete'] : [],
+  },
+  Event: {
+    allowedActions: (_parent: unknown, _args: unknown, ctx: any) =>
+      isAtLeastEditor(ctx) ? ['Edit', 'Delete'] : [],
   },
   User: {
     commentsPaged: async (
