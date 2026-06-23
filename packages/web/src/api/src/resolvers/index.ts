@@ -35,6 +35,7 @@ import {
   updateLoggedInUserPasswordResolver,
   startRecoverPasswordResolver,
   finishRecoverPasswordResolver,
+  startEmailLoginResolver,
 } from './userMutation.js';
 import {
   rateGameResolver,
@@ -185,6 +186,7 @@ export const resolvers: any = {
     updateLoggedInUserPassword: updateLoggedInUserPasswordResolver,
     startRecoverPassword: startRecoverPasswordResolver,
     finishRecoverPassword: finishRecoverPasswordResolver,
+    startEmailLogin: startEmailLoginResolver,
   },
 
   GameMutation: {

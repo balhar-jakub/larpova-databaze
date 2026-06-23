@@ -1,4 +1,12 @@
 {
   "loadError": "Error while loading data",
-  "loading": "Loading data..."
+  "loading": "Loading data...",
+  "SignIn": {
+    "emailPlaceholder": "you@email.com",
+    "sendMagicLink": "Send login link",
+    "sending": "Sending...",
+    "magicLinkSent": "A login link was sent to {{email}}. Check your inbox.",
+    "magicLinkError": "Failed to send. Please try again.",
+    "orUsePassword": "or use your password"
+  }
 }

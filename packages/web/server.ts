@@ -24,6 +24,7 @@ import passport from 'passport';
 import { resolvers } from './src/api/src/resolvers/index.js';
 import { configurePassport } from './src/api/src/auth/passport.js';
 import { rememberMeMiddleware } from './src/api/src/auth/rememberMe.js';
+import { setRememberMeCookie } from './src/api/src/auth/rememberMe.js';
 import { LocalFiles } from './src/api/src/files/fileService.js';
 import { setFileService } from './src/api/src/files/index.js';
 import { generateIcal } from './src/api/src/external/ical.js';
@@ -187,6 +188,68 @@ app.get('/user-icon', async (req, res) => {
     res.setHeader('Cache-Control', 'public, max-age=31536000');
     stream.pipe(res);
   } catch { res.status(404).end(); }
+});
+
+// ── Email magic-link callback ────────────────────────────
+
+app.get('/auth/email-login', async (req, res) => {
+  const token = req.query.token as string;
+  if (!token) return res.redirect('/signIn?error=invalid_token');
+
+  try {
+    // Find token (newest first)
+    const auth = await prisma.csld_email_authentication.findFirst({
+      where: { auth_token: token },
+      include: { csld_csld_user: { include: { csld_image: true } } },
+      orderBy: { id: 'desc' },
+    });
+
+    if (!auth || !auth.csld_csld_user) {
+      return res.redirect('/signIn?error=invalid_token');
+    }
+
+    // Check token expiry (15 minutes)
+    const FIFTEEN_MINUTES = 15 * 60 * 1000;
+    if (Date.now() - auth.created_at.getTime() > FIFTEEN_MINUTES) {
+      await prisma.csld_email_authentication.delete({ where: { id: auth.id } });
+      return res.redirect('/signIn?error=expired_token');
+    }
+
+    const user = auth.csld_csld_user;
+    const authUser = {
+      id: user.id,
+      email: user.email!,
+      name: user.name,
+      nickname: user.nickname,
+      role: user.role,
+      image: user.csld_image
+        ? { id: user.csld_image.id, path: user.csld_image.path }
+        : null,
+      amountOfComments: user.amount_of_comments,
+      amountOfPlayed: user.amount_of_played,
+      amountOfCreated: user.amount_of_created,
+    };
+
+    // Log in via Passport
+    await new Promise<void>((resolve, reject) => {
+      (req as any).login(authUser, (err: Error | null) => {
+        if (err) reject(err); else resolve();
+      });
+    });
+
+    // Set remember-me cookie
+    setRememberMeCookie(res, authUser.id);
+
+    // Delete used token
+    await prisma.csld_email_authentication.delete({
+      where: { id: auth.id },
+    });
+
+    res.redirect('/');
+  } catch (err) {
+    console.error('Email login error:', err);
+    res.redirect('/signIn?error=login_failed');
+  }
 });
 
 // ── Next.js ─────────────────────────────────────────────

@@ -87,3 +87,24 @@ export async function sendNewEventNotification(
     `,
   });
 }
+
+/**
+ * Send a magic-link login email.
+ */
+export async function sendMagicLinkEmail(
+  to: string,
+  loginUrl: string,
+): Promise<void> {
+  const t = getTransporter();
+  await t.sendMail({
+    from: FROM,
+    to,
+    subject: 'Přihlášení - Larpová databáze',
+    html: `
+      <p>Dobrý den,</p>
+      <p>pro přihlášení klikněte na následující odkaz:</p>
+      <p><a href="${loginUrl}">${loginUrl}</a></p>
+      <p>Odkaz je platný 15 minut. Pokud jste o přihlášení nežádali, tento e-mail ignorujte.</p>
+    `,
+  });
+}
