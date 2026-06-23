@@ -5,7 +5,7 @@ import { setRememberMeCookie, clearRememberMeCookie } from '../auth/rememberMe.j
 import { GraphQLError } from 'graphql';
 import crypto from 'node:crypto';
 import { verifyRecaptcha } from '../external/recaptcha.js';
-import { sendPasswordResetEmail } from '../external/email.js';
+import { sendPasswordResetEmail, sendMagicLinkEmail } from '../external/email.js';
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -308,4 +308,72 @@ export async function finishRecoverPasswordResolver(
   });
 
   return userToGraphQL(mapUser(user));
+}
+
+// ── StartEmailLogin ─────────────────────────────────────
+
+export async function startEmailLoginResolver(
+  _parent: unknown,
+  args: { email: string; loginUrlTemplate: string },
+  ctx: Context,
+) {
+  const email = args.email.toLowerCase().trim();
+
+  if (!email || !email.includes('@')) {
+    throw new GraphQLError('Invalid email', {
+      extensions: { code: 'VALIDATION_FAILED' },
+    });
+  }
+
+  // Find or create user
+  let user = await ctx.db.csld_csld_user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    // Auto-register — create user with placeholder name
+    user = await ctx.db.csld_csld_user.create({
+      data: {
+        email,
+        name: email.split('@')[0], // placeholder, user can update later
+        password: '',              // no password for magic-link users
+        role: 1,                   // USER
+        is_author: false,
+        amount_of_comments: 0,
+        amount_of_played: 0,
+        amount_of_created: 0,
+      },
+    });
+  }
+
+  // Generate one-time token
+  const token = crypto.randomBytes(32).toString('hex');
+
+  await ctx.db.csld_email_authentication.create({
+    data: {
+      auth_token: token,
+      user_id: user.id,
+    },
+  });
+
+  // Clean up expired tokens for this user (keep only the latest)
+  const oldTokens = await ctx.db.csld_email_authentication.findMany({
+    where: { user_id: user.id },
+    orderBy: { id: 'desc' },
+    skip: 1, // keep the one we just created
+  });
+  if (oldTokens.length > 0) {
+    await ctx.db.csld_email_authentication.deleteMany({
+      where: { id: { in: oldTokens.map(t => t.id) } },
+    });
+  }
+
+  // Send email
+  const loginUrl = args.loginUrlTemplate.replace('{token}', token);
+  await sendMagicLinkEmail(email, loginUrl).catch((err) => {
+    console.error('Failed to send magic link email:', err);
+  });
+
+  // Always return true — don't reveal whether email exists
+  return true;
 }

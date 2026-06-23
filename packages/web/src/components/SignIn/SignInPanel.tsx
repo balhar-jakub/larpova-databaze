@@ -16,6 +16,7 @@ import { useFocusInput } from '../../hooks/useFocusInput'
 import { useHideInPlaceLogin } from '../../hooks/useHideInPlaceLogin'
 import SubmitButton from '../common/SubmitButton/SubmitButton'
 import { useShowToast } from '../../hooks/useShowToast'
+import { EmailLoginForm } from './EmailLoginForm'
 
 const logInMutationGql = require('./graphql/logInMutation.graphql')
 
@@ -99,6 +100,7 @@ const SignInPanel = ({ infoMessage, stayOnPage, onSuccess }: Props) => {
 
     return (
         <FormPageRow headerText={infoMessage || t('SignIn.header')}>
+            <EmailLoginForm showDivider />
             <FinalForm<FormData>
                 onSubmit={onSubmit}
                 validate={validate(t)}

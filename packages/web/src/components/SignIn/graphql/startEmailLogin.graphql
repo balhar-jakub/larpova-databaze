@@ -1,0 +1,5 @@
+mutation StartEmailLogin($email: String!, $loginUrlTemplate: String!) {
+    user {
+        startEmailLogin(email: $email, loginUrlTemplate: $loginUrlTemplate)
+    }
+}

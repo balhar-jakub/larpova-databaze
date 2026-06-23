@@ -81,6 +81,7 @@ model csld_email_authentication {
   id             Int            @id @default(autoincrement())
   auth_token     String
   user_id        Int
+  created_at     DateTime       @default(now())
   csld_csld_user csld_csld_user @relation(fields: [user_id], references: [id], map: "csld_email_authentication_user_fk")
 }
 

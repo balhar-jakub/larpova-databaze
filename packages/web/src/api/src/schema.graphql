@@ -213,6 +213,7 @@ type UserMutation {
     updateLoggedInUserPassword(oldPassword: String!, newPassword: String!): User!
     startRecoverPassword(email: String!, recoverUrl: String!): Boolean
     finishRecoverPassword(token: String!, newPassword: String!): User
+    startEmailLogin(email: String!, loginUrlTemplate: String!): Boolean!
 }
 
 input CreateUserInput {
