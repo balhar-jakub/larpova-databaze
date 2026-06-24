@@ -70,7 +70,11 @@ export async function rateGameResolver(
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
-    include: { csld_game_has_label: { include: { csld_label: true } } },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_comment: { include: { csld_csld_user: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
   });
   return game ? normalizeGame(game) : null;
 }
@@ -96,7 +100,11 @@ export async function deleteGameRatingResolver(
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
-    include: { csld_game_has_label: { include: { csld_label: true } } },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_comment: { include: { csld_csld_user: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
   });
   return game ? normalizeGame(game) : null;
 }
@@ -136,7 +144,11 @@ export async function setGamePlayedStateResolver(
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
-    include: { csld_game_has_label: { include: { csld_label: true } } },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_comment: { include: { csld_csld_user: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
   });
   return game ? normalizeGame(game) : null;
 }
@@ -185,7 +197,11 @@ export async function createOrUpdateCommentResolver(
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
-    include: { csld_game_has_label: { include: { csld_label: true } } },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_comment: { include: { csld_csld_user: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
   });
   return game ? normalizeGame(game) : null;
 }
@@ -254,6 +270,43 @@ export async function setCommentLikedResolver(
   return comment?.csld_game ? normalizeGame(comment.csld_game) : null;
 }
 
+// ── deleteComment ────────────────────────────────────────
+
+export async function deleteCommentResolver(
+  _parent: unknown,
+  args: { commentId: string },
+  ctx: Context,
+) {
+  requireAuth(ctx);
+  const commentId = parseInt(args.commentId, 10);
+  if (isNaN(commentId)) throw new GraphQLError('Invalid commentId');
+
+  // Verify the comment exists and belongs to current user (or user is editor)
+  const comment = await ctx.db.csld_comment.findUnique({
+    where: { id: commentId },
+    select: { id: true, user_id: true, game_id: true },
+  });
+
+  if (!comment) throw new GraphQLError('Comment not found');
+  if (comment.user_id !== ctx.user!.id && !isAtLeastEditor(ctx)) {
+    throw new GraphQLError('Not authorized to delete this comment', {
+      extensions: { code: 'ACCESS_DENIED' },
+    });
+  }
+
+  await ctx.db.csld_comment.delete({ where: { id: commentId } });
+
+  const game = await ctx.db.csld_game.findUnique({
+    where: { id: comment.game_id },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_comment: { include: { csld_csld_user: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
+  });
+  return game ? normalizeGame(game) : null;
+}
+
 // ── deleteGame ───────────────────────────────────────────
 
 export async function deleteGameResolver(
@@ -279,7 +332,11 @@ export async function deleteGameResolver(
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
-    include: { csld_game_has_label: { include: { csld_label: true } } },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_comment: { include: { csld_csld_user: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
   });
   return game ? normalizeGame(game) : null;
 }

@@ -6,6 +6,8 @@ import {
   gamesQueryResolver,
   gamesOfAuthorsResolver,
   commentsPagedResolver,
+  currentUsersCommentResolver,
+  currentUsersRatingResolver,
 } from './game.js';
 import { homepageResolver } from './homepage.js';
 import { configResolver } from './config.js';
@@ -44,6 +46,7 @@ import {
   createOrUpdateCommentResolver,
   setCommentVisibleResolver,
   setCommentLikedResolver,
+  deleteCommentResolver,
   deleteGameResolver,
   createGameResolver,
   updateGameResolver,
@@ -131,6 +134,8 @@ export const resolvers: any = {
   Game: {
     gamesOfAuthors: gamesOfAuthorsResolver,
     commentsPaged: commentsPagedResolver,
+    currentUsersComment: currentUsersCommentResolver,
+    currentUsersRating: currentUsersRatingResolver,
     allowedActions: (_parent: unknown, _args: unknown, ctx: any) =>
       isAtLeastEditor(ctx) ? ['Edit', 'Delete'] : [],
   },
@@ -199,6 +204,7 @@ export const resolvers: any = {
     createOrUpdateComment: createOrUpdateCommentResolver,
     setCommentVisible: setCommentVisibleResolver,
     setCommentLiked: setCommentLikedResolver,
+    deleteComment: deleteCommentResolver,
   },
 
   GroupMutation: {

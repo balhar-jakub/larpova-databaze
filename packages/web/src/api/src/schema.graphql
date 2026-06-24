@@ -244,6 +244,7 @@ type GameMutation {
     deleteGameRating(gameId: ID!, userId: ID): Game!
     setGamePlayedState(gameId: ID!, state: Int!): Game!
     createOrUpdateComment(gameId: ID!, comment: String!): Game!
+    deleteComment(commentId: ID!): Game!
     setCommentVisible(commentId: ID!, visible: Boolean!): Game!
     setCommentLiked(commentId: ID!, liked: Boolean!): Game!
 }
