@@ -13,7 +13,10 @@ export function normalizeUser(row: any) {
     amountOfPlayed: row.amount_of_played,
     amountOfCreated: row.amount_of_created,
     authoredGames: (row.csld_game_has_author ?? []).map((j: any) => normalizeGame(j.csld_game)).filter(Boolean),
-    playedGames: [],
+    playedGames: (row.csld_rating ?? []).map((r: any) => ({
+      game: normalizeGame(r.csld_game),
+      rating: r.rating,
+    })).filter((pg: any) => pg.game != null),
     wantedGames: [],
     ratings: (row.csld_rating ?? []).map((r: any) => ({
       ...r,
