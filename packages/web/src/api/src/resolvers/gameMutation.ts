@@ -67,6 +67,21 @@ export async function rateGameResolver(
       },
     });
   }
+  // Recalculate rating aggregates on the game row
+  const stats = await ctx.db.csld_rating.aggregate({
+    where: { game_id: gameId, rating: { not: null } },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+  await ctx.db.csld_game.update({
+    where: { id: gameId },
+    data: {
+      average_rating: stats._avg.rating ?? 0,
+      total_rating: stats._avg.rating ?? 0,
+      amount_of_ratings: stats._count.rating ?? 0,
+    },
+  });
+
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
@@ -93,6 +108,21 @@ export async function deleteGameRatingResolver(
       ...(userId ? { user_id: userId } : {}),
     },
   });
+  // Recalculate rating aggregates on the game row
+  const stats = await ctx.db.csld_rating.aggregate({
+    where: { game_id: gameId, rating: { not: null } },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+  await ctx.db.csld_game.update({
+    where: { id: gameId },
+    data: {
+      average_rating: stats._avg.rating ?? 0,
+      total_rating: stats._avg.rating ?? 0,
+      amount_of_ratings: stats._count.rating ?? 0,
+    },
+  });
+
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
@@ -133,6 +163,21 @@ export async function setGamePlayedStateResolver(
       },
     });
   }
+  // Recalculate rating aggregates on the game row
+  const stats = await ctx.db.csld_rating.aggregate({
+    where: { game_id: gameId, rating: { not: null } },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+  await ctx.db.csld_game.update({
+    where: { id: gameId },
+    data: {
+      average_rating: stats._avg.rating ?? 0,
+      total_rating: stats._avg.rating ?? 0,
+      amount_of_ratings: stats._count.rating ?? 0,
+    },
+  });
+
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
