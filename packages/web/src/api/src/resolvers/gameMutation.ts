@@ -73,19 +73,26 @@ export async function rateGameResolver(
     _avg: { rating: true },
     _count: { rating: true },
   });
+  const avg = (stats._avg.rating ?? 0);
+  const n = stats._count.rating ?? 0;
+  // Bayesian average: shrink toward 50 (5.0 scale) with C=20
+  const totalRating = n > 0 ? (avg * 10 * n + 50 * 20) / (n + 20) : 0;
   await ctx.db.csld_game.update({
     where: { id: gameId },
     data: {
-      average_rating: stats._avg.rating ?? 0,
-      total_rating: stats._avg.rating ?? 0,
-      amount_of_ratings: stats._count.rating ?? 0,
+      average_rating: avg * 10,
+      total_rating: totalRating,
+      amount_of_ratings: n,
     },
   });
 
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
-    include: { csld_game_has_label: { include: { csld_label: true } } },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
   });
   return game ? normalizeGame(game) : null;
 }
@@ -114,19 +121,26 @@ export async function deleteGameRatingResolver(
     _avg: { rating: true },
     _count: { rating: true },
   });
+  const avg = (stats._avg.rating ?? 0);
+  const n = stats._count.rating ?? 0;
+  // Bayesian average: shrink toward 50 (5.0 scale) with C=20
+  const totalRating = n > 0 ? (avg * 10 * n + 50 * 20) / (n + 20) : 0;
   await ctx.db.csld_game.update({
     where: { id: gameId },
     data: {
-      average_rating: stats._avg.rating ?? 0,
-      total_rating: stats._avg.rating ?? 0,
-      amount_of_ratings: stats._count.rating ?? 0,
+      average_rating: avg * 10,
+      total_rating: totalRating,
+      amount_of_ratings: n,
     },
   });
 
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
-    include: { csld_game_has_label: { include: { csld_label: true } } },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
   });
   return game ? normalizeGame(game) : null;
 }
@@ -169,19 +183,26 @@ export async function setGamePlayedStateResolver(
     _avg: { rating: true },
     _count: { rating: true },
   });
+  const avg = (stats._avg.rating ?? 0);
+  const n = stats._count.rating ?? 0;
+  // Bayesian average: shrink toward 50 (5.0 scale) with C=20
+  const totalRating = n > 0 ? (avg * 10 * n + 50 * 20) / (n + 20) : 0;
   await ctx.db.csld_game.update({
     where: { id: gameId },
     data: {
-      average_rating: stats._avg.rating ?? 0,
-      total_rating: stats._avg.rating ?? 0,
-      amount_of_ratings: stats._count.rating ?? 0,
+      average_rating: avg * 10,
+      total_rating: totalRating,
+      amount_of_ratings: n,
     },
   });
 
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
-    include: { csld_game_has_label: { include: { csld_label: true } } },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
   });
   return game ? normalizeGame(game) : null;
 }
@@ -230,7 +251,10 @@ export async function createOrUpdateCommentResolver(
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
-    include: { csld_game_has_label: { include: { csld_label: true } } },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
   });
   return game ? normalizeGame(game) : null;
 }
@@ -249,7 +273,10 @@ export async function setCommentVisibleResolver(
   const comment = await ctx.db.csld_comment.update({
     where: { id: commentId },
     data: { is_hidden: !args.visible },
-    include: { csld_game: { include: { csld_game_has_label: { include: { csld_label: true } } } } },
+    include: { csld_game: { include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    } } },
   });
 
   return comment.csld_game ? normalizeGame(comment.csld_game) : null;
@@ -293,7 +320,10 @@ export async function setCommentLikedResolver(
 
   const comment = await ctx.db.csld_comment.findUnique({
     where: { id: commentId },
-    include: { csld_game: { include: { csld_game_has_label: { include: { csld_label: true } } } } },
+    include: { csld_game: { include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    } } },
   });
 
   return comment?.csld_game ? normalizeGame(comment.csld_game) : null;
@@ -324,7 +354,10 @@ export async function deleteGameResolver(
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
-    include: { csld_game_has_label: { include: { csld_label: true } } },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
   });
   return game ? normalizeGame(game) : null;
 }
