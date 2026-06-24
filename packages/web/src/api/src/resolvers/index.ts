@@ -131,6 +131,11 @@ export const resolvers: any = {
   Game: {
     gamesOfAuthors: gamesOfAuthorsResolver,
     commentsPaged: commentsPagedResolver,
+    currentUsersRating: (parent: any, _args: unknown, ctx: Context) => {
+      if (!ctx.user) return null;
+      const ratings = parent.csld_rating ?? [];
+      return ratings.find((r: any) => r.user_id === ctx.user!.id) ?? null;
+    },
     allowedActions: (_parent: unknown, _args: unknown, ctx: any) =>
       isAtLeastEditor(ctx) ? ['Edit', 'Delete'] : [],
   },
