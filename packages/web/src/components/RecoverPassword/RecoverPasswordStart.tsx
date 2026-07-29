@@ -13,6 +13,7 @@ import {
 } from '../../graphql/__generated__/typescript-operations'
 import FormPageRow from '../common/FormPageRow/FormPageRow'
 import { useFocusInput } from '../../hooks/useFocusInput'
+import { useRoutes } from '../../hooks/useRoutes'
 import SubmitButton from '../common/SubmitButton/SubmitButton'
 
 const startRecoverPasswordGQL = require('./graphql/startRecoverPasswordMutation.graphql')
@@ -46,13 +47,15 @@ const RecoverPasswordStart = () => {
     const { t } = useTranslation('common')
     const classes = useStyles()
     const client = useApolloClient()
+    const routes = useRoutes()
     const formRef = useFocusInput<HTMLFormElement>('email')
     const [state, setState] = useState<TState>('initial')
 
     const onSubmit = async ({ email }: FormData) => {
         setState('loading')
 
-        const recoverUrl = window.location.toString()
+        const origin = window.location.origin
+        const recoverUrl = origin + routes.recoverPasswordStart().as + '?token={token}'
         const res = await client.mutate<StartRecoverPasswordMutation, StartRecoverPasswordMutationVariables>({
             mutation: startRecoverPasswordGQL,
             variables: { email, recoverUrl },
