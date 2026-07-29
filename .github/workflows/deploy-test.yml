@@ -1,0 +1,62 @@
+name: Deploy to Test
+
+on:
+  push:
+    branches: [hermes/magic-link]
+
+jobs:
+  deploy:
+    name: Build & Deploy to Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enable Corepack (Yarn 1)
+        run: corepack enable && corepack prepare yarn@1 --activate
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build production .next
+        working-directory: packages/web
+        run: NODE_ENV=production yarn build
+
+      - name: Deploy to test server
+        uses: easingthemes/ssh-deploy@v5
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          ARGS: "-avz --delete"
+          SOURCE: |
+            packages/web/.next/
+            packages/web/server.ts
+            packages/web/src/api/src/
+            packages/web/prisma/schema.prisma
+            packages/web/public/static/locales/
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USER }}
+          TARGET: /home/balda/larpova-databaze/csld-test/
+          SCRIPT_BEFORE: |
+            export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
+            # Kill any process running from csld-test directory
+            for pid in $(pgrep -f "tsx.*server\.ts" 2>/dev/null); do
+              cwd=$(readlink -f /proc/$pid/cwd 2>/dev/null)
+              if echo "$cwd" | grep -q "csld-test"; then
+                kill $pid 2>/dev/null
+              fi
+            done
+            # Also kill anything on port 8082
+            PID=$(ss -tlnp 2>/dev/null | grep ':8082' | sed -n 's/.*pid=\([0-9]*\).*/\1/p')
+            [ -n "$PID" ] && kill "$PID" 2>/dev/null
+            sleep 2
+          SCRIPT_AFTER: |
+            export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
+            cd /home/balda/larpova-databaze/csld-test
+            NODE_TLS_REJECT_UNAUTHORIZED=0 npx prisma generate
+            PORT=8082 NODE_ENV=production nohup npx tsx server.ts > /tmp/csld-test.log 2>&1 &
+            sleep 5
+            curl -s http://localhost:8082/health || echo "HEALTH CHECK FAILED"
