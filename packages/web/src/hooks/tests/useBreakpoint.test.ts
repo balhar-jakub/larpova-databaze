@@ -1,4 +1,8 @@
-import { act, renderHook } from '@testing-library/react-hooks'
+/**
+ * @jest-environment jsdom
+ */
+import { jest, describe, test, expect, it, beforeEach } from '@jest/globals'
+import { act, renderHook } from '@testing-library/react'
 import { useBreakpoint } from '../useBreakpoint'
 
 describe('useBreakpoint', () => {

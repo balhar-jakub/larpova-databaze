@@ -29,7 +29,7 @@ export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Co
     ctx.db.csld_comment.findMany({
       where: { is_hidden: false, csld_game: { deleted: false } },
       orderBy: { added: 'desc' },
-      take: 5,
+      take: 6,
       include: {
         csld_game: true,
         csld_csld_user: { include: { csld_image: true } },

@@ -17,14 +17,14 @@ const useStyles = createUseStyles({
     input: {
         width: '100%',
         padding: '10px 12px',
-        border: `1px solid ${darkTheme.borderLight}`,
+        border: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
         borderRadius: 4,
-        backgroundColor: darkTheme.backgroundControl,
-        color: darkTheme.text,
+        backgroundColor: darkTheme.backgroundRealWhite,
+        color: darkTheme.textOnLightDark,
         fontSize: '0.9rem',
         marginBottom: 8,
         '&::placeholder': {
-            color: darkTheme.textLighter,
+            color: darkTheme.textDark,
         },
     },
     button: {
@@ -33,7 +33,7 @@ const useStyles = createUseStyles({
         border: 'none',
         borderRadius: 4,
         backgroundColor: darkTheme.textGreen,
-        color: darkTheme.backgroundWhite,
+        color: darkTheme.backgroundRealWhite,
         fontSize: '0.9rem',
         cursor: 'pointer',
         '&:hover': {

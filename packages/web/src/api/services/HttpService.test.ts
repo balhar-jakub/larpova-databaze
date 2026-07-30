@@ -1,5 +1,8 @@
 import { HttpService, LOCAL_API_BASE, LOG_URL } from './HttpService'
 
+// Mock window for Node test environment (HttpService uses window.location.origin)
+(global as any).window = { location: { origin: 'http://localhost' } }
+
 /**
  * Mock fetch.
  */

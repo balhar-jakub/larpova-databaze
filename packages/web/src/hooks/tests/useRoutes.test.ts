@@ -1,10 +1,13 @@
-import { useRoutes } from '../useRoutes'
+import { jest, describe, test, expect } from '@jest/globals'
 
-// Mock hooks. We could also use React Testing Library...
-jest.mock('next/router', () => ({ useRouter: () => undefined }))
-jest.mock('react', () => ({
-    useMemo: (fn: any) => fn(),
-}))
+// ESM mock — must be called before dynamic import
+jest.unstable_mockModule('next/router', () => ({ useRouter: () => undefined }))
+jest.unstable_mockModule('react', () => {
+    const actual = jest.requireActual('react') as any
+    return { ...actual, useMemo: (fn: any) => fn() }
+})
+
+const { useRoutes } = await import('../useRoutes')
 
 describe('routes.gameDetail', () => {
     const routes = useRoutes()

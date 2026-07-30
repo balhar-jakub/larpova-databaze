@@ -294,6 +294,17 @@ export async function finishRecoverPasswordResolver(
     });
   }
 
+  // Check token expiry (1 hour as stated in the email)
+  const ONE_HOUR = 60 * 60 * 1000;
+  if (Date.now() - auth.created_at.getTime() > ONE_HOUR) {
+    await ctx.db.csld_email_authentication.delete({
+      where: { id: auth.id },
+    });
+    throw new GraphQLError('Token expired', {
+      extensions: { code: 'VALIDATION_FAILED' },
+    });
+  }
+
   const user = auth.csld_csld_user;
   const newHash = generatePbkdf2Hash(args.newPassword, user.email!);
 

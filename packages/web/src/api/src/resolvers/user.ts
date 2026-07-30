@@ -103,5 +103,26 @@ export async function loggedInUserResolver(
   _args: unknown,
   ctx: Context,
 ) {
-  return ctx.user ? normalizeUser(ctx.user) : null;
+  if (!ctx.user) return null;
+
+  // Re-load from DB with all relations (ctx.user is a flat AuthUser from session
+  // that lacks csld_rating, csld_comment, csld_game_has_author, etc.)
+  const row = await ctx.db.csld_csld_user.findUnique({
+    where: { id: ctx.user.id },
+    include: {
+      csld_image: true,
+      csld_comment: {
+        include: { csld_game: true },
+        orderBy: { added: 'desc' },
+      },
+      csld_rating: {
+        include: { csld_game: true },
+      },
+      csld_game_has_author: {
+        include: { csld_game: true },
+      },
+    },
+  });
+
+  return normalizeUser(row);
 }

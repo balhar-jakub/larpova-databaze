@@ -33,6 +33,10 @@ const useIsBrowser = () => {
 }
 
 class WebApp extends App<AppInitialProps> {
+    // Create ApolloClient once per instance to prevent query resets on re-render.
+    // In SSR, Next.js creates a fresh App instance per request, so this is safe.
+    apolloClient = makeClient()
+
     static async getInitialProps({ Component, ctx }: AppContext): Promise<AppInitialProps> {
         const pageProps = Component.getInitialProps ? await Component.getInitialProps(ctx) : {}
         return { pageProps }
@@ -49,12 +53,11 @@ class WebApp extends App<AppInitialProps> {
 
     render() {
         const { Component, pageProps } = this.props
-        const apolloClient = makeClient()
 
         return (
             <ErrorBoundary>
                 <ToastContextProvider>
-                    <ApolloProvider client={apolloClient}>
+                    <ApolloProvider client={this.apolloClient}>
                         <UserContextProvider>
                             <FirstRenderContextProvider>
                                 <InPlaceSignInContextProvider>

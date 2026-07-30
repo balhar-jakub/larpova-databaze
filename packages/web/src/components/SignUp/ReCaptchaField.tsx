@@ -39,11 +39,13 @@ const ReCaptchaField = ({ name, size }: Props) => {
     const reCaptchaKey = configResult.data?.config?.reCaptchaKey
 
     const validate = (input?: string) => {
+        // Skip validation when no reCAPTCHA key is configured (backend skips verification too)
+        if (!reCaptchaKey) return undefined
         return input ? undefined : t('ReCaptchaField.required')
     }
 
     return (
-        <Field<string> name={name} validate={validate}>
+        <Field<string> name={name} validate={validate} initialValue="">
             {({ input, meta }) => {
                 const error = meta.submitFailed && meta.error
 
@@ -51,7 +53,7 @@ const ReCaptchaField = ({ name, size }: Props) => {
 
                 return (
                     <div className={classes.wrapper}>
-                        {reCaptchaKey && <ReCAPTCHA sitekey={reCaptchaKey} size={size} onChange={handleChange} />}
+                        {reCaptchaKey ? <ReCAPTCHA sitekey={reCaptchaKey} size={size} onChange={handleChange} /> : null}
                         {error && <div className={classes.error}>{error}</div>}
                     </div>
                 )

@@ -44,6 +44,7 @@ import {
   createOrUpdateCommentResolver,
   setCommentVisibleResolver,
   setCommentLikedResolver,
+  deleteCommentResolver,
   deleteGameResolver,
   createGameResolver,
   updateGameResolver,
@@ -204,6 +205,7 @@ export const resolvers: any = {
     createOrUpdateComment: createOrUpdateCommentResolver,
     setCommentVisible: setCommentVisibleResolver,
     setCommentLiked: setCommentLikedResolver,
+    deleteComment: deleteCommentResolver,
   },
 
   GroupMutation: {

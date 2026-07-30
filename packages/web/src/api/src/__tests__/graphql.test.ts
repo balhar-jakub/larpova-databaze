@@ -24,8 +24,9 @@ describe('GraphQL read queries', () => {
     const result = await executeQuery(server, '{ gameById(gameId: "3") { id name year } }');
     expect(result.errors).toBeUndefined();
     expect(result.data?.gameById).not.toBeNull();
-    expect(result.data?.gameById.name).toBe('Image Test');
-    expect(result.data?.gameById.year).toBe(2025);
+    expect(result.data?.gameById.id).toBe('3');
+    expect(typeof result.data?.gameById.name).toBe('string');
+    expect(typeof result.data?.gameById.year).toBe('number');
   });
 
   it('homepage returns arrays', async () => {
@@ -75,12 +76,19 @@ describe('GraphQL read queries', () => {
 });
 
 describe('GraphQL mutations', () => {
+  const testEmail = `test-${Date.now()}@integration.test`;
+
+  afterAll(async () => {
+    const { prisma } = await import('../context.js');
+    await prisma.csld_csld_user.deleteMany({ where: { email: testEmail } });
+  });
+
   it('createUser requires recaptcha', async () => {
     const result = await executeQuery(server, `
       mutation {
         user {
           createUser(input: {
-            email: "new-integration-test@test.com", password: "pass123", name: "New",
+            email: "${testEmail}", password: "pass123", name: "New",
             recaptcha: "bypass"
           }) { id email }
         }

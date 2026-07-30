@@ -8,5 +8,10 @@
     "magicLinkSent": "A login link was sent to {{email}}. Check your inbox.",
     "magicLinkError": "Failed to send. Please try again.",
     "orUsePassword": "or use your password"
+  },
+  "GameDetail": {
+    "updateComment": "Update your comment",
+    "deleteComment": "Delete your comment",
+    "addComment": "Add your comment"
   }
 }

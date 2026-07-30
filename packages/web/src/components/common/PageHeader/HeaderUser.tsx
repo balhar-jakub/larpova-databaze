@@ -126,14 +126,7 @@ const HeaderUser = ({ onInPlaceSignIn }: Props) => {
     }
 
     const handleSignIn = () => {
-        if (router.route === routes.homepage().href.pathname) {
-            // Sign in on separate page so password managers catch up
-            routes.push(routes.signIn())
-        } else {
-            // Show in-place sign in
-            signInContext.setValue(true)
-            onInPlaceSignIn?.()
-        }
+        routes.push(routes.signIn())
     }
 
     const loading = !isInBrowser || (user && !user.id)

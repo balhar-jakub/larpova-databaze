@@ -269,3 +269,26 @@ export async function commentsPagedResolver(
   }
 }
 
+// ── currentUsersComment field resolver ──────────────────
+
+export function currentUsersCommentResolver(
+  parent: any,
+  _args: unknown,
+  ctx: Context,
+) {
+  if (!ctx.user) return null;
+  const comments: any[] = parent.comments ?? parent.csld_comment ?? [];
+  return comments.find((c) => (c.user?.id ?? c.user_id) === ctx.user!.id) ?? null;
+}
+
+// ── currentUsersRating field resolver ───────────────────
+
+export function currentUsersRatingResolver(
+  parent: any,
+  _args: unknown,
+  ctx: Context,
+) {
+  if (!ctx.user) return null;
+  const ratings: any[] = parent.ratings ?? parent.csld_rating ?? [];
+  return ratings.find((r) => (r.user?.id ?? r.user_id) === ctx.user!.id) ?? null;
+}
