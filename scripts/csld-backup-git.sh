@@ -71,8 +71,22 @@ touch "$LOG"
 require_env DATABASE_URL
 require_cmd git
 require_cmd rsync
-require_cmd pg_dump
 require_cmd gzip
+
+# ── Postgres client detection ────────────────────────────────────────────────
+# Prefer the bundled PostgreSQL 18 client (matches the server version). Fall
+# back to the wrapper if PG18 isn't installed. Set PG_DUMP_BIN to override.
+
+if [ -n "${PG_DUMP_BIN:-}" ]; then
+  : # user-provided path
+elif [ -x /usr/lib/postgresql/18/bin/pg_dump ]; then
+  PG_DUMP_BIN=/usr/lib/postgresql/18/bin/pg_dump
+elif command -v pg_dump >/dev/null 2>&1; then
+  PG_DUMP_BIN=$(command -v pg_dump)
+else
+  die "No pg_dump found. Set PG_DUMP_BIN or install postgresql-client."
+fi
+log "Using pg_dump: $PG_DUMP_BIN ($($PG_DUMP_BIN --version 2>&1 | head -1))"
 
 [ -d "$BACKUP_REPO_DIR/.git" ] \
   || die "BACKUP_REPO_DIR ($BACKUP_REPO_DIR) is not a git repo. Run csld-backup-setup.sh first."
@@ -124,7 +138,7 @@ TMP_DUMP="$DB_DIR/latest.sql.gz.tmp"
 DUMP_ERR=$(mktemp)
 trap 'rm -f "$DUMP_ERR"' EXIT
 
-pg_dump "$DATABASE_URL" \
+"$PG_DUMP_BIN" "$DATABASE_URL" \
     --no-owner \
     --no-privileges \
     --no-sync \
