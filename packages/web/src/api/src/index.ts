@@ -99,19 +99,16 @@ async function main() {
     if (!relativePath || relativePath.includes('..')) {
       return res.status(400).end();
     }
-    try {
-      const stream = await fileService.getFileStream(relativePath);
-      const ext = relativePath.split('.').pop()?.toLowerCase();
-      const mimeTypes: Record<string, string> = {
-        jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-        gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
-      };
+    const ext = relativePath.split('.').pop()?.toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+      gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
+    };
+    if (!res.headersSent) {
       res.setHeader('Content-Type', mimeTypes[ext ?? ''] ?? 'application/octet-stream');
       res.setHeader('Cache-Control', 'public, max-age=31536000');
-      stream.pipe(res);
-    } catch {
-      res.status(404).end();
     }
+    await fileService.streamToResponse(relativePath, res);
   });
 
   // GraphQL endpoint

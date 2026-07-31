@@ -143,12 +143,16 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.get('/data/*', async (req, res) => {
   const relativePath: string = req.params[0];
   if (!relativePath || relativePath.includes('..')) return res.status(400).end();
-  try {
-    const stream = await fileService.getFileStream(relativePath);
-    res.setHeader('Content-Type', 'application/octet-stream');
+  const ext = relativePath.split('.').pop()?.toLowerCase();
+  const mimeTypes: Record<string, string> = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+    gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
+  };
+  if (!res.headersSent) {
+    res.setHeader('Content-Type', mimeTypes[ext ?? ''] ?? 'application/octet-stream');
     res.setHeader('Cache-Control', 'public, max-age=31536000');
-    stream.pipe(res);
-  } catch { res.status(404).end(); }
+  }
+  await fileService.streamToResponse(relativePath, res);
 });
 
 app.get('/ical', async (req, res) => {
@@ -170,11 +174,19 @@ app.get('/game-image/', async (req, res) => {
   try {
     const img = await prisma.csld_image.findUnique({ where: { id: parseInt(imageId, 10) }, select: { path: true } });
     if (!img?.path) return res.status(404).end();
-    const stream = await fileService.getFileStream(img.path);
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Cache-Control', 'public, max-age=31536000');
-    stream.pipe(res);
-  } catch { res.status(404).end(); }
+    if (!res.headersSent) {
+      const ext = img.path.split('.').pop()?.toLowerCase();
+      const mimeTypes: Record<string, string> = {
+        jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+        gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
+      };
+      res.setHeader('Content-Type', mimeTypes[ext ?? ''] ?? 'application/octet-stream');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+    await fileService.streamToResponse(img.path, res);
+  } catch {
+    if (!res.headersSent) res.status(404).end();
+  }
 });
 
 app.get('/user-icon', async (req, res) => {
@@ -183,11 +195,19 @@ app.get('/user-icon', async (req, res) => {
   try {
     const img = await prisma.csld_image.findUnique({ where: { id: parseInt(imageId, 10) }, select: { path: true } });
     if (!img?.path) return res.status(404).end();
-    const stream = await fileService.getFileStream(img.path);
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Cache-Control', 'public, max-age=31536000');
-    stream.pipe(res);
-  } catch { res.status(404).end(); }
+    if (!res.headersSent) {
+      const ext = img.path.split('.').pop()?.toLowerCase();
+      const mimeTypes: Record<string, string> = {
+        jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+        gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
+      };
+      res.setHeader('Content-Type', mimeTypes[ext ?? ''] ?? 'application/octet-stream');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+    await fileService.streamToResponse(img.path, res);
+  } catch {
+    if (!res.headersSent) res.status(404).end();
+  }
 });
 
 // ── Email magic-link callback ────────────────────────────

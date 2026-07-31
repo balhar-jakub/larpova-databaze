@@ -56,6 +56,7 @@ export class Base64UploadedFile implements UploadedFile {
 
 export interface FileService {
   getFileStream(relativePath: string): Promise<Readable>;
+  streamToResponse(relativePath: string, res: import('node:http').ServerResponse): Promise<boolean>;
   saveImageAndReturnPath(upload: UploadedFile, strategy: ResizeStrategy): Promise<SaveResult>;
   saveImageWithPreviewAndReturnPath(upload: UploadedFile, fullStrategy: ResizeStrategy, previewStrategy: ResizeStrategy | null): Promise<SaveResult>;
   saveFileAndReturnPath(upload: UploadedFile): Promise<string>;
@@ -97,6 +98,41 @@ export class LocalFiles implements FileService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Safely stream a file to an Express response. Unlike getFileStream(),
+   * this guarantees the response is closed with 404 if the file is missing
+   * or unreadable — without it, createReadStream() emits an 'error' event
+   * that nothing is listening to, and the response hangs until the client
+   * times out.
+   *
+   * Returns true if the stream was piped, false if a 404 was sent.
+   */
+  async streamToResponse(relativePath: string, res: import('node:http').ServerResponse): Promise<boolean> {
+    if (!(await this.exists(relativePath))) {
+      if (!res.headersSent) res.status(404).end();
+      return false;
+    }
+    const stream = await this.getFileStream(relativePath);
+    let settled = false;
+    const fail = (err: unknown) => {
+      if (settled) return;
+      settled = true;
+      stream.destroy();
+      if (!res.headersSent) res.status(404).end();
+      else if (!res.writableEnded) res.destroy(err as Error);
+    };
+    stream.once('error', fail);
+    res.once('close', () => {
+      // Client disconnected mid-stream — stop reading from disk.
+      if (!settled) {
+        settled = true;
+        stream.destroy();
+      }
+    });
+    stream.pipe(res);
+    return true;
   }
 
   async saveImageAndReturnPath(upload: UploadedFile, strategy: ResizeStrategy): Promise<SaveResult> {
