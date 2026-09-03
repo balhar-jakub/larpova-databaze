@@ -1,19 +1,21 @@
-name: Deploy to Test
+name: Deploy to Production
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
-  group: deploy-test
-  cancel-in-progress: true
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Build & Deploy to Test
+    name: Build & Deploy to Production
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -24,7 +26,7 @@ jobs:
       - name: Build production .next
         working-directory: packages/web
         run: NODE_ENV=production yarn build
-      - name: Deploy to test server
+      - name: Deploy to production server
         uses: easingthemes/ssh-deploy@v5
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
@@ -32,21 +34,21 @@ jobs:
           SOURCE: packages/web/
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
           REMOTE_USER: ${{ secrets.SSH_USER }}
-          TARGET: /home/balda/larpova-databaze/csld-test/
+          TARGET: /home/balda/larpova-databaze/csld-new/
           SCRIPT_BEFORE: |
             export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
             for pid in $(pgrep -f "tsx.*server\.ts" 2>/dev/null); do
               cwd=$(readlink -f /proc/$pid/cwd 2>/dev/null)
-              if echo "$cwd" | grep -q "csld-test"; then kill "$pid" 2>/dev/null; fi
+              if echo "$cwd" | grep -q "csld-new"; then kill "$pid" 2>/dev/null; fi
             done
-            PID=$(ss -tlnp 2>/dev/null | grep ':8082' | sed -n 's/.*pid=\([0-9]*\).*/\1/p')
+            PID=$(ss -tlnp 2>/dev/null | grep ':8080' | sed -n 's/.*pid=\([0-9]*\).*/\1/p')
             [ -n "$PID" ] && kill "$PID" 2>/dev/null
             sleep 2
           SCRIPT_AFTER: |
             export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
-            cd /home/balda/larpova-databaze/csld-test
+            cd /home/balda/larpova-databaze/csld-new
             npx prisma generate --schema prisma/schema.prisma
             npx prisma db push --schema prisma/schema.prisma
-            PORT=8082 NODE_ENV=production setsid nohup npx tsx server.ts > /tmp/csld-test.log 2>&1 < /dev/null &
+            PORT=8080 NODE_ENV=production setsid nohup npx tsx server.ts > /tmp/csld-new.log 2>&1 < /dev/null &
             sleep 5
-            curl --fail --silent --show-error http://localhost:8082/health
+            curl --fail --silent --show-error http://localhost:8080/health
