@@ -1,10 +1,20 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
+import { prisma } from '../context';
 
 let server: ApolloServer;
+let testGameId: string;
 
 beforeAll(async () => {
   server = createTestServer();
+  const game = await prisma.csld_game.create({
+    data: { name: 'CI test game', year: 2025, deleted: false },
+  });
+  testGameId = String(game.id);
+});
+
+afterAll(async () => {
+  await prisma.csld_game.delete({ where: { id: Number(testGameId) } });
 });
 
 describe('GraphQL read queries', () => {
@@ -21,12 +31,14 @@ describe('GraphQL read queries', () => {
   });
 
   it('gameById returns data for existing game', async () => {
-    const result = await executeQuery(server, '{ gameById(gameId: "3") { id name year } }');
+    const result = await executeQuery(server, `{ gameById(gameId: "${testGameId}") { id name year } }`);
     expect(result.errors).toBeUndefined();
     expect(result.data?.gameById).not.toBeNull();
-    expect(result.data?.gameById.id).toBe('3');
-    expect(typeof result.data?.gameById.name).toBe('string');
-    expect(typeof result.data?.gameById.year).toBe('number');
+    expect(result.data?.gameById).toMatchObject({
+      id: testGameId,
+      name: 'CI test game',
+      year: 2025,
+    });
   });
 
   it('homepage returns arrays', async () => {

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useEffect } from 'react'
 import { render } from '@testing-library/react'
+import { jest } from '@jest/globals'
 import { LoggingService } from 'src/api/services/LoggingService'
 import { ErrorBoundary } from './ErrorBoundary'
 
