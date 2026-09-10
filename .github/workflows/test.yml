@@ -27,7 +27,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql://csld:***@localhost:5432/csld
+      DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
       NODE_OPTIONS: --experimental-vm-modules
       TZ: Europe/Prague
 
