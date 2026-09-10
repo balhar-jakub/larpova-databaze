@@ -128,6 +128,11 @@ export const resolvers: any = {
     updateGroup: updateGroupResolver,
   },
 
+  Event: {
+    registrationUrl: (event: any) => event.registrationUrl ?? event.registration_url ?? null,
+    registrationOpen: (event: any) => event.registrationOpen ?? event.registration_open ?? false,
+  },
+
   EventMutation: {
     createEvent: createEventResolver,
     updateEvent: updateEventResolver,

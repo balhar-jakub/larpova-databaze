@@ -1,6 +1,9 @@
 {
   "loadError": "Error while loading data",
   "loading": "Loading data...",
+  "Errors": {
+    "invalidUrl": "The address must be a complete link beginning with http:// or https://"
+  },
   "SignIn": {
     "emailPlaceholder": "you@email.com",
     "sendMagicLink": "Send login link",
@@ -13,5 +16,18 @@
     "updateComment": "Update your comment",
     "deleteComment": "Delete your comment",
     "addComment": "Add your comment"
+  },
+  "Event": {
+    "web": "Website",
+    "registrationLink": "Registration",
+    "registrationOpen": "Registration open",
+    "loc": "Location"
+  },
+  "EventEdit": {
+    "registrationUrl": "Registration link",
+    "registrationUrlHint": "Direct link to the registration form or ticket sales",
+    "registrationOpen": "Registration is open",
+    "registrationOpenHint": "Enable only while people can register using the link",
+    "registrationUrlRequiredWhenOpen": "A link is required when registration is open"
   }
 }

@@ -102,7 +102,7 @@ export type AdminUserFieldsFragment = { __typename?: 'User' } & Pick<User, 'id' 
 
 export type CalendarEventDataFragment = { __typename?: 'Event' } & Pick<
     Event,
-    'id' | 'name' | 'from' | 'to' | 'web' | 'loc'
+    'id' | 'name' | 'from' | 'to' | 'web' | 'registrationUrl' | 'registrationOpen' | 'loc'
 > & { labels?: Maybe<Array<{ __typename?: 'Label' } & Pick<Label, 'id' | 'name'>>> }
 
 export type LoadCalendarEventsQueryVariables = Exact<{
@@ -151,7 +151,7 @@ export type LoadEventQuery = { __typename?: 'Query' } & {
     eventById?: Maybe<
         { __typename?: 'Event' } & Pick<
             Event,
-            'id' | 'name' | 'amountOfPlayers' | 'web' | 'loc' | 'from' | 'to' | 'description' | 'allowedActions'
+            'id' | 'name' | 'amountOfPlayers' | 'web' | 'registrationUrl' | 'registrationOpen' | 'loc' | 'from' | 'to' | 'description' | 'allowedActions'
         > & {
                 labels?: Maybe<
                     Array<{ __typename?: 'Label' } & Pick<Label, 'id' | 'name' | 'description' | 'isRequired'>>
@@ -189,7 +189,7 @@ export type LoadEventForEditQuery = { __typename?: 'Query' } & {
     eventById?: Maybe<
         { __typename?: 'Event' } & Pick<
             Event,
-            'id' | 'name' | 'from' | 'to' | 'amountOfPlayers' | 'web' | 'loc' | 'description'
+            'id' | 'name' | 'from' | 'to' | 'amountOfPlayers' | 'web' | 'registrationUrl' | 'registrationOpen' | 'loc' | 'description'
         > & {
                 games?: Maybe<Array<{ __typename?: 'Game' } & Pick<Game, 'id' | 'name' | 'year'>>>
                 labels?: Maybe<
@@ -934,6 +934,8 @@ export type Event = {
     description?: Maybe<Scalars['String']>
     loc?: Maybe<Scalars['String']>
     web?: Maybe<Scalars['String']>
+    registrationUrl?: Maybe<Scalars['String']>
+    registrationOpen: Scalars['Boolean']
     deleted?: Maybe<Scalars['Boolean']>
     amountOfPlayers?: Maybe<Scalars['Int']>
     from?: Maybe<Scalars['String']>
@@ -1275,6 +1277,8 @@ export type CreateEventInput = {
     toDate: Scalars['String']
     amountOfPlayers?: Maybe<Scalars['Int']>
     web?: Maybe<Scalars['String']>
+    registrationUrl?: Maybe<Scalars['String']>
+    registrationOpen?: Scalars['Boolean']
     loc?: Maybe<Scalars['String']>
     description?: Maybe<Scalars['String']>
     games: Array<Scalars['ID']>
@@ -1291,6 +1295,8 @@ export type UpdateEventInput = {
     toDate: Scalars['String']
     amountOfPlayers?: Maybe<Scalars['Int']>
     web?: Maybe<Scalars['String']>
+    registrationUrl?: Maybe<Scalars['String']>
+    registrationOpen?: Scalars['Boolean']
     loc?: Maybe<Scalars['String']>
     description?: Maybe<Scalars['String']>
     games: Array<Scalars['ID']>

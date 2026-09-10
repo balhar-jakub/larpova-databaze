@@ -255,6 +255,8 @@ model event {
   longitude            Float?
   added_by             Int?
   web                  String?
+  registration_url     String?
+  registration_open    Boolean               @default(false)
   deleted              Boolean?              @default(false)
   lang                 String?
   gcaleventid          String?               @db.VarChar(100)

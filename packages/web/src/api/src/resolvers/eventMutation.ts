@@ -3,6 +3,7 @@ import { isSignedIn } from '../auth/appUsers.js';
 import { GraphQLError } from 'graphql';
 import { syncEventToCalendar, deleteCalendarEvent } from '../external/googleCalendar.js';
 import { normalizeGame } from './mappers.js';
+import { isAbsoluteHttpUrl } from '../../../utils/urlUtils.js';
 
 function requireAuth(ctx: Context) {
   if (!isSignedIn(ctx)) {
@@ -18,6 +19,8 @@ interface EventInput {
   toDate: string;
   amountOfPlayers?: number;
   web?: string;
+  registrationUrl?: string;
+  registrationOpen?: boolean;
   loc?: string;
   description?: string;
   games: string[];
@@ -25,6 +28,35 @@ interface EventInput {
   newLabels: any[];
   latitude?: number;
   longitude?: number;
+}
+
+export function normalizeOptionalHttpUrl(value?: string): string | null {
+  const url = value?.trim();
+  if (!url) return null;
+
+  try {
+    if (!isAbsoluteHttpUrl(url)) throw new Error();
+    const parsed = new URL(url);
+    return parsed.toString();
+  } catch {
+    throw new GraphQLError('Invalid registration URL', {
+      extensions: { code: 'INVALID_VALUE' },
+    });
+  }
+}
+
+export function normalizeRegistrationInput(value: string | undefined, open?: boolean) {
+  const registrationUrl = normalizeOptionalHttpUrl(value);
+  if (open && !registrationUrl) {
+    throw new GraphQLError('Open registration requires a registration URL', {
+      extensions: { code: 'INVALID_VALUE' },
+    });
+  }
+
+  return {
+    registrationUrl,
+    registrationOpen: Boolean(open && registrationUrl),
+  };
 }
 
 function mapEvent(e: any) {
@@ -49,6 +81,7 @@ export async function createEventResolver(
 ) {
   requireAuth(ctx);
   const { input } = args;
+  const registration = normalizeRegistrationInput(input.registrationUrl, input.registrationOpen);
 
   const event = await ctx.db.event.create({
     data: {
@@ -56,6 +89,8 @@ export async function createEventResolver(
       description: input.description ?? null,
       loc: input.loc ?? null,
       web: input.web ?? null,
+      registration_url: registration.registrationUrl,
+      registration_open: registration.registrationOpen,
       from: new Date(input.fromDate),
       to: new Date(input.toDate),
       amountofplayers: input.amountOfPlayers ?? null,
@@ -112,6 +147,7 @@ export async function updateEventResolver(
   const { input } = args;
   const eventId = parseInt(input.id, 10);
   if (isNaN(eventId)) throw new GraphQLError('Invalid event ID');
+  const registration = normalizeRegistrationInput(input.registrationUrl, input.registrationOpen);
 
   await ctx.db.event.update({
     where: { id: eventId },
@@ -120,6 +156,8 @@ export async function updateEventResolver(
       description: input.description ?? null,
       loc: input.loc ?? null,
       web: input.web ?? null,
+      registration_url: registration.registrationUrl,
+      registration_open: registration.registrationOpen,
       from: new Date(input.fromDate),
       to: new Date(input.toDate),
       amountofplayers: input.amountOfPlayers ?? null,

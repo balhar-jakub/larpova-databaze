@@ -104,6 +104,8 @@ type Event {
     description: String
     loc: String
     web: String
+    registrationUrl: String
+    registrationOpen: Boolean!
     deleted: Boolean
     amountOfPlayers: Int
     from: String
@@ -337,6 +339,8 @@ input CreateEventInput {
     toDate: String!
     amountOfPlayers: Int
     web: String
+    registrationUrl: String
+    registrationOpen: Boolean! = false
     loc: String
     description: String
     games: [ID!]!
@@ -353,6 +357,8 @@ input UpdateEventInput {
     toDate: String!
     amountOfPlayers: Int
     web: String
+    registrationUrl: String
+    registrationOpen: Boolean! = false
     loc: String
     description: String
     games: [ID!]!

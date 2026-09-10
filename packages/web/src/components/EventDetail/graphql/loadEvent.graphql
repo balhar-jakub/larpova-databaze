@@ -6,6 +6,8 @@ query LoadEvent($eventId: ID!) {
         name
         amountOfPlayers
         web
+        registrationUrl
+        registrationOpen
         loc
         from
         to

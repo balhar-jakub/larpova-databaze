@@ -7,6 +7,8 @@ import { darkTheme } from '../../theme/darkTheme'
 import EventLink from '../common/EventLink/EventLink'
 import { formatTimeRange } from '../../utils/dateUtils'
 import { breakPoints } from '../../theme/breakPoints'
+import EventRegistrationLink from '../common/EventRegistrationLink/EventRegistrationLink'
+import { isAbsoluteHttpUrl } from '../../utils/urlUtils'
 
 interface Props {
     readonly event: CalendarEventDataFragment
@@ -22,6 +24,9 @@ const useStyles = createUseStyles({
         fontSize: '0.75rem',
         borderRadius: 5,
         flexWrap: 'wrap',
+    },
+    registrationOpen: {
+        boxShadow: `inset 4px 0 0 ${darkTheme.textGreenDark}`,
     },
     fact: {
         flexBasis: '100%',
@@ -84,9 +89,15 @@ const CalendarEventPanel = ({ event }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
     const { fromFormatted, toFormatted, justOneDate } = formatTimeRange(event?.from, event?.to)
+    const registrationUrl =
+        event.registrationUrl && isAbsoluteHttpUrl(event.registrationUrl) ? event.registrationUrl : undefined
 
     return (
-        <div className={classes.wrapper}>
+        <div
+            className={classNames(classes.wrapper, {
+                [classes.registrationOpen]: event.registrationOpen && Boolean(registrationUrl),
+            })}
+        >
             <div className={classes.text}>
                 <EventLink event={event} className={classNames(classes.link, classes.name)}>
                     {event.name}
@@ -110,6 +121,8 @@ const CalendarEventPanel = ({ event }: Props) => {
                         {t('EventCalendar.link')}
                     </a>
                 )}
+                {event.web && registrationUrl && <br />}
+                <EventRegistrationLink url={registrationUrl} open={event.registrationOpen} />
             </div>
         </div>
     )

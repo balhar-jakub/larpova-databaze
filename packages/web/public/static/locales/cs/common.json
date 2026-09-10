@@ -125,7 +125,8 @@
     "integerRequired": "Musíte zadat kladné celé číslo",
     "invalidDate": "Datum není platné",
     "invalidTimeFormat": "Formát času musí být HH:MM",
-    "invalidTime": "Neplatný čas"
+    "invalidTime": "Neplatný čas",
+    "invalidUrl": "Adresa musí být úplný odkaz začínající http:// nebo https://"
   },
 
   "RecoverPassword": {
@@ -236,6 +237,8 @@
   },
   "Event": {
     "web": "Web",
+    "registrationLink": "Přihlášení",
+    "registrationOpen": "Přihlašování otevřeno",
     "loc": "Místo"
   },
   "EventDetail": {
@@ -344,6 +347,11 @@
     "timeHint": "Ve formátu HH:MM",
     "amountOfPlayers": "Počet hráčů",
     "web":  "Webová stránka",
+    "registrationUrl": "Odkaz na přihlášení",
+    "registrationUrlHint": "Přímý odkaz na přihlašovací formulář nebo prodej vstupenek",
+    "registrationOpen": "Přihlašování je otevřené",
+    "registrationOpenHint": "Zapněte pouze tehdy, když se lze přes uvedený odkaz právě přihlásit",
+    "registrationUrlRequiredWhenOpen": "Pro otevřené přihlašování je nutné vyplnit odkaz",
     "loc": "Místo události",
     "description": "Popis události",
     "games": "Spárovat s existujícími hrami",

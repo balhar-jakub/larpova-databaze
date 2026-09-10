@@ -6,6 +6,7 @@ import { createGameLabel, LinkedGame } from './GamesAutoCompleteField'
 import { fieldValidator, validateRequired, validateTime } from '../../utils/validationUtils'
 import { NewLabel } from '../common/form/NewLabelsField'
 import { formatISODate } from '../../utils/dateUtils'
+import { isAbsoluteHttpUrl } from '../../utils/urlUtils'
 
 const buildDateTime = (date?: Date, time?: string) =>
     time ? `${formatISODate(date)}T${time}:00` : `${formatISODate(date)}T00:00:00`
@@ -18,6 +19,8 @@ export interface FormValues {
     toTime?: string
     amountOfPlayers?: string
     web?: string
+    registrationUrl?: string
+    registrationOpen: boolean
     loc: string
     games: LinkedGame[]
     description?: string | EditorState
@@ -67,6 +70,12 @@ export const validate = (t: TFunction) => (data: FormValues) => {
         }
     }
 
+    if (data.registrationOpen && !data.registrationUrl?.trim()) {
+        res.registrationUrl = t('EventEdit.registrationUrlRequiredWhenOpen')
+    } else if (data.registrationUrl && !isAbsoluteHttpUrl(data.registrationUrl)) {
+        res.registrationUrl = t('Errors.invalidUrl')
+    }
+
     return res
 }
 
@@ -76,6 +85,8 @@ export const createInputFromValues = (data: FormValues): CreateEventInput => ({
     toDate: buildDateTime(data.toDate, data.toTime),
     amountOfPlayers: data.amountOfPlayers ? parseInt(data.amountOfPlayers, 10) : undefined,
     web: data.web,
+    registrationUrl: data.registrationUrl,
+    registrationOpen: data.registrationOpen,
     loc: data.loc,
     description: editorStateToHtml(data.description),
     games: data.games.map(({ id }) => id),
@@ -110,7 +121,7 @@ const getTime = (dateTime: string | undefined | null) => {
     return match[2]
 }
 
-type LoadedEvent = Pick<Event, 'id' | 'name' | 'from' | 'to' | 'amountOfPlayers' | 'web' | 'loc' | 'description'> & {
+type LoadedEvent = Pick<Event, 'id' | 'name' | 'from' | 'to' | 'amountOfPlayers' | 'web' | 'registrationUrl' | 'registrationOpen' | 'loc' | 'description'> & {
     games?: Maybe<Array<Pick<Game, 'id' | 'name' | 'year'>>>
     labels?: Maybe<Array<Pick<Label, 'id' | 'name' | 'description' | 'isRequired'>>>
 }
@@ -123,6 +134,8 @@ export const toInitialValues = (event: LoadedEvent): FormValues => ({
     toTime: getTime(event.to),
     amountOfPlayers: event.amountOfPlayers?.toString(),
     web: event.web ?? undefined,
+    registrationUrl: event.registrationUrl ?? undefined,
+    registrationOpen: event.registrationOpen,
     loc: event.loc ?? '',
     description: event.description ?? undefined,
     games: (event.games ?? []).map(({ id, name, year }) => ({
@@ -137,6 +150,7 @@ export const toInitialValues = (event: LoadedEvent): FormValues => ({
 
 export const emptyInitialValues: FormValues = {
     name: '',
+    registrationOpen: false,
     loc: '',
     games: [],
     requiredLabels: [],

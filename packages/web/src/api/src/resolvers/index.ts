@@ -141,6 +141,8 @@ export const resolvers: any = {
       isAtLeastEditor(ctx) ? ['Edit', 'Delete'] : [],
   },
   Event: {
+    registrationUrl: (event: any) => event.registrationUrl ?? event.registration_url ?? null,
+    registrationOpen: (event: any) => event.registrationOpen ?? event.registration_open ?? false,
     allowedActions: (_parent: unknown, _args: unknown, ctx: any) =>
       isAtLeastEditor(ctx) ? ['Edit', 'Delete'] : [],
   },

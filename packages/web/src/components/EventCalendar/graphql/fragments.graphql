@@ -4,6 +4,8 @@ fragment calendarEventData on Event {
     from
     to
     web
+    registrationUrl
+    registrationOpen
     loc
     labels {
         id

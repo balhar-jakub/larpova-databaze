@@ -25,6 +25,7 @@ import { sanitizeHtml } from '../../utils/sanitizeHtml'
 import { breakPoints } from '../../theme/breakPoints'
 import { htmlToText } from '../../utils/textUtils'
 import OpenGraphMeta from '../common/OpenGraphMeta/OpenGraphMeta'
+import EventRegistrationLink from '../common/EventRegistrationLink/EventRegistrationLink'
 
 const loadEventGql = require('./graphql/loadEvent.graphql')
 const deleteEventGql = require('./graphql/deleteEvent.graphql')
@@ -142,6 +143,15 @@ const EventDetailPanel = ({ eventId }: Props) => {
                             {typeof amountOfPlayers === 'number' && (
                                 <div className={classes.text}>
                                     {t('EventDetail.players', { count: amountOfPlayers })}
+                                </div>
+                            )}
+                            {event.registrationUrl && (
+                                <div className={classes.text}>
+                                    <EventRegistrationLink
+                                        url={event.registrationUrl}
+                                        open={event.registrationOpen}
+                                        onDarkBackground
+                                    />
                                 </div>
                             )}
                             {event.web && (

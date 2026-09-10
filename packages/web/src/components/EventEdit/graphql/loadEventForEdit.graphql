@@ -8,6 +8,8 @@ query LoadEventForEdit($eventId: ID!) {
         to
         amountOfPlayers
         web
+        registrationUrl
+        registrationOpen
         loc
         description
         games {

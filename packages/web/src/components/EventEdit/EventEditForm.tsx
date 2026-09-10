@@ -24,6 +24,7 @@ import { useShowToast } from '../../hooks/useShowToast'
 import BigLoading from '../common/BigLoading/BigLoading'
 import SubmitButton from '../common/SubmitButton/SubmitButton'
 import FormDateInputField from '../common/form/FormDateInputField'
+import FormCheckBoxField from '../common/form/FormCheckBoxField'
 
 const createEventGql = require('./graphql/createEvent.graphql')
 const updateEventGql = require('./graphql/updateEvent.graphql')
@@ -158,6 +159,16 @@ const EventEditForm = ({
                                             validate={fieldValidator(t, validatePositiveInteger)}
                                         />
                                         <FormTextInputField name="web" placeholder={t('EventEdit.web')} />
+                                        <FormTextInputField
+                                            name="registrationUrl"
+                                            placeholder={t('EventEdit.registrationUrl')}
+                                            hint={t('EventEdit.registrationUrlHint')}
+                                        />
+                                        <FormCheckBoxField
+                                            name="registrationOpen"
+                                            label={t('EventEdit.registrationOpen')}
+                                            hint={t('EventEdit.registrationOpenHint')}
+                                        />
                                         <FormTextInputField name="loc" placeholder={t('EventEdit.loc')} />
                                         <FormRichTextInputField name="description" hint={t('EventEdit.description')} />
                                         <GamesAutoCompleteField
