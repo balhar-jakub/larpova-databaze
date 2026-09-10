@@ -24,29 +24,56 @@ jobs:
       - name: Build production .next
         working-directory: packages/web
         run: NODE_ENV=production yarn build
-      - name: Deploy to test server
-        uses: easingthemes/ssh-deploy@v6.0.3
-        with:
+      - name: Configure deploy SSH
+        env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
-          ARGS: "-avz --delete --exclude=.env --exclude=node_modules"
-          SOURCE: packages/web/
-          REMOTE_HOST: ${{ secrets.SSH_HOST }}
-          REMOTE_USER: ${{ secrets.SSH_USER }}
-          TARGET: /home/balda/larpova-databaze/csld-test/
-          SCRIPT_BEFORE: |
-            export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Stop current test application
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh -o BatchMode=yes "$SSH_USER@$SSH_HOST" '
             for pid in $(pgrep -f "tsx.*server\.ts" 2>/dev/null); do
               cwd=$(readlink -f /proc/$pid/cwd 2>/dev/null)
-              if echo "$cwd" | grep -q "csld-test"; then kill "$pid" 2>/dev/null; fi
+              if echo "$cwd" | grep -q "/csld-test$"; then kill "$pid" 2>/dev/null || true; fi
             done
-            PID=$(ss -tlnp 2>/dev/null | grep ':8082' | sed -n 's/.*pid=\([0-9]*\).*/\1/p')
-            [ -n "$PID" ] && kill "$PID" 2>/dev/null
-            sleep 2
-          SCRIPT_AFTER: |
+          '
+
+      - name: Synchronize test application
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          rsync -avz --delete --exclude=.env --exclude=node_modules \
+            -e 'ssh -o BatchMode=yes' \
+            packages/web/ "$SSH_USER@$SSH_HOST:/home/balda/larpova-databaze/csld-test/"
+
+      - name: Start and verify test application on port 8082
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh -o BatchMode=yes "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+            set -euo pipefail
             export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
             cd /home/balda/larpova-databaze/csld-test
             npx prisma generate --schema prisma/schema.prisma
             npx prisma db push --schema prisma/schema.prisma
-            PORT=8082 NODE_ENV=production setsid nohup npx tsx server.ts > /tmp/csld-test.log 2>&1 < /dev/null &
-            sleep 5
-            curl --fail --silent --show-error http://localhost:8082/health
+            nohup env PORT=8082 NODE_ENV=production npx tsx server.ts > /tmp/csld-test.log 2>&1 < /dev/null &
+            for attempt in $(seq 1 10); do
+              if curl --fail --silent --show-error http://127.0.0.1:8082/health; then
+                exit 0
+              fi
+              sleep 1
+            done
+            printf '%s\n' 'Test application did not become healthy on port 8082.' >&2
+            tail -n 100 /tmp/csld-test.log >&2 || true
+            exit 1
+          REMOTE
