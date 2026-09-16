@@ -17,6 +17,12 @@
     "deleteComment": "Delete your comment",
     "addComment": "Add your comment"
   },
+  "Rating": {
+    "recommended": "Recommended",
+    "neutral": "Neutral",
+    "notRecommended": "Not recommended",
+    "notrated": "Not rated yet"
+  },
   "Event": {
     "web": "Website",
     "registrationLink": "Registration",

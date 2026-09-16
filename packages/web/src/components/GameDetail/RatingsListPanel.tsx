@@ -13,6 +13,7 @@ import { DetailListHeader } from '../common/DetailListHeader/DetailListHeader'
 import { darkTheme } from '../../theme/darkTheme'
 import { IconTrash } from '../common/Icons/Icons'
 import UserLink from '../common/UserLink/UserLink'
+import { getRecommendationForTenPointRating, recommendationKey } from '../../utils/ratingUtils'
 import { useShowToast } from '../../hooks/useShowToast'
 
 const deleteRatingGql = require('./graphql/deleteRating.graphql')
@@ -90,7 +91,7 @@ const RatingsListPanel = ({ gameId, ratings, onRatingDeleted }: Props) => {
                                 [classes.rowDeleted]: deletedRatings[rating.id],
                             })}
                         >
-                            {rating.rating}
+                            {t(recommendationKey(getRecommendationForTenPointRating(rating.rating)))}
                             <button
                                 type="button"
                                 className={classes.link}

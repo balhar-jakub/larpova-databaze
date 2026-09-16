@@ -2,7 +2,8 @@ import React from 'react'
 import { createUseStyles } from 'react-jss'
 import classnames from 'classnames'
 import { darkTheme } from 'src/theme/darkTheme'
-import { getRatingForGame, MIN_NUM_RATINGS } from 'src/utils/ratingUtils'
+import { getRecommendationForGame, gradeForRecommendation, recommendationKey } from 'src/utils/ratingUtils'
+import { useTranslation } from 'src/lib/i18n'
 import { componentTestIds } from '../../componentTestIds'
 
 interface Props {
@@ -36,6 +37,7 @@ const useStyles = createUseStyles({
         borderRadius: 4,
         fontWeight: 700,
         flexShrink: 0,
+        textAlign: 'center',
         color: darkTheme.textLight,
     },
     ratingTiny: {
@@ -45,28 +47,35 @@ const useStyles = createUseStyles({
     },
     ratingSmall: {
         fontSize: '0.7rem',
-        width: 40,
-        height: 40,
+        minWidth: 40,
+        minHeight: 40,
+        padding: '0 6px',
     },
     ratingMedium: {
-        fontSize: '1.1rem',
-        height: 48,
+        fontSize: '0.9rem',
+        minHeight: 48,
+        padding: '0 10px',
     },
     ratingBig: {
-        fontSize: '2.75rem',
-        height: 100,
+        fontSize: '1.5rem',
+        minHeight: 100,
         fontWeight: 'unset',
-    },
-    average: {
-        fontSize: '60%',
+        padding: '0 24px',
     },
     ...ratingStyles,
 })
 
+/**
+ * Shows a game's standing as a recommendation label (Doporučuji / Neutrální /
+ * Nedoporučuji) instead of rating points. The background colour follows the
+ * same band. `tiny` renders just the colour, for inline use next to a game link.
+ */
 export const GameRatingBox = ({ rating, averageRating, amountOfRatings, size = 'small', className }: Props) => {
     const classes = useStyles()
+    const { t } = useTranslation('common')
 
-    const ratingGrade = getRatingForGame(amountOfRatings, averageRating || rating)
+    const recommendation = getRecommendationForGame(amountOfRatings, averageRating || rating)
+    const ratingGrade = gradeForRecommendation[recommendation]
     const classNames = {
         [classes.rating]: true,
         [classes.ratingTiny]: size === 'tiny',
@@ -79,20 +88,10 @@ export const GameRatingBox = ({ rating, averageRating, amountOfRatings, size = '
         [classes.ratingAverage]: ratingGrade === 'average',
         [classes.ratingGreat]: ratingGrade === 'great',
     }
-    const hasEnoughRatings = amountOfRatings >= MIN_NUM_RATINGS
-    const clippedRating = hasEnoughRatings ? rating : 0
 
     return (
         <div className={classnames(classNames)} data-testid={componentTestIds.gameRatingBox.wrapper}>
-            <span>
-                {size !== 'tiny' && (clippedRating ? (clippedRating / 10).toFixed(1) : '-')}
-                {size !== 'tiny' && hasEnoughRatings && averageRating !== undefined && (
-                    <span className={classes.average}>
-                        {' / ∅ '}
-                        {(averageRating / 10).toFixed(1)}
-                    </span>
-                )}
-            </span>
+            {size !== 'tiny' && <span>{t(recommendationKey(recommendation))}</span>}
         </div>
     )
 }

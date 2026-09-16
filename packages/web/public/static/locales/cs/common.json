@@ -103,6 +103,13 @@
     "commentsDisabled": "Autoři hry si nepřejí, aby byla komentována"
   },
 
+  "Rating": {
+    "recommended": "Doporučuji",
+    "neutral": "Neutrální",
+    "notRecommended": "Nedoporučuji",
+    "notrated": "Zatím nehodnoceno"
+  },
+
   "SignIn": {
     "header": "Přihlášení",
     "email": "Email",

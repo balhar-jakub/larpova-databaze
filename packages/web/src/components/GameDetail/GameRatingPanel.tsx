@@ -9,7 +9,7 @@ import { Col, Row } from 'react-bootstrap'
 import { darkTheme } from '../../theme/darkTheme'
 import { GameRatingBox, ratingStyles } from '../common/GameRatingBox/GameRatingBox'
 import { IconUser } from '../common/Icons/Icons'
-import { getRatingForGame, MIN_NUM_RATINGS } from '../../utils/ratingUtils'
+import { getRecommendationForTenPointRating, MIN_NUM_RATINGS, recommendationKey, RatingRecommendation } from '../../utils/ratingUtils'
 import { useLoggedInUser } from '../../hooks/useLoggedInUser'
 import RatingStateButtons from './RatingStateButtons'
 import RatingStars from './RatingStars'
@@ -43,9 +43,10 @@ const useStyles = createUseStyles({
         alignItems: 'center',
         marginBottom: 10,
     },
-    statsNum: {
-        width: 20,
+    statsLabel: {
+        width: 92,
         marginRight: 5,
+        fontSize: '0.7rem',
         textAlign: 'right',
     },
     statHolder: {
@@ -95,19 +96,36 @@ export const GameRatingPanel = ({
     const [selfRatingDismissed, setSelfRatingDismissed] = useState(false)
     const signInContext = useContext(InPlaceSignInContext)
 
-    const max = (ratingStats ?? []).reduce((currentMax, rating) => Math.max(currentMax, rating.count), 0)
-    let statsMap = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    if (amountOfRatings >= MIN_NUM_RATINGS) {
-        // Compute stats only when we have enough ratings
-        statsMap = (ratingStats ?? []).reduce((map, entry) => {
-            // eslint-disable-next-line no-param-reassign
-            map[10 - entry.rating] = Math.round((entry.count * 100) / max)
-            return map
-        }, statsMap)
-    }
+    const countsByRating = new Map<number, number>()
+    ;(ratingStats ?? []).forEach(entry => {
+        countsByRating.set(entry.rating, (countsByRating.get(entry.rating) ?? 0) + (entry.count ?? 0))
+    })
+    const totalRatingsCount = (ratingStats ?? []).reduce((sum, entry) => sum + (entry.count ?? 0), 0)
+    const hasEnoughRatings = amountOfRatings >= MIN_NUM_RATINGS
+
+    // The chart shows the three recommendation bands instead of rating points.
+    const recommendationBandDefinitions: Array<{
+        recommendation: RatingRecommendation
+        readings: number[]
+        className: string
+    }> = [
+        { recommendation: 'recommended', readings: [8, 9, 10], className: classes.ratingGreat },
+        { recommendation: 'neutral', readings: [4, 5, 6, 7], className: classes.ratingAverage },
+        { recommendation: 'notRecommended', readings: [1, 2, 3], className: classes.ratingMediocre },
+    ]
+    const recommendationBands = recommendationBandDefinitions.map(band => ({
+        ...band,
+        share:
+            hasEnoughRatings && totalRatingsCount > 0
+                ? Math.round(
+                      (band.readings.reduce((sum, value) => sum + (countsByRating.get(value) ?? 0), 0) * 100) /
+                          totalRatingsCount,
+                  )
+                : 0,
+    }))
 
     const ratingNum = currentUsersRating?.rating ?? 0
-    const rating = ratingNum || '-'
+    const rating = ratingNum ? t(recommendationKey(getRecommendationForTenPointRating(ratingNum))) : '-'
     const ratingState = currentUsersRating?.state ?? 0
     const currentUserId = loggedInUser?.id
     const isAuthorWarningShown =
@@ -129,26 +147,17 @@ export const GameRatingPanel = ({
                     {loggedInUser && <RatingStateButtons gameId={gameId} state={ratingState} />}
                 </Col>
                 <Col xs={7} className={classes.right}>
-                    {statsMap.map((size, n) => {
-                        const ratingGrade = getRatingForGame(999, (10 - n) * 10 - 1)
-                        const gaugeClassName = classNames({
-                            [classes.statGauge]: true,
-                            [classes.ratingNotRated]: ratingGrade === 'notrated',
-                            [classes.ratingMediocre]: ratingGrade === 'mediocre',
-                            [classes.ratingAverage]: ratingGrade === 'average',
-                            [classes.ratingGreat]: ratingGrade === 'great',
-                        })
-
-                        return (
-                            // eslint-disable-next-line react/no-array-index-key
-                            <div className={classes.statsRow} key={`rating_${n}`}>
-                                <div className={classes.statsNum}>{10 - n}</div>
-                                <div className={classes.statHolder}>
-                                    <div className={gaugeClassName} style={{ width: `${size}%` }} />
-                                </div>
+                    {recommendationBands.map(band => (
+                        <div className={classes.statsRow} key={band.recommendation}>
+                            <div className={classes.statsLabel}>{t(recommendationKey(band.recommendation))}</div>
+                            <div className={classes.statHolder}>
+                                <div
+                                    className={classNames(classes.statGauge, band.className)}
+                                    style={{ width: `${band.share}%` }}
+                                />
                             </div>
-                        )
-                    })}
+                        </div>
+                    ))}
                 </Col>
             </Row>
             {!loggedInUser && (
