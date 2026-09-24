@@ -82,7 +82,8 @@ export const IconExclamationTriangle = (props: IconProps) => <FontAwesomeIcon ic
 /** Recommendation icons: thumbs up / a horizontal thumb for the neutral band / thumbs down. */
 export const IconThumbUp = (props: IconProps) => <FontAwesomeIcon icon={faThumbsUp} {...props} />
 
-export const IconThumbSideways = (props: IconProps) => <FontAwesomeIcon icon={faThumbsUp} rotation={90} {...props} />
+/** Rotated onto its side (270°, not 90°) so the neutral thumb points the other way — a literal 180° would just be the thumbs-down glyph. */
+export const IconThumbSideways = (props: IconProps) => <FontAwesomeIcon icon={faThumbsUp} rotation={270} {...props} />
 
 export const IconThumbDown = (props: IconProps) => <FontAwesomeIcon icon={faThumbsDown} {...props} />
 

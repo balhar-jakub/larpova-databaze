@@ -41,7 +41,7 @@ describe('GameRatingBox', () => {
         const icon = wrapper.querySelector('svg')
         expect(icon?.getAttribute('data-icon')).toBe('thumbs-up')
         // The neutral band reuses the thumbs-up glyph, rotated onto its side.
-        expect(icon?.getAttribute('class')).toEqual(expect.stringContaining('fa-rotate-90'))
+        expect(icon?.getAttribute('class')).toEqual(expect.stringContaining('fa-rotate-270'))
     })
 
     test('render with a recommended rating (thumbs up)', async () => {
