@@ -59,3 +59,16 @@ export const getRecommendationForTenPointRating = (rating?: number): RatingRecom
 
 /** i18n key of a recommendation label — translate it in the component. */
 export const recommendationKey = (recommendation: RatingRecommendation) => `Rating.${recommendation}`
+
+/**
+ * The three ratings a user can pick, in display order, with the 1-10 value
+ * stored for each. The stored value only has to sit inside its own band (see
+ * RECOMMENDED_FROM / NEUTRAL_FROM), so the extremes and the middle are used —
+ * that keeps new ratings comparable with everything stored before the input
+ * became three choices.
+ */
+export const RATING_CHOICES: { recommendation: RatingRecommendation; rating: number }[] = [
+    { recommendation: 'recommended', rating: 10 },
+    { recommendation: 'neutral', rating: 5 },
+    { recommendation: 'notRecommended', rating: 1 },
+]

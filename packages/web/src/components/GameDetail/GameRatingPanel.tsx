@@ -12,7 +12,7 @@ import { IconUser } from '../common/Icons/Icons'
 import { getRecommendationForTenPointRating, MIN_NUM_RATINGS, recommendationKey, RatingRecommendation } from '../../utils/ratingUtils'
 import { useLoggedInUser } from '../../hooks/useLoggedInUser'
 import RatingStateButtons from './RatingStateButtons'
-import RatingStars from './RatingStars'
+import RatingChoices from './RatingChoices'
 import AuthorWarningPanel from './AuthorWarningPanel'
 import { InPlaceSignInContext } from '../../context/InPlaceSignInContext/InPlaceSignInContext'
 
@@ -176,7 +176,7 @@ export const GameRatingPanel = ({
                 <AuthorWarningPanel onDismiss={() => setSelfRatingDismissed(true)} />
             )}
             {currentUserId && !ratingsDisabled && !isAuthorWarningShown && (
-                <RatingStars gameId={gameId} rating={ratingNum} />
+                <RatingChoices gameId={gameId} rating={ratingNum} />
             )}
         </div>
     )

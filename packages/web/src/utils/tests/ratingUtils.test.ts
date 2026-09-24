@@ -5,6 +5,7 @@ import {
     getRecommendationForGame,
     getRecommendationForTenPointRating,
     recommendationKey,
+    RATING_CHOICES,
 } from '../ratingUtils'
 
 describe('getRatingGrade', () => {
@@ -110,5 +111,28 @@ describe('recommendationKey', () => {
         expect(recommendationKey('neutral')).toBe('Rating.neutral')
         expect(recommendationKey('notRecommended')).toBe('Rating.notRecommended')
         expect(recommendationKey('notrated')).toBe('Rating.notrated')
+    })
+})
+
+describe('RATING_CHOICES', () => {
+    it('should offer exactly the three selectable bands, thumbs up first', () => {
+        expect(RATING_CHOICES.map(choice => choice.recommendation)).toEqual([
+            'recommended',
+            'neutral',
+            'notRecommended',
+        ])
+    })
+
+    it('should store a rating that reads back as its own recommendation', () => {
+        RATING_CHOICES.forEach(({ recommendation, rating }) => {
+            expect(getRecommendationForTenPointRating(rating)).toBe(recommendation)
+        })
+    })
+
+    it('should keep every stored value inside 1-10', () => {
+        RATING_CHOICES.forEach(({ rating }) => {
+            expect(rating).toBeGreaterThanOrEqual(1)
+            expect(rating).toBeLessThanOrEqual(10)
+        })
     })
 })

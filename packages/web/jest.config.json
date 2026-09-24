@@ -3,6 +3,7 @@
   "testEnvironment": "jsdom",
   "extensionsToTreatAsEsm": [".ts", ".tsx"],
   "moduleNameMapper": {
+    "\\.graphql$": "<rootDir>/src/lib/tests/graphqlDocumentStub.js",
     "^(\\.{1,2}/.*)\\.js$": "$1",
     "^@/(.*)$": "<rootDir>/src/$1",
     "^src/(.*)$": "<rootDir>/src/$1",
