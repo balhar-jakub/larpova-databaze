@@ -2,8 +2,14 @@ import React from 'react'
 import { createUseStyles } from 'react-jss'
 import classnames from 'classnames'
 import { darkTheme } from 'src/theme/darkTheme'
-import { getRecommendationForGame, gradeForRecommendation, recommendationKey } from 'src/utils/ratingUtils'
+import {
+    getRecommendationForGame,
+    gradeForRecommendation,
+    RatingRecommendation,
+    recommendationKey,
+} from 'src/utils/ratingUtils'
 import { useTranslation } from 'src/lib/i18n'
+import { IconNotRated, IconThumbDown, IconThumbSideways, IconThumbUp } from '../Icons/Icons'
 import { componentTestIds } from '../../componentTestIds'
 
 interface Props {
@@ -40,35 +46,45 @@ const useStyles = createUseStyles({
         textAlign: 'center',
         color: darkTheme.textLight,
     },
+    // Fixed squares: the box holds one icon, so it never has to grow to fit a
+    // label. The font size drives the FontAwesome SVG size (icons are 1em).
     ratingTiny: {
         width: 11,
         height: 11,
         borderRadius: 2,
     },
     ratingSmall: {
-        fontSize: '0.7rem',
-        minWidth: 40,
-        minHeight: 40,
-        padding: '0 6px',
+        fontSize: '1.05rem',
+        width: 40,
+        height: 40,
     },
     ratingMedium: {
-        fontSize: '0.9rem',
-        minHeight: 48,
-        padding: '0 10px',
+        fontSize: '1.35rem',
+        width: 48,
+        height: 48,
     },
     ratingBig: {
-        fontSize: '1.5rem',
-        minHeight: 100,
-        fontWeight: 'unset',
-        padding: '0 24px',
+        fontSize: '3rem',
+        width: 100,
+        height: 100,
     },
     ...ratingStyles,
 })
 
+const ICON_BY_RECOMMENDATION: { [key in RatingRecommendation]: React.ComponentType<{ className?: string }> } = {
+    notrated: IconNotRated,
+    notRecommended: IconThumbDown,
+    neutral: IconThumbSideways,
+    recommended: IconThumbUp,
+}
+
 /**
- * Shows a game's standing as a recommendation label (Doporučuji / Neutrální /
- * Nedoporučuji) instead of rating points. The background colour follows the
- * same band. `tiny` renders just the colour, for inline use next to a game link.
+ * Shows a game's standing as a recommendation icon instead of rating points or
+ * a label: thumbs up (recommended), a horizontal thumb (neutral band) and
+ * thumbs down (not recommended). An icon fits the fixed square at every size,
+ * which the label text never did — that is why the translated label is only
+ * exposed as the accessible name and the hover title, and never rendered.
+ * `tiny` renders just the colour, for inline use next to a game link.
  */
 export const GameRatingBox = ({ rating, averageRating, amountOfRatings, size = 'small', className }: Props) => {
     const classes = useStyles()
@@ -76,6 +92,9 @@ export const GameRatingBox = ({ rating, averageRating, amountOfRatings, size = '
 
     const recommendation = getRecommendationForGame(amountOfRatings, averageRating || rating)
     const ratingGrade = gradeForRecommendation[recommendation]
+    const RatingIcon = ICON_BY_RECOMMENDATION[recommendation]
+    const label = t(recommendationKey(recommendation))
+    const decorative = size === 'tiny'
     const classNames = {
         [classes.rating]: true,
         [classes.ratingTiny]: size === 'tiny',
@@ -90,8 +109,14 @@ export const GameRatingBox = ({ rating, averageRating, amountOfRatings, size = '
     }
 
     return (
-        <div className={classnames(classNames)} data-testid={componentTestIds.gameRatingBox.wrapper}>
-            {size !== 'tiny' && <span>{t(recommendationKey(recommendation))}</span>}
+        <div
+            className={classnames(classNames)}
+            data-testid={componentTestIds.gameRatingBox.wrapper}
+            title={decorative ? undefined : label}
+            aria-label={decorative ? undefined : label}
+            role={decorative ? undefined : 'img'}
+        >
+            {!decorative && <RatingIcon />}
         </div>
     )
 }

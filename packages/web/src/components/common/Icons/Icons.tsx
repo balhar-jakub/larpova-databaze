@@ -21,6 +21,9 @@ import {
     faBan,
     faExclamationTriangle,
     faBars,
+    faThumbsUp,
+    faThumbsDown,
+    faQuestion,
 } from '@fortawesome/free-solid-svg-icons'
 import { faFacebook } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -75,3 +78,13 @@ export const IconDisabled = (props: IconProps) => <FontAwesomeIcon icon={faBan} 
 export const IconMenu = (props: IconProps) => <FontAwesomeIcon icon={faBars} {...props} />
 
 export const IconExclamationTriangle = (props: IconProps) => <FontAwesomeIcon icon={faExclamationTriangle} {...props} />
+
+/** Recommendation icons: thumbs up / a horizontal thumb for the neutral band / thumbs down. */
+export const IconThumbUp = (props: IconProps) => <FontAwesomeIcon icon={faThumbsUp} {...props} />
+
+export const IconThumbSideways = (props: IconProps) => <FontAwesomeIcon icon={faThumbsUp} rotation={90} {...props} />
+
+export const IconThumbDown = (props: IconProps) => <FontAwesomeIcon icon={faThumbsDown} {...props} />
+
+/** Not enough ratings yet — the question mark stands in for "no verdict". */
+export const IconNotRated = (props: IconProps) => <FontAwesomeIcon icon={faQuestion} {...props} />
