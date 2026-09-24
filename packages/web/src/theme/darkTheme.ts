@@ -19,8 +19,11 @@ export const darkTheme = {
     textOnLightDark: '#333',
     red: '#BD2430',
     redLight: '#CC333F',
+    // Recommendation colours: red = Doporučuji, light blue = Neutrální, and the
+    // grey that used to mean "rated under 4" = Nedoporučuji. ratingNotRated
+    // (the pale grey) is the separate "too few ratings" state.
     ratingMediocre: '#757575',
     ratingGreat: '#BD2430',
-    ratingAverage: '#6dc8b7',
+    ratingAverage: '#5B9BD5',
     ratingNotRated: '#CCC',
 }
