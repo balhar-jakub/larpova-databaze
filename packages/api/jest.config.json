@@ -8,5 +8,6 @@
   "transform": {
     "^.+\\.ts$": ["ts-jest", { "useESM": true }]
   },
+  "globalSetup": "<rootDir>/jest.globalSetup.cjs",
   "testMatch": ["**/*.test.ts"]
 }

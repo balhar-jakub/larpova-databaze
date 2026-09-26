@@ -12,6 +12,7 @@
   "transform": {
     "^.+\\.(ts|tsx)$": ["ts-jest", { "useESM": true, "tsconfig": { "jsx": "react-jsx" } }]
   },
+  "globalSetup": "<rootDir>/jest.globalSetup.cjs",
   "testMatch": ["**/*.test.ts", "**/*.test.tsx"],
   "testPathIgnorePatterns": ["<rootDir>/src/api/"]
 }
