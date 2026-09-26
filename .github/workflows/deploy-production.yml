@@ -18,9 +18,10 @@ jobs:
           ref: main
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - name: Enable Corepack (Yarn 1)
-        run: corepack enable && corepack prepare yarn@1 --activate
+          node-version: '26'
+      # Corepack is no longer bundled with Node 25+, so install Yarn 1 directly.
+      - name: Install Yarn 1
+        run: npm install -g yarn@1.22.22
       - name: Install dependencies
         run: yarn install --frozen-lockfile
       - name: Build production .next

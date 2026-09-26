@@ -8,8 +8,15 @@ on:
 
 jobs:
   monorepo-tests:
-    name: API + Web tests
+    name: API + Web tests (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # '20' is the current production runtime; '26' is the version the
+        # deployment machine is being upgraded to. Both must stay green.
+        node-version: ['20', '26']
 
     services:
       postgres:
@@ -36,10 +43,12 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ matrix.node-version }}
 
-      - name: Enable Corepack (Yarn 1)
-        run: corepack enable && corepack prepare yarn@1 --activate
+      # Corepack is no longer bundled with Node 25+, so `corepack enable`
+      # fails on the Node 26 leg. Install Yarn 1 directly instead.
+      - name: Install Yarn 1
+        run: npm install -g yarn@1.22.22
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
