@@ -35,5 +35,90 @@
     "registrationOpen": "Registration is open",
     "registrationOpenHint": "Enable only while people can register using the link",
     "registrationUrlRequiredWhenOpen": "A link is required when registration is open"
+  },
+  "Catalog": {
+    "pageTitle": "Games",
+    "pageDescription": "Every larp in the database. Filter by labels, year, duration, number of players and rating.",
+    "subtitle": "{{count}} larps match the filter · the link keeps your filter",
+    "subtitleLoading": "Loading games…",
+    "resultCount": "{{count}} games",
+    "loadMore": "Load {{count}} more ({{remaining}} left)",
+    "loading": "Loading…",
+    "empty": "No game matches this filter.",
+    "reset": "Clear filters",
+    "resetAll": "Clear all",
+    "order": {
+      "label": "Sort:",
+      "Recommended": "recommended",
+      "Best": "best rated",
+      "MostPlayed": "most played",
+      "Newest": "newest",
+      "MostCommented": "most commented",
+      "NameAsc": "by name"
+    },
+    "size": {
+      "label": "Per page:",
+      "option": "{{count}} games"
+    },
+    "filters": {
+      "title": "Filter",
+      "categories": "Categories",
+      "themes": "Themes",
+      "showAllThemes": "Show all {{count}} themes",
+      "showFewerThemes": "Show fewer",
+      "labelModeAll": "must have all",
+      "labelModeAny": "any of them",
+      "duration": "Duration",
+      "year": "Year",
+      "yearShort": "year",
+      "players": "Players",
+      "playersShort": "players",
+      "rating": "Rating",
+      "onlyRecommended": "recommended only ({{value}} % and up)",
+      "minRatings": "at least {{count}} ratings",
+      "withComments": "with comments",
+      "withImage": "with an image",
+      "from": "from",
+      "to": "to"
+    },
+    "durations": {
+      "short": "up to 8 hours",
+      "day": "one day",
+      "weekend": "weekend (1–3 days)",
+      "long": "four days and more"
+    },
+    "rankings": {
+      "title": "Leaderboards",
+      "all": "all games"
+    },
+    "presets": {
+      "komorni": "Chamber",
+      "drevarny": "Battle games",
+      "novinky": "New",
+      "kratke": "Short (up to 8 h)",
+      "velke": "For 20+ players",
+      "doporucovane": "Recommended"
+    },
+    "active": {
+      "label": "{{name}}",
+      "duration": "{{name}}",
+      "yearRange": "year {{from}}–{{to}}",
+      "yearFrom": "year from {{from}}",
+      "yearTo": "year up to {{to}}",
+      "playersRange": "{{from}}–{{to}} players",
+      "playersFrom": "at least {{from}} players",
+      "playersTo": "up to {{to}} players",
+      "rating": "{{value}} % and up",
+      "minRatings": "at least {{count}} ratings",
+      "added": "in the last {{count}} days",
+      "query": "search: {{query}}"
+    },
+    "card": {
+      "noYear": "year unknown",
+      "durationUnknown": "duration unknown",
+      "ratings": "{{count}} ratings",
+      "comments": "{{count}} comments",
+      "played": "played {{count}}×"
+    }
   }
 }

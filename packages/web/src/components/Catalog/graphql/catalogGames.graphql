@@ -1,0 +1,26 @@
+#import "src/components/Catalog/graphql/catalogGameData.graphql"
+
+query CatalogGames($filter: GameCatalogFilter, $order: GameCatalogOrder, $offset: Int!, $limit: Int!) {
+    games {
+        catalog(filter: $filter, order: $order, offset: $offset, limit: $limit) {
+            totalAmount
+            games {
+                ...catalogGameData
+            }
+            facets {
+                labels {
+                    id
+                    name
+                    count
+                    isRequired
+                }
+                durations {
+                    key
+                    count
+                }
+                yearMin
+                yearMax
+            }
+        }
+    }
+}

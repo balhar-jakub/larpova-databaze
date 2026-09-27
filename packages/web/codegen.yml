@@ -1,0 +1,12 @@
+# Generates the TypeScript types for every *.graphql document in the app.
+# Run `yarn codegen` (in packages/web) after changing a query or the schema —
+# src/graphql/schema.graphql is a copy of the schema the server serves
+# (packages/web/src/api/src/schema.graphql).
+schema: src/graphql/schema.graphql
+documents:
+  - src/**/*.graphql
+generates:
+  src/graphql/__generated__/typescript-operations.ts:
+    plugins:
+      - typescript
+      - typescript-operations

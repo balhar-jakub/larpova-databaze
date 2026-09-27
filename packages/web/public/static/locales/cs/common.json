@@ -471,5 +471,90 @@
     "notFound": "Omlouváme se, stránka neexistuje",
     "otherError": "Omlouváme se, na stránce se vyskytla chyba (kód {{statusCode}})",
     "toHomepage": "Na domovskou stránku"
+  },
+  "Catalog": {
+    "pageTitle": "Hry",
+    "pageDescription": "Všechny larpy v databázi. Filtruj podle štítků, roku, délky, počtu hráčů a hodnocení.",
+    "subtitle": "{{count}} larpů odpovídá filtru · odkaz s filtrem se dá poslat dál",
+    "subtitleLoading": "Načítám hry…",
+    "resultCount": "{{count}} her",
+    "loadMore": "Načíst dalších {{count}} (zbývá {{remaining}})",
+    "loading": "Načítám…",
+    "empty": "Takovému filtru neodpovídá žádná hra.",
+    "reset": "Zrušit filtry",
+    "resetAll": "Zrušit vše",
+    "order": {
+      "label": "Řadit:",
+      "Recommended": "doporučené",
+      "Best": "nejlépe hodnocené",
+      "MostPlayed": "nejhranější",
+      "Newest": "nejnovější",
+      "MostCommented": "nejkomentovanější",
+      "NameAsc": "podle názvu"
+    },
+    "size": {
+      "label": "Počet:",
+      "option": "{{count}} her"
+    },
+    "filters": {
+      "title": "Filtr",
+      "categories": "Kategorie",
+      "themes": "Témata",
+      "showAllThemes": "Zobrazit všech {{count}} témat",
+      "showFewerThemes": "Zobrazit méně",
+      "labelModeAll": "musí mít všechny",
+      "labelModeAny": "stačí jeden",
+      "duration": "Délka",
+      "year": "Rok vzniku",
+      "yearShort": "rok",
+      "players": "Počet hráčů",
+      "playersShort": "hráčů",
+      "rating": "Hodnocení",
+      "onlyRecommended": "jen doporučované ({{value}} % a více)",
+      "minRatings": "aspoň {{count}} hodnocení",
+      "withComments": "jen s komentáři",
+      "withImage": "jen s obrázkem",
+      "from": "od",
+      "to": "do"
+    },
+    "durations": {
+      "short": "do 8 hodin",
+      "day": "jednodenní",
+      "weekend": "víkendová (1–3 dny)",
+      "long": "čtyřdenní a delší"
+    },
+    "rankings": {
+      "title": "Žebříčky",
+      "all": "všechny hry"
+    },
+    "presets": {
+      "komorni": "Komorní",
+      "drevarny": "Dřevárny",
+      "novinky": "Novinky",
+      "kratke": "Krátké (do 8 h)",
+      "velke": "Pro 20+ hráčů",
+      "doporucovane": "Doporučované"
+    },
+    "active": {
+      "label": "{{name}}",
+      "duration": "{{name}}",
+      "yearRange": "rok {{from}}–{{to}}",
+      "yearFrom": "rok od {{from}}",
+      "yearTo": "rok do {{to}}",
+      "playersRange": "{{from}}–{{to}} hráčů",
+      "playersFrom": "aspoň {{from}} hráčů",
+      "playersTo": "nejvýš {{to}} hráčů",
+      "rating": "{{value}} % a více",
+      "minRatings": "aspoň {{count}} hodnocení",
+      "added": "za posledních {{count}} dní",
+      "query": "hledání: {{query}}"
+    },
+    "card": {
+      "noYear": "rok neuveden",
+      "durationUnknown": "délka neuvedena",
+      "ratings": "{{count}} hodnocení",
+      "comments": "{{count}} komentářů",
+      "played": "{{count}}× hráno"
+    }
   }
 }
