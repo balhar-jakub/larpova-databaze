@@ -44,11 +44,46 @@ jobs:
             PID=$(ss -tlnp 2>/dev/null | grep ':8080' | sed -n 's/.*pid=\([0-9]*\).*/\1/p')
             [ -n "$PID" ] && kill "$PID" 2>/dev/null
             sleep 2
+          # The database is synced with `prisma db push`, which refuses to run when
+          # it would drop something the schema no longer knows about unless
+          # --accept-data-loss is passed. Without the flag the push failed, the
+          # script carried on and the app started against a stale schema — which is
+          # how a deploy that reported success broke the game detail and calendar
+          # pages. So: print the drift, dump the database first, push with the flag,
+          # and fail the run when the push did not go through.
           SCRIPT_AFTER: |
             export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
             cd /home/balda/larpova-databaze/csld-new
+            # The app reads DATABASE_URL from .env through Next; prisma and pg_dump
+            # need it in the shell environment.
+            set -a; . ./.env; set +a
             npx prisma generate --schema prisma/schema.prisma
-            npx prisma db push --schema prisma/schema.prisma
+
+            echo '=== schema drift (database -> prisma/schema.prisma) ==='
+            npx prisma migrate diff --from-url "$DATABASE_URL" \
+              --to-schema-datamodel prisma/schema.prisma --script || true
+            echo '=== end of drift ==='
+
+            mkdir -p /home/balda/larpova-databaze/backups
+            BACKUP=/home/balda/larpova-databaze/backups/csld-before-$(date +%Y%m%d-%H%M%S).sql
+            if pg_dump "$DATABASE_URL" > "$BACKUP" && [ -s "$BACKUP" ]; then
+              echo "backup written: $BACKUP ($(du -h "$BACKUP" | cut -f1))"
+            else
+              echo 'pg_dump failed — refusing to push the schema' >&2
+              exit 1
+            fi
+
+            PUSH_STATUS=0
+            npx prisma db push --accept-data-loss --schema prisma/schema.prisma || PUSH_STATUS=$?
+
             PORT=8080 NODE_ENV=production setsid nohup npx tsx server.ts > /tmp/csld-new.log 2>&1 < /dev/null &
-            sleep 5
-            curl --fail --silent --show-error http://localhost:8080/health
+            for attempt in $(seq 1 15); do
+              if curl --fail --silent --show-error http://localhost:8080/health; then break; fi
+              sleep 2
+            done
+            echo
+            if [ "$PUSH_STATUS" -ne 0 ]; then
+              echo "prisma db push failed (exit $PUSH_STATUS) — the database is NOT in sync with the schema" >&2
+              exit 1
+            fi
+            echo 'production is up and the schema is in sync'
