@@ -116,8 +116,11 @@ jobs:
             set -a; . ./.env; set +a
             curl --fail --silent --show-error http://localhost:8080/health
             echo
+            # A synced database still prints the comment "-- This is an empty
+            # migration.", so only non-comment lines count as drift.
             DRIFT=$(npx prisma migrate diff --from-url "$DATABASE_URL" \
-              --to-schema-datamodel prisma/schema.prisma --script)
+              --to-schema-datamodel prisma/schema.prisma --script \
+              | grep -v '^--' | grep -v '^[[:space:]]*$' || true)
             if [ -n "$DRIFT" ]; then
               echo 'schema is still out of sync after the push:' >&2
               echo "$DRIFT" >&2
