@@ -5,6 +5,7 @@ import {
   byQueryWithTotalResolver,
   gamesQueryResolver,
 } from './game.js';
+import { catalogResolver } from './gameCatalog.js';
 import { homepageResolver } from './homepage.js';
 import { configResolver } from './config.js';
 import {
@@ -83,6 +84,7 @@ export const resolvers: any = {
     byQuery: byQueryResolver,
     byQueryWithTotal: byQueryWithTotalResolver,
     ladder: ladderResolver,
+    catalog: catalogResolver,
   },
 
   AdminQuery: {

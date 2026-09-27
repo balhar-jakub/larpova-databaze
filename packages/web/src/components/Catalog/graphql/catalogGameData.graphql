@@ -1,0 +1,19 @@
+fragment catalogGameData on Game {
+    id
+    name
+    year
+    hours
+    days
+    players
+    amountOfComments
+    amountOfRatings
+    amountOfPlayed
+    averageRating
+    coverImage {
+        id
+    }
+    labels {
+        id
+        name
+    }
+}

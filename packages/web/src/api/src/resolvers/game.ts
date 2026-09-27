@@ -46,25 +46,35 @@ export async function gameByIdResolver(
 
 type LadderType = 'RecentAndMostPlayed' | 'MostPlayed' | 'Recent' | 'Best' | 'MostCommented';
 
-const LADDER_CONFIG: Record<LadderType, { orderBy: Prisma.csld_gameOrderByWithRelationInput; include: Prisma.csld_gameInclude }> = {
+/**
+ * Legacy leaderboards. The games page now uses `games.catalog`; these stay for
+ * old links and API clients, but each tab has to order by something different —
+ * `RecentAndMostPlayed` and `MostPlayed` used to share an order by
+ * `amount_of_ratings`, so two tabs returned the very same list. Nulls are
+ * ordered last so that games without ratings never lead a "best" list.
+ */
+const LADDER_CONFIG: Record<LadderType, { orderBy: Prisma.csld_gameOrderByWithRelationInput[]; include: Prisma.csld_gameInclude }> = {
   RecentAndMostPlayed: {
-    orderBy: { amount_of_ratings: 'desc' },
+    orderBy: [{ amount_of_played: { sort: 'desc', nulls: 'last' } }, { added: 'desc' }],
     include: { csld_game_has_label: { include: { csld_label: true } } },
   },
   MostPlayed: {
-    orderBy: { amount_of_ratings: 'desc' },
+    orderBy: [{ amount_of_played: { sort: 'desc', nulls: 'last' } }, { name: { sort: 'asc', nulls: 'last' } }],
     include: { csld_game_has_label: { include: { csld_label: true } } },
   },
   Recent: {
-    orderBy: { added: 'desc' },
+    orderBy: [{ added: 'desc' }],
     include: { csld_game_has_label: { include: { csld_label: true } } },
   },
   Best: {
-    orderBy: { total_rating: 'desc' },
+    // Average rating, not total_rating: the sum rewards games that merely have
+    // more ratings, and NULL sums sorted first, so unrated games used to top
+    // this ladder.
+    orderBy: [{ average_rating: { sort: 'desc', nulls: 'last' } }, { amount_of_ratings: { sort: 'desc', nulls: 'last' } }],
     include: { csld_game_has_label: { include: { csld_label: true } } },
   },
   MostCommented: {
-    orderBy: { amount_of_comments: 'desc' },
+    orderBy: [{ amount_of_comments: { sort: 'desc', nulls: 'last' } }, { name: { sort: 'asc', nulls: 'last' } }],
     include: { csld_game_has_label: { include: { csld_label: true } } },
   },
 };

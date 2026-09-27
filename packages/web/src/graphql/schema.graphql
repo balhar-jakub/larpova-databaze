@@ -36,6 +36,8 @@ type GamesQuery {
     byQuery(query: String!, offset: Int, limit: Int): [Game!]!
     byQueryWithTotal(query: String!, offset: Int, limit: Int): GamesPaged!
     ladder(ladderType: LadderType!, offset: Int, limit: Int, requiredLabels: [ID!], otherLabels: [ID!]): GamesPaged!
+    "Browsable catalog with filters and facet counts — the replacement for the ladder tabs."
+    catalog(filter: GameCatalogFilter, order: GameCatalogOrder, offset: Int, limit: Int): GameCatalogPaged!
 }
 
 enum LadderType {
@@ -44,6 +46,69 @@ enum LadderType {
     Recent,
     Best,
     MostCommented,
+}
+
+enum GameCatalogOrder {
+    "Bayesian average: well rated games with few ratings do not outrank proven classics."
+    Recommended
+    "Average rating, unrated games last."
+    Best
+    "Games people marked as played."
+    MostPlayed
+    "Newest first."
+    Newest
+    "Most commented first."
+    MostCommented
+    "Alphabetically."
+    NameAsc
+}
+
+input GameCatalogFilter {
+    query: String
+    "Games that have all of these labels."
+    allLabels: [ID!]
+    "Games that have at least one of these labels."
+    anyLabels: [ID!]
+    "Games that have none of these labels."
+    noLabels: [ID!]
+    "Duration buckets: short, day, weekend, long."
+    durations: [String!]
+    yearFrom: Int
+    yearTo: Int
+    playersFrom: Int
+    playersTo: Int
+    "Minimum average rating, 0-100 (80 and up is 'recommended')."
+    minRating: Float
+    "Minimum number of ratings."
+    minRatings: Int
+    withComments: Boolean
+    withImage: Boolean
+    addedWithinDays: Int
+}
+
+type GameCatalogLabelFacet {
+    id: ID!
+    name: String
+    count: Int!
+    isRequired: Boolean!
+}
+
+type GameCatalogCount {
+    key: String!
+    count: Int!
+}
+
+type GameCatalogFacets {
+    labels: [GameCatalogLabelFacet!]!
+    durations: [GameCatalogCount!]!
+    yearMin: Int
+    yearMax: Int
+}
+
+type GameCatalogPaged {
+    games: [Game!]!
+    totalAmount: Int!
+    facets: GameCatalogFacets!
 }
 
 type Game {
@@ -215,6 +280,7 @@ type UserMutation {
     updateLoggedInUserPassword(oldPassword: String!, newPassword: String!): User!
     startRecoverPassword(email: String!, recoverUrl: String!): Boolean
     finishRecoverPassword(token: String!, newPassword: String!): User
+    startEmailLogin(email: String!, loginUrlTemplate: String!): Boolean!
 }
 
 input CreateUserInput {
@@ -245,6 +311,7 @@ type GameMutation {
     deleteGameRating(gameId: ID!, userId: ID): Game!
     setGamePlayedState(gameId: ID!, state: Int!): Game!
     createOrUpdateComment(gameId: ID!, comment: String!): Game!
+    deleteComment(commentId: ID!): Game!
     setCommentVisible(commentId: ID!, visible: Boolean!): Game!
     setCommentLiked(commentId: ID!, liked: Boolean!): Game!
 }

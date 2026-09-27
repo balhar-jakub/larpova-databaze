@@ -5,8 +5,12 @@ export function normalizeGame(row: any) {
   if (!row) return null;
   return {
     ...row,
-    totalRating: row.total_rating,
-    averageRating: row.average_rating,
+    // Both fields are non-null in the schema but nullable in the database:
+    // a game with no ratings has NULL here, and returning null made the whole
+    // query fail ("Cannot return null for non-nullable field Game.totalRating")
+    // for the search and the last pages of the ladder.
+    totalRating: row.total_rating ?? 0,
+    averageRating: row.average_rating ?? 0,
     amountOfComments: row.amount_of_comments,
     amountOfPlayed: row.amount_of_played,
     amountOfRatings: row.amount_of_ratings,
