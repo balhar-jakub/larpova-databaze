@@ -25,6 +25,11 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Build production .next
         working-directory: packages/web
+        env:
+          # NEXT_PUBLIC_* is inlined into the client bundle at build time, so the
+          # measurement id has to be here and not in the server's .env. Unset secret
+          # = analytics stays off (the app renders no gtag script).
+          NEXT_PUBLIC_GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
         run: NODE_ENV=production yarn build
       - name: Deploy to production server
         uses: easingthemes/ssh-deploy@v6.0.3
