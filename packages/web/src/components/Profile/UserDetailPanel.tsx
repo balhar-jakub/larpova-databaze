@@ -6,6 +6,7 @@ import { darkTheme } from '../../theme/darkTheme'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
 import { computeAge } from '../../utils/dateUtils'
 import { breakPoints } from '../../theme/breakPoints'
+import { DEFAULT_IMAGE_URL } from '../common/ProfileImage/ProfileImage'
 
 interface UserData {
     readonly id: string
@@ -79,7 +80,11 @@ const UserDetailPanel = ({ userData }: Props) => {
             <WidthFixer className={classes.fixer}>
                 {userData && (
                     <img
-                        src={`/user-icon?id=${userData.id}&imageId=${userData?.image?.id}`}
+                        src={
+                            userData?.image?.id
+                                ? `/user-icon?id=${userData.id}&imageId=${userData.image.id}`
+                                : DEFAULT_IMAGE_URL
+                        }
                         className={classes.image}
                         alt=""
                     />
