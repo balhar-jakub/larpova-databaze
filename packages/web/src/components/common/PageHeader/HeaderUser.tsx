@@ -12,6 +12,7 @@ import { isAtLeastEditor } from '../../../utils/roleUtils'
 import { useRoutes } from '../../../hooks/useRoutes'
 import { InPlaceSignInContext } from '../../../context/InPlaceSignInContext/InPlaceSignInContext'
 import { breakPoints } from '../../../theme/breakPoints'
+import { DEFAULT_IMAGE_URL } from '../ProfileImage/ProfileImage'
 
 const signOutMutation = require('./graphql/signOutMutation.graphql')
 
@@ -80,7 +81,11 @@ const CustomToggle = React.forwardRef<HTMLButtonElement, CustomToggleProps>(
                     onClick(e)
                 }}
             >
-                <img src={`/user-icon?id=${userId}&imageId=${imageId}`} className={classes.image} alt="" />
+                <img
+                    src={imageId ? `/user-icon?id=${userId}&imageId=${imageId}` : DEFAULT_IMAGE_URL}
+                    className={classes.image}
+                    alt=""
+                />
                 &nbsp;
                 {userName}
                 &nbsp; &#x25bc;

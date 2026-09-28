@@ -30,6 +30,16 @@ const nextConfig = {
       // Game detail: /larp/:slug/cs/:id → /gameDetail?id=:id
       { source: '/larp/:slug/cs/:id', destination: '/gameDetail?id=:id' },
 
+      // Legacy short game URL, without the language segment. Links of this shape
+      // still come from Google, from social shares and from the old site, and they
+      // used to 404 (347 requests / 140 distinct games in 14 days of access logs).
+      { source: '/larp/:slug/:id(\\d+)', destination: '/gameDetail?id=:id' },
+
+      // Uploaded images live in public/static/images, but the app (and the site
+      // before it) links them as /images/... — without this the header logo, the
+      // homepage and calendar logos, the default avatar and the favicon all 404.
+      { source: '/images/:path*', destination: '/static/images/:path*' },
+
       // Event detail: /event/:slug/:id → /eventDetail?id=:id
       { source: '/event/:slug/:id', destination: '/eventDetail?id=:id' },
 

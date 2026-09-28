@@ -21,7 +21,7 @@ const useStyles = createUseStyles({
     },
 })
 
-const DEFAULT_IMAGE_URL = '/images/user-icon.png'
+export const DEFAULT_IMAGE_URL = '/images/user-icon.png'
 
 export const ProfileImage = ({ userId, imageId, className }: Props) => {
     const classes = useStyles()
