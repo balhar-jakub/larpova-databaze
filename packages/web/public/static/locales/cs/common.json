@@ -556,5 +556,10 @@
       "comments": "{{count}} komentářů",
       "played": "{{count}}× hráno"
     }
+  },
+  "Cookies": {
+    "text": "Používáme Google Analytics, abychom věděli, které stránky databáze se používají. Bez tvého souhlasu sbíráme jen anonymní data bez cookies.",
+    "accept": "Přijmout",
+    "reject": "Odmítnout"
   }
 }

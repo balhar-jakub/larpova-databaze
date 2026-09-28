@@ -2,7 +2,7 @@ import * as React from 'react'
 import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document'
 import { createGenerateId, JssProvider, SheetsRegistry } from 'react-jss'
 import { darkTheme } from '../../src/theme/darkTheme'
-import { GA_TRACKING_ID } from '../../src/utils/gtag'
+import { GA_TRACKING_ID, GA_ENABLED, GA_CONSENT_KEY } from '../../src/utils/gtag'
 
 const globalStyle = `
     body {
@@ -34,9 +34,19 @@ const globalStyle = `
     }
     `
 
+// Google Consent Mode: analytics cookies stay denied until the visitor accepts in the
+// banner (CookieConsent). Without a stored decision gtag sends cookieless pings only.
 const initGA = `
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
+var csldConsent = 'denied';
+try { if (window.localStorage.getItem('${GA_CONSENT_KEY}') === 'granted') { csldConsent = 'granted'; } } catch (e) {}
+gtag('consent', 'default', {
+ad_storage: csldConsent,
+ad_user_data: csldConsent,
+ad_personalization: csldConsent,
+analytics_storage: csldConsent,
+});
 gtag('js', new Date());
 gtag('config', '${GA_TRACKING_ID}', {
 page_path: window.location.pathname,
@@ -89,14 +99,16 @@ class WebAppDocument extends Document {
                         crossOrigin="anonymous"
                     />
                     <style type="text/css">{globalStyle}</style>
-                    {/* Global Site Tag (gtag.js) - Google Analytics */}
-                    <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`} />
-                    <script
-                        /* eslint-disable-next-line react/no-danger */
-                        dangerouslySetInnerHTML={{
-                            __html: initGA,
-                        }}
-                    />
+                    {/* Global Site Tag (gtag.js) - Google Analytics, only when an id is configured */}
+                    {GA_ENABLED && <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`} />}
+                    {GA_ENABLED && (
+                        <script
+                            /* eslint-disable-next-line react/no-danger */
+                            dangerouslySetInnerHTML={{
+                                __html: initGA,
+                            }}
+                        />
+                    )}
                 </Head>
                 <body>
                     <Main />

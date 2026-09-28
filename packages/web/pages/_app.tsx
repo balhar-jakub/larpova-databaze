@@ -18,10 +18,11 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 import 'react-bootstrap-typeahead/css/Typeahead.css'
 import { registerGTagPageview } from '../src/utils/gtag'
 import FirstRenderContextProvider from '../src/context/FirstRenderContext/FirstRenderContextProvider'
+import { CookieConsent } from '../src/components/common/CookieConsent/CookieConsent'
 
 config.autoAddCss = false
 
-const handlePageChange = (url: URL) => {
+const handlePageChange = (url: string) => {
     window.scroll({ top: 0, left: 0 })
     registerGTagPageview(url)
 }
@@ -68,6 +69,7 @@ class WebApp extends App<AppInitialProps> {
                                         </ClientHydrationWrapper>
                                     </InPlaceSignInWrapper>
                                     <PageFooter />
+                                    <CookieConsent />
                                 </InPlaceSignInContextProvider>
                             </FirstRenderContextProvider>
                         </UserContextProvider>

@@ -120,5 +120,10 @@
       "comments": "{{count}} comments",
       "played": "played {{count}}×"
     }
+  },
+  "Cookies": {
+    "text": "We use Google Analytics to see which pages of the database are actually used. Without your consent we only collect cookieless, anonymous data.",
+    "accept": "Accept",
+    "reject": "Decline"
   }
 }
