@@ -28,6 +28,7 @@ import { setRememberMeCookie } from './src/api/src/auth/rememberMe.js';
 import { LocalFiles } from './src/api/src/files/fileService.js';
 import { setFileService } from './src/api/src/files/index.js';
 import { generateIcal } from './src/api/src/external/ical.js';
+import { buildSitemapXml } from './src/utils/sitemap.js';
 
 // ── Env setup ───────────────────────────────────────────
 
@@ -139,6 +140,72 @@ app.use('/graphql', expressMiddleware(apolloServer, {
 // ── REST endpoints ──────────────────────────────────────
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
+// ── Crawler surface: robots.txt + sitemap.xml ───────────
+//
+// Both are generated here instead of shipped as static files: only the
+// production host may be indexed (the test instance and the ples site serve the
+// same build from this box), and the sitemap has to follow the database.
+
+const INDEXABLE_HOSTS = ['larpovadatabaze.cz', 'www.larpovadatabaze.cz'];
+
+// Crawlers that render the whole app without sending anyone here. Measured over
+// 14 days of access logs: ExaSearchBot ~71k requests, AIWebIndex ~29k — each one
+// a full page (GraphQL + ~15 assets), repeated thousands of times.
+const BLOCKED_CRAWLERS = [
+  'ExaSearchBot',
+  'AIWebIndex',
+  'CCBot',
+  'Google-Extended',
+  'Bytespider',
+  'Amazonbot',
+  'Applebot-Extended',
+  'meta-externalagent',
+  'Diffbot',
+  'Omgilibot',
+  'Timpibot',
+  'ImagesiftBot',
+  'MJ12bot',
+  'BLEXBot',
+  'DataForSeoBot',
+  'Barkrowler',
+];
+
+const requestHost = (req: { headers: { host?: string } }) =>
+  (req.headers.host ?? '').split(':')[0].toLowerCase();
+
+app.get('/robots.txt', (req, res) => {
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  const host = requestHost(req);
+  if (!INDEXABLE_HOSTS.includes(host)) {
+    return res.send('User-agent: *\nDisallow: /\n');
+  }
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.send(
+    [
+      'User-agent: *',
+      'Allow: /',
+      'Disallow: /admin',
+      'Disallow: /graphql',
+      '',
+      ...BLOCKED_CRAWLERS.flatMap(agent => [`User-agent: ${agent}`, 'Disallow: /', '']),
+      `Sitemap: https://${host}/sitemap.xml`,
+      '',
+    ].join('\n'),
+  );
+});
+
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const xml = await buildSitemapXml(prisma, `https://${requestHost(req)}`);
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(xml);
+  } catch (err) {
+    console.error('sitemap error:', err);
+    res.status(500).end();
+  }
+});
 
 app.get('/data/*', async (req, res) => {
   const relativePath: string = req.params[0];

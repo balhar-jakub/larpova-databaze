@@ -1,22 +1,6 @@
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
-
-// ── Slug generation (matches Java stripName) ──────────────
-
-const stripName = (name: string | null | undefined) =>
-    (name ?? '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/-$/g, '')
-
-const getGameRoute = (id: string, name?: string | null) =>
-  `/larp/${stripName(name)}/cs/${id}`
-
-const getEventRoute = (id: string, name?: string | null) =>
-  `/event/${stripName(name)}/${id}`
+import { eventUrl, gameUrl } from '../utils/urls'
 
 // ── Route helper ──────────────────────────────────────────
 
@@ -51,12 +35,12 @@ export const useRoutes = () => {
             homepage: (): Route => route('/'),
 
             gameDetail: (id: string, name?: string | null): Route => {
-              const as = getGameRoute(id, name)
+              const as = gameUrl(id, name)
               return route(`/gameDetail?id=${id}`, as)
             },
 
             eventDetail: (id: string, name?: string | null): Route => {
-              const as = getEventRoute(id, name)
+              const as = eventUrl(id, name)
               return route(`/eventDetail?id=${id}`, as)
             },
 
