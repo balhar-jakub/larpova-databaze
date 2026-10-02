@@ -1,0 +1,12 @@
+# Monthly counts for the season strip and the history chart. `eventCalendar`
+# cannot do this: it pages by 100 rows and the archive holds ~2 600 events.
+query CalendarStats($from: String, $to: String) {
+    eventCalendarStats(from: $from, to: $to) {
+        totalAmount
+        byMonth {
+            year
+            month
+            count
+        }
+    }
+}

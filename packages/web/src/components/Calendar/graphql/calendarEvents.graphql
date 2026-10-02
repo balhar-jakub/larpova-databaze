@@ -1,0 +1,10 @@
+#import "./calendarEventData.graphql"
+
+query CalendarEvents($from: String, $to: String, $offset: Int!, $limit: Int!) {
+    eventCalendar(from: $from, to: $to, offset: $offset, limit: $limit) {
+        totalAmount
+        events {
+            ...calendarEventData
+        }
+    }
+}

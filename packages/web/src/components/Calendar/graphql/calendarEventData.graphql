@@ -3,11 +3,16 @@ fragment calendarEventData on Event {
     name
     from
     to
+    loc
     web
     registrationUrl
     registrationOpen
-    loc
+    amountOfPlayers
     labels {
+        id
+        name
+    }
+    games {
         id
         name
     }

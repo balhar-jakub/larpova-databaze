@@ -174,6 +174,19 @@ export type Event = {
   web?: Maybe<Scalars['String']>;
 };
 
+export type EventCalendarMonthCount = {
+  __typename?: 'EventCalendarMonthCount';
+  count: Scalars['Int'];
+  month: Scalars['Int'];
+  year: Scalars['Int'];
+};
+
+export type EventCalendarStats = {
+  __typename?: 'EventCalendarStats';
+  byMonth: Array<EventCalendarMonthCount>;
+  totalAmount: Scalars['Int'];
+};
+
 export type EventLocation = {
   __typename?: 'EventLocation';
   lattitude: Scalars['Float'];
@@ -303,11 +316,17 @@ export type GameCatalogLabelFacet = {
 };
 
 export enum GameCatalogOrder {
+  /** Average rating, unrated games last. */
   Best = 'Best',
+  /** Most commented first. */
   MostCommented = 'MostCommented',
+  /** Games people marked as played. */
   MostPlayed = 'MostPlayed',
+  /** Alphabetically. */
   NameAsc = 'NameAsc',
+  /** Newest first. */
   Newest = 'Newest',
+  /** Bayesian average: well rated games with few ratings do not outrank proven classics. */
   Recommended = 'Recommended'
 }
 
@@ -404,6 +423,7 @@ export type GamesQuery = {
   __typename?: 'GamesQuery';
   byQuery: Array<Game>;
   byQueryWithTotal: GamesPaged;
+  /** Browsable catalog with filters and facet counts — the replacement for the ladder tabs. */
   catalog: GameCatalogPaged;
   ladder: GamesPaged;
 };
@@ -545,6 +565,7 @@ export type Query = {
   donations: Array<Donation>;
   eventById?: Maybe<Event>;
   eventCalendar: EventsPaged;
+  eventCalendarStats: EventCalendarStats;
   gameById?: Maybe<Game>;
   games: GamesQuery;
   groupById?: Maybe<Group>;
@@ -568,6 +589,12 @@ export type QueryEventCalendarArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   otherLabels?: InputMaybe<Array<Scalars['ID']>>;
   requiredLabels?: InputMaybe<Array<Scalars['ID']>>;
+  to?: InputMaybe<Scalars['String']>;
+};
+
+
+export type QueryEventCalendarStatsArgs = {
+  from?: InputMaybe<Scalars['String']>;
   to?: InputMaybe<Scalars['String']>;
 };
 
@@ -875,6 +902,26 @@ export type UpdateUserRoleMutation = { __typename?: 'Mutation', admin: { __typen
 
 export type AdminUserFieldsFragment = { __typename?: 'User', id: string, name: string, nickname?: string | null, role?: UserRole | null };
 
+export type CalendarEventDataFragment = { __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null };
+
+export type CalendarEventsQueryVariables = Exact<{
+  from?: InputMaybe<Scalars['String']>;
+  to?: InputMaybe<Scalars['String']>;
+  offset: Scalars['Int'];
+  limit: Scalars['Int'];
+}>;
+
+
+export type CalendarEventsQuery = { __typename?: 'Query', eventCalendar: { __typename?: 'EventsPaged', totalAmount: number, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null }> } };
+
+export type CalendarStatsQueryVariables = Exact<{
+  from?: InputMaybe<Scalars['String']>;
+  to?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type CalendarStatsQuery = { __typename?: 'Query', eventCalendarStats: { __typename?: 'EventCalendarStats', totalAmount: number, byMonth: Array<{ __typename?: 'EventCalendarMonthCount', year: number, month: number, count: number }> } };
+
 export type CatalogGameDataFragment = { __typename?: 'Game', id: string, name?: string | null, year?: number | null, hours?: number | null, days?: number | null, players?: number | null, amountOfComments: number, amountOfRatings: number, amountOfPlayed: number, averageRating: number, coverImage?: { __typename?: 'Image', id: string } | null, labels: Array<{ __typename?: 'Label', id: string, name?: string | null }> };
 
 export type CatalogGamesQueryVariables = Exact<{
@@ -896,32 +943,6 @@ export type CatalogMoreGamesQueryVariables = Exact<{
 
 
 export type CatalogMoreGamesQuery = { __typename?: 'Query', games: { __typename?: 'GamesQuery', catalog: { __typename?: 'GameCatalogPaged', totalAmount: number, games: Array<{ __typename?: 'Game', id: string, name?: string | null, year?: number | null, hours?: number | null, days?: number | null, players?: number | null, amountOfComments: number, amountOfRatings: number, amountOfPlayed: number, averageRating: number, coverImage?: { __typename?: 'Image', id: string } | null, labels: Array<{ __typename?: 'Label', id: string, name?: string | null }> }> } } };
-
-export type CalendarEventDataFragment = { __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, loc?: string | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null };
-
-export type LoadCalendarEventsQueryVariables = Exact<{
-  from?: InputMaybe<Scalars['String']>;
-  to?: InputMaybe<Scalars['String']>;
-  offset: Scalars['Int'];
-  limit: Scalars['Int'];
-  requiredLabels?: InputMaybe<Array<Scalars['ID']> | Scalars['ID']>;
-  optionalLabels?: InputMaybe<Array<Scalars['ID']> | Scalars['ID']>;
-}>;
-
-
-export type LoadCalendarEventsQuery = { __typename?: 'Query', eventCalendar: { __typename?: 'EventsPaged', totalAmount: number, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, loc?: string | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null }> }, authorizedRequiredLabels: Array<{ __typename?: 'Label', id: string, name?: string | null, description?: string | null }>, authorizedOptionalLabels: Array<{ __typename?: 'Label', id: string, name?: string | null, description?: string | null }> };
-
-export type MoreCalendarEventsQueryVariables = Exact<{
-  from?: InputMaybe<Scalars['String']>;
-  to?: InputMaybe<Scalars['String']>;
-  offset: Scalars['Int'];
-  limit: Scalars['Int'];
-  requiredLabels?: InputMaybe<Array<Scalars['ID']> | Scalars['ID']>;
-  optionalLabels?: InputMaybe<Array<Scalars['ID']> | Scalars['ID']>;
-}>;
-
-
-export type MoreCalendarEventsQuery = { __typename?: 'Query', eventCalendar: { __typename?: 'EventsPaged', totalAmount: number, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, loc?: string | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null }> } };
 
 export type DeleteEventMutationVariables = Exact<{
   eventId: Scalars['ID'];
