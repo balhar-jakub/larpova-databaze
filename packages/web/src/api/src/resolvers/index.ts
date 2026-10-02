@@ -18,7 +18,7 @@ import {
 } from './user.js';
 import { normalizeGame } from './mappers.js';
 import { groupByIdResolver, groupsByQueryResolver } from './group.js';
-import { eventByIdResolver, eventCalendarResolver } from './event.js';
+import { eventByIdResolver, eventCalendarResolver, eventCalendarStatsResolver } from './event.js';
 import { authorizedRequiredLabelsResolver, authorizedOptionalLabelsResolver } from './label.js';
 import {
   adminResolver,
@@ -75,6 +75,7 @@ export const resolvers: any = {
     groupsByQuery: groupsByQueryResolver,
     eventById: eventByIdResolver,
     eventCalendar: eventCalendarResolver,
+    eventCalendarStats: eventCalendarStatsResolver,
     userById: userByIdResolver,
     userByEmail: userByEmailResolver,
     usersByQuery: usersByQueryResolver,

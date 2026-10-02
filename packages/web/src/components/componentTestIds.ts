@@ -14,6 +14,18 @@ export const componentTestIds = {
         reset: 'catalog.reset',
         activeFilters: 'catalog.activeFilters',
     },
+    calendar: {
+        panel: 'calendar.panel',
+        summary: 'calendar.summary',
+        filters: 'calendar.filters',
+        viewSwitch: 'calendar.viewSwitch',
+        view: (view: string) => `calendar.view.${view}`,
+        resultCount: 'calendar.resultCount',
+        reset: 'calendar.reset',
+        empty: 'calendar.empty',
+        loadMore: 'calendar.loadMore',
+        addEvent: 'calendar.addEvent',
+    },
     carousel: {
         leftButton: 'carouselLeftButton',
         rightButton: 'carouselRightButton',

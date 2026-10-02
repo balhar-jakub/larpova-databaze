@@ -6,6 +6,7 @@ type Query {
     groupsByQuery(query: String!, offset: Int, limit: Int): [Group!]!
     eventById(eventId: ID!): Event
     eventCalendar(offset: Int, limit: Int, from: String, to: String, requiredLabels: [ID!], otherLabels: [ID!]): EventsPaged!
+    eventCalendarStats(from: String, to: String): EventCalendarStats!
     userById(userId: ID!): User
     userByEmail(email: String!): User
     usersByQuery(query: String!, offset: Int, limit: Int): [User!]!
@@ -509,4 +510,15 @@ enum AllowedAction {
 type EventsPaged {
     events: [Event!]!
     totalAmount: Int!
+}
+
+type EventCalendarStats {
+    totalAmount: Int!
+    byMonth: [EventCalendarMonthCount!]!
+}
+
+type EventCalendarMonthCount {
+    year: Int!
+    month: Int!
+    count: Int!
 }

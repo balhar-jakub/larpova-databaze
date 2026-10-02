@@ -104,3 +104,51 @@ export async function eventCalendarResolver(
     totalAmount,
   };
 }
+
+/**
+ * Counts of events per month, used by the calendar's season strip and the
+ * history chart. Both cover years of data at once, which no list query can do:
+ * `eventCalendar` pages by 100 rows, the archive has ~2 600 events.
+ *
+ * The aggregation runs in JS on purpose. The whole table is a couple of
+ * thousand rows of one column, so a single findMany is cheap, it needs no raw
+ * SQL (the app talks to PostgreSQL through Prisma only) and the result does not
+ * depend on the database's time zone: event dates are stored at 00:00 UTC.
+ */
+export async function eventCalendarStatsResolver(
+  _parent: unknown,
+  args: { from?: string; to?: string },
+  ctx: Context,
+) {
+  const andConditions: Prisma.eventWhereInput[] = [{ deleted: false }];
+  if (args.from) {
+    andConditions.push({ from: { gte: new Date(args.from) } });
+  }
+  if (args.to) {
+    andConditions.push({ from: { lte: new Date(args.to) } });
+  }
+
+  const rows = await ctx.db.event.findMany({
+    where: { AND: andConditions },
+    select: { from: true },
+  });
+
+  const counts = new Map<string, number>();
+  rows.forEach((row) => {
+    if (!row.from) return;
+    const date = new Date(row.from);
+    if (isNaN(date.getTime())) return;
+    const key = `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  });
+
+  const byMonth = Array.from(counts.entries())
+    .map(([key, count]) => {
+      const [year, month] = key.split('-').map(Number);
+      return { year, month, count };
+    })
+    .sort((a, b) => a.year - b.year || a.month - b.month);
+
+  return { totalAmount: rows.length, byMonth };
+}
+
