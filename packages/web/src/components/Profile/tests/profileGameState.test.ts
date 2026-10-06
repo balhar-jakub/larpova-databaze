@@ -1,4 +1,4 @@
-import { normalizeUser } from '../resolvers/user';
+import { normalizeUser } from '../../../api/src/resolvers/user';
 
 /**
  * The profile overview lists a user's games by their play state
