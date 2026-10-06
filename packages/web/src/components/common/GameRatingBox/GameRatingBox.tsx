@@ -12,6 +12,12 @@ interface Props {
     readonly averageRating?: number
     readonly amountOfRatings: number
     readonly className?: string
+    /**
+     * Set when the badge sits on a cover photo. The outlined levels then get an
+     * opaque middle: over a photo a hollow square lets the picture show through
+     * and the outline is left carrying the level on its own.
+     */
+    readonly onPhoto?: boolean
     readonly size?: 'tiny' | 'small' | 'medium' | 'big'
 }
 
@@ -120,6 +126,10 @@ const useStyles = createUseStyles({
     },
     ...outlinedStyles,
     ...ratingStyles,
+    /** Declared last so it wins over the transparent middle of the outlined levels. */
+    ratingOutlineOnPhoto: {
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    },
 })
 
 /**
@@ -130,9 +140,11 @@ const useStyles = createUseStyles({
  * An icon fits the fixed square at every size, which the label text never did,
  * so the translated label is only the accessible name and the hover title.
  * `tiny` renders just the colour, for inline use next to a game link: 11 px has
- * no room for an outline, so there the colour alone carries the level.
+ * no room for an outline, so there the colour alone carries the level. Pass
+ * `onPhoto` when the badge sits on a cover photo, so an outlined level keeps an
+ * opaque middle instead of showing the picture through it.
  */
-export const GameRatingBox = ({ rating, averageRating, amountOfRatings, size = 'small', className }: Props) => {
+export const GameRatingBox = ({ rating, averageRating, amountOfRatings, size = 'small', onPhoto, className }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
 
@@ -148,6 +160,7 @@ export const GameRatingBox = ({ rating, averageRating, amountOfRatings, size = '
         [classes.ratingSmall]: size === 'small',
         [classes.ratingMedium]: size === 'medium',
         [classes.ratingBig]: size === 'big',
+        [classes.ratingOutlineOnPhoto]: !!onPhoto && !!outlineKey,
         [className || '_']: !!className,
         [colourClass]: true,
     }
