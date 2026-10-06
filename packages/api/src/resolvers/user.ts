@@ -1,4 +1,47 @@
 import type { Context } from '../context.js';
+import { normalizeGame } from './mappers.js';
+
+export function normalizeUser(row: any) {
+  if (!row) return null;
+  return {
+    ...row,
+    role: ['ANONYMOUS', 'USER', 'EDITOR', 'ADMIN', 'AUTHOR'][row.role] ?? 'USER',
+    // `row.image` is the scalar foreign key; the GraphQL field is an Image.
+    // Returning the raw row made every query answer
+    // "Cannot return null for non-nullable field Image.id".
+    image: row.csld_image?.id ? row.csld_image : null,
+    lastRating: row.last_rating,
+    birthDate: row.birth_date?.toISOString().split('T')[0] ?? null,
+    // The database column is `address`, the GraphQL field is `city`. Without
+    // this mapping the settings form loads an empty city and saving wipes it.
+    city: row.address ?? null,
+    amountOfComments: row.amount_of_comments,
+    amountOfPlayed: row.amount_of_played,
+    amountOfCreated: row.amount_of_created,
+    authoredGames: (row.csld_game_has_author ?? []).map((j: any) => normalizeGame(j.csld_game)).filter(Boolean),
+    playedGames: (row.csld_rating ?? []).map((r: any) => ({
+      game: normalizeGame(r.csld_game),
+      rating: r.rating,
+    })).filter((pg: any) => pg.game != null),
+    wantedGames: [],
+    ratings: (row.csld_rating ?? []).map((r: any) => ({
+      ...r,
+      game: normalizeGame(r.csld_game),
+      user: null,
+    })),
+    commentsPaged: ({ offset, limit }: { offset: number; limit: number }) => {
+      const comments = (row.csld_comment ?? [])
+        .slice(offset, offset + limit)
+        .map((c: any) => ({
+          ...c,
+          commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
+          user: { id: row.id, name: row.name },
+          game: normalizeGame(c.csld_game),
+        }));
+      return { comments, totalAmount: (row.csld_comment ?? []).length };
+    },
+  };
+}
 
 export async function userByIdResolver(
   _parent: unknown,
@@ -25,39 +68,7 @@ export async function userByIdResolver(
     },
   });
 
-  if (!row) return null;
-
-  return {
-    ...row,
-    image: row.csld_image ?? null,
-    lastRating: row.last_rating,
-    birthDate: row.birth_date?.toISOString().split('T')[0] ?? null,
-    amountOfComments: row.amount_of_comments,
-    amountOfPlayed: row.amount_of_played,
-    amountOfCreated: row.amount_of_created,
-    authoredGames: (row.csld_game_has_author ?? []).map((j) => j.csld_game).filter(Boolean),
-    playedGames: [], // populated by dedicated resolver
-    wantedGames: [], // populated by dedicated resolver
-    ratings: (row.csld_rating ?? []).map((r) => ({
-      ...r,
-      game: r.csld_game ?? null,
-      user: null, // self — hidden
-    })),
-    commentsPaged: ({ offset, limit }: { offset: number; limit: number }) => {
-      const comments = (row.csld_comment ?? [])
-        .slice(offset, offset + limit)
-        .map((c) => ({
-          ...c,
-          commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
-          user: { id: row.id, name: row.name },
-          game: c.csld_game ?? null,
-        }));
-      return {
-        comments,
-        totalAmount: (row.csld_comment ?? []).length,
-      };
-    },
-  };
+  return normalizeUser(row);
 }
 
 export async function userByEmailResolver(
@@ -66,10 +77,11 @@ export async function userByEmailResolver(
   ctx: Context,
 ) {
   if (!args.email) return null;
-  return ctx.db.csld_csld_user.findUnique({
+  const row = await ctx.db.csld_csld_user.findUnique({
     where: { email: args.email },
     include: { csld_image: true },
   });
+  return normalizeUser(row);
 }
 
 export async function usersByQueryResolver(
@@ -80,7 +92,7 @@ export async function usersByQueryResolver(
   const offset = args.offset ?? 0;
   const limit = args.limit ?? 25;
 
-  return ctx.db.csld_csld_user.findMany({
+  const rows = await ctx.db.csld_csld_user.findMany({
     where: {
       OR: [
         { name: { contains: args.query, mode: 'insensitive' } },
@@ -91,6 +103,8 @@ export async function usersByQueryResolver(
     take: limit,
     include: { csld_image: true },
   });
+
+  return rows.map((row: any) => normalizeUser(row));
 }
 
 export async function loggedInUserResolver(
@@ -98,5 +112,26 @@ export async function loggedInUserResolver(
   _args: unknown,
   ctx: Context,
 ) {
-  return ctx.user;
+  if (!ctx.user) return null;
+
+  // Re-load from DB with all relations (ctx.user is a flat AuthUser from session
+  // that lacks csld_rating, csld_comment, csld_game_has_author, etc.)
+  const row = await ctx.db.csld_csld_user.findUnique({
+    where: { id: ctx.user.id },
+    include: {
+      csld_image: true,
+      csld_comment: {
+        include: { csld_game: true },
+        orderBy: { added: 'desc' },
+      },
+      csld_rating: {
+        include: { csld_game: true },
+      },
+      csld_game_has_author: {
+        include: { csld_game: true },
+      },
+    },
+  });
+
+  return normalizeUser(row);
 }

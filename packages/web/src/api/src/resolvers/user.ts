@@ -6,9 +6,15 @@ export function normalizeUser(row: any) {
   return {
     ...row,
     role: ['ANONYMOUS', 'USER', 'EDITOR', 'ADMIN', 'AUTHOR'][row.role] ?? 'USER',
+    // `row.image` is the scalar foreign key; the GraphQL field is an Image.
+    // Returning the raw row made every query answer
+    // "Cannot return null for non-nullable field Image.id".
     image: row.csld_image?.id ? row.csld_image : null,
     lastRating: row.last_rating,
     birthDate: row.birth_date?.toISOString().split('T')[0] ?? null,
+    // The database column is `address`, the GraphQL field is `city`. Without
+    // this mapping the settings form loads an empty city and saving wipes it.
+    city: row.address ?? null,
     amountOfComments: row.amount_of_comments,
     amountOfPlayed: row.amount_of_played,
     amountOfCreated: row.amount_of_created,
@@ -71,10 +77,11 @@ export async function userByEmailResolver(
   ctx: Context,
 ) {
   if (!args.email) return null;
-  return ctx.db.csld_csld_user.findUnique({
+  const row = await ctx.db.csld_csld_user.findUnique({
     where: { email: args.email },
     include: { csld_image: true },
   });
+  return normalizeUser(row);
 }
 
 export async function usersByQueryResolver(
@@ -85,7 +92,7 @@ export async function usersByQueryResolver(
   const offset = args.offset ?? 0;
   const limit = args.limit ?? 25;
 
-  return ctx.db.csld_csld_user.findMany({
+  const rows = await ctx.db.csld_csld_user.findMany({
     where: {
       OR: [
         { name: { contains: args.query, mode: 'insensitive' } },
@@ -96,6 +103,8 @@ export async function usersByQueryResolver(
     take: limit,
     include: { csld_image: true },
   });
+
+  return rows.map((row: any) => normalizeUser(row));
 }
 
 export async function loggedInUserResolver(
