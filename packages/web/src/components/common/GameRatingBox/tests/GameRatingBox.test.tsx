@@ -60,6 +60,7 @@ describe('GameRatingBox', () => {
 
         const wrapper = await tree.findByTestId(componentTestIds.gameRatingBox.wrapper)
         expect(wrapper.className).toEqual(expect.stringContaining('ratingRecommendedOutline'))
+        expect(wrapper.className).not.toEqual(expect.stringContaining('ratingOutlineOnPhoto'))
         expect(wrapper.getAttribute('aria-label')).toBe('Rating.recommended')
         expect(wrapper.querySelector('svg')?.getAttribute('data-icon')).toBe('thumbs-up')
     })
@@ -82,6 +83,22 @@ describe('GameRatingBox', () => {
         expect(wrapper.className).toEqual(expect.stringContaining('ratingNotRated'))
         expect(wrapper.getAttribute('aria-label')).toBe('Rating.notrated')
         expect(wrapper.querySelector('svg')?.getAttribute('data-icon')).toBe('question')
+    })
+
+    test('give an outlined level an opaque middle on a cover photo', async () => {
+        const tree = render(<GameRatingBox rating={75} amountOfRatings={5} onPhoto />)
+
+        const wrapper = await tree.findByTestId(componentTestIds.gameRatingBox.wrapper)
+        expect(wrapper.className).toEqual(expect.stringContaining('ratingRecommendedOutline'))
+        expect(wrapper.className).toEqual(expect.stringContaining('ratingOutlineOnPhoto'))
+    })
+
+    test('leave a filled level alone on a cover photo', async () => {
+        const tree = render(<GameRatingBox rating={95} amountOfRatings={5} onPhoto />)
+
+        const wrapper = await tree.findByTestId(componentTestIds.gameRatingBox.wrapper)
+        expect(wrapper.className).toEqual(expect.stringContaining('ratingStronglyRecommended'))
+        expect(wrapper.className).not.toEqual(expect.stringContaining('ratingOutlineOnPhoto'))
     })
 
     test('render colour only, without an icon, in tiny size', async () => {
