@@ -1,8 +1,33 @@
 import type { Context } from '../context.js';
 import { normalizeGame } from './mappers.js';
 
+/**
+ * Values of `csld_rating.state`, mirroring the legacy CSLD `Rating.GameState`
+ * codes: 1 = "chci hrát", 2 = "hrál jsem", 0/NULL = "nehrál jsem".
+ * A row with state 0 only carries a star rating (it predates the explicit
+ * play state), so it belongs to neither list on the profile.
+ */
+export const STATE_WANT_TO_PLAY = 1;
+export const STATE_PLAYED = 2;
+
 export function normalizeUser(row: any) {
   if (!row) return null;
+  const ratingRows: any[] = row.csld_rating ?? [];
+  // The profile splits the user's rating rows by play state: only state=PLAYED
+  // games belong under "Hrál jsem" and only WANT_TO_PLAY under "Chci hrát".
+  // Listing every row as played pushed the "want to play" games into the
+  // played list and left "Chci hrát" empty.
+  const playedGames = ratingRows
+    .filter((r: any) => r.state === STATE_PLAYED)
+    .map((r: any) => ({
+      game: normalizeGame(r.csld_game),
+      rating: r.rating,
+    }))
+    .filter((pg: any) => pg.game != null);
+  const wantedGames = ratingRows
+    .filter((r: any) => r.state === STATE_WANT_TO_PLAY)
+    .map((r: any) => normalizeGame(r.csld_game))
+    .filter(Boolean);
   return {
     ...row,
     role: ['ANONYMOUS', 'USER', 'EDITOR', 'ADMIN', 'AUTHOR'][row.role] ?? 'USER',
@@ -16,15 +41,15 @@ export function normalizeUser(row: any) {
     // this mapping the settings form loads an empty city and saving wipes it.
     city: row.address ?? null,
     amountOfComments: row.amount_of_comments,
-    amountOfPlayed: row.amount_of_played,
+    // `amount_of_played` is a legacy denormalized column that nothing updates
+    // any more, so it drifts from the ratings. Count the played rows we have
+    // loaded instead; fall back to the column when the relation is absent.
+    amountOfPlayed: row.csld_rating ? playedGames.length : row.amount_of_played,
     amountOfCreated: row.amount_of_created,
     authoredGames: (row.csld_game_has_author ?? []).map((j: any) => normalizeGame(j.csld_game)).filter(Boolean),
-    playedGames: (row.csld_rating ?? []).map((r: any) => ({
-      game: normalizeGame(r.csld_game),
-      rating: r.rating,
-    })).filter((pg: any) => pg.game != null),
-    wantedGames: [],
-    ratings: (row.csld_rating ?? []).map((r: any) => ({
+    playedGames,
+    wantedGames,
+    ratings: ratingRows.map((r: any) => ({
       ...r,
       game: normalizeGame(r.csld_game),
       user: null,
