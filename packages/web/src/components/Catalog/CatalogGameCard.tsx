@@ -53,7 +53,10 @@ const useStyles = createUseStyles({
         position: 'absolute',
         top: 8,
         right: 8,
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        // The badge brings its own colour: a white square here overrode it, so
+        // every level looked the same — a pale icon on a pale square. The white
+        // ring keeps the badge separated from the cover photo instead.
+        boxShadow: '0 0 0 2px rgba(255, 255, 255, 0.85)',
     },
     body: {
         flex: 1,
