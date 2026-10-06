@@ -6,6 +6,11 @@ import { GraphQLError } from 'graphql';
 import crypto from 'node:crypto';
 import { verifyRecaptcha } from '../external/recaptcha.js';
 import { sendPasswordResetEmail, sendMagicLinkEmail } from '../external/email.js';
+import {
+  saveProfilePicture,
+  removeProfilePictureIfUnused,
+  type ProfilePictureInput,
+} from './profilePicture.js';
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -112,6 +117,7 @@ interface CreateUserInput {
   birthDate?: string;
   city?: string;
   recaptcha: string;
+  profilePicture?: ProfilePictureInput;
 }
 
 export async function createUserResolver(
@@ -149,6 +155,10 @@ export async function createUserResolver(
   // Hash password with PBKDF2 using email as salt
   const passwordHash = generatePbkdf2Hash(input.password, input.email);
 
+  // Store the optional profile picture before the account exists, so a broken
+  // image fails the registration instead of leaving a user without a picture.
+  const imageId = await saveProfilePicture(ctx, input.profilePicture);
+
   const row = await ctx.db.csld_csld_user.create({
     data: {
       email: input.email.toLowerCase(),
@@ -157,6 +167,7 @@ export async function createUserResolver(
       nickname: input.nickname ?? null,
       birth_date: input.birthDate ? new Date(input.birthDate) : null,
       address: input.city ?? null,
+      image: imageId,
       role: 1, // USER
       is_author: false,
       amount_of_comments: 0,
@@ -178,7 +189,16 @@ export async function createUserResolver(
 
 export async function updateLoggedInUserResolver(
   _parent: unknown,
-  args: { input: { email: string; name: string; nickname?: string; birthDate?: string; city?: string } },
+  args: {
+    input: {
+      email: string;
+      name: string;
+      nickname?: string;
+      birthDate?: string;
+      city?: string;
+      profilePicture?: ProfilePictureInput;
+    };
+  },
   ctx: Context,
 ) {
   if (!ctx.user) {
@@ -189,6 +209,13 @@ export async function updateLoggedInUserResolver(
 
   const { input } = args;
 
+  const previous = await ctx.db.csld_csld_user.findUnique({
+    where: { id: ctx.user.id },
+    select: { image: true },
+  });
+
+  const imageId = await saveProfilePicture(ctx, input.profilePicture);
+
   await ctx.db.csld_csld_user.update({
     where: { id: ctx.user.id },
     data: {
@@ -197,8 +224,14 @@ export async function updateLoggedInUserResolver(
       nickname: input.nickname ?? null,
       birth_date: input.birthDate ? new Date(input.birthDate) : null,
       address: input.city ?? null,
+      // No picture in this request means "keep the current one".
+      ...(imageId ? { image: imageId } : {}),
     },
   });
+
+  if (imageId && previous?.image) {
+    await removeProfilePictureIfUnused(ctx, previous.image);
+  }
 
   // Return updated user
   const row = await ctx.db.csld_csld_user.findUnique({
