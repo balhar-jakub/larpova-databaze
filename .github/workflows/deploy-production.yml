@@ -12,6 +12,24 @@ jobs:
     name: Build & Deploy to Production
     runs-on: ubuntu-latest
     environment: production
+
+    # The gate for the manual production deploy: the same suites the `Test`
+    # workflow runs have to pass before the build is copied to the server.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: csld
+          POSTGRES_PASSWORD: csld
+          POSTGRES_DB: csld
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,6 +41,30 @@ jobs:
         run: corepack enable && corepack prepare yarn@1 --activate
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+      - name: Push DB schema (api)
+        working-directory: packages/api
+        env:
+          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
+        run: npx prisma db push --accept-data-loss
+      - name: Push DB schema (web)
+        working-directory: packages/web
+        env:
+          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
+        run: npx prisma db push --accept-data-loss
+      - name: Run API tests
+        working-directory: packages/api
+        env:
+          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
+          NODE_OPTIONS: --experimental-vm-modules
+          TZ: Europe/Prague
+        run: yarn test
+      - name: Run Web tests
+        working-directory: packages/web
+        env:
+          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
+          NODE_OPTIONS: --experimental-vm-modules
+          TZ: Europe/Prague
+        run: yarn test
       - name: Build production .next
         working-directory: packages/web
         env:

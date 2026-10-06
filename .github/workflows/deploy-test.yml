@@ -12,6 +12,26 @@ jobs:
   deploy:
     name: Build & Deploy to Test
     runs-on: ubuntu-latest
+
+    # A deploy must not run on a red suite: the API and web tests are executed
+    # here, before anything is built or copied to the server. The separate
+    # `Test` workflow reports the same suites, but both workflows start on the
+    # same push, so it cannot gate this one.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: csld
+          POSTGRES_PASSWORD: csld
+          POSTGRES_DB: csld
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,6 +41,30 @@ jobs:
         run: corepack enable && corepack prepare yarn@1 --activate
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+      - name: Push DB schema (api)
+        working-directory: packages/api
+        env:
+          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
+        run: npx prisma db push --accept-data-loss
+      - name: Push DB schema (web)
+        working-directory: packages/web
+        env:
+          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
+        run: npx prisma db push --accept-data-loss
+      - name: Run API tests
+        working-directory: packages/api
+        env:
+          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
+          NODE_OPTIONS: --experimental-vm-modules
+          TZ: Europe/Prague
+        run: yarn test
+      - name: Run Web tests
+        working-directory: packages/web
+        env:
+          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
+          NODE_OPTIONS: --experimental-vm-modules
+          TZ: Europe/Prague
+        run: yarn test
       - name: Build production .next
         working-directory: packages/web
         run: NODE_ENV=production yarn build
