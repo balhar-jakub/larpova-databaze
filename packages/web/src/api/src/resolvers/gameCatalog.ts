@@ -12,8 +12,12 @@ import { normalizeGame } from './mappers.js';
  * score), so the ranking is stable for games with few ratings.
  */
 
-/** Rating bands shared with the frontend — see src/utils/ratingUtils.ts. */
-export const RECOMMENDED_FROM = 80;
+/**
+ * Rating bands shared with the frontend — see src/utils/ratingUtils.ts.
+ * 70 is where the frontend starts calling a game "recommended"; the value is
+ * also the fallback prior when no rated game exists at all.
+ */
+export const RECOMMENDED_FROM = 70;
 
 /**
  * Weight of the prior in the recommendation score, in "number of ratings".

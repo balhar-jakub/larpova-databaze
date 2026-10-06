@@ -19,11 +19,16 @@ export const darkTheme = {
     textOnLightDark: '#333',
     red: '#BD2430',
     redLight: '#CC333F',
-    // Recommendation colours: red = Doporučuji, light blue = Neutrální, and the
-    // grey that used to mean "rated under 4" = Nedoporučuji. ratingNotRated
-    // (the pale grey) is the separate "too few ratings" state.
-    ratingMediocre: '#757575',
-    ratingGreat: '#BD2430',
-    ratingAverage: '#5B9BD5',
+    blue: '#5B9BD5',
+    // Recommendation colours, one per level (see src/utils/ratingUtils.ts).
+    // The brand red is the strongest recommendation and the grey of the old 1-3
+    // band the strongest warning; the two "spíše" levels are lighter shades of
+    // those hues and are drawn as an outline, not a filled square.
+    // ratingNotRated (the pale grey) is the separate "too few ratings" state.
+    ratingStronglyNotRecommended: '#757575',
+    ratingNotRecommended: '#A8A8A8',
+    ratingNeutral: '#5B9BD5',
+    ratingRecommended: '#D47178',
+    ratingStronglyRecommended: '#BD2430',
     ratingNotRated: '#CCC',
 }

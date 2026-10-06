@@ -63,7 +63,7 @@ const useStyles = createUseStyles({
         color: darkTheme.backgroundRealWhite,
     },
     pillAway: {
-        backgroundColor: darkTheme.ratingAverage,
+        backgroundColor: darkTheme.blue,
         color: darkTheme.backgroundRealWhite,
     },
     pillRegistration: {

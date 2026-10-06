@@ -8,26 +8,14 @@ import {
     UpdateGameRatingMutationVariables,
 } from '../../graphql/__generated__/typescript-operations'
 import { darkTheme } from '../../theme/darkTheme'
-import { IconThumbDown, IconThumbSideways, IconThumbUp } from '../common/Icons/Icons'
-import {
-    RATING_CHOICES,
-    RatingRecommendation,
-    getRecommendationForTenPointRating,
-    recommendationKey,
-} from '../../utils/ratingUtils'
+import { RATING_BANDS, getRecommendationForTenPointRating, recommendationKey } from '../../utils/ratingUtils'
+import { bandClassName, ratingIcon, ratingStyles } from '../common/GameRatingBox/GameRatingBox'
 
 const updateGameRatingGql = require('./graphql/updateGameRating.graphql')
 
 interface Props {
     readonly gameId: string
     readonly rating: number
-}
-
-const ICON_BY_RECOMMENDATION: { [key in RatingRecommendation]: React.ComponentType<{ className?: string }> } = {
-    recommended: IconThumbUp,
-    neutral: IconThumbSideways,
-    notRecommended: IconThumbDown,
-    notrated: IconThumbUp, // never rendered — RATING_CHOICES has no `notrated`
 }
 
 const useStyles = createUseStyles({
@@ -57,24 +45,16 @@ const useStyles = createUseStyles({
         color: darkTheme.textLight,
         borderColor: darkTheme.textLight,
     },
-    // The selected button carries its own band colour, so the choice reads the
-    // same way as the badge next to it.
-    selectedRecommended: {
-        backgroundColor: darkTheme.ratingGreat,
-    },
-    selectedNeutral: {
-        backgroundColor: darkTheme.ratingAverage,
-    },
-    selectedNotRecommended: {
-        backgroundColor: darkTheme.ratingMediocre,
-    },
+    // The selected button carries the colour of its own level, so the choice
+    // reads the same way as the badge next to it.
+    ...ratingStyles,
 })
 
 /**
- * Picks one of three ratings — thumbs up (Doporučuji), a horizontal thumb
- * (Neutrální) and thumbs down (Nedoporučuji) — and stores the 1-10 value that
- * belongs to the band (see RATING_CHOICES). The stored scale is unchanged, so
- * ratings made while the input was ten stars still mean the same thing.
+ * Picks one of five recommendation levels — from "silně doporučuji" down to
+ * "silně nedoporučuji" — and stores the 1-10 value that belongs to the level
+ * (see RATING_BANDS). The stored scale is unchanged, so ratings made while the
+ * input was ten stars still mean the same thing.
  */
 const RatingChoices = ({ gameId, rating }: Props) => {
     const client = useApolloClient()
@@ -101,10 +81,10 @@ const RatingChoices = ({ gameId, rating }: Props) => {
 
     return (
         <div className={classes.wrapper}>
-            {t('GameDetail.rate')}
+            {currentRating ? t('GameDetail.changeRating') : t('GameDetail.rate')}
             <br />
-            {RATING_CHOICES.map(({ recommendation, rating: value }) => {
-                const Icon = ICON_BY_RECOMMENDATION[recommendation]
+            {RATING_BANDS.map(({ recommendation, storedRating }) => {
+                const Icon = ratingIcon[recommendation]
                 const label = t(recommendationKey(recommendation))
                 const isSelected = currentRecommendation === recommendation
 
@@ -116,11 +96,9 @@ const RatingChoices = ({ gameId, rating }: Props) => {
                         className={classNames({
                             [classes.button]: true,
                             [classes.selected]: isSelected,
-                            [classes.selectedRecommended]: isSelected && recommendation === 'recommended',
-                            [classes.selectedNeutral]: isSelected && recommendation === 'neutral',
-                            [classes.selectedNotRecommended]: isSelected && recommendation === 'notRecommended',
+                            [classes[bandClassName[recommendation]]]: isSelected,
                         })}
-                        onClick={() => handleChange(value)}
+                        onClick={() => handleChange(storedRating)}
                     >
                         <Icon />
                         <span>{label}</span>

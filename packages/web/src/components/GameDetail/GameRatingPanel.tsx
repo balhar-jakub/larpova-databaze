@@ -7,9 +7,9 @@ import classNames from 'classnames'
 import { Maybe } from 'graphql/jsutils/Maybe'
 import { Col, Row } from 'react-bootstrap'
 import { darkTheme } from '../../theme/darkTheme'
-import { GameRatingBox, ratingStyles } from '../common/GameRatingBox/GameRatingBox'
+import { bandClassName, GameRatingBox, ratingStyles } from '../common/GameRatingBox/GameRatingBox'
 import { IconUser } from '../common/Icons/Icons'
-import { getRecommendationForTenPointRating, MIN_NUM_RATINGS, recommendationKey, RatingRecommendation } from '../../utils/ratingUtils'
+import { getRecommendationForTenPointRating, MIN_NUM_RATINGS, RATING_BANDS, recommendationKey } from '../../utils/ratingUtils'
 import { useLoggedInUser } from '../../hooks/useLoggedInUser'
 import RatingStateButtons from './RatingStateButtons'
 import RatingChoices from './RatingChoices'
@@ -43,8 +43,9 @@ const useStyles = createUseStyles({
         alignItems: 'center',
         marginBottom: 10,
     },
+    // Wide enough for the longest label ("Silně nedoporučuji") at 0.7rem.
     statsLabel: {
-        width: 92,
+        width: 112,
         marginRight: 5,
         fontSize: '0.7rem',
         textAlign: 'right',
@@ -103,18 +104,11 @@ export const GameRatingPanel = ({
     const totalRatingsCount = (ratingStats ?? []).reduce((sum, entry) => sum + (entry.count ?? 0), 0)
     const hasEnoughRatings = amountOfRatings >= MIN_NUM_RATINGS
 
-    // The chart shows the three recommendation bands instead of rating points.
-    const recommendationBandDefinitions: Array<{
-        recommendation: RatingRecommendation
-        readings: number[]
-        className: string
-    }> = [
-        { recommendation: 'recommended', readings: [8, 9, 10], className: classes.ratingGreat },
-        { recommendation: 'neutral', readings: [4, 5, 6, 7], className: classes.ratingAverage },
-        { recommendation: 'notRecommended', readings: [1, 2, 3], className: classes.ratingMediocre },
-    ]
-    const recommendationBands = recommendationBandDefinitions.map(band => ({
-        ...band,
+    // The chart shows the five recommendation levels instead of rating points,
+    // in the same order as the input below it.
+    const recommendationBands = RATING_BANDS.map(band => ({
+        recommendation: band.recommendation,
+        className: classes[bandClassName[band.recommendation]],
         share:
             hasEnoughRatings && totalRatingsCount > 0
                 ? Math.round(

@@ -57,8 +57,9 @@ describe('CatalogGameCard', () => {
     it('shows the recommendation square derived from the average rating', () => {
         const { container } = render(<CatalogGameCard game={baseGame} />)
 
+        // Legie has 94.4 % from 240 ratings — the strongest level.
         const rating = container.querySelector('[data-testid="gameRatingBox.wrapper"]')
-        expect(rating?.getAttribute('aria-label')).toBe('Rating.recommended')
+        expect(rating?.getAttribute('aria-label')).toBe('Rating.stronglyRecommended')
         expect(rating?.querySelector('svg')?.getAttribute('data-icon')).toBe('thumbs-up')
     })
 

@@ -15,6 +15,7 @@ import {
     toggleLabel,
     togglePreset,
 } from '../catalogState'
+import { RECOMMENDED_FROM } from '../../../utils/ratingUtils'
 
 const preset = (key: string) => CATALOG_PRESETS.find((item) => item.key === key)!
 const labelIdsByName = { 'komorní': '1', 'dřevárna': '7' }
@@ -257,7 +258,7 @@ describe('presets', () => {
     test('the recommended preset asks for recommended games with enough ratings', () => {
         const on = togglePreset(preset('doporucovane'), parseCatalogState({}), labelIdsByName)
 
-        expect(on.minRating).toBe(80)
+        expect(on.minRating).toBe(RECOMMENDED_FROM)
         expect(on.minRatings).toBe(5)
     })
 

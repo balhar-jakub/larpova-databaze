@@ -1,74 +1,73 @@
 export const MIN_NUM_RATINGS = 5
 
 /**
- * Recommendation bands.
+ * Five recommendation levels.
  *
- * Aggregate ratings (`average_rating`, `averageRating`) live on a 0-100 scale —
- * a game rated 8/10 has 80 there. Individual ratings (`Rating.rating`) are on a
- * 1-10 scale, so convert them with getRecommendationForTenPointRating.
+ * Aggregate ratings (`averageRating`, `average_rating`) live on a 0-100 scale —
+ * a game rated 8/10 has 80 there — while individual votes (`Rating.rating`) are
+ * the same scale divided by ten, so a stored vote is read through
+ * getRecommendationForTenPointRating.
  *
- *   80 - 100  recommended
- *   40 -  79  neutral
- *    1 -  39  not recommended
+ * The cuts fall between the vote pairs people actually use (9-10, 7-8, 5-6, 3-4,
+ * 1-2), so every rating stored while the input had ten stars keeps its meaning:
+ *
+ *   90 - 100  stronglyRecommended
+ *   70 -  89  recommended
+ *   50 -  69  neutral
+ *   30 -  49  notRecommended
+ *    0 -  29  stronglyNotRecommended
  */
-export const RECOMMENDED_FROM = 80
-export const NEUTRAL_FROM = 40
+export const STRONGLY_RECOMMENDED_FROM = 90
+export const RECOMMENDED_FROM = 70
+export const NEUTRAL_FROM = 50
+export const NOT_RECOMMENDED_FROM = 30
 
-export type RatingGrade = 'notrated' | 'mediocre' | 'average' | 'great'
-export type RatingRecommendation = 'notrated' | 'notRecommended' | 'neutral' | 'recommended'
+export type RatingRecommendation =
+    | 'notrated'
+    | 'stronglyNotRecommended'
+    | 'notRecommended'
+    | 'neutral'
+    | 'recommended'
+    | 'stronglyRecommended'
 
-export const getRatingGrade = (rating?: number): RatingGrade => {
+export interface RatingBand {
+    /** Level the band reads as. */
+    readonly recommendation: RatingRecommendation
+    /** Lowest average (0-100) that belongs to the band. */
+    readonly from: number
+    /** The votes (1-10) that belong to the band. */
+    readonly readings: readonly number[]
+    /**
+     * Value the input stores when this band is picked. It only has to sit inside
+     * its own band, so the middle of the band is used — that keeps new ratings
+     * comparable with the 17 000 stored before the input became a choice.
+     */
+    readonly storedRating: number
+}
+
+/** All five levels, strongest first — input, chart and badge share this order. */
+export const RATING_BANDS: readonly RatingBand[] = [
+    { recommendation: 'stronglyRecommended', from: STRONGLY_RECOMMENDED_FROM, readings: [9, 10], storedRating: 10 },
+    { recommendation: 'recommended', from: RECOMMENDED_FROM, readings: [7, 8], storedRating: 8 },
+    { recommendation: 'neutral', from: NEUTRAL_FROM, readings: [5, 6], storedRating: 6 },
+    { recommendation: 'notRecommended', from: NOT_RECOMMENDED_FROM, readings: [3, 4], storedRating: 4 },
+    { recommendation: 'stronglyNotRecommended', from: 0, readings: [1, 2], storedRating: 2 },
+]
+
+export const getRecommendation = (rating?: number): RatingRecommendation => {
     if (!rating) {
         return 'notrated'
     }
-    if (rating < NEUTRAL_FROM) {
-        return 'mediocre'
-    }
-    if (rating < RECOMMENDED_FROM) {
-        return 'average'
-    }
-    return 'great'
+
+    return RATING_BANDS.find(band => rating >= band.from)?.recommendation ?? 'notrated'
 }
-
-export const getRatingForGame = (amountOfRatings: number, rating?: number): RatingGrade =>
-    amountOfRatings < MIN_NUM_RATINGS ? getRatingGrade() : getRatingGrade(rating)
-
-const RECOMMENDATION_BY_GRADE: { [key in RatingGrade]: RatingRecommendation } = {
-    notrated: 'notrated',
-    mediocre: 'notRecommended',
-    average: 'neutral',
-    great: 'recommended',
-}
-
-export const gradeForRecommendation: { [key in RatingRecommendation]: RatingGrade } = {
-    notrated: 'notrated',
-    notRecommended: 'mediocre',
-    neutral: 'average',
-    recommended: 'great',
-}
-
-export const getRecommendation = (rating?: number): RatingRecommendation =>
-    RECOMMENDATION_BY_GRADE[getRatingGrade(rating)]
 
 export const getRecommendationForGame = (amountOfRatings: number, rating?: number): RatingRecommendation =>
-    RECOMMENDATION_BY_GRADE[getRatingForGame(amountOfRatings, rating)]
+    amountOfRatings < MIN_NUM_RATINGS ? 'notrated' : getRecommendation(rating)
 
-/** Individual ratings are stored on a 1-10 scale, recommendation bands are 0-100. */
+/** Individual ratings are stored on a 1-10 scale, the bands are 0-100. */
 export const getRecommendationForTenPointRating = (rating?: number): RatingRecommendation =>
     getRecommendation(rating == null ? undefined : rating * 10)
 
-/** i18n key of a recommendation label — translate it in the component. */
+/** i18n key of a level label — translate it in the component. */
 export const recommendationKey = (recommendation: RatingRecommendation) => `Rating.${recommendation}`
-
-/**
- * The three ratings a user can pick, in display order, with the 1-10 value
- * stored for each. The stored value only has to sit inside its own band (see
- * RECOMMENDED_FROM / NEUTRAL_FROM), so the extremes and the middle are used —
- * that keeps new ratings comparable with everything stored before the input
- * became three choices.
- */
-export const RATING_CHOICES: { recommendation: RatingRecommendation; rating: number }[] = [
-    { recommendation: 'recommended', rating: 10 },
-    { recommendation: 'neutral', rating: 5 },
-    { recommendation: 'notRecommended', rating: 1 },
-]
