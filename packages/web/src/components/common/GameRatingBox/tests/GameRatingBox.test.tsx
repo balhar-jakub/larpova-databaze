@@ -21,36 +21,57 @@ describe('GameRatingBox', () => {
         expect(wrapper.querySelector('svg')?.getAttribute('data-icon')).toBe('question')
     })
 
-    test('render with a not recommended rating (thumbs down)', async () => {
+    test('render the weakest level (thumbs down, filled)', async () => {
+        const tree = render(<GameRatingBox rating={25} amountOfRatings={5} />)
+
+        const wrapper = await tree.findByTestId(componentTestIds.gameRatingBox.wrapper)
+        expect(wrapper.className).toEqual(expect.stringContaining('ratingStronglyNotRecommended'))
+        expect(wrapper.className).not.toEqual(expect.stringContaining('Outline'))
+        expect(wrapper.textContent).toBe('')
+        expect(wrapper.getAttribute('aria-label')).toBe('Rating.stronglyNotRecommended')
+        expect(wrapper.querySelector('svg')?.getAttribute('data-icon')).toBe('thumbs-down')
+    })
+
+    test('render the milder warning (thumbs down, outlined)', async () => {
         const tree = render(<GameRatingBox rating={37.6} amountOfRatings={5} />)
 
         const wrapper = await tree.findByTestId(componentTestIds.gameRatingBox.wrapper)
-        expect(wrapper.className).toEqual(expect.stringContaining('ratingMediocre'))
-        expect(wrapper.textContent).toBe('')
+        expect(wrapper.className).toEqual(expect.stringContaining('ratingNotRecommendedOutline'))
         expect(wrapper.getAttribute('aria-label')).toBe('Rating.notRecommended')
         expect(wrapper.querySelector('svg')?.getAttribute('data-icon')).toBe('thumbs-down')
     })
 
-    test('render with a neutral rating (horizontal thumb)', async () => {
+    test('render the neutral level (horizontal thumb, filled)', async () => {
         const tree = render(<GameRatingBox rating={59.3} amountOfRatings={5} />)
 
         const wrapper = await tree.findByTestId(componentTestIds.gameRatingBox.wrapper)
-        expect(wrapper.className).toEqual(expect.stringContaining('ratingAverage'))
+        expect(wrapper.className).toEqual(expect.stringContaining('ratingNeutral'))
+        expect(wrapper.className).not.toEqual(expect.stringContaining('Outline'))
         expect(wrapper.textContent).toBe('')
         expect(wrapper.getAttribute('aria-label')).toBe('Rating.neutral')
         const icon = wrapper.querySelector('svg')
         expect(icon?.getAttribute('data-icon')).toBe('thumbs-up')
-        // The neutral band reuses the thumbs-up glyph, rotated onto its side.
+        // The neutral level reuses the thumbs-up glyph, rotated onto its side.
         expect(icon?.getAttribute('class')).toEqual(expect.stringContaining('fa-rotate-90'))
     })
 
-    test('render with a recommended rating (thumbs up)', async () => {
+    test('render the milder recommendation (thumbs up, outlined)', async () => {
+        const tree = render(<GameRatingBox rating={75} amountOfRatings={5} />)
+
+        const wrapper = await tree.findByTestId(componentTestIds.gameRatingBox.wrapper)
+        expect(wrapper.className).toEqual(expect.stringContaining('ratingRecommendedOutline'))
+        expect(wrapper.getAttribute('aria-label')).toBe('Rating.recommended')
+        expect(wrapper.querySelector('svg')?.getAttribute('data-icon')).toBe('thumbs-up')
+    })
+
+    test('render the strongest level (thumbs up, filled)', async () => {
         const tree = render(<GameRatingBox rating={100} amountOfRatings={5} />)
 
         const wrapper = await tree.findByTestId(componentTestIds.gameRatingBox.wrapper)
-        expect(wrapper.className).toEqual(expect.stringContaining('ratingGreat'))
+        expect(wrapper.className).toEqual(expect.stringContaining('ratingStronglyRecommended'))
+        expect(wrapper.className).not.toEqual(expect.stringContaining('Outline'))
         expect(wrapper.textContent).toBe('')
-        expect(wrapper.getAttribute('aria-label')).toBe('Rating.recommended')
+        expect(wrapper.getAttribute('aria-label')).toBe('Rating.stronglyRecommended')
         expect(wrapper.querySelector('svg')?.getAttribute('data-icon')).toBe('thumbs-up')
     })
 
@@ -67,9 +88,18 @@ describe('GameRatingBox', () => {
         const tree = render(<GameRatingBox rating={95} amountOfRatings={5} size="tiny" />)
 
         const wrapper = await tree.findByTestId(componentTestIds.gameRatingBox.wrapper)
-        expect(wrapper.className).toEqual(expect.stringContaining('ratingGreat'))
+        expect(wrapper.className).toEqual(expect.stringContaining('ratingStronglyRecommended'))
         expect(wrapper.textContent).toBe('')
         expect(wrapper.querySelector('svg')).toBeNull()
         expect(wrapper.getAttribute('aria-label')).toBeNull()
+    })
+
+    test('tiny has no room for an outline, so a milder level takes the colour alone', async () => {
+        const tree = render(<GameRatingBox rating={75} amountOfRatings={5} size="tiny" />)
+
+        const wrapper = await tree.findByTestId(componentTestIds.gameRatingBox.wrapper)
+        expect(wrapper.className).toEqual(expect.stringContaining('ratingRecommended'))
+        expect(wrapper.className).not.toEqual(expect.stringContaining('Outline'))
+        expect(wrapper.textContent).toBe('')
     })
 })

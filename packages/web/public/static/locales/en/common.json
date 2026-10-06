@@ -13,14 +13,18 @@
     "orUsePassword": "or use your password"
   },
   "GameDetail": {
+    "rate": "Your rating:",
+    "changeRating": "Change your rating:",
     "updateComment": "Update your comment",
     "deleteComment": "Delete your comment",
     "addComment": "Add your comment"
   },
   "Rating": {
-    "recommended": "Recommended",
+    "stronglyRecommended": "Strongly recommend",
+    "recommended": "Rather recommend",
     "neutral": "Neutral",
-    "notRecommended": "Not recommended",
+    "notRecommended": "Rather not recommend",
+    "stronglyNotRecommended": "Strongly not recommend",
     "notrated": "Not rated yet"
   },
   "Event": {

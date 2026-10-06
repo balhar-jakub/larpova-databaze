@@ -86,6 +86,7 @@
     "iPlayed": "Hrál jsem",
     "wantToPlay": "Chci hrát",
     "rate": "Vaše hodnocení je:",
+    "changeRating": "Změnit hodnocení:",
     "addComment": "Přidat váš komentář",
     "updateComment": "Upravit váš komentář",
     "deleteComment": "Smazat váš komentář",
@@ -104,9 +105,11 @@
   },
 
   "Rating": {
-    "recommended": "Doporučuji",
+    "stronglyRecommended": "Silně doporučuji",
+    "recommended": "Spíše doporučuji",
     "neutral": "Neutrální",
-    "notRecommended": "Nedoporučuji",
+    "notRecommended": "Spíše nedoporučuji",
+    "stronglyNotRecommended": "Silně nedoporučuji",
     "notrated": "Zatím nehodnoceno"
   },
 
