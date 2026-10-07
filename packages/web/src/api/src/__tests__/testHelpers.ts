@@ -18,12 +18,13 @@ export function createTestServer() {
 
 /**
  * Execute a GraphQL query against the test server.
- * Context has no user (anonymous).
+ * Context has no user (anonymous) unless `contextOverrides` is given.
  */
 export async function executeQuery(
   server: ApolloServer,
   query: string,
   variables?: Record<string, unknown>,
+  contextOverrides: Record<string, unknown> = {},
 ) {
   const response = await server.executeOperation(
     { query, variables },
@@ -36,6 +37,7 @@ export async function executeQuery(
         login: async () => {},
         logout: async () => {},
         files: null as any,
+        ...contextOverrides,
       },
     },
   );

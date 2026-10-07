@@ -1,6 +1,7 @@
 import type { Context } from '../context.js';
 import { isSignedIn, isAtLeastEditor } from '../auth/appUsers.js';
 import { GraphQLError } from 'graphql';
+import { isGameAuthor } from './gamePermissions.js';
 import { normalizeGame } from './mappers.js';
 import type { Prisma } from '@prisma/client';
 import { Base64UploadedFile } from '../files/fileService.js';
@@ -377,6 +378,25 @@ export async function deleteGameResolver(
   const gameId = parseInt(args.gameId, 10);
   if (isNaN(gameId)) throw new GraphQLError('Invalid gameId');
 
+  const game = await ctx.db.csld_game.findUnique({
+    where: { id: gameId },
+    include: { csld_game_has_author: true },
+  });
+  if (!game) {
+    throw new GraphQLError('Game not found', {
+      extensions: { code: 'NOT_FOUND' },
+    });
+  }
+
+  // The game's authors may delete the game they wrote, editors and admins
+  // any game. Without this check any signed-in user could soft-delete a game
+  // through the API — the button is hidden in the UI, the API was not.
+  if (!(await isGameAuthor(game, ctx)) && !isAtLeastEditor(ctx)) {
+    throw new GraphQLError('Not authorized to delete this game', {
+      extensions: { code: 'ACCESS_DENIED' },
+    });
+  }
+
   // Wrap in transaction: soft-delete game + hide all comments
   await ctx.db.$transaction([
     ctx.db.csld_game.update({
@@ -389,14 +409,14 @@ export async function deleteGameResolver(
     }),
   ]);
 
-  const game = await ctx.db.csld_game.findUnique({
+  const deletedGame = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
     include: {
       csld_game_has_label: { include: { csld_label: true } },
       csld_rating: { include: { csld_csld_user: true } },
     },
   });
-  return game ? normalizeGame(game) : null;
+  return deletedGame ? normalizeGame(deletedGame) : null;
 }
 
 // ── createGame ───────────────────────────────────────────
@@ -528,7 +548,7 @@ export async function updateGameResolver(
   const gameId = parseInt(input.id);
   if (isNaN(gameId)) throw new GraphQLError('Invalid game ID');
 
-  // Verify ownership or editor status
+  // The game's authors may edit the game they wrote, editors and admins any game.
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
     include: { csld_game_has_author: true },
@@ -536,10 +556,7 @@ export async function updateGameResolver(
 
   if (!game) throw new GraphQLError('Game not found');
 
-  const isAuthor = game.csld_game_has_author.some(
-    (a) => a.id_user === ctx.user!.id,
-  );
-  if (!isAuthor && !isAtLeastEditor(ctx)) {
+  if (!(await isGameAuthor(game, ctx)) && !isAtLeastEditor(ctx)) {
     throw new GraphQLError('Not authorized to edit this game', {
       extensions: { code: 'ACCESS_DENIED' },
     });

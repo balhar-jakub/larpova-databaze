@@ -51,6 +51,7 @@ import {
   updateGameResolver,
 } from './gameMutation.js';
 import { createGroupResolver, updateGroupResolver } from './groupMutation.js';
+import { gameAllowedActions } from './gamePermissions.js';
 import {
   createEventResolver,
   updateEventResolver,
@@ -65,6 +66,7 @@ import {
   deleteUserResolver,
 } from './adminMutation.js';
 import { isAtLeastEditor } from '../auth/appUsers.js';
+import type { Context } from '../context.js';
 
 export const resolvers: any = {
   Query: {
@@ -140,8 +142,8 @@ export const resolvers: any = {
       const ratings = parent.csld_rating ?? [];
       return ratings.find((r: any) => r.user_id === ctx.user!.id) ?? null;
     },
-    allowedActions: (_parent: unknown, _args: unknown, ctx: any) =>
-      isAtLeastEditor(ctx) ? ['Edit', 'Delete'] : [],
+    // Authors may manage the games they wrote, editors and admins any game.
+    allowedActions: (parent: any, _args: unknown, ctx: any) => gameAllowedActions(parent, ctx),
   },
   Event: {
     registrationUrl: (event: any) => event.registrationUrl ?? event.registration_url ?? null,
