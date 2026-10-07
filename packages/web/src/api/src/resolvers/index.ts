@@ -16,7 +16,7 @@ import {
   usersByQueryResolver,
   loggedInUserResolver,
 } from './user.js';
-import { normalizeGame } from './mappers.js';
+import { normalizeGame, normalizeUserRef } from './mappers.js';
 import { groupByIdResolver, groupsByQueryResolver } from './group.js';
 import { eventByIdResolver, eventCalendarResolver, eventCalendarStatsResolver } from './event.js';
 import { authorizedRequiredLabelsResolver, authorizedOptionalLabelsResolver } from './label.js';
@@ -125,9 +125,7 @@ export const resolvers: any = {
       return comments.map((c: any) => ({
         ...c,
         commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
-        user: c.csld_csld_user?.id
-          ? { ...c.csld_csld_user, image: c.csld_csld_user.csld_image?.id ? c.csld_csld_user.csld_image : null }
-          : null,
+        user: normalizeUserRef(c.csld_csld_user),
         game: c.csld_game ? normalizeGame(c.csld_game) : null,
         amountOfUpvotes: c.amount_of_upvotes ?? 0,
       }));

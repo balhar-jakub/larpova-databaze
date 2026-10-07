@@ -1,5 +1,5 @@
 import type { Context } from '../context.js';
-import { normalizeGame } from './mappers.js';
+import { normalizeGame, normalizeUserRole } from './mappers.js';
 
 /**
  * Values of `csld_rating.state`, mirroring the legacy CSLD `Rating.GameState`
@@ -30,7 +30,7 @@ export function normalizeUser(row: any) {
     .filter(Boolean);
   return {
     ...row,
-    role: ['ANONYMOUS', 'USER', 'EDITOR', 'ADMIN', 'AUTHOR'][row.role] ?? 'USER',
+    role: normalizeUserRole(row.role),
     // `row.image` is the scalar foreign key; the GraphQL field is an Image.
     // Returning the raw row made every query answer
     // "Cannot return null for non-nullable field Image.id".
@@ -60,7 +60,7 @@ export function normalizeUser(row: any) {
         .map((c: any) => ({
           ...c,
           commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
-          user: { id: row.id, name: row.name },
+          user: { id: row.id, name: row.name, role: normalizeUserRole(row.role) },
           game: normalizeGame(c.csld_game),
         }));
       return { comments, totalAmount: (row.csld_comment ?? []).length };

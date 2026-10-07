@@ -1,4 +1,34 @@
 /**
+ * `csld_csld_user.role` is a number (0 ANONYMOUS, 1 USER, 2 EDITOR, 3 ADMIN,
+ * 4 AUTHOR) while the GraphQL field is the `UserRole` enum of *names*: handing
+ * the number to the enum fails the whole path with
+ * `Enum "UserRole" cannot represent value: 1`.
+ */
+const USER_ROLE_NAMES = ['ANONYMOUS', 'USER', 'EDITOR', 'ADMIN', 'AUTHOR'];
+
+export function normalizeUserRole(role: number | null | undefined): string {
+  return USER_ROLE_NAMES[role ?? -1] ?? 'USER';
+}
+
+/**
+ * A `User` reached through another type — a game author, the author of a
+ * comment or of a rating. A raw `csld_csld_user` row cannot be served as a
+ * `User`: the numeric `role` breaks the enum (above), and `image` is the scalar
+ * foreign key while the schema declares an `Image`, which answers
+ * `Cannot return null for non-nullable field Image.id`. Both are mapped here,
+ * every other scalar passes through. A caller that wants the photo itself has
+ * to include `csld_image`.
+ */
+export function normalizeUserRef(row: any) {
+  if (!row) return null;
+  return {
+    ...row,
+    role: normalizeUserRole(row.role),
+    image: row.csld_image?.id ? row.csld_image : null,
+  };
+}
+
+/**
  * Normalize a Prisma game row (snake_case) to GraphQL schema (camelCase).
  */
 export function normalizeGame(row: any) {
@@ -22,7 +52,7 @@ export function normalizeGame(row: any) {
     womenRole: row.women_role,
     bothRole: row.both_role,
     labels: (row.csld_game_has_label ?? []).map((j: any) => j.csld_label).filter(Boolean),
-    authors: (row.csld_game_has_author ?? []).map((j: any) => j.csld_csld_user).filter(Boolean),
+    authors: (row.csld_game_has_author ?? []).map((j: any) => normalizeUserRef(j.csld_csld_user)).filter(Boolean),
     groupAuthor: (row.csld_game_has_group ?? []).map((j: any) => j.csld_csld_group).filter(Boolean),
     events: (row.csld_game_has_event ?? []).map((j: any) => j.event).filter(Boolean),
     video: row.csld_video ?? null,
@@ -46,13 +76,13 @@ export function normalizeGame(row: any) {
     comments: (row.csld_comment ?? []).map((c: any) => ({
       ...c,
       commentAsText: stripHtml(c.comment),
-      user: c.csld_csld_user ?? null,
+      user: normalizeUserRef(c.csld_csld_user),
       game: c.csld_game ?? null,
     })),
     ratings: (row.csld_rating ?? []).map((r: any) => ({
       ...r,
       game: r.csld_game ?? null,
-      user: r.csld_csld_user ?? null,
+      user: normalizeUserRef(r.csld_csld_user),
     })),
     allowedActions: null, // computed field — needs auth context
   };

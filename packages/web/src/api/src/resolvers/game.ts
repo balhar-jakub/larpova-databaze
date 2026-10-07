@@ -1,5 +1,5 @@
 import type { Context } from '../context.js';
-import { normalizeGame } from './mappers.js';
+import { normalizeGame, normalizeUserRef } from './mappers.js';
 import type { Prisma } from '@prisma/client';
 
 export async function gameByIdResolver(
@@ -14,7 +14,7 @@ export async function gameByIdResolver(
     where: { id },
     include: {
       csld_game_has_label: { include: { csld_label: true } },
-      csld_game_has_author: { include: { csld_csld_user: true } },
+      csld_game_has_author: { include: { csld_csld_user: { include: { csld_image: true } } } },
       csld_game_has_group: { include: { csld_csld_group: true } },
       csld_game_has_event: { include: { event: true } },
       csld_video: true,
@@ -30,11 +30,11 @@ export async function gameByIdResolver(
         take: 9,
       },
       csld_comment: {
-        include: { csld_csld_user: true, csld_game: true },
+        include: { csld_csld_user: { include: { csld_image: true } }, csld_game: true },
         orderBy: { added: 'asc' },
       },
       csld_rating: {
-        include: { csld_csld_user: true, csld_game: true },
+        include: { csld_csld_user: { include: { csld_image: true } }, csld_game: true },
       },
     },
   });
@@ -265,10 +265,7 @@ export async function commentsPagedResolver(
         amountOfUpvotes: c.amount_of_upvotes ?? 0,
         amount_of_upvotes: c.amount_of_upvotes ?? 0,
         commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
-        user: c.csld_csld_user ? {
-          ...c.csld_csld_user,
-          image: c.csld_csld_user.csld_image ?? null,
-        } : null,
+        user: normalizeUserRef(c.csld_csld_user),
         game: normalizeGame(c.csld_game),
       })),
       totalAmount: total,
