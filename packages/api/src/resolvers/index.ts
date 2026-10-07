@@ -46,6 +46,7 @@ import {
   updateGameResolver,
 } from './gameMutation.js';
 import { createGroupResolver, updateGroupResolver } from './groupMutation.js';
+import { gameAllowedActions } from './gamePermissions.js';
 import {
   createEventResolver,
   updateEventResolver,
@@ -129,6 +130,13 @@ export const resolvers: any = {
   GroupMutation: {
     createGroup: createGroupResolver,
     updateGroup: updateGroupResolver,
+  },
+
+  Game: {
+    // The game detail page renders its edit and delete buttons from this
+    // field, so the authors have to be recognised here and not only in
+    // updateGame/deleteGame.
+    allowedActions: (parent: any, _args: unknown, ctx: any) => gameAllowedActions(parent, ctx),
   },
 
   Event: {
