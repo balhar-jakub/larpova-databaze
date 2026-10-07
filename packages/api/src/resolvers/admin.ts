@@ -1,5 +1,7 @@
 import type { Context } from '../context.js';
 import { GraphQLError } from 'graphql';
+import { normalizeGame, normalizeUserRef } from './mappers.js';
+import { normalizeUser } from './user.js';
 
 function requireAdmin(ctx: Context) {
   // No user = no admin. When auth is implemented, check role >= 3.
@@ -32,10 +34,13 @@ export async function adminAllUsersResolver(
   _args: unknown,
   ctx: Context,
 ) {
-  return ctx.db.csld_csld_user.findMany({
+  const rows = await ctx.db.csld_csld_user.findMany({
     orderBy: { name: 'asc' },
     include: { csld_image: true },
   });
+  // Raw rows carry a numeric `role` and the scalar `image`, which the `User`
+  // type cannot serve — see mappers.normalizeUserRef.
+  return rows.map((row: any) => normalizeUser(row));
 }
 
 export async function adminStatsResolver(
@@ -72,11 +77,17 @@ export async function adminSelfRatedResolver(
   _args: unknown,
   ctx: Context,
 ) {
-  return ctx.db.csld_rating.findMany({
+  const rows = await ctx.db.csld_rating.findMany({
     where: { by_author: true },
     include: {
-      csld_csld_user: true,
+      csld_csld_user: { include: { csld_image: true } },
       csld_game: true,
     },
   });
+
+  return rows.map((row: any) => ({
+    ...row,
+    user: normalizeUserRef(row.csld_csld_user),
+    game: normalizeGame(row.csld_game),
+  }));
 }
