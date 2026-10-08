@@ -15,6 +15,8 @@ export interface AuthUser {
   nickname: string | null;
   /** Short public bio (`csld_csld_user.description`). */
   description: string | null;
+  /** `csld_csld_user.gender`: 0 unspecified, 1 male, 2 female. */
+  gender?: number | null;
   role: number;
   image: { id: number; path: string | null } | null;
   amountOfComments: number | null;

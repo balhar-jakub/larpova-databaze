@@ -29,6 +29,7 @@ const UserContextProvider: React.FC = ({ children }) => {
                 nickName: loggedInUser.nickname ?? undefined,
                 imageId: loggedInUser.image?.id,
                 role: loggedInUser.role ?? UserRole.Anonymous,
+                gender: loggedInUser.gender ?? undefined,
             })
         } else if (!loading && !query.data?.loggedInUser) {
             setValue(undefined)

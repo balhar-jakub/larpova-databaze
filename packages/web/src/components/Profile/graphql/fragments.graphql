@@ -12,6 +12,7 @@ fragment userProfileData on User {
     birthDate
     city
     description
+    gender
     authoredGames {
         ...baseGameData
     }

@@ -1,5 +1,5 @@
 import type { Context } from '../context.js';
-import { normalizeGame, normalizeUserRole } from './mappers.js';
+import { normalizeGame, normalizeGender, normalizeUserRole } from './mappers.js';
 
 /**
  * Values of `csld_rating.state`, mirroring the legacy CSLD `Rating.GameState`
@@ -31,6 +31,8 @@ export function normalizeUser(row: any) {
   return {
     ...row,
     role: normalizeUserRole(row.role),
+    // The raw column is a number and the field is the `Gender` enum of names.
+    gender: normalizeGender(row.gender),
     // `row.image` is the scalar foreign key; the GraphQL field is an Image.
     // Returning the raw row made every query answer
     // "Cannot return null for non-nullable field Image.id".

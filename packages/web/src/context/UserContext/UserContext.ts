@@ -1,5 +1,5 @@
 import React from 'react'
-import { UserRole } from '../../graphql/__generated__/typescript-operations'
+import { Gender, UserRole } from '../../graphql/__generated__/typescript-operations'
 
 export interface UserContextValue {
     readonly id?: string
@@ -7,6 +7,8 @@ export interface UserContextValue {
     readonly name?: string
     readonly nickName?: string
     readonly role?: UserRole
+    /** Grammatical gender the wording uses (`Hrál jsem` / `Hrála jsem`). */
+    readonly gender?: Gender
 }
 
 export interface UserContextShape {

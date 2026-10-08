@@ -11,6 +11,26 @@ export function normalizeUserRole(role: number | null | undefined): string {
 }
 
 /**
+ * `csld_csld_user.gender` is a number (0 unspecified, 1 male, 2 female) while the
+ * GraphQL field is the `Gender` enum of names — the same trap as `role`: handing
+ * the number to the enum fails the whole path with
+ * `Enum "Gender" cannot represent value: 1`. The UI picks its wording
+ * (`Hrál jsem` / `Hrála jsem`) from it, so an unknown value has to answer
+ * UNSPECIFIED rather than break the query.
+ */
+const GENDER_NAMES = ['UNSPECIFIED', 'MALE', 'FEMALE'];
+
+export function normalizeGender(gender: number | null | undefined): string {
+  return GENDER_NAMES[gender ?? 0] ?? 'UNSPECIFIED';
+}
+
+/** The GraphQL enum value back to the number stored in the database. */
+export function genderToNumber(gender: string | null | undefined): number {
+  const index = GENDER_NAMES.indexOf(gender ?? '');
+  return index < 0 ? 0 : index;
+}
+
+/**
  * A `User` reached through another type — a game author, the author of a
  * comment or of a rating. A raw `csld_csld_user` row cannot be served as a
  * `User`: the numeric `role` breaks the enum (above), and `image` is the scalar
@@ -24,6 +44,7 @@ export function normalizeUserRef(row: any) {
   return {
     ...row,
     role: normalizeUserRole(row.role),
+    gender: normalizeGender(row.gender),
     image: row.csld_image?.id ? row.csld_image : null,
   };
 }

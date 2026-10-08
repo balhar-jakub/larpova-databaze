@@ -11,7 +11,12 @@ import FormPageRow from '../common/FormPageRow/FormPageRow'
 import FormTextInputField from '../common/form/FormTextInputField'
 import { fieldValidator, validateDate, validateEmail, validateRequired } from '../../utils/validationUtils'
 import FormFileInputField from '../common/form/FormFileInputField'
-import { CreateUserMutation, CreateUserMutationVariables } from '../../graphql/__generated__/typescript-operations'
+import FormSelectField from '../common/form/FormSelectField'
+import {
+    CreateUserMutation,
+    CreateUserMutationVariables,
+    Gender,
+} from '../../graphql/__generated__/typescript-operations'
 import { TextLink } from '../common/TextLink/TextLink'
 import ReCaptchaField from './ReCaptchaField'
 import { convertDateInput, convertFileInput } from '../../utils/graphqlUtils'
@@ -38,6 +43,7 @@ interface FormData {
     birthDate: string
     recaptcha: string
     profilePicture: string
+    gender: Gender
 }
 
 type TState = 'idle' | 'loading'
@@ -114,6 +120,7 @@ const SignUpPanel = () => {
             <FinalForm<FormData>
                 onSubmit={onSubmit}
                 validate={validate(t)}
+                initialValues={{ gender: Gender.Unspecified }}
                 render={({ handleSubmit, values }) => {
                     const handleEmailOnBlur = () => {
                         isEmailAvailable(values.email)
@@ -193,6 +200,16 @@ const SignUpPanel = () => {
                                     />
                                 </Col>
                             </Row>
+                            <FormSelectField
+                                name="gender"
+                                label={t('UserFields.gender')}
+                                hint={t('UserFields.genderHint')}
+                                options={[
+                                    { value: Gender.Unspecified, label: t('UserFields.genderUnspecified') },
+                                    { value: Gender.Male, label: t('UserFields.genderMale') },
+                                    { value: Gender.Female, label: t('UserFields.genderFemale') },
+                                ]}
+                            />
                             {/* ReCaptcha cannot change width when active, so we have to recreate it when size changes */}
                             {isMdOrLarger === true && <ReCaptchaField name="recaptcha" />}
                             {isMdOrLarger === false && <ReCaptchaField name="recaptcha" size="compact" />}
