@@ -30,6 +30,26 @@ describe('game catalog — pure helpers', () => {
     expect(where.AND).toEqual([{ deleted: false }, { year: { gte: 2000 } }]);
   });
 
+  test('an author filter selects the games of that author', () => {
+    const where = buildCatalogWhere({ authorIds: ['12'] }) as any;
+    expect(where.AND).toContainEqual({
+      csld_game_has_author: { some: { id_user: { in: [12] } } },
+    });
+  });
+
+  test('author ids that are not ids are ignored', () => {
+    const where = buildCatalogWhere({ authorIds: ['abc', '', 'x1'] }) as any;
+    expect(where.AND.filter((c: any) => c.csld_game_has_author)).toEqual([]);
+  });
+
+  test('the author and the text filter stack', () => {
+    const where = buildCatalogWhere({ authorIds: ['3'], query: 'neco' }, {}, [7, 8]) as any;
+    expect(where.AND).toContainEqual({ id: { in: [7, 8] } });
+    expect(where.AND).toContainEqual({
+      csld_game_has_author: { some: { id_user: { in: [3] } } },
+    });
+  });
+
   test('duration buckets are mutually exclusive ranges', () => {
     const where = buildCatalogWhere({ durations: ['short', 'long'] }) as any;
     const durations = where.AND.find((c: any) => c.OR);

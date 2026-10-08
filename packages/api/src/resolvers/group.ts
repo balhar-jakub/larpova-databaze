@@ -1,4 +1,5 @@
 import type { Context } from '../context.js';
+import { fetchGroupsByIds, groupsSearchPage } from './search.js';
 
 export async function groupByIdResolver(
   _parent: unknown,
@@ -30,17 +31,8 @@ export async function groupsByQueryResolver(
   args: { query: string; offset?: number; limit?: number },
   ctx: Context,
 ) {
-  const offset = args.offset ?? 0;
-  const limit = args.limit ?? 25;
-
-  return ctx.db.csld_csld_group.findMany({
-    where: { name: { contains: args.query, mode: 'insensitive' } },
-    skip: offset,
-    take: limit,
-    include: {
-      csld_game_has_group: {
-        include: { csld_game: true },
-      },
-    },
-  });
+  // The group autocomplete of the game form goes through the shared search
+  // engine too, so a group written without diacritics is found there as well.
+  const page = await groupsSearchPage(ctx, args.query, args.offset ?? 0, args.limit ?? 25);
+  return fetchGroupsByIds(ctx, page.ids);
 }

@@ -1,6 +1,7 @@
 import type { Context } from '../context.js';
 import type { Prisma } from '@prisma/client';
 import { isAtLeastEditor } from '../auth/appUsers.js';
+import { eventIdsForQuery, mapEventRow } from './search.js';
 
 export async function eventByIdResolver(
   _parent: unknown,
@@ -45,6 +46,7 @@ export async function eventCalendarResolver(
     to?: string;
     requiredLabels?: string[];
     otherLabels?: string[];
+    query?: string;
   },
   ctx: Context,
 ) {
@@ -60,6 +62,14 @@ export async function eventCalendarResolver(
   }
   if (args.to) {
     andConditions.push({ to: { lte: new Date(args.to) } });
+  }
+  // Text search: the calendar had none, so an event was unreachable unless the
+  // visitor stepped through the months and knew where to look. Resolved by the
+  // shared engine (diacritics, word prefixes); `null` means the query is still
+  // too short and is ignored while the visitor types.
+  const queryIds = await eventIdsForQuery(ctx, args.query, args.from, args.to);
+  if (queryIds) {
+    andConditions.push({ id: { in: queryIds } });
   }
   if (args.requiredLabels?.length) {
     andConditions.push({
@@ -97,17 +107,7 @@ export async function eventCalendarResolver(
   ]);
 
   return {
-    events: events.map((e) => ({
-      ...e,
-      amountOfPlayers: e.amountofplayers,
-      location: (e.latitude != null || e.longitude != null)
-        ? { lattitude: e.latitude, longtitude: e.longitude }
-        : null,
-      labels: (e.event_has_labels ?? []).map((j) => j.csld_label).filter(Boolean),
-      games: (e.csld_game_has_event ?? [])
-        .map((j) => j.csld_game)
-        .filter((g: any) => g && (isAtLeastEditor(ctx) || !g.deleted)),
-    })),
+    events: events.map((e) => mapEventRow(e, ctx)),
     totalAmount,
   };
 }

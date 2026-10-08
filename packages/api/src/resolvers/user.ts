@@ -123,28 +123,15 @@ export async function userByEmailResolver(
   return normalizeUser(row, isAtLeastEditor(ctx));
 }
 
-export async function usersByQueryResolver(
-  _parent: unknown,
-  args: { query: string; offset?: number; limit?: number },
-  ctx: Context,
-) {
-  const offset = args.offset ?? 0;
-  const limit = args.limit ?? 25;
-
-  const rows = await ctx.db.csld_csld_user.findMany({
-    where: {
-      OR: [
-        { name: { contains: args.query, mode: 'insensitive' } },
-        { nickname: { contains: args.query, mode: 'insensitive' } },
-      ],
-    },
-    skip: offset,
-    take: limit,
-    include: { csld_image: true },
-  });
-
-  return rows.map((row: any) => normalizeUser(row, isAtLeastEditor(ctx)));
-}
+/**
+ * `usersByQuery` moved to `search.ts` with the rest of the search: it is the
+ * engine that knows about diacritics, word prefixes and ranking, and that module
+ * imports `normalizeUser` from here (never the other way round).
+ *
+ * `normalizeUser` stays here: it maps the numeric `role` to the `UserRole` enum
+ * and the scalar `image` foreign key to the `Image` object, and every user row
+ * that reaches the API has to pass through it.
+ */
 
 export async function loggedInUserResolver(
   _parent: unknown,
