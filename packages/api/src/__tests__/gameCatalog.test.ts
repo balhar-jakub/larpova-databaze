@@ -93,6 +93,15 @@ describe('game catalog — against the database', () => {
   let labelId: number;
   let ratedGameId: number;
   let unratedGameId: number;
+  /** Name exactly equal to the query, no ratings: relevance must put it first. */
+  let exactMatchGameId: number;
+  /** Same query as a name prefix, well rated: every column order puts it first. */
+  let prefixMatchGameId: number;
+  /** A label of its own: the other cases count the games that carry `labelId`. */
+  let relevanceLabelId: number;
+  // A token of its own: the other cases in this file count the games that match
+  // `marker`, so these two fixtures must stay out of *their* result.
+  const relevanceQuery = `RelevanceTest${Date.now()}`;
 
   beforeAll(async () => {
     server = createTestServer();
@@ -143,11 +152,53 @@ describe('game catalog — against the database', () => {
     ratedGameId = rated.id;
 
     await prisma.csld_game_has_label.create({ data: { id_label: labelId, id_game: ratedGameId } });
+
+    const exactMatch = await prisma.csld_game.create({
+      data: {
+        name: relevanceQuery,
+        deleted: false,
+        year: 2024,
+        players: 31,
+        amount_of_ratings: 0,
+        amount_of_comments: 0,
+        total_rating: null,
+        average_rating: null,
+      },
+    });
+    exactMatchGameId = exactMatch.id;
+
+    const prefixMatch = await prisma.csld_game.create({
+      data: {
+        name: `${relevanceQuery} druhá`,
+        deleted: false,
+        year: 2024,
+        players: 32,
+        amount_of_ratings: 30,
+        amount_of_comments: 0,
+        total_rating: 2850,
+        average_rating: 95,
+      },
+    });
+    prefixMatchGameId = prefixMatch.id;
+
+    const relevanceLabel = await prisma.csld_label.create({
+      data: { name: `${relevanceQuery} label`, is_required: false, is_authorized: true, added_by: userId },
+    });
+    relevanceLabelId = relevanceLabel.id;
+
+    await prisma.csld_game_has_label.create({
+      data: { id_label: relevanceLabelId, id_game: prefixMatchGameId },
+    });
   });
 
   afterAll(async () => {
-    await prisma.csld_game_has_label.deleteMany({ where: { id_game: { in: [ratedGameId, unratedGameId] } } });
-    await prisma.csld_game.deleteMany({ where: { id: { in: [ratedGameId, unratedGameId] } } });
+    await prisma.csld_game_has_label.deleteMany({
+      where: { id_game: { in: [ratedGameId, unratedGameId, prefixMatchGameId] } },
+    });
+    await prisma.csld_label.deleteMany({ where: { id: relevanceLabelId } });
+    await prisma.csld_game.deleteMany({
+      where: { id: { in: [ratedGameId, unratedGameId, exactMatchGameId, prefixMatchGameId] } },
+    });
     await prisma.csld_label.deleteMany({ where: { id: labelId } });
     await prisma.csld_csld_user.deleteMany({ where: { id: userId } });
     await prisma.$disconnect();
@@ -270,5 +321,78 @@ describe('game catalog — against the database', () => {
     expect((first.data as any).games.catalog.games[0].id).not.toBe(
       (second.data as any).games.catalog.games[0].id,
     );
+  });
+
+  test('relevance ranks by the text, not by the ratings', async () => {
+    // The search page must not lose its ranking by gaining facets: the game whose
+    // name *is* the query has no ratings at all, the one that only starts with it
+    // is a 95% game with 30 ratings.
+    const result = await executeQuery(
+      server,
+      `query ($q: String!) {
+         games { catalog(filter: { query: $q }, order: Relevance) { totalAmount games { id name } } }
+       }`,
+      { q: relevanceQuery },
+    );
+
+    expect(result.errors).toBeUndefined();
+    const catalog = (result.data as any).games.catalog;
+    expect(catalog.totalAmount).toBe(2);
+    expect(Number(catalog.games[0].id)).toBe(exactMatchGameId);
+    expect(Number(catalog.games[1].id)).toBe(prefixMatchGameId);
+
+    // Every column order puts the rated game first — the two orders differ.
+    const byRating = await executeQuery(
+      server,
+      `query ($q: String!) {
+         games { catalog(filter: { query: $q }, order: Best) { games { id } } }
+       }`,
+      { q: relevanceQuery },
+    );
+    expect(Number((byRating.data as any).games.catalog.games[0].id)).toBe(prefixMatchGameId);
+  });
+
+  test('relevance keeps the facets: the page holds what the count promises', async () => {
+    // The bug this pins: the relevance path handed back the engine's id list, so
+    // a label filter narrowed the *count* and left the rows alone.
+    const result = await executeQuery(
+      server,
+      `query ($q: String!, $label: ID!) {
+         games {
+           catalog(filter: { query: $q, allLabels: [$label] }, order: Relevance) {
+             totalAmount
+             games { id }
+             facets { labels { id count } }
+           }
+         }
+       }`,
+      { q: relevanceQuery, label: String(relevanceLabelId) },
+    )
+
+    expect(result.errors).toBeUndefined()
+    const catalog = (result.data as any).games.catalog
+
+    expect(catalog.totalAmount).toBe(1)
+    expect(catalog.games.map((game: { id: string }) => Number(game.id))).toEqual([prefixMatchGameId])
+  })
+
+  test('relevance without a query falls back to the recommended order', async () => {
+    const idsOf = async (order: string) => {
+      const result = await executeQuery(
+        server,
+        `query ($order: GameCatalogOrder) { games { catalog(order: $order, limit: 100) { games { id } } } }`,
+        { order },
+      );
+      expect(result.errors).toBeUndefined();
+      return ((result.data as any).games.catalog.games as { id: string }[]).map((game) => Number(game.id));
+    };
+
+    const relevance = await idsOf('Relevance');
+    const recommended = await idsOf('Recommended');
+
+    // There is nothing to be relevant to, so the list is the recommended one:
+    // the well rated fixture leads the unrated one in both.
+    expect(relevance.indexOf(prefixMatchGameId)).toBeLessThan(relevance.indexOf(exactMatchGameId));
+    expect(recommended.indexOf(prefixMatchGameId)).toBeLessThan(recommended.indexOf(exactMatchGameId));
   });
 });

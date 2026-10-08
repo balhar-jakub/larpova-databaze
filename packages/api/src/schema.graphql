@@ -77,6 +77,8 @@ enum LadderType {
 enum GameCatalogOrder {
     "Bayesian average: well rated games with few ratings do not outrank proven classics."
     Recommended
+    "How well `filter.query` matches (exact name, name start, word starts, substring) — the ranking of the shared search engine. Without a query it falls back to `Recommended`."
+    Relevance
     "Average rating, unrated games last."
     Best
     "Games people marked as played."
