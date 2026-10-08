@@ -419,6 +419,59 @@ export async function deleteGameResolver(
   return deletedGame ? normalizeGame(deletedGame) : null;
 }
 
+// ── restoreGame ──────────────────────────────────────────
+
+/**
+ * Bring a soft-deleted game back. Deleting is a soft delete: the game is hidden
+ * from everybody but editors and admins and its comments are hidden with it.
+ * Restoring is the exact reverse, so the game reappears where it was.
+ *
+ * Editors and admins only — the legacy screen toggled the flag the same way
+ * (`SqlGames.toggleDeleted`), so an author who deleted their own game asks a
+ * moderator instead of restoring it themselves.
+ */
+export async function restoreGameResolver(
+  _parent: unknown,
+  args: { gameId: string },
+  ctx: Context,
+) {
+  requireAuth(ctx);
+  requireEditor(ctx);
+  const gameId = parseInt(args.gameId, 10);
+
+  const game = !isNaN(gameId)
+    ? await ctx.db.csld_game.findUnique({ where: { id: gameId } })
+    : null;
+  if (!game) {
+    throw new GraphQLError('Game not found', {
+      extensions: { code: 'NOT_FOUND' },
+    });
+  }
+
+  await ctx.db.$transaction([
+    ctx.db.csld_game.update({
+      where: { id: gameId },
+      data: { deleted: false },
+    }),
+    // Undo the comment hiding that the deletion did. A comment a moderator hid
+    // before the game was deleted comes back with it and can be hidden again
+    // from the game detail.
+    ctx.db.csld_comment.updateMany({
+      where: { game_id: gameId },
+      data: { is_hidden: false },
+    }),
+  ]);
+
+  const restoredGame = await ctx.db.csld_game.findUnique({
+    where: { id: gameId },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
+  });
+  return restoredGame ? normalizeGame(restoredGame) : null;
+}
+
 // ── createGame ───────────────────────────────────────────
 
 export async function createGameResolver(

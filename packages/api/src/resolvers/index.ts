@@ -44,6 +44,7 @@ import {
   setCommentVisibleResolver,
   setCommentLikedResolver,
   deleteGameResolver,
+  restoreGameResolver,
   createGameResolver,
   updateGameResolver,
 } from './gameMutation.js';
@@ -121,6 +122,7 @@ export const resolvers: any = {
     createGame: createGameResolver,
     updateGame: updateGameResolver,
     deleteGame: deleteGameResolver,
+    restoreGame: restoreGameResolver,
     rateGame: rateGameResolver,
     deleteGameRating: deleteGameRatingResolver,
     setGamePlayedState: setGamePlayedStateResolver,

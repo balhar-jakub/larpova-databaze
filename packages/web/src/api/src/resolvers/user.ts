@@ -1,4 +1,5 @@
 import type { Context } from '../context.js';
+import { isAtLeastEditor } from '../auth/appUsers.js';
 import { normalizeGame, normalizeGender, normalizeUserRole } from './mappers.js';
 
 /**
@@ -10,9 +11,19 @@ import { normalizeGame, normalizeGender, normalizeUserRole } from './mappers.js'
 export const STATE_WANT_TO_PLAY = 1;
 export const STATE_PLAYED = 2;
 
-export function normalizeUser(row: any) {
+/**
+ * A soft-deleted game is hidden from everybody except editors and admins, and
+ * the profile lists are no exception: the legacy `GameBuilder` applied that
+ * rule to every query, so a game deleted on its detail page must not survive in
+ * the profiles of its authors and players. `includeDeleted` carries the
+ * viewer's role (see the resolvers) and defaults to the legacy behaviour —
+ * hidden.
+ */
+export function normalizeUser(row: any, includeDeleted = false) {
   if (!row) return null;
-  const ratingRows: any[] = row.csld_rating ?? [];
+  const visibleGame = (game: any) => Boolean(game) && (includeDeleted || !game.deleted);
+  const ratingRows: any[] = (row.csld_rating ?? []).filter((r: any) => visibleGame(r.csld_game));
+  const commentRows: any[] = (row.csld_comment ?? []).filter((c: any) => visibleGame(c.csld_game));
   // The profile splits the user's rating rows by play state: only state=PLAYED
   // games belong under "Hrál jsem" and only WANT_TO_PLAY under "Chci hrát".
   // Listing every row as played pushed the "want to play" games into the
@@ -48,7 +59,7 @@ export function normalizeUser(row: any) {
     // loaded instead; fall back to the column when the relation is absent.
     amountOfPlayed: row.csld_rating ? playedGames.length : row.amount_of_played,
     amountOfCreated: row.amount_of_created,
-    authoredGames: (row.csld_game_has_author ?? []).map((j: any) => normalizeGame(j.csld_game)).filter(Boolean),
+    authoredGames: (row.csld_game_has_author ?? []).map((j: any) => j.csld_game).filter(visibleGame).map((g: any) => normalizeGame(g)),
     playedGames,
     wantedGames,
     ratings: ratingRows.map((r: any) => ({
@@ -57,15 +68,16 @@ export function normalizeUser(row: any) {
       user: null,
     })),
     commentsPaged: ({ offset, limit }: { offset: number; limit: number }) => {
-      const comments = (row.csld_comment ?? [])
-        .slice(offset, offset + limit)
-        .map((c: any) => ({
-          ...c,
-          commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
-          user: { id: row.id, name: row.name, role: normalizeUserRole(row.role) },
-          game: normalizeGame(c.csld_game),
-        }));
-      return { comments, totalAmount: (row.csld_comment ?? []).length };
+      // Comments on a deleted game stay hidden too — their game link would lead
+      // to a page that no longer answers — so the total counts only the rows the
+      // caller may see.
+      const comments = commentRows.slice(offset, offset + limit).map((c: any) => ({
+        ...c,
+        commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
+        user: { id: row.id, name: row.name, role: normalizeUserRole(row.role) },
+        game: normalizeGame(c.csld_game),
+      }));
+      return { comments, totalAmount: commentRows.length };
     },
   };
 }
@@ -95,7 +107,7 @@ export async function userByIdResolver(
     },
   });
 
-  return normalizeUser(row);
+  return normalizeUser(row, isAtLeastEditor(ctx));
 }
 
 export async function userByEmailResolver(
@@ -108,7 +120,7 @@ export async function userByEmailResolver(
     where: { email: args.email },
     include: { csld_image: true },
   });
-  return normalizeUser(row);
+  return normalizeUser(row, isAtLeastEditor(ctx));
 }
 
 export async function usersByQueryResolver(
@@ -131,7 +143,7 @@ export async function usersByQueryResolver(
     include: { csld_image: true },
   });
 
-  return rows.map((row: any) => normalizeUser(row));
+  return rows.map((row: any) => normalizeUser(row, isAtLeastEditor(ctx)));
 }
 
 export async function loggedInUserResolver(
@@ -160,5 +172,5 @@ export async function loggedInUserResolver(
     },
   });
 
-  return normalizeUser(row);
+  return normalizeUser(row, isAtLeastEditor(ctx));
 }

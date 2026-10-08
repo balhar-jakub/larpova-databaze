@@ -18,7 +18,11 @@
     "changeRating": "Change your rating:",
     "updateComment": "Update your comment",
     "deleteComment": "Delete your comment",
-    "addComment": "Add your comment"
+    "addComment": "Add your comment",
+    "restoreGame": "Restore game",
+    "gameRestored": "Game restored",
+    "gameNotFound": "Game not found. It may have been deleted, or the link is wrong.",
+    "deletedGameNotice": "This game is deleted — only editors and administrators can see it. You can restore it."
   },
   "Rating": {
     "stronglyRecommended": "Strongly recommend",

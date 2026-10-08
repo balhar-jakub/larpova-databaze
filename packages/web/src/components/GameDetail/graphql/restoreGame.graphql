@@ -1,0 +1,8 @@
+mutation RestoreGame($gameId: ID!) {
+    game {
+        restoreGame(gameId: $gameId) {
+            id
+            deleted
+        }
+    }
+}

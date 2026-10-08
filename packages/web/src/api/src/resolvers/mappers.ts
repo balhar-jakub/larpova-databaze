@@ -88,7 +88,11 @@ export function normalizeGame(row: any) {
     })),
     similarGames: (row.similar_games_similar_games_id_game1Tocsld_game ?? []).map(
       (s: any) => s.csld_game_similar_games_id_game2Tocsld_game
-    ).filter(Boolean).map((g: any) => normalizeGame(g)),
+    ).filter(Boolean)
+      // A soft-deleted game must not be offered as a recommendation; the legacy
+      // code carried a standing TODO to verify this (SqlSimilarGames).
+      .filter((g: any) => !g.deleted)
+      .map((g: any) => normalizeGame(g)),
     ratingStats: computeRatingStats(row.csld_rating ?? []),
     comments: (row.csld_comment ?? []).map((c: any) => ({
       ...c,

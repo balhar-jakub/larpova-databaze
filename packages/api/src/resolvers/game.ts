@@ -1,5 +1,6 @@
 import type { Context } from '../context.js';
-import { normalizeGame } from './mappers.js';
+import { normalizeGame, normalizeUserRef } from './mappers.js';
+import { isAtLeastEditor } from '../auth/appUsers.js';
 import type { Prisma } from '@prisma/client';
 
 export async function gameByIdResolver(
@@ -38,6 +39,15 @@ export async function gameByIdResolver(
       },
     },
   });
+
+  // A deleted game is soft-deleted: it stays in the database so it can be
+  // restored, but it must not be served any more. The legacy CSLD enforced this
+  // in `GameBuilder.build()` — "shows deleted games only to editors and admins"
+  // — and every query went through that builder; the rewrite lost the rule, so
+  // a deleted game kept answering on its detail URL (and through the profile
+  // lists) for everybody. Editors and admins still get it, marked by
+  // `Game.deleted`, which is what the restore button keys off.
+  if (row?.deleted && !isAtLeastEditor(ctx)) return null;
 
   return normalizeGame(row);
 }
