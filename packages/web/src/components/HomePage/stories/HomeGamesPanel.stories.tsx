@@ -13,15 +13,7 @@ const mockBaseGame: GameBaseData = {
     amountOfRatings: 23,
 }
 
-const mockLastGames = [
-    { ...mockBaseGame, name: 'Florie 2000', averageRating: 0 },
-    { ...mockBaseGame, name: 'Florie 2001', averageRating: 0 },
-    { ...mockBaseGame, name: 'Florie 2002', averageRating: 0 },
-    { ...mockBaseGame, name: 'Florie 2003', averageRating: 0 },
-    { ...mockBaseGame, name: 'Florie 2004', averageRating: 0 },
-]
-
-const mockTopGames = [
+const mockGames = [
     { ...mockBaseGame, name: 'Florie 2000' },
     { ...mockBaseGame, name: 'Florie 2001' },
     { ...mockBaseGame, name: 'Florie 2002' },
@@ -30,4 +22,10 @@ const mockTopGames = [
     { ...mockBaseGame, name: 'Florie 2005' },
 ]
 
-export const Panel = () => <HomePageGamesPanel lastGames={mockLastGames} topGames={mockTopGames} />
+export const BestRated = () => (
+    <HomePageGamesPanel titleKey="HomePage.bestGames" noteKey="HomePage.bestGamesNote" games={mockGames} href="/games?order=Best&minr=5" />
+)
+
+export const LastAdded = () => (
+    <HomePageGamesPanel titleKey="HomePage.lastAddedGames" games={mockGames} href="/games?order=Newest" />
+)

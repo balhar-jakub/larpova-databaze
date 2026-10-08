@@ -2,6 +2,7 @@ import React from 'react'
 import { createUseStyles } from 'react-jss'
 import { useTranslation } from 'src/lib/i18n'
 import { Row, Col } from 'react-bootstrap'
+import Link from 'next/link'
 import { BaseCommentData, BaseCommentPanel } from './BaseCommentPanel'
 import { darkTheme } from '../../theme/darkTheme'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
@@ -10,20 +11,24 @@ import { useIsLgOrLarger } from '../../hooks/useMediaQuery'
 
 interface Props {
     readonly comments: (BaseCommentData | undefined)[]
-    readonly expanded: boolean
-    readonly onToggleExpanded: () => void
+    /** "All comments" — the catalog ordered by how much is written about a game. */
+    readonly href?: string
 }
 
 export const HPC_COLUMNS = 3
-export const HPC_ROWS_NORMAL = 2
-export const HPC_ROWS_EXPANDED = 5
+/**
+ * One row of three. The block used to show six comments and grow to fifteen on
+ * a click, which made it claim half of the page for the least visited content
+ * on it (one comment a week); three are enough next to the link.
+ */
+export const HPC_ROWS = 1
 
 const useStyles = createUseStyles({
     outerWrapper: {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        pading: '20px 0',
+        padding: '20px 0',
     },
     commentsTitle: {
         fontWeight: 700,
@@ -32,27 +37,13 @@ const useStyles = createUseStyles({
         textTransform: 'uppercase',
         margin: '20px 0 30px',
     },
-    buttonWrapper: {
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'center',
+    more: {
+        marginTop: 15,
     },
-    commentsMoreLess: {
-        background: darkTheme.backgroundAlmostNearWhite2,
-        color: darkTheme.textOnLight,
-        fontSize: '0.7rem',
-        borderRadius: 4,
-        outline: 0,
-        border: 0,
-        textAlign: 'center',
-        maxWidth: 380,
-        flexGrow: 1,
-        padding: 5,
-        margin: '-5px 12px 0',
-
-        '&:hover': {
-            background: darkTheme.backgroundAlmostNearWhite,
-        },
+    moreLink: {
+        color: darkTheme.textGreenDark,
+        fontSize: '0.75rem',
+        cursor: 'pointer',
     },
     commentsWrapper: {
         width: '100%',
@@ -66,15 +57,13 @@ const useStyles = createUseStyles({
     },
 })
 
-export const HomePageCommentsPanel = ({ comments, expanded, onToggleExpanded }: Props) => {
+export const HomePageCommentsPanel = ({ comments, href }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
     const isLgOrLarger = useIsLgOrLarger()
 
-    const numInColumn = expanded ? HPC_ROWS_EXPANDED : HPC_ROWS_NORMAL
-    const commentsInColumns = toChunks(comments, numInColumn)
-
-    const height = 190 * (isLgOrLarger ? numInColumn : comments.length)
+    const commentsInColumns = toChunks(comments, HPC_ROWS)
+    const height = 190 * (isLgOrLarger ? HPC_ROWS : comments.length)
 
     return (
         <WidthFixer className={classes.outerWrapper}>
@@ -89,11 +78,14 @@ export const HomePageCommentsPanel = ({ comments, expanded, onToggleExpanded }: 
                     </Col>
                 ))}
             </Row>
-            <div className={classes.buttonWrapper}>
-                <button type="button" className={classes.commentsMoreLess} onClick={onToggleExpanded}>
-                    {t(expanded ? 'HomePage.commentsShrink' : 'HomePage.commentsExpand')}
-                </button>
-            </div>
+            {href && (
+                <div className={classes.more}>
+                    <Link href={href} legacyBehavior>
+                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                        <a className={classes.moreLink} href={href}>{t('HomePage.allComments')}</a>
+                    </Link>
+                </div>
+            )}
         </WidthFixer>
     )
 }

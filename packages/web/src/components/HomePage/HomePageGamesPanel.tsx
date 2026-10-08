@@ -1,67 +1,67 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'src/lib/i18n'
 import { Col } from 'react-bootstrap'
+import Link from 'next/link'
+import { useTranslation } from 'src/lib/i18n'
 import { GameBaseData } from '../common/GameBaseDataPanel/GameBaseDataPanel'
 import { GridHeader } from './GridHeader'
-import { IconMoveLeft, IconMoveRight } from '../common/Icons/Icons'
 import { GameEventGrid } from './GameEventGrid'
 import { darkTheme } from '../../theme/darkTheme'
 
 interface Props {
-    readonly lastGames?: (GameBaseData | undefined)[]
-    readonly topGames?: (GameBaseData | undefined)[]
+    /** Heading key in the `HomePage` namespace. */
+    readonly titleKey: string
+    /** Optional note under the heading ("jen hry od 5 hlasů"). */
+    readonly noteKey?: string
+    readonly games?: (GameBaseData | undefined)[]
+    /** Where "all of them" leads — the very same list, ordered, in the catalog. */
+    readonly href?: string
 }
 
 const useStyles = createUseStyles({
-    iconButton: {
+    note: {
+        color: darkTheme.textDark,
+        fontSize: '0.65rem',
+        fontWeight: 400,
+        textTransform: 'none',
+        marginLeft: 6,
+    },
+    more: {
+        textAlign: 'center',
+        marginTop: 5,
+    },
+    moreLink: {
+        color: darkTheme.textGreen,
+        fontSize: '0.72rem',
         cursor: 'pointer',
-        padding: 5,
-        margin: '0 10px',
-        border: 0,
-        color: darkTheme.text,
-        backgroundColor: darkTheme.background,
     },
 })
 
 const gamesLoading = [undefined, undefined, undefined, undefined, undefined, undefined]
 
-export const HomePageGamesPanel = ({ lastGames = gamesLoading, topGames = gamesLoading }: Props) => {
+/**
+ * One block of games. The homepage used to hide two blocks behind a carousel
+ * whose arrows sat in the heading, so half of the games were invisible and the
+ * heading said something different from what the visitor was looking at.
+ */
+export const HomePageGamesPanel = ({ titleKey, noteKey, games = gamesLoading, href }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
-    const [carouselPage, setCarouselPage] = useState(0)
-
-    const handleChangePage = () => setCarouselPage(old => 1 - old)
 
     return (
         <Col xl={6}>
-            {carouselPage === 0 && (
-                <>
-                    <GridHeader>
-                        <button type="button" className={classes.iconButton} onClick={handleChangePage}>
-                            <IconMoveLeft />
-                        </button>
-                        {t('HomePage.lastAddedGames')}
-                        <button type="button" className={classes.iconButton} onClick={handleChangePage}>
-                            <IconMoveRight />
-                        </button>
-                    </GridHeader>
-                    <GameEventGrid elements={lastGames} />
-                </>
-            )}
-            {carouselPage === 1 && (
-                <>
-                    <GridHeader>
-                        <button type="button" className={classes.iconButton} onClick={handleChangePage}>
-                            <IconMoveLeft />
-                        </button>
-                        {t('HomePage.bestGames')}
-                        <button type="button" className={classes.iconButton} onClick={handleChangePage}>
-                            <IconMoveRight />
-                        </button>
-                    </GridHeader>
-                    <GameEventGrid elements={topGames} />
-                </>
+            <GridHeader>
+                {t(titleKey)}
+                {noteKey && <span className={classes.note}>{t(noteKey)}</span>}
+            </GridHeader>
+            <GameEventGrid elements={games} />
+            {href && (
+                <div className={classes.more}>
+                    <Link href={href} legacyBehavior>
+                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                        <a className={classes.moreLink} href={href}>{t('HomePage.seeAll')}</a>
+                    </Link>
+                </div>
             )}
         </Col>
     )
