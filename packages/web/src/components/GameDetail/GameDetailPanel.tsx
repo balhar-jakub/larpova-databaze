@@ -27,7 +27,7 @@ import { useLoggedInUser } from '../../hooks/useLoggedInUser'
 import ActionButton from '../common/ActionButton/ActionButton'
 import ConfirmationModal from '../common/ConfirmationModal/ConfirmationModal'
 import { useRoutes } from '../../hooks/useRoutes'
-import { canDelete, canEdit } from '../../utils/graphqlUtils'
+import { canDelete, canEdit, isGameMissing } from '../../utils/graphqlUtils'
 import { useShowToast } from '../../hooks/useShowToast'
 import { searchInputId } from '../common/PageHeader/HeaderSearchForm'
 import { htmlToText } from '../../utils/textUtils'
@@ -177,7 +177,7 @@ export const GameDetailPanel = ({ gameId }: Props) => {
     // this viewer may not see — a soft-deleted game is served to editors and
     // admins only. The cached fragment above must therefore not decide whether
     // the game exists, or a deleted game kept rendering from the cache.
-    const gameMissing = !gameQuery.loading && !gameQuery.data?.gameById
+    const gameMissing = isGameMissing(gameQuery.loading, gameQuery.data)
 
     const tabs: Array<TabDefinition<TabTabs>> = [tabComments]
     if (game.video?.path) {

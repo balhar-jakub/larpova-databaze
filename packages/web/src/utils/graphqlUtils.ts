@@ -51,3 +51,15 @@ export const canDelete = (allowedActions?: Maybe<AllowedAction[]>) =>
 
 export const canEdit = (allowedActions?: Maybe<AllowedAction[]>) =>
     allowedActions && allowedActions.includes(AllowedAction.Edit)
+
+/**
+ * Whether the game the page asked for is gone. `gameById` answers null both for
+ * a game that does not exist *and* for a soft-deleted one this viewer may not
+ * see (editors and admins still get it), so the game detail page must not fall
+ * back to its cached fragment: that is how a deleted game kept rendering from
+ * the Apollo cache after `deleteGame` had reported success. While the query is
+ * still in flight the answer is "not missing", so the page keeps its loading
+ * state instead of flashing "game not found".
+ */
+export const isGameMissing = (loading: boolean, data?: { readonly gameById?: unknown } | null) =>
+    !loading && !data?.gameById
