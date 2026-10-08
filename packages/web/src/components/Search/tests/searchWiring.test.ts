@@ -164,7 +164,10 @@ describe('the games of the search page bring the catalog facets and rankings', (
         const engine = web('src/api/src/resolvers/gameCatalog.ts')
 
         expect(engine).toMatch(/order === 'Relevance'/)
-        expect(engine).toMatch(/queryIds\.slice\(offset, offset \+ limit\)/)
+        // The page is fetched through the filter (so a facet narrows the rows too,
+        // not just the count) and only its order comes from the engine.
+        expect(engine).toMatch(/ctx\.db\.csld_game\.findMany\(\{ where, select: \{ id: true \} \}\)/)
+        expect(engine).not.toMatch(/queryIds\.slice\(offset, offset \+ limit\)/)
         // Without a query there is nothing to be relevant to.
         expect(engine).toMatch(/pageGameIds\(ctx, where, 'Recommended', offset, limit, null\)/)
         expect(web('src/api/src/schema.graphql')).toMatch(/\n    Relevance\n/)
