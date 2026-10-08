@@ -1,0 +1,89 @@
+#import "src/graphql/fragments/baseGameData.graphql"
+
+query GetHomePageUser {
+    homepage {
+        # The visitor's own blocks. `hasData` is false for the third of the
+        # accounts with nothing in the database: then the page shows the
+        # anonymous content (the blocks below) behind a "first steps" band.
+        myHome {
+            playedCount
+            wantedCount
+            authoredCount
+            commentsCount
+            hasData
+            wantedWithoutEvent
+            myEvents {
+                id
+                name
+                from
+                to
+                loc
+                amountOfPlayers
+                games {
+                    ...baseGameData
+                }
+            }
+            toRate {
+                game {
+                    ...baseGameData
+                }
+                since
+            }
+            oldestWanted {
+                game {
+                    ...baseGameData
+                }
+                since
+            }
+            authored {
+                game {
+                    ...baseGameData
+                }
+                lastRating {
+                    rating
+                    added
+                    user {
+                        id
+                        name
+                    }
+                }
+            }
+            recommendedLabels {
+                id
+                name
+                count
+            }
+            recommended {
+                ...baseGameData
+            }
+        }
+        # The empty state (and the anonymous page) read these.
+        bestRatedGames {
+            ...baseGameData
+        }
+        lastAddedGames {
+            ...baseGameData
+        }
+        nextEvents {
+            id
+            name
+            from
+            to
+            loc
+            amountOfPlayers
+        }
+        stats {
+            games
+            events
+            upcomingEvents
+            users
+            labels
+        }
+        topLabels {
+            id
+            name
+            count
+            isRequired
+        }
+    }
+}

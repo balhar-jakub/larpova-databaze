@@ -38,6 +38,11 @@ jest.unstable_mockModule('next/link', () => ({
 jest.unstable_mockModule('next/head', () => ({
     default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
+// `undefined` is the provider's settled "nobody is signed in" — an empty object
+// would mean it is still asking, and the page renders nothing then.
+jest.unstable_mockModule('src/hooks/useLoggedInUser', () => ({
+    useLoggedInUser: () => undefined,
+}))
 jest.unstable_mockModule('src/hooks/useMediaQuery', () => ({
     useIsLgOrLarger: () => true,
 }))

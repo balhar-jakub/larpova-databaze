@@ -267,7 +267,7 @@ async function averageRatingOfRatedGames(ctx: Context): Promise<number> {
   return aggregate._avg.average_rating ?? RECOMMENDED_FROM;
 }
 
-async function pageGameIds(
+export async function pageGameIds(
   ctx: Context,
   where: Prisma.csld_gameWhereInput,
   order: CatalogOrder,
