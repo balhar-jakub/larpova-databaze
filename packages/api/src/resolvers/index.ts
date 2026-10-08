@@ -6,7 +6,7 @@ import {
   gamesQueryResolver,
 } from './game.js';
 import { catalogResolver } from './gameCatalog.js';
-import { homepageResolver } from './homepage.js';
+import { homepageResolver, lastCommentsPage } from './homepage.js';
 import { configResolver } from './config.js';
 import {
   userByIdResolver,
@@ -98,6 +98,18 @@ export const resolvers: any = {
     byQueryWithTotal: byQueryWithTotalResolver,
     ladder: ladderResolver,
     catalog: catalogResolver,
+  },
+
+  // Type-level field resolvers: `lastComments` is the only homepage field with
+  // arguments (the "load more" in the comment block), and the payload the parent
+  // resolver builds has already fixed its own window — so the pagination has to
+  // live here, on the field, not in the block.
+  HomepageQuery: {
+    lastComments: (
+      _parent: unknown,
+      args: { offset?: number; limit?: number },
+      ctx: Context,
+    ) => lastCommentsPage(ctx, args),
   },
 
   AdminQuery: {

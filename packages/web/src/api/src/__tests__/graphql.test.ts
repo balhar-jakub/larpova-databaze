@@ -31,7 +31,7 @@ describe('GraphQL read queries', () => {
 
   it('homepage returns arrays', async () => {
     const result = await executeQuery(server, `
-      { homepage { lastAddedGames { id name } mostPopularGames { id name } nextEvents { id name } lastComments { commentAsText } } }
+      { homepage { lastAddedGames { id name } bestRatedGames { id name } stats { games users } topLabels { name count } nextEvents { id name } lastComments { commentAsText } } }
     `);
     expect(result.errors).toBeUndefined();
     expect(Array.isArray(result.data?.homepage.lastAddedGames)).toBe(true);

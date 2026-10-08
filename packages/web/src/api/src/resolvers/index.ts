@@ -8,7 +8,8 @@ import {
   commentsPagedResolver,
 } from './game.js';
 import { catalogResolver } from './gameCatalog.js';
-import { homepageResolver } from './homepage.js';
+import { homepageResolver, lastCommentsPage } from './homepage.js';
+import { commentAsText } from './textUtils.js';
 import { configResolver } from './config.js';
 import {
   userByIdResolver,
@@ -114,31 +115,13 @@ export const resolvers: any = {
 
   // Type-level field resolvers
   HomepageQuery: {
-    lastComments: async (
+    // The block ships its own first page; "load more" is the same query with an
+    // offset, so it shares the implementation instead of repeating the excludes.
+    lastComments: (
       _parent: unknown,
       args: { offset?: number; limit?: number },
       ctx: any,
-    ) => {
-      const offset = args.offset ?? 0;
-      const limit = args.limit ?? 6;
-      const comments = await ctx.db.csld_comment.findMany({
-        where: { is_hidden: false, csld_game: { deleted: false } },
-        orderBy: { added: 'desc' },
-        skip: offset,
-        take: limit,
-        include: {
-          csld_game: true,
-          csld_csld_user: { include: { csld_image: true } },
-        },
-      });
-      return comments.map((c: any) => ({
-        ...c,
-        commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
-        user: normalizeUserRef(c.csld_csld_user),
-        game: c.csld_game ? normalizeGame(c.csld_game) : null,
-        amountOfUpvotes: c.amount_of_upvotes ?? 0,
-      }));
-    },
+    ) => lastCommentsPage(ctx, args),
   },
 
   Game: {
@@ -180,7 +163,7 @@ export const resolvers: any = {
         comments: comments.map((c) => ({
           ...c,
           amountOfUpvotes: c.amount_of_upvotes ?? 0,
-          commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
+          commentAsText: commentAsText(c.comment),
           game: normalizeGame(c.csld_game),
           user: { id: userId, name: (parent as any).name ?? '' },
         })),
