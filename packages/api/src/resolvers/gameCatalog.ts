@@ -384,9 +384,14 @@ async function computeLabelFacets(
  * Label tiles for the homepage: what the whole catalog holds, unfiltered.
  * The visitor reaches the catalog by clicking one instead of by choosing from a
  * filter panel they have never seen.
+ *
+ * Labels nobody has used are left out: the catalog's own facet row lists every
+ * authorized label (a filter panel has to be able to show "nothing here"), but a
+ * tile reading "0" on the first screen only offers a click into an empty list.
  */
 export async function labelFacets(ctx: Context): Promise<LabelFacet[]> {
-  return computeLabelFacets(ctx, buildCatalogWhere());
+  const labels = await computeLabelFacets(ctx, buildCatalogWhere());
+  return labels.filter((label) => label.count > 0);
 }
 
 

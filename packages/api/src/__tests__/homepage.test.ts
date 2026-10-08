@@ -53,6 +53,7 @@ describe('homepage — the anonymous blocks', () => {
   let server: ApolloServer;
   let userId: number;
   let labelId: number;
+  let emptyLabelId: number;
   let eventId: number;
   /** The twelve fixture games, best first. */
   const rankedGameIds: number[] = [];
@@ -129,6 +130,13 @@ describe('homepage — the anonymous blocks', () => {
       data: rankedGameIds.map((id) => ({ id_game: id, id_label: labelId })),
     });
 
+    // An authorized label nobody uses: the catalog's facet row lists it, the
+    // homepage tiles must not.
+    const emptyLabel = await prisma.csld_label.create({
+      data: { name: `${marker} nepoužitý štítek`, is_authorized: true, is_required: false, added_by: userId },
+    });
+    emptyLabelId = emptyLabel.id;
+
     const event = await prisma.event.create({
       data: {
         name: `${marker} akce`,
@@ -159,7 +167,7 @@ describe('homepage — the anonymous blocks', () => {
   afterAll(async () => {
     await prisma.csld_comment.deleteMany({ where: { id: { in: commentIds } } });
     await prisma.csld_game_has_label.deleteMany({ where: { id_label: labelId } });
-    await prisma.csld_label.deleteMany({ where: { id: labelId } });
+    await prisma.csld_label.deleteMany({ where: { id: { in: [labelId, emptyLabelId] } } });
     await prisma.event.deleteMany({ where: { id: eventId } });
     await prisma.csld_game.deleteMany({
       where: { id: { in: [...rankedGameIds, excludedFewRatingsId, excludedNoAverageId] } },
@@ -227,6 +235,9 @@ describe('homepage — the anonymous blocks', () => {
       expect(label.count).toBeGreaterThan(0);
       expect(label.count).toBeLessThanOrEqual(result.data.homepage.stats.games);
     }
+
+    // A tile leading to an empty list is noise, so an unused label is not a tile.
+    expect(labels.map((label: any) => label.name)).not.toContain(`${marker} nepoužitý štítek`);
 
     // With an empty database (CI) the fixture label is in the row and its count
     // is exact; against a seeded one it may sit below the twelve shown.
