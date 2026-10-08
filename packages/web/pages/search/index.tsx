@@ -13,7 +13,10 @@ const SearchPage: NextPage<Props, InitialProps> = () => {
     return (
         <>
             <Head><title>Hledání — Larpová databáze</title></Head>
-            <SearchPanel initialQuery={router.query.initialQuery as string} />
+            <SearchPanel
+                initialQuery={(router.query.q as string) || (router.query.initialQuery as string)}
+                initialTab={router.query.t as string}
+            />
         </>
     )
 }

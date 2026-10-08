@@ -2,6 +2,7 @@ import { format } from 'date-fns'
 import { CalendarEventDataFragment } from '../../graphql/__generated__/typescript-operations'
 import { CalendarDuration, CalendarPlace, CalendarState, CalendarWhen } from './calendarState'
 import { parseDateTime } from '../../utils/dateUtils'
+import { matchTextQuery } from '../../utils/textUtils'
 
 /**
  * Helpers behind the calendar's three views: the weekend agenda, the month grid
@@ -182,6 +183,8 @@ export const filterCalendarEvents = (
         if (state.places.length && !state.places.includes(eventPlace(event))) return false
 
         if (state.withWeb && !event.web) return false
+
+        if (!matchTextQuery([event.name, event.loc], state.query)) return false
 
         if (state.labels.length) {
             const ids = (event.labels ?? []).map((label) => label.id)

@@ -40,6 +40,12 @@ export interface CalendarState {
     readonly labelMode: CalendarLabelMode
     /** Year selected in the history view. */
     readonly year?: number
+    /**
+     * Free text over the event name and place. The calendar is the page a
+     * visitor opens when they half remember an event ("that Requiem in Brno"),
+     * and until now it could not be typed into at all.
+     */
+    readonly query?: string
 }
 
 export const CALENDAR_VIEWS: CalendarView[] = ['vikendy', 'mesic', 'historie']
@@ -107,6 +113,7 @@ export function parseCalendarState(query: ParsedUrlQuery): CalendarState {
         labelMode:
             first(query.lm) === 'any' || (!legacyRequired.length && legacyOptional.length) ? 'any' : 'all',
         year: parseYear(query.r),
+        query: first(query.q)?.trim() || undefined,
     }
 }
 
@@ -123,6 +130,9 @@ export function calendarStateToQuery(state: CalendarState): { [key: string]: str
     if (state.labels.length) query.lb = [...state.labels].sort().join(',')
     if (state.labelMode !== 'all') query.lm = state.labelMode
     if (state.year) query.r = String(state.year)
+    // A blank query never reaches the state (parse drops it, the input clears to
+    // undefined) — never serialise one either, so the URL stays canonical.
+    if (state.query && state.query.trim()) query.q = state.query
 
     return query
 }
@@ -153,6 +163,7 @@ export function clearCalendarFilters(state: CalendarState): CalendarState {
         ...DEFAULT_CALENDAR_STATE,
         view: state.view,
         year: state.year,
+        query: state.query,
     }
 }
 
@@ -162,7 +173,8 @@ export function hasCalendarFilters(state: CalendarState): boolean {
         state.durations.length > 0 ||
         state.places.length > 0 ||
         state.withWeb ||
-        state.labels.length > 0
+        state.labels.length > 0 ||
+        Boolean(state.query)
     )
 }
 
@@ -170,7 +182,7 @@ export function hasCalendarFilters(state: CalendarState): boolean {
 
 export interface CalendarActiveFilter {
     readonly key: string
-    readonly kind: 'when' | 'duration' | 'place' | 'withWeb' | 'label'
+    readonly kind: 'when' | 'duration' | 'place' | 'withWeb' | 'label' | 'query'
     readonly value?: string
     readonly remove: Partial<CalendarState>
 }
@@ -205,6 +217,15 @@ export function calendarActiveFilters(
 
     if (state.withWeb) {
         filters.push({ key: 'web', kind: 'withWeb', remove: { withWeb: false } })
+    }
+
+    if (state.query) {
+        filters.push({
+            key: 'query',
+            kind: 'query',
+            value: state.query,
+            remove: { query: undefined },
+        })
     }
 
     state.labels.forEach((id) => {

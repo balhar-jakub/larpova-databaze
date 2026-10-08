@@ -125,10 +125,14 @@
     "loadMore": "Load {{count}} more",
     "filteredHint": "The filter trims free weekends too, so weeks that look empty may still appear.",
     "active": {
-      "label": "Label: {{name}}"
+      "label": "Label: {{name}}",
+      "query": "search: {{query}}"
     },
     "filters": {
       "when": "When",
+      "query": "Search",
+      "queryPlaceholder": "name or place",
+      "queryHint": "Searches the loaded events by name and place, diacritics are ignored.",
       "duration": "Length",
       "place": "Where",
       "status": "Status",
@@ -197,6 +201,9 @@
     },
     "filters": {
       "title": "Filter",
+      "query": "Search",
+      "queryPlaceholder": "e.g. novak",
+      "queryHint": "Neither diacritics nor the word order matter: \u201enovak jozef\u201c finds \u201eJozef Novák\u201c.",
       "categories": "Categories",
       "themes": "Themes",
       "showAllThemes": "Show all {{count}} themes",
@@ -246,7 +253,8 @@
       "rating": "{{value}} % and up",
       "minRatings": "at least {{count}} ratings",
       "added": "in the last {{count}} days",
-      "query": "search: {{query}}"
+      "query": "search: {{query}}",
+      "author": "games by: {{name}}"
     },
     "card": {
       "noYear": "year unknown",

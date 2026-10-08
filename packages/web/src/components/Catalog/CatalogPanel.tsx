@@ -311,6 +311,8 @@ const CatalogPanel = ({ initialQuery }: Props) => {
                 return t('Catalog.filters.withImage')
             case 'added':
                 return t('Catalog.active.added', { count: filter.to })
+            case 'author':
+                return t('Catalog.active.author', { name: filter.value })
             case 'query':
             default:
                 return t('Catalog.active.query', { query: filter.value })

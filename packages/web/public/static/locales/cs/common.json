@@ -18,7 +18,8 @@
     "settings": "Nastavení",
     "changePassword": "Změna hesla",
     "admin": "Administrace",
-    "logOut": "Odhlásit se"
+    "logOut": "Odhlásit se",
+    "searchLink": "Hledání"
   },
 
   "PageFooter": {
@@ -511,10 +512,14 @@
     "loadMore": "Načíst dalších {{count}}",
     "filteredHint": "Filtr ořezává i volné víkendy, proto se v seznamu mohou objevit i týdny, které vypadají prázdné.",
     "active": {
-      "label": "Štítek: {{name}}"
+      "label": "Štítek: {{name}}",
+      "query": "hledání: {{query}}"
     },
     "filters": {
       "when": "Kdy",
+      "query": "Hledání",
+      "queryPlaceholder": "název nebo místo",
+      "queryHint": "Hledá v načtených akcích podle názvu a místa, diakritika nerozhoduje.",
       "duration": "Délka",
       "place": "Kde",
       "status": "Stav",
@@ -601,10 +606,25 @@
   },
   "Search": {
     "tabGames": "Hry",
-    "tabUsers": "Uživatelé",
+    "tabUsers": "Lidé",
+    "tabEvents": "Události",
+    "tabGroups": "Skupiny",
     "searchButton": "Hledat",
     "query": "Hledaný výraz",
-    "queryHint": "Hledání probíhá po slovech. Vyhovují ty položky, jejichž název obsahuje slova začínající stejně, jako slova výrazu, ve stejném pořadí. Velikost písmen a diakritika nerozhoduje.",
+    "queryHint": "Hledá se po slovech a nerozhoduje diakritika ani pořadí slov: dotaz \u201enovak jozef\u201c najde \u201eJozef Novák\u201c. U her se hledá v názvu, autorech a skupinách, u lidí v názvu, přezdívce a městě, u událostí v názvu a místě.",
+    "tooShort": "Zadejte alespoň dva znaky.",
+    "didYouMean": "Mysleli jste:",
+    "hits": "{{count}}×",
+    "userGames": "Hry od {{name}}",
+    "resultCountGames_0": "{{count}} hra odpovídá dotazu",
+    "resultCountGames_1": "{{count}} hry odpovídají dotazu",
+    "resultCountGames_2": "{{count}} her odpovídá dotazu",
+    "resultCountUsers_0": "{{count}} člověk odpovídá dotazu",
+    "resultCountUsers_1": "{{count}} lidé odpovídají dotazu",
+    "resultCountUsers_2": "{{count}} lidí odpovídá dotazu",
+    "resultCountEvents_0": "{{count}} událost odpovídá dotazu",
+    "resultCountEvents_1": "{{count}} události odpovídají dotazu",
+    "resultCountEvents_2": "{{count}} událostí odpovídá dotazu",
     "enterQuery": "Vložte dotaz do pole v horní části stránky a stiskněte Enter.",
     "notFound": "Dotazu nic nevyhovuje",
     "moreUsers": "Zobrazit další uživatele",
@@ -645,6 +665,9 @@
     },
     "filters": {
       "title": "Filtr",
+      "query": "Hledání",
+      "queryPlaceholder": "např. novak",
+      "queryHint": "Nerozhoduje diakritika ani pořadí slov: \u201enovak jozef\u201c najde \u201eJozef Novák\u201c.",
       "categories": "Kategorie",
       "themes": "Témata",
       "showAllThemes": "Zobrazit všech {{count}} témat",
@@ -694,7 +717,8 @@
       "rating": "{{value}} % a více",
       "minRatings": "aspoň {{count}} hodnocení",
       "added": "za posledních {{count}} dní",
-      "query": "hledání: {{query}}"
+      "query": "hledání: {{query}}",
+      "author": "hry od: {{name}}"
     },
     "card": {
       "noYear": "rok neuveden",

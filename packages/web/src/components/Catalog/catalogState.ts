@@ -32,6 +32,13 @@ export interface CatalogState {
     readonly withImage: boolean
     readonly addedWithinDays?: number
     readonly query?: string
+    /**
+     * Only the games this author wrote — the "hry od X" link of a search result
+     * or of a game detail. The name rides along in the URL (`autorn`) so the
+     * filter chip can say whose games these are without another request.
+     */
+    readonly author?: number
+    readonly authorName?: string
 }
 
 export const DEFAULT_CATALOG_SIZE = 24
@@ -115,6 +122,8 @@ export function parseCatalogState(query: ParsedUrlQuery): CatalogState {
         withImage: parseBool(query.img),
         addedWithinDays: parseNumber(query.days),
         query: first(query.q)?.trim() || undefined,
+        author: parseNumber(query.autor),
+        authorName: first(query.autorn)?.trim() || undefined,
     }
 }
 
@@ -136,7 +145,9 @@ export function catalogStateToQuery(state: CatalogState): { [key: string]: strin
     if (state.withComments) query.comments = '1'
     if (state.withImage) query.img = '1'
     if (state.addedWithinDays != null) query.days = String(state.addedWithinDays)
-    if (state.query) query.q = state.query
+    if (state.query && state.query.trim()) query.q = state.query
+    if (state.author != null) query.autor = String(state.author)
+    if (state.authorName) query.autorn = state.authorName
 
     return query
 }
@@ -150,6 +161,7 @@ export function catalogStateToFilter(state: CatalogState): GameCatalogFilter {
     const filter: GameCatalogFilter = {}
 
     if (state.query) filter.query = state.query
+    if (state.author != null) filter.authorIds = [String(state.author)]
     if (state.labels.length) {
         if (state.labelMode === 'any') {
             filter.anyLabels = [...state.labels]
@@ -212,6 +224,7 @@ export function hasCatalogFilters(state: CatalogState): boolean {
         state.withComments ||
         state.withImage ||
         state.addedWithinDays != null ||
+        state.author != null ||
         Boolean(state.query)
     )
 }
@@ -231,6 +244,7 @@ export interface CatalogActiveFilter {
         | 'withImage'
         | 'added'
         | 'query'
+        | 'author'
     readonly value?: string
     readonly from?: number
     readonly to?: number
@@ -313,6 +327,15 @@ export function catalogActiveFilters(
             kind: 'added',
             to: state.addedWithinDays,
             remove: { addedWithinDays: undefined },
+        })
+    }
+
+    if (state.author != null) {
+        filters.push({
+            key: 'author',
+            kind: 'author',
+            value: state.authorName ?? String(state.author),
+            remove: { author: undefined, authorName: undefined },
         })
     }
 

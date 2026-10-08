@@ -5,17 +5,42 @@ type Query {
     groupById(groupId: ID!): Group
     groupsByQuery(query: String!, offset: Int, limit: Int): [Group!]!
     eventById(eventId: ID!): Event
-    eventCalendar(offset: Int, limit: Int, from: String, to: String, requiredLabels: [ID!], otherLabels: [ID!]): EventsPaged!
+    eventCalendar(offset: Int, limit: Int, from: String, to: String, requiredLabels: [ID!], otherLabels: [ID!], query: String): EventsPaged!
     eventCalendarStats(from: String, to: String): EventCalendarStats!
+    "Events matching a text query (name and place, diacritics ignored, word prefixes matched)."
+    eventsByQuery(query: String!, offset: Int, limit: Int, from: String, to: String): EventsPaged!
+    "Everything matching a text query at once — what the header search field shows."
+    search(query: String!, limit: Int): SearchResults!
     userById(userId: ID!): User
     userByEmail(email: String!): User
     usersByQuery(query: String!, offset: Int, limit: Int): [User!]!
+    "Same order as `usersByQuery`, with the honest total for the pager."
+    usersByQueryWithTotal(query: String!, offset: Int, limit: Int): UsersPaged!
     games: GamesQuery!
     authorizedRequiredLabels: [Label!]!
     authorizedOptionalLabels: [Label!]!
     admin: AdminQuery!
     donations: [Donation!]!
     config: Config!
+}
+
+type UsersPaged {
+    users: [User!]!
+    totalAmount: Int!
+    "A corrected query to offer when nothing was found (`Mysleli jste…?`)."
+    suggestion: String
+}
+
+type SearchResults {
+    games: [Game!]!
+    users: [User!]!
+    events: [Event!]!
+    groups: [Group!]!
+    totalGames: Int!
+    totalUsers: Int!
+    totalEvents: Int!
+    totalGroups: Int!
+    suggestion: String
 }
 
 type Mutation {
@@ -66,6 +91,8 @@ enum GameCatalogOrder {
 
 input GameCatalogFilter {
     query: String
+    "Games of these authors (the 'hry od X' link of a search result)."
+    authorIds: [ID!]
     "Games that have all of these labels."
     allLabels: [ID!]
     "Games that have at least one of these labels."
@@ -162,6 +189,8 @@ type CommentsPaged {
 type GamesPaged {
     games: [Game!]!
     totalAmount: Int!
+    "A corrected query to offer when nothing was found (`Mysleli jste…?`)."
+    suggestion: String
 }
 
 type Event {
@@ -527,6 +556,8 @@ enum AllowedAction {
 type EventsPaged {
     events: [Event!]!
     totalAmount: Int!
+    "A corrected query to offer when nothing was found (`Mysleli jste…?`)."
+    suggestion: String
 }
 
 type EventCalendarStats {

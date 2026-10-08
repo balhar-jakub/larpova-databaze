@@ -185,6 +185,16 @@ const useStyles = createUseStyles({
         lineHeight: 1.4,
         color: darkTheme.textOnLightLighter,
     },
+    filterInput: {
+        width: '100%',
+        padding: '5px 8px',
+        fontSize: '0.78rem',
+        color: darkTheme.textOnLight,
+        backgroundColor: darkTheme.backgroundRealWhite,
+        border: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
+        borderRadius: 4,
+        outline: 0,
+    },
     switch: {
         display: 'inline-flex',
         backgroundColor: darkTheme.backgroundRealWhite,
@@ -488,6 +498,8 @@ const CalendarPanel = ({ initialQuery }: Props) => {
                 return t(`Calendar.filters.place_${value}`)
             case 'withWeb':
                 return t('Calendar.filters.withWeb')
+            case 'query':
+                return t('Calendar.active.query', { query: value })
             default:
                 return t('Calendar.active.label', { name: value })
         }
@@ -572,6 +584,21 @@ const CalendarPanel = ({ initialQuery }: Props) => {
                     <Row>
                         <Col lg={3} md={4} xs={12}>
                             <aside className={classes.side} data-testid={componentTestIds.calendar.filters}>
+                                <div className={classes.filterGroup}>
+                                    <h4 className={classes.filterTitle}>{t('Calendar.filters.query')}</h4>
+                                    <input
+                                        type="search"
+                                        className={classes.filterInput}
+                                        value={state.query ?? ''}
+                                        placeholder={t('Calendar.filters.queryPlaceholder')}
+                                        data-testid={componentTestIds.calendar.query}
+                                        onChange={(event) =>
+                                            updateState({ query: event.target.value.trim() || undefined })
+                                        }
+                                    />
+                                    <p className={classes.hint}>{t('Calendar.filters.queryHint')}</p>
+                                </div>
+
                                 <div className={classes.filterGroup}>
                                     <h4 className={classes.filterTitle}>{t('Calendar.filters.when')}</h4>
                                     <label className={classes.filter}>
