@@ -512,18 +512,45 @@ export type GroupMutationUpdateGroupArgs = {
   input?: InputMaybe<UpdateGroupInput>;
 };
 
+/**
+ * The homepage of the anonymous visitor, in one round trip: the blocks someone
+ * sees before they have an account. The old popularity block is gone — it sorted
+ * on `total_rating`, which is NULL for the four most visited games (PostgreSQL
+ * sorts NULLs first), so four unrated games led the block.
+ */
 export type HomepageQuery = {
   __typename?: 'HomepageQuery';
+  /** The best rated games; only games with at least 5 ratings get in. */
+  bestRatedGames: Array<Game>;
+  /** The newest games in the catalog. */
   lastAddedGames: Array<Game>;
   lastComments: Array<Comment>;
-  mostPopularGames: Array<Game>;
   nextEvents: Array<Event>;
+  /** What the database holds, for the hero line. */
+  stats: HomepageStats;
+  /** The most used labels with their game counts — the homepage tiles. */
+  topLabels: Array<GameCatalogLabelFacet>;
 };
 
 
+/**
+ * The homepage of the anonymous visitor, in one round trip: the blocks someone
+ * sees before they have an account. The old popularity block is gone — it sorted
+ * on `total_rating`, which is NULL for the four most visited games (PostgreSQL
+ * sorts NULLs first), so four unrated games led the block.
+ */
 export type HomepageQueryLastCommentsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
+};
+
+export type HomepageStats = {
+  __typename?: 'HomepageStats';
+  events: Scalars['Int'];
+  games: Scalars['Int'];
+  labels: Scalars['Int'];
+  upcomingEvents: Scalars['Int'];
+  users: Scalars['Int'];
 };
 
 export type Image = {
@@ -1211,15 +1238,7 @@ export type BaseCommentDataFragment = { __typename?: 'Comment', id: string, comm
 export type GetHomePageDataQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetHomePageDataQuery = { __typename?: 'Query', homepage: { __typename?: 'HomepageQuery', lastAddedGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, mostPopularGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, nextEvents: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, amountOfPlayers?: number | null }>, lastComments: Array<{ __typename?: 'Comment', id: string, commentAsText?: string | null, added?: string | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }, user: { __typename?: 'User', id: string, name: string, nickname?: string | null, image?: { __typename?: 'Image', id: string, path?: string | null } | null } }> } };
-
-export type GetMoreLastCommentsQueryVariables = Exact<{
-  offset?: InputMaybe<Scalars['Int']>;
-  limit?: InputMaybe<Scalars['Int']>;
-}>;
-
-
-export type GetMoreLastCommentsQuery = { __typename?: 'Query', homepage: { __typename?: 'HomepageQuery', lastComments: Array<{ __typename?: 'Comment', id: string, commentAsText?: string | null, added?: string | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }, user: { __typename?: 'User', id: string, name: string, nickname?: string | null, image?: { __typename?: 'Image', id: string, path?: string | null } | null } }> } };
+export type GetHomePageDataQuery = { __typename?: 'Query', homepage: { __typename?: 'HomepageQuery', lastAddedGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, bestRatedGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, nextEvents: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, amountOfPlayers?: number | null }>, lastComments: Array<{ __typename?: 'Comment', id: string, commentAsText?: string | null, added?: string | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }, user: { __typename?: 'User', id: string, name: string, nickname?: string | null, image?: { __typename?: 'Image', id: string, path?: string | null } | null } }>, topLabels: Array<{ __typename?: 'GameCatalogLabelFacet', id: string, name?: string | null, count: number, isRequired: boolean }>, stats: { __typename?: 'HomepageStats', games: number, events: number, upcomingEvents: number, users: number, labels: number } } };
 
 export type ChangePasswordMutationVariables = Exact<{
   oldPassword: Scalars['String'];

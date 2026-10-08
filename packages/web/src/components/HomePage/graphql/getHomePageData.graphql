@@ -3,10 +3,12 @@
 
 query GetHomePageData {
     homepage {
+        # What the anonymous visitor sees: the newest games, the best rated ones,
+        # the label tiles and the upcoming events — the whole page in one request.
         lastAddedGames {
             ...baseGameData
         }
-        mostPopularGames {
+        bestRatedGames {
             ...baseGameData
         }
         nextEvents {
@@ -19,6 +21,19 @@ query GetHomePageData {
         }
         lastComments {
             ...baseCommentData
+        }
+        topLabels {
+            id
+            name
+            count
+            isRequired
+        }
+        stats {
+            games
+            events
+            upcomingEvents
+            users
+            labels
         }
     }
 }

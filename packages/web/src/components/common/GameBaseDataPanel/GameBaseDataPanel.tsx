@@ -6,6 +6,7 @@ import { darkTheme } from '../../../theme/darkTheme'
 import { GameRatingBox } from '../GameRatingBox/GameRatingBox'
 import { IconRating, IconComment, IconUser } from '../Icons/Icons'
 import { GameLink } from '../GameLink/GameLink'
+import { useTranslation } from 'src/lib/i18n'
 
 export type GameBaseData = Pick<
     Game,
@@ -16,6 +17,14 @@ interface Props {
     readonly game: GameBaseData
     readonly variant: 'dark' | 'light'
     readonly className?: string
+    /**
+     * Write the three numbers out ("25 hráčů · 0 komentářů · 77 hodnocení") instead
+     * of stacking bare digits under the icons. The homepage — where a visitor
+     * reads a card they have never seen before and has no way to tell what
+     * "25 0 77 x" means — turns it on; the header's search dropdown, which has to
+     * stay one line, keeps the compact form.
+     */
+    readonly showStatLabels?: boolean
 }
 
 const useStyles = createUseStyles({
@@ -76,8 +85,11 @@ export const GameBaseDataPanel = ({
     variant,
     game: { id, name, players, amountOfComments, amountOfRatings, averageRating },
     className,
+    showStatLabels,
 }: Props) => {
     const classes = useStyles()
+    const { t } = useTranslation('common')
+
     return (
         <GameLink
             game={{ id, name }}
@@ -93,11 +105,17 @@ export const GameBaseDataPanel = ({
                 <span className={classes.name}>{name}</span>
                 <span className={classes.icons}>
                     <IconUser />
-                    <span className={classes.statValue}>{players}</span>
+                    <span className={classes.statValue}>
+                        {showStatLabels ? t('Game.players', { count: players ?? 0 }) : players}
+                    </span>
                     <IconComment />
-                    <span className={classes.statValue}>{amountOfComments}</span>
+                    <span className={classes.statValue}>
+                        {showStatLabels ? t('Catalog.card.comments', { count: amountOfComments }) : amountOfComments}
+                    </span>
                     <IconRating />
-                    <span className={classes.statValue}>{amountOfRatings} x</span>
+                    <span className={classes.statValue}>
+                        {showStatLabels ? t('Catalog.card.ratings', { count: amountOfRatings }) : `${amountOfRatings} x`}
+                    </span>
                 </span>
             </span>
         </GameLink>

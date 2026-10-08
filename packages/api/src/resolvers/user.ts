@@ -1,6 +1,7 @@
 import type { Context } from '../context.js';
 import { isAtLeastEditor } from '../auth/appUsers.js';
 import { normalizeGame, normalizeGender, normalizeUserRole } from './mappers.js';
+import { commentAsText } from './textUtils.js';
 
 /**
  * Values of `csld_rating.state`, mirroring the legacy CSLD `Rating.GameState`
@@ -73,7 +74,7 @@ export function normalizeUser(row: any, includeDeleted = false) {
       // caller may see.
       const comments = commentRows.slice(offset, offset + limit).map((c: any) => ({
         ...c,
-        commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
+        commentAsText: commentAsText(c.comment),
         user: { id: row.id, name: row.name, role: normalizeUserRole(row.role) },
         game: normalizeGame(c.csld_game),
       }));

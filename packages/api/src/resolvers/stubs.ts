@@ -2,7 +2,9 @@ export const resolvers = {
   Query: {
     homepage: () => ({
       lastAddedGames: [],
-      mostPopularGames: [],
+      bestRatedGames: [],
+      topLabels: [],
+      stats: { games: 0, events: 0, upcomingEvents: 0, users: 0, labels: 0 },
       lastComments: [],
       nextEvents: [],
     }),

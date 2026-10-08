@@ -54,7 +54,13 @@ export const GameEventGrid = ({ elements, className }: Props) => {
                 }
                 if (isGame(element)) {
                     return (
-                        <GameBaseDataPanel game={element} className={classes.element} key={element.id} variant="dark" />
+                        <GameBaseDataPanel
+                            game={element}
+                            className={classes.element}
+                            key={element.id}
+                            variant="dark"
+                            showStatLabels
+                        />
                     )
                 }
                 return ''

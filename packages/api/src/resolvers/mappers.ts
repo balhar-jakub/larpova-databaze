@@ -1,3 +1,5 @@
+import { commentAsText } from './textUtils.js';
+
 /**
  * `csld_csld_user.role` is a number (0 ANONYMOUS, 1 USER, 2 EDITOR, 3 ADMIN,
  * 4 AUTHOR) while the GraphQL field is the `UserRole` enum of *names*: handing
@@ -99,7 +101,7 @@ export function normalizeGame(row: any) {
     ratingStats: computeRatingStats(row.csld_rating ?? []),
     comments: (row.csld_comment ?? []).map((c: any) => ({
       ...c,
-      commentAsText: stripHtml(c.comment),
+      commentAsText: commentAsText(c.comment),
       user: normalizeUserRef(c.csld_csld_user),
       game: c.csld_game ?? null,
     })),
@@ -122,7 +124,3 @@ function computeRatingStats(ratings: any[]) {
   return Array.from(counts, ([rating, count]) => ({ rating, count }));
 }
 
-function stripHtml(html: string | null | undefined): string | null {
-  if (!html) return null;
-  return html.replace(/<[^>]*>/g, '').trim();
-}

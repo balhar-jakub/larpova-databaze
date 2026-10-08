@@ -340,15 +340,18 @@ export interface CatalogFacets {
   yearMax: number | null;
 }
 
-async function buildFacets(
-  ctx: Context,
-  filter: CatalogFilter,
-  queryIds?: number[] | null,
-): Promise<CatalogFacets> {
-  const labelWhere = buildCatalogWhere(filter, { skipLabels: true }, queryIds);
-  const durationWhere = buildCatalogWhere(filter, { skipDurations: true }, queryIds);
+export type LabelFacet = CatalogFacets['labels'][number];
 
-  const [labelGroups, labelRows, yearAggregate, durationCounts] = await Promise.all([
+/**
+ * The label facet block: every authorized label with the number of games the
+ * where-clause leaves. Extracted so the homepage tiles and the catalog sidebar
+ * cannot drift apart — the homepage calls it with no filter at all.
+ */
+async function computeLabelFacets(
+  ctx: Context,
+  labelWhere: Prisma.csld_gameWhereInput,
+): Promise<LabelFacet[]> {
+  const [labelGroups, labelRows] = await Promise.all([
     ctx.db.csld_game_has_label.groupBy({
       by: ['id_label'],
       where: { csld_game: labelWhere },
@@ -358,17 +361,11 @@ async function buildFacets(
       where: { OR: [{ is_authorized: true }, { is_required: true }] },
       select: { id: true, name: true, is_required: true },
     }),
-    ctx.db.csld_game.aggregate({ where: labelWhere, _min: { year: true }, _max: { year: true } }),
-    Promise.all(
-      DURATION_KEYS.map((key) =>
-        ctx.db.csld_game.count({ where: { AND: [durationWhere, DURATION_WHERE[key]] } }),
-      ),
-    ),
   ]);
 
   const counts = new Map(labelGroups.map((group) => [group.id_label, group._count._all]));
 
-  const labels = labelRows
+  return labelRows
     .map((label) => ({
       id: String(label.id),
       name: label.name,
@@ -381,6 +378,35 @@ async function buildFacets(
         b.count - a.count ||
         (a.name ?? '').localeCompare(b.name ?? '', 'cs'),
     );
+}
+
+/**
+ * Label tiles for the homepage: what the whole catalog holds, unfiltered.
+ * The visitor reaches the catalog by clicking one instead of by choosing from a
+ * filter panel they have never seen.
+ */
+export async function labelFacets(ctx: Context): Promise<LabelFacet[]> {
+  return computeLabelFacets(ctx, buildCatalogWhere());
+}
+
+
+async function buildFacets(
+  ctx: Context,
+  filter: CatalogFilter,
+  queryIds?: number[] | null,
+): Promise<CatalogFacets> {
+  const labelWhere = buildCatalogWhere(filter, { skipLabels: true }, queryIds);
+  const durationWhere = buildCatalogWhere(filter, { skipDurations: true }, queryIds);
+
+  const [labels, yearAggregate, durationCounts] = await Promise.all([
+    computeLabelFacets(ctx, labelWhere),
+    ctx.db.csld_game.aggregate({ where: labelWhere, _min: { year: true }, _max: { year: true } }),
+    Promise.all(
+      DURATION_KEYS.map((key) =>
+        ctx.db.csld_game.count({ where: { AND: [durationWhere, DURATION_WHERE[key]] } }),
+      ),
+    ),
+  ]);
 
   return {
     labels,
