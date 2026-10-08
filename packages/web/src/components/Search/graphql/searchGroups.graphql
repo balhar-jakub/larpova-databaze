@@ -1,0 +1,9 @@
+query SearchPageGroups($query: String!, $offset: Int!, $limit: Int!) {
+    groupsByQuery(query: $query, offset: $offset, limit: $limit) {
+        id
+        name
+        authorsOf {
+            id
+        }
+    }
+}

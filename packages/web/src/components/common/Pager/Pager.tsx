@@ -1,21 +1,39 @@
 import React, { useMemo } from 'react'
 import { createUseStyles } from 'react-jss'
 import classNames from 'classnames'
+import { useTranslation } from 'src/lib/i18n'
 import { darkTheme } from '../../../theme/darkTheme'
 import { generatePageOffsets } from './pagerUtils'
 import { useIsMdOrLarger } from '../../../hooks/useMediaQuery'
+import { componentTestIds } from '../../componentTestIds'
 
 interface Props {
     readonly currentOffset: number
     readonly totalAmount: number
     readonly pageSize: number
     readonly onOffsetChanged: (newOffset: number) => void
+    /**
+     * Show `1.–25. z 121` next to the buttons. The bare page numbers told the
+     * visitor neither how big the result is nor where in it they are.
+     */
+    readonly rangeLabel?: boolean
 }
 
 const useStyles = createUseStyles({
+    wrapper: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: 10,
+        marginTop: 5,
+    },
+    range: {
+        fontSize: '0.75rem',
+        color: darkTheme.textOnLightDark,
+        marginRight: 'auto',
+    },
     buttons: {
         textAlign: 'right',
-        marginTop: 5,
     },
     button: {
         border: `1px solid ${darkTheme.text}`,
@@ -38,8 +56,9 @@ const useStyles = createUseStyles({
     },
 })
 
-const Pager = ({ currentOffset, totalAmount, pageSize, onOffsetChanged }: Props) => {
+const Pager = ({ currentOffset, totalAmount, pageSize, onOffsetChanged, rangeLabel = false }: Props) => {
     const classes = useStyles()
+    const { t } = useTranslation('common')
     const isMdOrLarger = useIsMdOrLarger()
     const maxPages = isMdOrLarger ? 10 : 4
 
@@ -54,31 +73,42 @@ const Pager = ({ currentOffset, totalAmount, pageSize, onOffsetChanged }: Props)
     ])
 
     const firstPageNumber = pageOffsets[0] / pageSize + 1
+    const range =
+        totalAmount > 0
+            ? { from: currentOffset + 1, to: Math.min(currentOffset + pageSize, totalAmount) }
+            : undefined
 
     return (
-        <div className={classes.buttons}>
-            <button type="button" className={classes.button} onClick={() => onOffsetChanged(0)}>
-                &lt;&lt;
-            </button>
-            <button type="button" className={classes.button} onClick={() => onOffsetChanged(prevPageOffset)}>
-                &lt;
-            </button>
-            {pageOffsets.map((pageOffset, n) => (
-                <button
-                    key={pageOffset}
-                    type="button"
-                    className={classNames({ [classes.button]: true, [classes.active]: pageOffset === currentOffset })}
-                    onClick={() => onOffsetChanged(pageOffset)}
-                >
-                    {n + firstPageNumber}
+        <div className={classes.wrapper}>
+            {rangeLabel && range && (
+                <span className={classes.range} data-testid={componentTestIds.search.range}>
+                    {t('Search.rangeLabel', { from: range.from, to: range.to, total: totalAmount })}
+                </span>
+            )}
+            <div className={classes.buttons}>
+                <button type="button" className={classes.button} onClick={() => onOffsetChanged(0)}>
+                    &lt;&lt;
                 </button>
-            ))}
-            <button type="button" className={classes.button} onClick={() => onOffsetChanged(nextPageOffset)}>
-                &gt;
-            </button>
-            <button type="button" className={classes.button} onClick={() => onOffsetChanged(lastPageOffset)}>
-                &gt;&gt;
-            </button>
+                <button type="button" className={classes.button} onClick={() => onOffsetChanged(prevPageOffset)}>
+                    &lt;
+                </button>
+                {pageOffsets.map((pageOffset, n) => (
+                    <button
+                        key={pageOffset}
+                        type="button"
+                        className={classNames({ [classes.button]: true, [classes.active]: pageOffset === currentOffset })}
+                        onClick={() => onOffsetChanged(pageOffset)}
+                    >
+                        {n + firstPageNumber}
+                    </button>
+                ))}
+                <button type="button" className={classes.button} onClick={() => onOffsetChanged(nextPageOffset)}>
+                    &gt;
+                </button>
+                <button type="button" className={classes.button} onClick={() => onOffsetChanged(lastPageOffset)}>
+                    &gt;&gt;
+                </button>
+            </div>
         </div>
     )
 }

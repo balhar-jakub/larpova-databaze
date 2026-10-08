@@ -1,10 +1,10 @@
-#import "src/graphql/fragments/ladderGameData.graphql"
+#import "src/components/Search/graphql/searchGameData.graphql"
 
 query SearchPageGames($query: String!, $limit: Int!, $offset: Int!) {
     games {
         byQueryWithTotal(query: $query, offset: $offset, limit: $limit) {
             games {
-                ...ladderGameData,
+                ...searchGameData,
             }
             totalAmount
             suggestion

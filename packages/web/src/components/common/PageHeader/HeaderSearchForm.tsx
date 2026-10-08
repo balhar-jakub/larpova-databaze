@@ -15,6 +15,7 @@ import { formatDate, toEventDate } from '../../Calendar/calendarUtils'
 import EventLink from '../EventLink/EventLink'
 import { MIN_MATCH_QUERY_LENGTH } from '../../../utils/textUtils'
 import HighlightedText from '../../Search/HighlightedText'
+import { SearchType } from '../../Search/searchHelpers'
 import { componentTestIds } from '../../componentTestIds'
 
 export const searchInputId = 'headerSearchInput'
@@ -227,8 +228,8 @@ export const HeaderSearchForm = () => {
         }
     }
 
-    const showAll = (tab: string) => {
-        const searchRoute = routes.search(query, tab)
+    const showAll = (type: SearchType) => {
+        const searchRoute = routes.search(query, type)
 
         return (
             <TextLink
@@ -242,7 +243,7 @@ export const HeaderSearchForm = () => {
         )
     }
 
-    const groupHeader = (textKey: string, kind: string, count: number, withLink: boolean) => (
+    const groupHeader = (textKey: string, kind: SearchType, count: number, withLink: boolean) => (
         <div className={classes.groupHeader} data-testid={componentTestIds.search.headerGroup(kind)}>
             <span>{t(textKey)}</span>
             {withLink ? showAll(kind) : <span className={classes.groupCount}>{t('Search.hits', { count })}</span>}
@@ -328,7 +329,7 @@ export const HeaderSearchForm = () => {
                             )}
                             {result.groups.length > 0 && (
                                 <>
-                                    {groupHeader('Search.tabGroups', 'groups', result.totalGroups, false)}
+                                    {groupHeader('Search.tabGroups', 'groups', result.totalGroups, true)}
                                     {result.groups.slice(0, MAX_RESULTS_PER_KIND).map(group => (
                                         <div className={classes.person} key={group.id}>
                                             <TextLink

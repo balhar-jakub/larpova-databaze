@@ -3,15 +3,13 @@ import { createUseStyles } from 'react-jss'
 import { useQuery } from '@apollo/client'
 import { useTranslation } from 'src/lib/i18n'
 import {
-    GamesPaged,
-    LadderGameDataFragment,
     SearchPageGamesQuery,
     SearchPageGamesQueryVariables,
 } from '../../graphql/__generated__/typescript-operations'
 import BigLoading from '../common/BigLoading/BigLoading'
-import LadderGamePanel from '../Ladders/LadderGamePanel'
 import Pager from '../common/Pager/Pager'
 import SearchSuggestion from './SearchSuggestion'
+import SearchGameRow from './SearchGameRow'
 import { componentTestIds } from '../componentTestIds'
 
 const searchGamesGql = require('./graphql/searchPageGames.graphql')
@@ -30,10 +28,14 @@ const useStyles = createUseStyles({
     },
 })
 
-type Page = Pick<GamesPaged, 'totalAmount' | 'suggestion'> & {
-    games: Array<LadderGameDataFragment>
-}
+type Page = SearchPageGamesQuery['games']['byQueryWithTotal']
 
+/**
+ * The whole games result, shown when the visitor opens the games section (or
+ * picks the games chip). Every row says why it matched (`SearchGameRow`) — the
+ * engine also looks at authors and groups, so a row without any visible `larp`
+ * is a normal result, not a mistake.
+ */
 const GamesSearchPanel = ({ query, onUseSuggestion }: Props) => {
     const { t } = useTranslation('common')
     const classes = useStyles()
@@ -80,9 +82,12 @@ const GamesSearchPanel = ({ query, onUseSuggestion }: Props) => {
         <>
             {heading}
             <SearchSuggestion suggestion={page.suggestion} onUse={onUseSuggestion} />
-            <div style={loading ? { opacity: 0.5 } : undefined}>
+            <div
+                style={loading ? { opacity: 0.5 } : undefined}
+                data-testid={componentTestIds.search.section('games')}
+            >
                 {page.games.map(game => (
-                    <LadderGamePanel game={game} key={game.id} />
+                    <SearchGameRow game={game} query={query} key={game.id} />
                 ))}
             </div>
             <Pager
@@ -90,6 +95,7 @@ const GamesSearchPanel = ({ query, onUseSuggestion }: Props) => {
                 totalAmount={page.totalAmount}
                 pageSize={PAGE_SIZE}
                 onOffsetChanged={setOffset}
+                rangeLabel
             />
         </>
     )

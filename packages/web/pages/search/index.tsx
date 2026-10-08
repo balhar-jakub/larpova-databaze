@@ -15,7 +15,7 @@ const SearchPage: NextPage<Props, InitialProps> = () => {
             <Head><title>Hledání — Larpová databáze</title></Head>
             <SearchPanel
                 initialQuery={(router.query.q as string) || (router.query.initialQuery as string)}
-                initialTab={router.query.t as string}
+                initialType={(router.query.typ as string) || (router.query.t as string)}
             />
         </>
     )
