@@ -6,7 +6,7 @@ const GQL = `
 query LoadUserProfile($userId: ID!, $commentsLimit: Int!) {
   loggedInUser { id }
   userById(userId: $userId) {
-    id amountOfPlayed amountOfCreated name nickname birthDate city description
+    id amountOfPlayed amountOfCreated name nickname birthDate city description gender
     image { id }
     authoredGames { id name year averageRating amountOfRatings }
     playedGames { game { id name year averageRating amountOfRatings } rating }
