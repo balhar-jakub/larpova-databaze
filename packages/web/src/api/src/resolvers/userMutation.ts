@@ -5,6 +5,7 @@ import { setRememberMeCookie, clearRememberMeCookie } from '../auth/rememberMe.j
 import { GraphQLError } from 'graphql';
 import crypto from 'node:crypto';
 import { verifyRecaptcha } from '../external/recaptcha.js';
+import { normalizeGender, genderToNumber } from './mappers.js';
 import { sendPasswordResetEmail, sendMagicLinkEmail } from '../external/email.js';
 import {
   saveProfilePicture,
@@ -25,6 +26,7 @@ function mapUser(row: any): AuthUser {
     nickname: row.nickname,
     description: row.description ?? null,
     role: row.role,
+    gender: row.gender ?? null,
     image: row.csld_image ? { id: row.csld_image.id, path: row.csld_image.path } : null,
     amountOfComments: row.amount_of_comments,
     amountOfPlayed: row.amount_of_played,
@@ -39,6 +41,7 @@ function userToGraphQL(user: AuthUser) {
     nickname: user.nickname,
     email: user.email,
     role: ['ANONYMOUS', 'USER', 'EDITOR', 'ADMIN', 'AUTHOR'][user.role] || 'USER',
+    gender: normalizeGender(user.gender),
     image: user.image,
     amountOfComments: user.amountOfComments,
     amountOfPlayed: user.amountOfPlayed,
@@ -120,6 +123,7 @@ interface CreateUserInput {
   nickname?: string;
   birthDate?: string;
   city?: string;
+  gender?: string;
   recaptcha: string;
   profilePicture?: ProfilePictureInput;
 }
@@ -172,6 +176,7 @@ export async function createUserResolver(
       birth_date: input.birthDate ? new Date(input.birthDate) : null,
       address: input.city ?? null,
       image: imageId,
+      gender: genderToNumber(input.gender),
       role: 1, // USER
       is_author: false,
       amount_of_comments: 0,
@@ -201,6 +206,7 @@ export async function updateLoggedInUserResolver(
       birthDate?: string;
       city?: string;
       description?: string;
+      gender?: string;
       profilePicture?: ProfilePictureInput;
     };
   },
@@ -240,6 +246,9 @@ export async function updateLoggedInUserResolver(
       // A request that does not mention the bio (an older client) must not wipe
       // it, so the column is only touched when the field is actually sent.
       ...(input.description !== undefined ? { description: input.description || null } : {}),
+      // An absent gender means "keep the stored one" (older clients do not
+      // send the field); an explicit UNSPECIFIED clears it.
+      ...(input.gender ? { gender: genderToNumber(input.gender) } : {}),
       // No picture in this request means "keep the current one".
       ...(imageId ? { image: imageId } : {}),
     },

@@ -205,6 +205,8 @@ type User {
     id: ID!
     lastRating: Int
     role: UserRole
+    "Grammatical gender the wording about this user uses (`Hrál jsem` / `Hrála jsem`)."
+    gender: Gender
     amountOfComments: Int
     amountOfPlayed: Int
     amountOfCreated: Int
@@ -292,6 +294,7 @@ input CreateUserInput {
     nickname: String
     birthDate: String
     city: String
+    gender: Gender
     recaptcha: String!
 }
 
@@ -304,6 +307,7 @@ input UpdateLoggedInUserInput {
     city: String
     "Short public bio shown on the user's profile."
     description: String
+    gender: Gender
 }
 
 type GameMutation {
@@ -480,6 +484,14 @@ enum UserRoleIn {
     EDITOR,
     ADMIN
 }
+
+enum Gender {
+    "Not stated — the wording falls back to the neutral form (`Hrál/a jsem`)."
+    UNSPECIFIED
+    MALE
+    FEMALE
+}
+
 
 input UpdateLabelInput {
     id: ID!

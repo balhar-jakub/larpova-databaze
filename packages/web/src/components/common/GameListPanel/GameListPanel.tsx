@@ -9,6 +9,8 @@ import { GameLink } from '../GameLink/GameLink'
 
 interface Props {
     readonly titleKey?: string
+    /** Interpolation and gender for `titleKey` (see `lib/translationLookup`). */
+    readonly titleOptions?: Record<string, unknown>
     readonly games?: Array<Pick<Game, 'id' | 'name' | 'averageRating' | 'amountOfRatings' | 'year'>>
     readonly ratingMap?: { [key: string]: number | undefined }
 }
@@ -49,7 +51,7 @@ const useStyles = createUseStyles({
     },
 })
 
-export const GameListPanel = ({ titleKey, games, ratingMap }: Props) => {
+export const GameListPanel = ({ titleKey, titleOptions, games, ratingMap }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
 
@@ -57,7 +59,7 @@ export const GameListPanel = ({ titleKey, games, ratingMap }: Props) => {
         <>
             {titleKey && (
                 <DetailListHeader>
-                    <span className={classes.titleInner}>{t(titleKey)}</span>
+                    <span className={classes.titleInner}>{t(titleKey, titleOptions)}</span>
                     {ratingMap && <span className={classes.titleRating}>{t('Game.ratingInList')}</span>}
                 </DetailListHeader>
             )}

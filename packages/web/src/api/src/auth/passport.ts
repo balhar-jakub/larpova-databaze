@@ -43,6 +43,7 @@ export function configurePassport(db: Db) {
             email: user.email!,
             name: user.name,
             nickname: user.nickname,
+            gender: user.gender ?? null,
             role: user.role,
             image: user.csld_image
               ? { id: user.csld_image.id, path: user.csld_image.path }
@@ -80,6 +81,7 @@ export function configurePassport(db: Db) {
         email: user.email!,
         name: user.name,
         nickname: user.nickname,
+        gender: user.gender ?? null,
         role: user.role,
         image: user.csld_image
           ? { id: user.csld_image.id, path: user.csld_image.path }

@@ -3,6 +3,8 @@ import { createUseStyles } from 'react-jss'
 import { useTranslation } from 'src/lib/i18n'
 import { Button } from 'react-bootstrap'
 import { darkTheme } from '../../theme/darkTheme'
+import { useLoggedInUser } from '../../hooks/useLoggedInUser'
+import { genderContext } from '../../utils/genderUtils'
 
 interface Props {
     readonly onDismiss: () => void
@@ -21,10 +23,12 @@ const useStyles = createUseStyles({
 const AuthorWarningPanel = ({ onDismiss }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
+    // "Jste uveden/a jako autor" — the reader is the author of this game.
+    const gender = genderContext(useLoggedInUser()?.gender)
 
     return (
         <div>
-            <p className={classes.text}>{t('GameDetail.ownRatingWarning')}</p>
+            <p className={classes.text}>{t('GameDetail.ownRatingWarning', { context: gender })}</p>
             <Button variant="light" size="sm" onClick={onDismiss}>
                 {t('GameDetail.ownRatingWarningDismiss')}
             </Button>

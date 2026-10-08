@@ -8,6 +8,8 @@ import { computeAge } from '../../utils/dateUtils'
 import { breakPoints } from '../../theme/breakPoints'
 import { DEFAULT_IMAGE_URL } from '../common/ProfileImage/ProfileImage'
 import { sanitizeHtml } from '../../utils/sanitizeHtml'
+import { Gender } from '../../graphql/__generated__/typescript-operations'
+import { genderContext } from '../../utils/genderUtils'
 
 interface UserData {
     readonly id: string
@@ -21,6 +23,7 @@ interface UserData {
     readonly birthDate?: Maybe<string>
     /** Short public bio, stored as legacy HTML. */
     readonly description?: Maybe<string>
+    readonly gender?: Maybe<Gender>
 }
 
 interface Props {
@@ -96,6 +99,9 @@ const UserDetailPanel = ({ userData }: Props) => {
         setSanitizedDescription(sanitizeHtml(userData?.description))
     }, [userData?.description])
 
+    // "Hráč 3 larpů" / "Hráčka 3 larpů" — about the owner of the profile.
+    const gender = genderContext(userData?.gender)
+
     return (
         <div className={classes.wrapper}>
             <WidthFixer className={classes.fixer}>
@@ -117,8 +123,8 @@ const UserDetailPanel = ({ userData }: Props) => {
                             {userData.nickname} {userData.name}
                         </div>
                         <div className={classes.text}>
-                            {t('UserDetail.player', { count: userData.amountOfPlayed ?? 0 })}
-                            {t('UserDetail.author', { count: userData.amountOfCreated ?? 0 })}
+                            {t('UserDetail.player', { count: userData.amountOfPlayed ?? 0, context: gender })}
+                            {t('UserDetail.author', { count: userData.amountOfCreated ?? 0, context: gender })}
                             {age > 0 ? t('UserDetail.age', { age }) : ''}
                         </div>
                         {sanitizedDescription && (

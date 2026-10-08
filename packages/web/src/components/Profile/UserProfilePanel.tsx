@@ -19,6 +19,7 @@ import { DetailListHeader } from '../common/DetailListHeader/DetailListHeader'
 import DetailGameList from '../common/DetailGameList/DetailGameList'
 import BigLoading from '../common/BigLoading/BigLoading'
 import { breakPoints } from '../../theme/breakPoints'
+import { genderContext } from '../../utils/genderUtils'
 
 export type UserProfileUser = Maybe<
     { __typename?: 'User' } & {
@@ -109,6 +110,7 @@ const UserProfilePanel = ({ userId, user, profileOnly }: Props) => {
                               birthDate: user.birthDate,
                               amountOfCreated: user.authoredGames?.length ?? 0,
                               amountOfPlayed: user.amountOfPlayed,
+                              gender: user.gender,
                           }
                         : undefined
                 }
@@ -131,6 +133,7 @@ const UserProfilePanel = ({ userId, user, profileOnly }: Props) => {
                             {playedGames && (
                                 <GameListPanel
                                     titleKey="UserDetail.gamesPlayed"
+                                    titleOptions={{ context: genderContext(user?.gender) }}
                                     games={playedGames}
                                     ratingMap={playedGameRatings}
                                 />

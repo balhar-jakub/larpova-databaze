@@ -1,45 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { translate } from './translationLookup';
 
 type NestedRecord = Record<string, unknown>;
 type Translations = Record<string, unknown>;
-
-// Czech plural rules (i18next format):
-//   _0: count = 1 (singular)
-//   _1: count = 2, 3, 4 (few)
-//   _2: count = 0, 5+ (many)
-function csPluralSuffix(count: number): string {
-  if (count === 1) return '_0';
-  if (count >= 2 && count <= 4) return '_1';
-  return '_2';
-}
-
-// Nested key lookup: "PageHeader.csld" → data.PageHeader.csld
-// If the exact key is not found and options.count is provided,
-// tries plural suffixes (_0, _1, _2 for Czech).
-function getNested(obj: NestedRecord, path: string, options?: Record<string, unknown>): string {
-  const parts = path.split('.');
-  let current: any = obj;
-  let parent: any = null;
-  const lastKey = parts[parts.length - 1];
-  for (const p of parts) {
-    if (current == null || typeof current !== 'object') return path;
-    parent = current;
-    current = current[p];
-  }
-  // Exact key found and is a string
-  if (typeof current === 'string') return current;
-  // Try plural suffix if count is provided — look on the parent object
-  if (options?.count != null) {
-    const count = Number(options.count);
-    if (!isNaN(count)) {
-      const suffix = csPluralSuffix(count);
-      const pluralVal = parent?.[`${lastKey}${suffix}`];
-      if (typeof pluralVal === 'string') return pluralVal;
-    }
-  }
-  return path;
-}
 
 // Deep merge two nested objects
 function deepMerge(target: NestedRecord, source: NestedRecord): NestedRecord {
@@ -110,15 +74,7 @@ export function I18nProvider({
     loadLocale(locale).then(setTranslations);
   }, [locale, initialTranslations]);
 
-  const t = (key: string, options?: Record<string, unknown>) => {
-    let result = getNested(translations, key, options);
-    if (options) {
-      for (const [k, v] of Object.entries(options)) {
-        result = result.replace(`{{${k}}}`, String(v));
-      }
-    }
-    return result;
-  };
+  const t = (key: string, options?: Record<string, unknown>) => translate(translations, key, options);
 
   return (
     <I18nContext.Provider value={{ t, locale, ready: Object.keys(translations).length > 0 }}>
@@ -140,15 +96,7 @@ export function appWithTranslation(App: any) {
       loadLocale(locale).then(setTranslations);
     }, [locale]);
 
-    const t = (key: string, options?: Record<string, unknown>) => {
-      let result = getNested(translations, key, options);
-      if (options) {
-        for (const [k, v] of Object.entries(options)) {
-          result = result.replace(`{{${k}}}`, String(v));
-        }
-      }
-      return result;
-    };
+    const t = (key: string, options?: Record<string, unknown>) => translate(translations, key, options);
 
     return (
       <I18nContext.Provider value={{ t, locale, ready: Object.keys(translations).length > 0 }}>

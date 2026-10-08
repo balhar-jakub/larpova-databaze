@@ -12,5 +12,6 @@ query LoadCurrentUserSettings {
         birthDate
         city
         description
+        gender
     }
 }

@@ -59,6 +59,7 @@ model csld_csld_user {
   best_game_id              Int?
   last_rating               Int?
   default_lang              String?                     @db.VarChar(10)
+  gender                    Int?                        @default(0)
   csld_comment              csld_comment[]
   csld_comment_upvote       csld_comment_upvote[]
   csld_csld_group           csld_csld_group[]

@@ -2,6 +2,7 @@ query LoggedInUser {
     loggedInUser {
         id
         role
+        gender
         name
         nickname
         image {

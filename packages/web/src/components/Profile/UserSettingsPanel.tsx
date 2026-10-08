@@ -19,8 +19,10 @@ import {
 import { editorStateToHtml } from '../common/form/richTextInputUtils'
 import FormFileInputField from '../common/form/FormFileInputField'
 import FormRichTextInputField, { RichTextFieldValue } from '../common/form/FormRichTextInputField'
+import FormSelectField from '../common/form/FormSelectField'
 import { darkTheme } from '../../theme/darkTheme'
 import {
+    Gender,
     LoadCurrentUserSettingsQuery,
     UpdateUserSettingsMutation,
     UpdateUserSettingsMutationVariables,
@@ -51,6 +53,7 @@ interface FormData {
     birthDate: string
     profilePicture: string
     description: RichTextFieldValue
+    gender: Gender
 }
 
 /** The bio is a short text — the same ceiling the hint promises. */
@@ -112,6 +115,7 @@ const UserSettingsPanel = () => {
         city: loggedInUser.city || undefined,
         birthDate: convertDateFromGraphql(loggedInUser.birthDate),
         description: loggedInUser.description || undefined,
+        gender: loggedInUser.gender ?? Gender.Unspecified,
     }
 
     return (
@@ -191,6 +195,16 @@ const UserSettingsPanel = () => {
                                         label={t('UserFields.description')}
                                         hint={t('UserFields.descriptionHint')}
                                         validate={fieldValidator(t, [validateRichTextMaxLength(BIO_MAX_LENGTH)])}
+                                    />
+                                    <FormSelectField
+                                        name="gender"
+                                        label={t('UserFields.gender')}
+                                        hint={t('UserFields.genderHint')}
+                                        options={[
+                                            { value: Gender.Unspecified, label: t('UserFields.genderUnspecified') },
+                                            { value: Gender.Male, label: t('UserFields.genderMale') },
+                                            { value: Gender.Female, label: t('UserFields.genderFemale') },
+                                        ]}
                                     />
                                     <SubmitButton submitting={state === 'loading'} disabled={!!usedByUser}>
                                         {t('UserSettings.submit')}

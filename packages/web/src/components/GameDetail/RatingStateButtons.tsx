@@ -8,6 +8,8 @@ import {
     UpdateGameStateMutationVariables,
 } from '../../graphql/__generated__/typescript-operations'
 import { darkTheme } from '../../theme/darkTheme'
+import { useLoggedInUser } from '../../hooks/useLoggedInUser'
+import { GenderContext, genderContext } from '../../utils/genderUtils'
 
 const updateGameStateGql = require('./graphql/updateGameState.graphql')
 
@@ -42,9 +44,10 @@ interface ButtonProps {
     readonly activeValue: number
     readonly textKey: string
     readonly onChange: (newState: number) => void
+    readonly context?: GenderContext
 }
 
-const RatingButton = ({ value, textKey, activeValue, onChange }: ButtonProps) => {
+const RatingButton = ({ value, textKey, activeValue, onChange, context }: ButtonProps) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
     const isSelected = value === activeValue
@@ -58,13 +61,15 @@ const RatingButton = ({ value, textKey, activeValue, onChange }: ButtonProps) =>
             })}
             onClick={() => onChange(value)}
         >
-            {t(textKey)}
+            {t(textKey, { context })}
         </button>
     )
 }
 
 const RatingStateButtons = ({ gameId, state }: Props) => {
     const client = useApolloClient()
+    // `Hrál jsem` / `Hrála jsem` — the wording is about the signed-in user.
+    const gender = genderContext(useLoggedInUser()?.gender)
     const [tmpValue, setTmpValue] = useState<number | undefined>(undefined)
 
     // Clear tmpValue on state change
@@ -86,9 +91,27 @@ const RatingStateButtons = ({ gameId, state }: Props) => {
 
     return (
         <>
-            <RatingButton value={0} activeValue={activeValue} textKey="GameDetail.notPlayed" onChange={handleChange} />
-            <RatingButton value={2} activeValue={activeValue} textKey="GameDetail.iPlayed" onChange={handleChange} />
-            <RatingButton value={1} activeValue={activeValue} textKey="GameDetail.wantToPlay" onChange={handleChange} />
+            <RatingButton
+                value={0}
+                activeValue={activeValue}
+                textKey="GameDetail.notPlayed"
+                context={gender}
+                onChange={handleChange}
+            />
+            <RatingButton
+                value={2}
+                activeValue={activeValue}
+                textKey="GameDetail.iPlayed"
+                context={gender}
+                onChange={handleChange}
+            />
+            <RatingButton
+                value={1}
+                activeValue={activeValue}
+                textKey="GameDetail.wantToPlay"
+                context={gender}
+                onChange={handleChange}
+            />
         </>
     )
 }
