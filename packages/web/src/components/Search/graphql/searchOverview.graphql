@@ -1,0 +1,38 @@
+#import "src/components/Search/graphql/searchGameData.graphql"
+#import "src/components/Calendar/graphql/calendarEventData.graphql"
+
+# One round trip for the whole search page: the counts of every kind (the chips
+# and the result line), the best few rows of each kind (the "Nejlepší shody"
+# block) and the suggestion. The `limit` is what the block shows per kind.
+query SearchOverview($query: String!, $limit: Int!) {
+    search(query: $query, limit: $limit) {
+        totalGames
+        totalUsers
+        totalEvents
+        totalGroups
+        suggestion
+        games {
+            ...searchGameData
+        }
+        users {
+            id
+            name
+            nickname
+            birthDate
+            city
+            image {
+                id
+            }
+        }
+        events {
+            ...calendarEventData
+        }
+        groups {
+            id
+            name
+            authorsOf {
+                id
+            }
+        }
+    }
+}

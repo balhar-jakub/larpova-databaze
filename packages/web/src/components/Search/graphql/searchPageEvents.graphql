@@ -1,9 +1,15 @@
 #import "src/components/Calendar/graphql/calendarEventData.graphql"
 
-query SearchPageEvents($query: String!, $offset: Int!, $limit: Int!) {
-    eventsByQuery(query: $query, offset: $offset, limit: $limit) {
+query SearchPageEvents($query: String!, $offset: Int!, $limit: Int!, $from: String, $to: String) {
+    eventsByQuery(query: $query, offset: $offset, limit: $limit, from: $from, to: $to) {
         totalAmount
         suggestion
+        # Rows with the same name, start and end are collapsed into one; the badge
+        # says how many events the cluster holds (18x "Larpová chata" on production).
+        duplicates {
+            eventId
+            count
+        }
         events {
             ...calendarEventData
         }

@@ -44,6 +44,14 @@ export const MAX_QUERY_TOKENS = 6;
 /** Upper bound on the rows loaded for one search; guards a runaway scan. */
 export const MAX_SEARCH_CANDIDATES = 20000;
 
+/**
+ * Upper bound on the events loaded before collapsing them into clusters. The
+ * collapse has to see every match to count the clusters honestly, so this is
+ * the same spirit as MAX_SEARCH_CANDIDATES: a guard on a runaway scan, not a
+ * page size.
+ */
+export const MAX_EVENT_CLUSTER_SCAN = 20000;
+
 export const SCORE_EXACT_TITLE = 4;
 export const SCORE_TITLE_START = 3;
 export const SCORE_WORD_START = 2;
@@ -326,7 +334,19 @@ const GAME_SEARCH_SELECT = {
   csld_game_has_group: { select: { csld_csld_group: { select: { name: true } } } },
 } as const;
 
-const GAME_LIST_INCLUDE = { csld_game_has_label: { include: { csld_label: true } } } as const;
+/**
+ * Everything a game row shows on the search page: its labels, its authors and
+ * its group authors. `normalizeGame` (mappers.ts) already maps all three, so
+ * omitting the two author links from the include left `Game.authors` and
+ * `Game.groupAuthor` empty for every result of `byQueryWithTotal` — a game
+ * found through its author came back without naming them. `fetchGamesByIds` is
+ * used only by the search paths, so the ladders and the catalog pay nothing.
+ */
+const GAME_LIST_INCLUDE = {
+  csld_game_has_label: { include: { csld_label: true } },
+  csld_game_has_author: { include: { csld_csld_user: true } },
+  csld_game_has_group: { include: { csld_csld_group: true } },
+} as const;
 
 async function gameCandidates(ctx: Context): Promise<SearchCandidate[]> {
   const rows: any[] = await ctx.db.csld_game.findMany({
@@ -537,6 +557,76 @@ export async function fetchEventsByIds(ctx: Context, ids: readonly number[]) {
     .map((row) => mapEventRow(row, ctx));
 }
 
+/**
+ * Production answers `larp` with 153 events of which 80 fall into five piles of
+ * visually identical rows — 18× „Larpová chata“ (2022-03-10..2022-03-12), 16×
+ * „Muminí larp“, 15× „Larpová konference - zrušeno“. They are the same event
+ * imported again and again (a re-import or a duplicate registration), and the
+ * events tab paged through the same line five, fifteen, eighteen times. This is
+ * the shape one such pile collapses into: a representative id, how many rows
+ * it holds, and the ids of the rows themselves.
+ */
+export interface EventCluster {
+  readonly eventId: number;
+  count: number;
+  readonly ids: number[];
+}
+
+/**
+ * One instant as a comparison key. `from`/`to` come out of Prisma as `Date`
+ * and out of the search candidate as its string form, so an ISO string is the
+ * one spelling both share; a missing value folds to the empty string.
+ */
+function eventInstantKey(value: unknown): string {
+  if (value == null) return '';
+  const date = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(date.getTime()) ? String(value) : date.toISOString();
+}
+
+/**
+ * Collapse rows that are the same event seen twice: same folded name, same
+ * start, same end. Two events that only share a name but sit on different dates
+ * stay two rows — that is a real series, not a duplicate. The input order is
+ * kept, so the engine's ranking survives the collapse; the first row of a pile
+ * becomes its representative.
+ */
+export function groupEventsByIdentity(
+  rows: readonly { id: number; name?: string | null; from?: unknown; to?: unknown }[],
+): EventCluster[] {
+  const clusters: EventCluster[] = [];
+  const byKey = new Map<string, EventCluster>();
+
+  for (const row of rows) {
+    const key = `${foldSearchText(row.name)}\u0000${eventInstantKey(row.from)}\u0000${eventInstantKey(row.to)}`;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.count += 1;
+      existing.ids.push(row.id);
+      continue;
+    }
+    const cluster: EventCluster = { eventId: row.id, count: 1, ids: [row.id] };
+    byKey.set(key, cluster);
+    clusters.push(cluster);
+  }
+
+  return clusters;
+}
+
+/**
+ * Name and dates of the matched events, in the order of the given ids — the
+ * projection the clustering needs, without the labels and played games a full
+ * `fetchEventsByIds` would load. Same order-preserving lookup as that function.
+ */
+export async function fetchEventClusterKeys(ctx: Context, ids: readonly number[]) {
+  if (ids.length === 0) return [];
+  const rows: any[] = await ctx.db.event.findMany({
+    where: { id: { in: [...ids] } },
+    select: { id: true, name: true, from: true, to: true },
+  });
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return ids.map((id) => byId.get(id)).filter((row) => Boolean(row));
+}
+
 // ── Groups ───────────────────────────────────────────────
 
 async function groupCandidates(ctx: Context): Promise<SearchCandidate[]> {
@@ -644,23 +734,38 @@ export async function usersByQueryResolver(
   return fetchUsersByIds(ctx, page.ids);
 }
 
+/**
+ * `eventsByQuery` — the events tab of the search page. The matched rows are
+ * collapsed by identity before anything is returned: the same event imported
+ * again and again is one row carrying a „Nx stejný název a termín“ badge, so
+ * the pager walks *clusters* (offset/limit stay meaningful) and `totalAmount`
+ * counts rows the visitor sees, not database records. The `search` overview
+ * collapses the same way, so the count on the events chip is the count of rows
+ * behind it.
+ */
 export async function eventsByQueryResolver(
   _parent: unknown,
   args: { query: string; offset?: number; limit?: number; from?: string; to?: string },
   ctx: Context,
 ) {
-  const page = await eventsSearchPage(
-    ctx,
-    args.query,
-    args.offset ?? 0,
-    args.limit ?? 25,
-    args.from,
-    args.to,
-  );
+  // Scan every match (bounded) so the duplicate counts are honest, then page
+  // over the collapsed rows.
+  const all = await eventsSearchPage(ctx, args.query, 0, MAX_EVENT_CLUSTER_SCAN, args.from, args.to);
+  const clusters = groupEventsByIdentity(await fetchEventClusterKeys(ctx, all.ids));
+
+  const offset = Math.max(0, args.offset ?? 0);
+  const limit = Math.max(0, args.limit ?? 25);
+  const page = clusters.slice(offset, offset + limit);
+
   return {
-    events: await fetchEventsByIds(ctx, page.ids),
-    totalAmount: page.totalAmount,
-    suggestion: page.suggestion,
+    events: await fetchEventsByIds(ctx, page.map((cluster) => cluster.eventId)),
+    totalAmount: clusters.length,
+    suggestion: all.suggestion,
+    // Only rows the page actually shows carry a badge, and a lone row never
+    // does (a „1x“ badge would be noise).
+    duplicates: page
+      .filter((cluster) => cluster.count > 1)
+      .map((cluster) => ({ eventId: cluster.eventId, count: cluster.count })),
   };
 }
 
@@ -687,12 +792,23 @@ export async function searchResolver(
   ctx: Context,
 ): Promise<SearchResultsPayload> {
   const limit = clampLimit(args.limit, 5, 20);
-  const [games, users, events, groups] = await Promise.all([
+  const [games, users, groups] = await Promise.all([
     gamesPage(ctx, args.query, 0, limit),
     usersPage(ctx, args.query, 0, limit),
-    eventsPage(ctx, args.query, 0, limit),
     groupsPage(ctx, args.query, 0, limit),
   ]);
+
+  // Events are collapsed to clusters here as well: the chip and the "Nejlepší
+  // shody" block must promise the count of rows the whole list will show, and
+  // the list behind them (`eventsByQuery`) is collapsed too. Production says
+  // `larp` has 153 event records, which are 78 rows.
+  const allEvents = await eventsSearchPage(ctx, args.query, 0, MAX_EVENT_CLUSTER_SCAN);
+  const eventClusters = groupEventsByIdentity(await fetchEventClusterKeys(ctx, allEvents.ids));
+  const events = {
+    ids: eventClusters.slice(0, limit).map((cluster) => cluster.eventId),
+    totalAmount: eventClusters.length,
+    suggestion: allEvents.suggestion,
+  };
 
   const [gameRows, userRows, eventRows, groupRows] = await Promise.all([
     fetchGamesByIds(ctx, games.ids),

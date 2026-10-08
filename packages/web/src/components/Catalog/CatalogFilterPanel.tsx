@@ -21,11 +21,31 @@ export interface CatalogFacetsData {
     readonly yearMax?: number | null
 }
 
+export interface CatalogOrderOption {
+    readonly order: GameCatalogOrder
+    readonly textKey: string
+}
+
+/**
+ * The catalog's own rankings. The search page passes its own list instead: a
+ * search result leads with `Relevance` (how well the text matches), which the
+ * catalog has no use for without a query.
+ */
+export const DEFAULT_ORDER_OPTIONS: CatalogOrderOption[] = [
+    { order: GameCatalogOrder.Recommended, textKey: 'Catalog.rankings.all' },
+    { order: GameCatalogOrder.Best, textKey: 'Catalog.order.Best' },
+    { order: GameCatalogOrder.MostPlayed, textKey: 'Catalog.order.MostPlayed' },
+    { order: GameCatalogOrder.Newest, textKey: 'Catalog.order.Newest' },
+    { order: GameCatalogOrder.MostCommented, textKey: 'Catalog.order.MostCommented' },
+]
+
 interface Props {
     readonly state: CatalogState
     readonly facets?: CatalogFacetsData
     readonly onStateChange: (patch: Partial<CatalogState>) => void
     readonly onReset: () => void
+    /** Which rankings to offer; the catalog's own list by default. */
+    readonly orders?: CatalogOrderOption[]
 }
 
 const THEME_PREVIEW_COUNT = 8
@@ -219,7 +239,7 @@ const RangeInputs = ({
     )
 }
 
-const CatalogFilterPanel = ({ state, facets, onStateChange, onReset }: Props) => {
+const CatalogFilterPanel = ({ state, facets, onStateChange, onReset, orders }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
     const [themesExpanded, setThemesExpanded] = useState(false)
@@ -412,13 +432,7 @@ const CatalogFilterPanel = ({ state, facets, onStateChange, onReset }: Props) =>
 
             <div className={classes.group}>
                 <h3 className={classes.groupTitle}>{t('Catalog.rankings.title')}</h3>
-                {[
-                    { order: GameCatalogOrder.Recommended, textKey: 'Catalog.rankings.all' },
-                    { order: GameCatalogOrder.Best, textKey: 'Catalog.order.Best' },
-                    { order: GameCatalogOrder.MostPlayed, textKey: 'Catalog.order.MostPlayed' },
-                    { order: GameCatalogOrder.Newest, textKey: 'Catalog.order.Newest' },
-                    { order: GameCatalogOrder.MostCommented, textKey: 'Catalog.order.MostCommented' },
-                ].map((entry) => (
+                {(orders ?? DEFAULT_ORDER_OPTIONS).map((entry) => (
                     <button
                         type="button"
                         key={entry.order}

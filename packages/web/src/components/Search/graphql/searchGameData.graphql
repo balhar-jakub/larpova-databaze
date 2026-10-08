@@ -1,0 +1,24 @@
+fragment searchGameData on Game {
+    id
+    name
+    year
+    amountOfComments
+    amountOfRatings
+    averageRating
+    totalRating
+    labels {
+        id
+        name
+    }
+    # The engine matches authors and groups too, so the row has to be able to
+    # say "shoda: skupina Larpard" — 55 of the 121 games a `larp` query returns
+    # carry no `larp` in the name at all.
+    authors {
+        id
+        name
+    }
+    groupAuthor {
+        id
+        name
+    }
+}

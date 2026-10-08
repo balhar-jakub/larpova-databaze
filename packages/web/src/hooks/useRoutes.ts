@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { eventUrl, gameUrl } from '../utils/urls'
+import { SearchType, TYPE_PARAM } from '../components/Search/searchHelpers'
 
 // ── Route helper ──────────────────────────────────────────
 
@@ -92,10 +93,17 @@ export const useRoutes = () => {
 
             adminSelfRated: (): Route => route('/admin/selfRated'),
 
-            search: (query?: string, tab?: string): Route => {
+            /**
+             * The unified search page: `?q=larp&typ=udalosti`. The kind of result
+             * used to travel as `t=` with the two letters that stood for the tab
+             * it selected (`t=users`); the page has four kinds of result now
+             * (groups included) and shows them all at once, so the parameter is
+             * spelled out and only ever narrows the page to one kind.
+             */
+            search: (query?: string, type?: SearchType): Route => {
               const params: string[] = []
               if (query) params.push(`q=${encodeURIComponent(query)}`)
-              if (tab && tab !== 'games') params.push(`t=${tab}`)
+              if (type) params.push(`typ=${TYPE_PARAM[type]}`)
               return route(params.length ? `/search?${params.join('&')}` : '/search')
             },
 

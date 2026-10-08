@@ -1,13 +1,31 @@
-#import "src/graphql/fragments/ladderGameData.graphql"
+#import "src/components/Search/graphql/searchGameData.graphql"
 
-query SearchPageGames($query: String!, $limit: Int!, $offset: Int!) {
+# The games result of the search page. It goes through `games.catalog` — the same
+# machinery the /games page runs — because that is where the facets (labels with
+# their counts, durations, the year range) and the orders live. `filter.query` is
+# resolved by the same search engine, so the set of games is exactly the one the
+# old tab showed, and `order: Relevance` keeps the engine's own ranking.
+query SearchPageGames($filter: GameCatalogFilter, $order: GameCatalogOrder, $offset: Int, $limit: Int) {
     games {
-        byQueryWithTotal(query: $query, offset: $offset, limit: $limit) {
-            games {
-                ...ladderGameData,
-            }
+        catalog(filter: $filter, order: $order, offset: $offset, limit: $limit) {
             totalAmount
-            suggestion
+            games {
+                ...searchGameData,
+            }
+            facets {
+                labels {
+                    id
+                    name
+                    count
+                    isRequired
+                }
+                durations {
+                    key
+                    count
+                }
+                yearMin
+                yearMax
+            }
         }
     }
 }

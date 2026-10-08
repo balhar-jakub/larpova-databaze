@@ -31,6 +31,7 @@ export const DEFAULT_ORDER = 'Recommended';
 
 export type CatalogOrder =
   | 'Recommended'
+  | 'Relevance'
   | 'Best'
   | 'MostPlayed'
   | 'Newest'
@@ -81,10 +82,18 @@ export const DURATION_WHERE: { [key in DurationKey]: Prisma.csld_gameWhereInput 
   long: { days: { gte: 4 } },
 };
 
-/** Columns the game card needs — the ladder only sent labels, so cards had no image. */
+/**
+ * Columns the game card needs — the ladder only sent labels, so cards had no
+ * image. The two author links are there for the search page, whose game rows say
+ * *why* a game is in the list (`shoda: autor Jan Novák`) and who wrote it;
+ * `normalizeGame` already maps both, and loading them for the ~24 rows of one
+ * page costs nothing next to the label join that was already there.
+ */
 export const GAME_CATALOG_INCLUDE = {
   csld_game_has_label: { include: { csld_label: true } },
   csld_image_csld_game_cover_imageTocsld_image: true,
+  csld_game_has_author: { include: { csld_csld_user: true } },
+  csld_game_has_group: { include: { csld_csld_group: true } },
 };
 
 export const GAME_LIST_INCLUDE = {
@@ -102,7 +111,10 @@ const NAME_ORDER: Prisma.csld_gameOrderByWithRelationInput = { name: orderByInpu
 
 /**
  * `Recommended` is intentionally missing here: it is ranked in memory (see
- * pageGameIds) because the score is not a column.
+ * pageGameIds) because the score is not a column. `Relevance` is missing for the
+ * same reason and is handled before this switch — the order of the matched ids
+ * *is* the relevance, and without a query there is nothing to be relevant to
+ * (pageGameIds falls back to `Recommended`).
  */
 export function catalogOrderBy(order: CatalogOrder): Prisma.csld_gameOrderByWithRelationInput[] {
   switch (order) {
@@ -261,7 +273,31 @@ async function pageGameIds(
   order: CatalogOrder,
   offset: number,
   limit: number,
+  queryIds?: number[] | null,
 ): Promise<number[]> {
+  // `Relevance` is the search engine's own ranking: `gameIdsForQuery` returns
+  // the matched ids best match first (exact title, title start, every word at a
+  // word start, substring), so the position in that list *is* the relevance and
+  // there is nothing to sort by in the database. The other facets — a label, a
+  // year, a rating — are conditions `where` already carries (together with the
+  // matched ids), so the page is fetched through them and only its *order* comes
+  // from the engine; a list of `queryIds.slice(...)` would quietly ignore every
+  // facet and hand back rows the count next to the heading does not include.
+  // Without a query to be relevant to — the catalog's text box can be empty —
+  // it falls back to `Recommended`.
+  if (order === 'Relevance') {
+    if (Array.isArray(queryIds)) {
+      const rows = await ctx.db.csld_game.findMany({ where, select: { id: true } })
+      const position = new Map(queryIds.map((id, index) => [id, index]))
+
+      return rows
+        .map((row) => row.id)
+        .sort((first, second) => (position.get(first) ?? 0) - (position.get(second) ?? 0))
+        .slice(offset, offset + limit);
+    }
+    return pageGameIds(ctx, where, 'Recommended', offset, limit, null);
+  }
+
   if (order !== 'Recommended') {
     const rows = await ctx.db.csld_game.findMany({
       where,
@@ -370,7 +406,7 @@ export async function catalogResolver(
 
   const [totalAmount, ids] = await Promise.all([
     ctx.db.csld_game.count({ where }),
-    pageGameIds(ctx, where, order, offset, limit),
+    pageGameIds(ctx, where, order, offset, limit, queryIds),
   ]);
 
   const [games, facets] = await Promise.all([
