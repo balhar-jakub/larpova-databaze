@@ -12,6 +12,9 @@ import {
   type ProfilePictureInput,
 } from './profilePicture.js';
 
+/** Structural ceiling for the profile bio — the settings form is far stricter. */
+export const MAX_BIO_LENGTH = 20_000;
+
 // ── Helpers ──────────────────────────────────────────────
 
 function mapUser(row: any): AuthUser {
@@ -20,6 +23,7 @@ function mapUser(row: any): AuthUser {
     email: row.email!,
     name: row.name,
     nickname: row.nickname,
+    description: row.description ?? null,
     role: row.role,
     image: row.csld_image ? { id: row.csld_image.id, path: row.csld_image.path } : null,
     amountOfComments: row.amount_of_comments,
@@ -40,7 +44,7 @@ function userToGraphQL(user: AuthUser) {
     amountOfPlayed: user.amountOfPlayed,
     amountOfCreated: user.amountOfCreated,
     lastRating: null,
-    description: null,
+    description: user.description ?? null,
     birthDate: null,
     city: null,
     ratings: [],
@@ -196,6 +200,7 @@ export async function updateLoggedInUserResolver(
       nickname?: string;
       birthDate?: string;
       city?: string;
+      description?: string;
       profilePicture?: ProfilePictureInput;
     };
   },
@@ -208,6 +213,14 @@ export async function updateLoggedInUserResolver(
   }
 
   const { input } = args;
+
+  // The bio is a short text; the form is the real gate, this is only the
+  // structural ceiling so the column cannot be filled from a hand-written call.
+  if (input.description && input.description.length > MAX_BIO_LENGTH) {
+    throw new GraphQLError('Bio is too long', {
+      extensions: { code: 'VALIDATION_FAILED' },
+    });
+  }
 
   const previous = await ctx.db.csld_csld_user.findUnique({
     where: { id: ctx.user.id },
@@ -224,6 +237,9 @@ export async function updateLoggedInUserResolver(
       nickname: input.nickname ?? null,
       birth_date: input.birthDate ? new Date(input.birthDate) : null,
       address: input.city ?? null,
+      // A request that does not mention the bio (an older client) must not wipe
+      // it, so the column is only touched when the field is actually sent.
+      ...(input.description !== undefined ? { description: input.description || null } : {}),
       // No picture in this request means "keep the current one".
       ...(imageId ? { image: imageId } : {}),
     },

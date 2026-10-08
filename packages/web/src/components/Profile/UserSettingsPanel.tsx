@@ -9,8 +9,16 @@ import { UserContext } from 'src/context/UserContext/UserContext'
 import isInBrowser from 'is-in-browser'
 import FormPageRow from '../common/FormPageRow/FormPageRow'
 import FormTextInputField from '../common/form/FormTextInputField'
-import { fieldValidator, validateDate, validateEmail, validateRequired } from '../../utils/validationUtils'
+import {
+    fieldValidator,
+    validateDate,
+    validateEmail,
+    validateRequired,
+    validateRichTextMaxLength,
+} from '../../utils/validationUtils'
+import { editorStateToHtml } from '../common/form/richTextInputUtils'
 import FormFileInputField from '../common/form/FormFileInputField'
+import FormRichTextInputField, { RichTextFieldValue } from '../common/form/FormRichTextInputField'
 import { darkTheme } from '../../theme/darkTheme'
 import {
     LoadCurrentUserSettingsQuery,
@@ -42,7 +50,11 @@ interface FormData {
     city: string
     birthDate: string
     profilePicture: string
+    description: RichTextFieldValue
 }
+
+/** The bio is a short text — the same ceiling the hint promises. */
+const BIO_MAX_LENGTH = 1500
 
 type TState = 'idle' | 'loading' | 'error'
 
@@ -71,11 +83,12 @@ const UserSettingsPanel = () => {
             return { emailAvailable: 'unavailable' }
         }
 
-        const { profilePicture, birthDate, ...inputBase } = data
+        const { profilePicture, birthDate, description, ...inputBase } = data
         const variables: UpdateUserSettingsMutationVariables = {
             input: {
                 ...inputBase,
                 birthDate: convertDateInput(birthDate),
+                description: editorStateToHtml(description) || '',
                 profilePicture: convertFileInput(profilePicture),
             },
         }
@@ -98,6 +111,7 @@ const UserSettingsPanel = () => {
         nickname: loggedInUser.nickname || undefined,
         city: loggedInUser.city || undefined,
         birthDate: convertDateFromGraphql(loggedInUser.birthDate),
+        description: loggedInUser.description || undefined,
     }
 
     return (
@@ -172,6 +186,12 @@ const UserSettingsPanel = () => {
                                             />
                                         </Col>
                                     </Row>
+                                    <FormRichTextInputField
+                                        name="description"
+                                        label={t('UserFields.description')}
+                                        hint={t('UserFields.descriptionHint')}
+                                        validate={fieldValidator(t, [validateRichTextMaxLength(BIO_MAX_LENGTH)])}
+                                    />
                                     <SubmitButton submitting={state === 'loading'} disabled={!!usedByUser}>
                                         {t('UserSettings.submit')}
                                     </SubmitButton>

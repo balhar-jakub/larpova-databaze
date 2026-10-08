@@ -105,7 +105,7 @@ const UserProfilePanel = ({ userId, user, profileOnly }: Props) => {
                               image: user.image ?? undefined,
                               name: user.name,
                               nickname: user.nickname,
-                              email: user.email,
+                              description: user.description,
                               birthDate: user.birthDate,
                               amountOfCreated: user.authoredGames?.length ?? 0,
                               amountOfPlayed: user.amountOfPlayed,

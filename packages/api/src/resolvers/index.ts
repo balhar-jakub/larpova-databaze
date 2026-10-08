@@ -25,6 +25,8 @@ import {
   adminSelfRatedResolver,
 } from './admin.js';
 import { donationsResolver } from './donations.js';
+import { isAtLeastEditor } from '../auth/appUsers.js';
+import type { Context } from '../context.js';
 import {
   logInResolver,
   logOutResolver,
@@ -130,6 +132,22 @@ export const resolvers: any = {
   GroupMutation: {
     createGroup: createGroupResolver,
     updateGroup: updateGroupResolver,
+  },
+
+  User: {
+    /**
+     * `email` is the account identifier — how you sign in, recover a password
+     * and add a game co-author — not public profile data. Handing it to every
+     * caller let anyone harvest all ~3200 addresses through `usersByQuery`
+     * without signing in. Only the user themselves and staff see it.
+     */
+    email: (parent: any, _args: unknown, ctx: Context) => {
+      if (!parent?.email) return null;
+      if (ctx.user && (String(ctx.user.id) === String(parent.id) || isAtLeastEditor(ctx))) {
+        return parent.email;
+      }
+      return null;
+    },
   },
 
   Game: {

@@ -214,7 +214,7 @@ describe('Profile picture in the settings form', () => {
       server,
       `{ loggedInUser { id city ${imageSelect} } }`,
       undefined,
-      { files, user: { id: userId, email: editEmail, name: 'Picture Edit 2', nickname: null, role: 1, image: null, amountOfComments: 0, amountOfPlayed: 0, amountOfCreated: 0 } },
+      { files, user: { id: userId, email: editEmail, name: 'Picture Edit 2', nickname: null, description: null, role: 1, image: null, amountOfComments: 0, amountOfPlayed: 0, amountOfCreated: 0 } },
     );
 
     expect(result.errors).toBeUndefined();

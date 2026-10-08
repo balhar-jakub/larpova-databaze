@@ -722,6 +722,8 @@ export type UpdateLabelInput = {
 export type UpdateLoggedInUserInput = {
   birthDate?: InputMaybe<Scalars['String']>;
   city?: InputMaybe<Scalars['String']>;
+  /** Short public bio shown on the user's profile. */
+  description?: InputMaybe<Scalars['String']>;
   email: Scalars['String'];
   name: Scalars['String'];
   nickname?: InputMaybe<Scalars['String']>;
@@ -743,7 +745,7 @@ export type User = {
   city?: Maybe<Scalars['String']>;
   commentsPaged: CommentsPaged;
   description?: Maybe<Scalars['String']>;
-  email: Scalars['String'];
+  email?: Maybe<Scalars['String']>;
   id: Scalars['ID'];
   image?: Maybe<Image>;
   lastRating?: Maybe<Scalars['Int']>;
@@ -862,7 +864,7 @@ export type LoadAllUsersQuery = { __typename?: 'Query', admin: { __typename?: 'A
 export type LoadSelfRatedQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type LoadSelfRatedQuery = { __typename?: 'Query', admin: { __typename?: 'AdminQuery', selfRated: Array<{ __typename?: 'SelfRated', game: { __typename?: 'Game', id: string, name?: string | null }, user: { __typename?: 'User', id: string, email: string, name: string, nickname?: string | null } }> } };
+export type LoadSelfRatedQuery = { __typename?: 'Query', admin: { __typename?: 'AdminQuery', selfRated: Array<{ __typename?: 'SelfRated', game: { __typename?: 'Game', id: string, name?: string | null }, user: { __typename?: 'User', id: string, email?: string | null, name: string, nickname?: string | null } }> } };
 
 export type LoadStatsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1137,19 +1139,19 @@ export type ChangePasswordMutationVariables = Exact<{
 
 export type ChangePasswordMutation = { __typename?: 'Mutation', user: { __typename?: 'UserMutation', updateLoggedInUserPassword: { __typename?: 'User', id: string } } };
 
-export type UserProfileDataFragment = { __typename?: 'User', id: string, amountOfPlayed?: number | null, amountOfCreated?: number | null, email: string, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, image?: { __typename?: 'Image', id: string } | null, authoredGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, playedGames: Array<{ __typename?: 'GameWithRating', rating?: number | null, game: { __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number } }>, wantedGames: Array<{ __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }> };
+export type UserProfileDataFragment = { __typename?: 'User', id: string, amountOfPlayed?: number | null, amountOfCreated?: number | null, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, description?: string | null, image?: { __typename?: 'Image', id: string } | null, authoredGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, playedGames: Array<{ __typename?: 'GameWithRating', rating?: number | null, game: { __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number } }>, wantedGames: Array<{ __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }> };
 
 export type LoadCurrentUserProfileQueryVariables = Exact<{
   commentsLimit: Scalars['Int'];
 }>;
 
 
-export type LoadCurrentUserProfileQuery = { __typename?: 'Query', loggedInUser?: { __typename?: 'User', id: string, amountOfPlayed?: number | null, amountOfCreated?: number | null, email: string, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, commentsPaged: { __typename?: 'CommentsPaged', totalAmount: number, comments: Array<{ __typename?: 'Comment', id: string, added?: string | null, amountOfUpvotes: number, comment?: string | null, isHidden?: boolean | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }, user: { __typename?: 'User', id: string, name: string, nickname?: string | null, image?: { __typename?: 'Image', id: string } | null } }> }, image?: { __typename?: 'Image', id: string } | null, authoredGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, playedGames: Array<{ __typename?: 'GameWithRating', rating?: number | null, game: { __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number } }>, wantedGames: Array<{ __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }> } | null };
+export type LoadCurrentUserProfileQuery = { __typename?: 'Query', loggedInUser?: { __typename?: 'User', id: string, amountOfPlayed?: number | null, amountOfCreated?: number | null, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, description?: string | null, commentsPaged: { __typename?: 'CommentsPaged', totalAmount: number, comments: Array<{ __typename?: 'Comment', id: string, added?: string | null, amountOfUpvotes: number, comment?: string | null, isHidden?: boolean | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }, user: { __typename?: 'User', id: string, name: string, nickname?: string | null, image?: { __typename?: 'Image', id: string } | null } }> }, image?: { __typename?: 'Image', id: string } | null, authoredGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, playedGames: Array<{ __typename?: 'GameWithRating', rating?: number | null, game: { __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number } }>, wantedGames: Array<{ __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }> } | null };
 
 export type LoadCurrentUserSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type LoadCurrentUserSettingsQuery = { __typename?: 'Query', loggedInUser?: { __typename?: 'User', id: string, amountOfPlayed?: number | null, amountOfCreated?: number | null, email: string, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, image?: { __typename?: 'Image', id: string } | null } | null };
+export type LoadCurrentUserSettingsQuery = { __typename?: 'Query', loggedInUser?: { __typename?: 'User', id: string, amountOfPlayed?: number | null, amountOfCreated?: number | null, email?: string | null, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, description?: string | null, image?: { __typename?: 'Image', id: string } | null } | null };
 
 export type LoadUserProfileQueryVariables = Exact<{
   userId: Scalars['ID'];
@@ -1157,7 +1159,7 @@ export type LoadUserProfileQueryVariables = Exact<{
 }>;
 
 
-export type LoadUserProfileQuery = { __typename?: 'Query', loggedInUser?: { __typename?: 'User', id: string } | null, userById?: { __typename?: 'User', id: string, amountOfPlayed?: number | null, amountOfCreated?: number | null, email: string, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, commentsPaged: { __typename?: 'CommentsPaged', totalAmount: number, comments: Array<{ __typename?: 'Comment', id: string, added?: string | null, amountOfUpvotes: number, comment?: string | null, isHidden?: boolean | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }, user: { __typename?: 'User', id: string, name: string, nickname?: string | null, image?: { __typename?: 'Image', id: string } | null } }> }, image?: { __typename?: 'Image', id: string } | null, authoredGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, playedGames: Array<{ __typename?: 'GameWithRating', rating?: number | null, game: { __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number } }>, wantedGames: Array<{ __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }> } | null };
+export type LoadUserProfileQuery = { __typename?: 'Query', loggedInUser?: { __typename?: 'User', id: string } | null, userById?: { __typename?: 'User', id: string, amountOfPlayed?: number | null, amountOfCreated?: number | null, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, description?: string | null, commentsPaged: { __typename?: 'CommentsPaged', totalAmount: number, comments: Array<{ __typename?: 'Comment', id: string, added?: string | null, amountOfUpvotes: number, comment?: string | null, isHidden?: boolean | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }, user: { __typename?: 'User', id: string, name: string, nickname?: string | null, image?: { __typename?: 'Image', id: string } | null } }> }, image?: { __typename?: 'Image', id: string } | null, authoredGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, playedGames: Array<{ __typename?: 'GameWithRating', rating?: number | null, game: { __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number } }>, wantedGames: Array<{ __typename?: 'Game', year?: number | null, id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }> } | null };
 
 export type MoreUserCommentsQueryVariables = Exact<{
   userId: Scalars['ID'];
@@ -1276,7 +1278,7 @@ export type CheckEmailQueryVariables = Exact<{
 }>;
 
 
-export type CheckEmailQuery = { __typename?: 'Query', userByEmail?: { __typename?: 'User', id: string, email: string, name: string, nickname?: string | null } | null };
+export type CheckEmailQuery = { __typename?: 'Query', userByEmail?: { __typename?: 'User', id: string, email?: string | null, name: string, nickname?: string | null } | null };
 
 export type LoadLabelsQueryVariables = Exact<{ [key: string]: never; }>;
 

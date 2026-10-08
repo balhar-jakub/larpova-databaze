@@ -136,7 +136,8 @@
     "invalidDate": "Datum není platné",
     "invalidTimeFormat": "Formát času musí být HH:MM",
     "invalidTime": "Neplatný čas",
-    "invalidUrl": "Adresa musí být úplný odkaz začínající http:// nebo https://"
+    "invalidUrl": "Adresa musí být úplný odkaz začínající http:// nebo https://",
+    "richTextTooLong": "Text je příliš dlouhý — maximálně 1500 znaků"
   },
 
   "RecoverPassword": {
@@ -165,7 +166,9 @@
     "city": "Město",
     "cityHint": "Chcete-li, zadejte město, ve kterém bydlíte (studujete, pracujete, ...)",
     "birthDate": "Datum narození",
-    "birthDateHint": "Chcete-li, zadejte své datum narození ve formátu DD.MM.YYYY"
+    "birthDateHint": "Chcete-li, zadejte své datum narození ve formátu DD.MM.YYYY",
+    "description": "O mně",
+    "descriptionHint": "Krátké povídání o sobě, které se zobrazí na vašem profilu. Maximálně 1500 znaků."
   },
 
   "SignUp": {

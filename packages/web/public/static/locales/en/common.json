@@ -2,7 +2,8 @@
   "loadError": "Error while loading data",
   "loading": "Loading data...",
   "Errors": {
-    "invalidUrl": "The address must be a complete link beginning with http:// or https://"
+    "invalidUrl": "The address must be a complete link beginning with http:// or https://",
+    "richTextTooLong": "The text is too long — 1500 characters at most"
   },
   "SignIn": {
     "emailPlaceholder": "you@email.com",
