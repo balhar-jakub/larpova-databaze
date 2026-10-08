@@ -1,5 +1,6 @@
 import type { Context } from '../context.js';
 import type { Prisma } from '@prisma/client';
+import { isAtLeastEditor } from '../auth/appUsers.js';
 import { normalizeGame } from './mappers.js';
 
 export async function eventByIdResolver(
@@ -27,7 +28,12 @@ export async function eventByIdResolver(
       ? { lattitude: row.latitude, longtitude: row.longitude }
       : null,
     labels: (row.event_has_labels ?? []).map((j) => j.csld_label).filter(Boolean),
-    games: (row.csld_game_has_event ?? []).map((j) => j.csld_game).filter(Boolean).map((g: any) => normalizeGame(g)),
+    // A game deleted on its detail page must not show up as played at the event
+    // either; editors and admins keep seeing it (see `gameByIdResolver`).
+    games: (row.csld_game_has_event ?? [])
+      .map((j) => j.csld_game)
+      .filter((g: any) => g && (isAtLeastEditor(ctx) || !g.deleted))
+      .map((g: any) => normalizeGame(g)),
     allowedActions: null,
   };
 }
@@ -100,7 +106,10 @@ export async function eventCalendarResolver(
         ? { lattitude: e.latitude, longtitude: e.longitude }
         : null,
       labels: (e.event_has_labels ?? []).map((j) => j.csld_label).filter(Boolean),
-      games: (e.csld_game_has_event ?? []).map((j) => j.csld_game).filter(Boolean).map((g: any) => normalizeGame(g)),
+      games: (e.csld_game_has_event ?? [])
+        .map((j) => j.csld_game)
+        .filter((g: any) => g && (isAtLeastEditor(ctx) || !g.deleted))
+        .map((g: any) => normalizeGame(g)),
     })),
     totalAmount,
   };

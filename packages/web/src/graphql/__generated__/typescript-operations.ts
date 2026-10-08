@@ -346,6 +346,7 @@ export type GameMutation = {
   deleteGame: Game;
   deleteGameRating: Game;
   rateGame: Game;
+  restoreGame: Game;
   setCommentLiked: Game;
   setCommentVisible: Game;
   setGamePlayedState: Game;
@@ -383,6 +384,11 @@ export type GameMutationDeleteGameRatingArgs = {
 export type GameMutationRateGameArgs = {
   gameId: Scalars['ID'];
   rating?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type GameMutationRestoreGameArgs = {
+  gameId: Scalars['ID'];
 };
 
 
@@ -1032,7 +1038,7 @@ export type GameDetailQueryVariables = Exact<{
 }>;
 
 
-export type GameDetailQuery = { __typename?: 'Query', gameById?: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, menRole?: number | null, womenRole?: number | null, bothRole?: number | null, hours?: number | null, days?: number | null, year?: number | null, web?: string | null, galleryURL?: string | null, photoAuthor?: string | null, description?: string | null, averageRating: number, amountOfRatings: number, amountOfPlayed: number, commentsDisabled?: boolean | null, ratingsDisabled?: boolean | null, allowedActions?: Array<AllowedAction> | null, coverImage?: { __typename?: 'Image', id: string } | null, currentUsersRating?: { __typename?: 'Rating', id: string, rating?: number | null, state?: number | null } | null, labels: Array<{ __typename?: 'Label', id: string, name?: string | null, description?: string | null, isRequired?: boolean | null }>, ratingStats: Array<{ __typename?: 'RatingCount', count: number, rating: number }>, video?: { __typename?: 'Video', id: string, path?: string | null } | null, authors: Array<{ __typename?: 'User', id: string, name: string, nickname?: string | null }>, groupAuthor: Array<{ __typename?: 'Group', id: string, name?: string | null }>, similarGames: Array<{ __typename?: 'Game', id: string, name?: string | null, averageRating: number, amountOfRatings: number, year?: number | null }>, gamesOfAuthors: Array<{ __typename?: 'Game', id: string, name?: string | null, averageRating: number, amountOfRatings: number, year?: number | null }>, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null }>, ratings: Array<{ __typename?: 'Rating', id: string, rating?: number | null, user: { __typename?: 'User', id: string, name: string } }> } | null };
+export type GameDetailQuery = { __typename?: 'Query', gameById?: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, menRole?: number | null, womenRole?: number | null, bothRole?: number | null, hours?: number | null, days?: number | null, year?: number | null, web?: string | null, galleryURL?: string | null, photoAuthor?: string | null, description?: string | null, deleted?: boolean | null, averageRating: number, amountOfRatings: number, amountOfPlayed: number, commentsDisabled?: boolean | null, ratingsDisabled?: boolean | null, allowedActions?: Array<AllowedAction> | null, coverImage?: { __typename?: 'Image', id: string } | null, currentUsersRating?: { __typename?: 'Rating', id: string, rating?: number | null, state?: number | null } | null, labels: Array<{ __typename?: 'Label', id: string, name?: string | null, description?: string | null, isRequired?: boolean | null }>, ratingStats: Array<{ __typename?: 'RatingCount', count: number, rating: number }>, video?: { __typename?: 'Video', id: string, path?: string | null } | null, authors: Array<{ __typename?: 'User', id: string, name: string, nickname?: string | null }>, groupAuthor: Array<{ __typename?: 'Group', id: string, name?: string | null }>, similarGames: Array<{ __typename?: 'Game', id: string, name?: string | null, averageRating: number, amountOfRatings: number, year?: number | null }>, gamesOfAuthors: Array<{ __typename?: 'Game', id: string, name?: string | null, averageRating: number, amountOfRatings: number, year?: number | null }>, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null }>, ratings: Array<{ __typename?: 'Rating', id: string, rating?: number | null, user: { __typename?: 'User', id: string, name: string } }> } | null };
 
 export type MoreCommentsQueryVariables = Exact<{
   gameId: Scalars['ID'];
@@ -1042,6 +1048,13 @@ export type MoreCommentsQueryVariables = Exact<{
 
 
 export type MoreCommentsQuery = { __typename?: 'Query', gameById?: { __typename?: 'Game', id: string, commentsPaged: { __typename?: 'CommentsPaged', totalAmount: number, comments: Array<{ __typename?: 'Comment', id: string, added?: string | null, amountOfUpvotes: number, comment?: string | null, isHidden?: boolean | null, user: { __typename?: 'User', id: string, name: string, nickname?: string | null, image?: { __typename?: 'Image', id: string } | null } }> }, currentUsersComment?: { __typename?: 'Comment', id: string, comment?: string | null } | null } | null };
+
+export type RestoreGameMutationVariables = Exact<{
+  gameId: Scalars['ID'];
+}>;
+
+
+export type RestoreGameMutation = { __typename?: 'Mutation', game: { __typename?: 'GameMutation', restoreGame: { __typename?: 'Game', id: string, deleted?: boolean | null } } };
 
 export type UpdateCommentMutationVariables = Exact<{
   gameId: Scalars['ID'];

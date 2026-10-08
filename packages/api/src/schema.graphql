@@ -313,6 +313,7 @@ type GameMutation {
     createGame(input: CreateGameInput!): Game!
     updateGame(input: UpdateGameInput!): Game!
     deleteGame(gameId: ID!): Game!
+    restoreGame(gameId: ID!): Game!
     rateGame(gameId: ID!, rating: Int): Game!
     deleteGameRating(gameId: ID!, userId: ID): Game!
     setGamePlayedState(gameId: ID!, state: Int!): Game!

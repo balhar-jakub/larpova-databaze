@@ -13,6 +13,7 @@ query GameDetail($gameId: ID!) {
         galleryURL
         photoAuthor
         description
+        deleted
         averageRating
         amountOfRatings
         amountOfPlayed

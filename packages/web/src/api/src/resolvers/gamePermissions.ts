@@ -16,6 +16,7 @@ export type GameAllowedAction = 'Edit' | 'Delete';
  */
 interface GameWithAuthors {
   id?: number | string | null;
+  deleted?: boolean | null;
   authors?: Array<{ id?: number | string | null } | null> | null;
   csld_game_has_author?: Array<{ id_user?: number | null } | null> | null;
 }
@@ -64,12 +65,18 @@ export async function isGameAuthor(
 /**
  * Actions the logged-in user may perform on the game: its authors may manage
  * the game they wrote, editors and admins any game, everybody else none.
+ *
+ * A *deleted* game is a special case: it is served to editors and admins only
+ * (see `gameByIdResolver`), it must not be deleted again, and the action that
+ * matters is bringing it back — so it offers Edit (restore is driven by
+ * `Game.deleted` in the UI, which only editors and admins ever see).
  */
 export async function gameAllowedActions(
   game: GameWithAuthors | null | undefined,
   ctx: Context,
 ): Promise<GameAllowedAction[]> {
   if (!ctx.user) return [];
+  if (game?.deleted) return isAtLeastEditor(ctx) ? ['Edit'] : [];
   if (isAtLeastEditor(ctx)) return ['Edit', 'Delete'];
   return (await isGameAuthor(game, ctx)) ? ['Edit', 'Delete'] : [];
 }

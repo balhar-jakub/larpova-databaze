@@ -10,6 +10,8 @@ import {
     DeleteGameMutationVariables,
     GameDetailQuery,
     GameDetailQueryVariables,
+    RestoreGameMutation,
+    RestoreGameMutationVariables,
 } from '../../graphql/__generated__/typescript-operations'
 import { darkTheme } from '../../theme/darkTheme'
 import { TabDefinition, Tabs } from '../common/Tabs/Tabs'
@@ -34,6 +36,7 @@ import OpenGraphMeta from '../common/OpenGraphMeta/OpenGraphMeta'
 const cachedGameDataGql = require('./graphql/cachedGameData.graphql')
 const gameDetailGql = require('./graphql/gameDetail.graphql')
 const deleteGameGql = require('./graphql/deleteGame.graphql')
+const restoreGameGql = require('./graphql/restoreGame.graphql')
 
 interface Props {
     readonly gameId: string
@@ -59,6 +62,12 @@ const useStyles = createUseStyles({
     coverImage: {
         width: '100%',
         minHeight: '29.75vw',
+    },
+    deletedNotice: {
+        backgroundColor: darkTheme.red,
+        color: darkTheme.backgroundNearWhite,
+        padding: '10px 15px',
+        marginTop: 10,
     },
 })
 
@@ -127,6 +136,11 @@ export const GameDetailPanel = ({ gameId }: Props) => {
             },
         },
     )
+    const [restoreGame] = useMutation<RestoreGameMutation, RestoreGameMutationVariables>(restoreGameGql, {
+        variables: {
+            gameId,
+        },
+    })
     const gameQuery = useQuery<GameDetailQuery, GameDetailQueryVariables>(gameDetailGql, {
         variables: {
             gameId,
@@ -159,6 +173,12 @@ export const GameDetailPanel = ({ gameId }: Props) => {
         id: `${gameId}`,
     }
 
+    // `gameById` answers null both for a game that does not exist and for one
+    // this viewer may not see — a soft-deleted game is served to editors and
+    // admins only. The cached fragment above must therefore not decide whether
+    // the game exists, or a deleted game kept rendering from the cache.
+    const gameMissing = !gameQuery.loading && !gameQuery.data?.gameById
+
     const tabs: Array<TabDefinition<TabTabs>> = [tabComments]
     if (game.video?.path) {
         tabs.push(tabVideo)
@@ -184,6 +204,17 @@ export const GameDetailPanel = ({ gameId }: Props) => {
         })
     }
 
+    // Restoring keeps the viewer on the page — the game is back and the query
+    // returns it again.
+    const handleRestoreGame = () => {
+        restoreGame().then(res => {
+            if (res.data) {
+                showToast(t('GameDetail.gameRestored'), 'success')
+                gameQuery.refetch()
+            }
+        })
+    }
+
     const editVisible = canEdit(game?.allowedActions)
     const deleteVisible = canDelete(game?.allowedActions)
 
@@ -191,9 +222,28 @@ export const GameDetailPanel = ({ gameId }: Props) => {
     const gameDescription = game.description
     const textDescription = useMemo(() => htmlToText(gameDescription).substring(0, 300), [gameDescription])
 
+    // A game that is gone — deleted by an editor, or a link to a game that never
+    // existed — has nothing to show. The legacy site answered 404 here. This sits
+    // after every hook on purpose: an early return above them would change the
+    // number of hooks between renders.
+    if (gameMissing) {
+        return (
+            <div className={classes.details}>
+                <WidthFixer>
+                    <h2>{t('GameDetail.gameNotFound')}</h2>
+                </WidthFixer>
+            </div>
+        )
+    }
+
     return (
         <div className={classes.details}>
             <OpenGraphMeta title={game.name ?? ''} description={textDescription} image={gameImageUrl} />
+            {game.deleted && (
+                <WidthFixer>
+                    <div className={classes.deletedNotice}>{t('GameDetail.deletedGameNotice')}</div>
+                </WidthFixer>
+            )}
             {gameImageUrl && <img className={classes.coverImage} alt="" src={gameImageUrl} />}
             <WidthFixer>
                 <Row className={classes.detailsRow}>
@@ -221,8 +271,14 @@ export const GameDetailPanel = ({ gameId }: Props) => {
                             {editVisible && (
                                 <ActionButton onClick={handleEditGame}>{t('GameDetail.editGame')}</ActionButton>
                             )}
-                            {deleteVisible && (
+                            {deleteVisible && !game.deleted && (
                                 <ActionButton onClick={handleDeleteGame}>{t('GameDetail.deleteGame')}</ActionButton>
+                            )}
+                            {/* A deleted game is served to editors and admins only, and
+                                `allowedActions` leaves out Delete for it — what they need
+                                is the way back. */}
+                            {game.deleted && (
+                                <ActionButton onClick={handleRestoreGame}>{t('GameDetail.restoreGame')}</ActionButton>
                             )}
                             <GameListPanel games={game.similarGames} titleKey="GameDetail.similarGames" />
                             <EventListPanel events={game.events} titleKey="GameDetail.events" />

@@ -1,5 +1,6 @@
 import type { Context } from '../context.js';
 import { GraphQLError } from 'graphql';
+import { isAtLeastEditor } from '../auth/appUsers.js';
 import { normalizeGame, normalizeUserRef } from './mappers.js';
 import { normalizeUser } from './user.js';
 
@@ -40,7 +41,7 @@ export async function adminAllUsersResolver(
   });
   // Raw rows carry a numeric `role` and the scalar `image`, which the `User`
   // type cannot serve — see mappers.normalizeUserRef.
-  return rows.map((row: any) => normalizeUser(row));
+  return rows.map((row: any) => normalizeUser(row, isAtLeastEditor(ctx)));
 }
 
 export async function adminStatsResolver(
