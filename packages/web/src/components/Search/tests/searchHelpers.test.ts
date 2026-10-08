@@ -7,9 +7,12 @@ import {
     labelsToShow,
     pageRange,
     personMatchReason,
+    searchGamesState,
+    searchPageQuery,
     searchQueryParams,
     searchTypeFromParam,
 } from '../searchHelpers'
+import { GameCatalogOrder } from '../../../graphql/__generated__/typescript-operations'
 
 /**
  * The decisions the search page makes: what the URL says, which rows the "best
@@ -231,5 +234,35 @@ describe('the pager can say where in the result the visitor is', () => {
 
     test('nothing found has no range', () => {
         expect(pageRange(0, 0, 25)).toBeUndefined()
+    })
+})
+
+describe('the games carry the catalog facets, and the URL carries them too', () => {
+    test('the games section starts at relevance, the catalog order comes only if asked for', () => {
+        expect(searchGamesState({}).order).toBe(GameCatalogOrder.Relevance)
+        expect(searchGamesState({ q: 'larp' }).order).toBe(GameCatalogOrder.Relevance)
+        // An explicit order in the URL wins — including the catalog's own default.
+        expect(searchGamesState({ order: 'Best' }).order).toBe(GameCatalogOrder.Best)
+        expect(searchGamesState({ order: 'Recommended' }).order).toBe(GameCatalogOrder.Recommended)
+        // An order the catalog does not know is not an order.
+        expect(searchGamesState({ order: 'Nonsense' }).order).toBe(GameCatalogOrder.Relevance)
+    })
+
+    test('a filtered games list is a link: the facets ride in the URL next to q and typ', () => {
+        const state = { ...searchGamesState({}), labels: ['12'], minRating: 80, order: GameCatalogOrder.Best }
+        const params = searchPageQuery('larp', 'games', state)
+
+        expect(params).toEqual({ q: 'larp', typ: 'hry', labels: '12', rating: '80', order: 'Best' })
+    })
+
+    test('the default relevance order does not clutter the common URL', () => {
+        expect(searchPageQuery('larp', 'games', searchGamesState({}))).toEqual({ q: 'larp', typ: 'hry' })
+    })
+
+    test('the facets of the games never leak into another kind of result', () => {
+        const state = { ...searchGamesState({}), labels: ['12'] }
+
+        expect(searchPageQuery('larp', 'events', state)).toEqual({ q: 'larp', typ: 'udalosti' })
+        expect(searchPageQuery('larp', undefined, state)).toEqual({ q: 'larp' })
     })
 })

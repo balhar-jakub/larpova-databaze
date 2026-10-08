@@ -34,7 +34,7 @@ describe('the search page offers every kind of result on one page', () => {
     it('keeps the query and the picked kind in the URL', () => {
         expect(searchPage()).toMatch(/router\.query\.q/)
         expect(searchPage()).toMatch(/router\.query\.typ/)
-        expect(searchPanel()).toMatch(/searchQueryParams\(/)
+        expect(searchPanel()).toMatch(/searchPageQuery\(/)
         expect(web('src/components/Search/searchHelpers.ts')).toMatch(/typ: TYPE_PARAM\[type\]/)
         // The old links carried `t=users`; they still resolve.
         expect(searchPage()).toMatch(/router\.query\.t as string/)
@@ -93,7 +93,8 @@ describe('every result list uses the shared engine', () => {
     it('the pages ask for the total amount, not just the page', () => {
         expect(web('src/components/Search/graphql/searchPageUsers.graphql')).toMatch(/usersByQueryWithTotal/)
         expect(web('src/components/Search/graphql/searchPageEvents.graphql')).toMatch(/eventsByQuery/)
-        expect(web('src/components/Search/graphql/searchPageGames.graphql')).toMatch(/byQueryWithTotal/)
+        // The games go through the catalog, which carries the facets and the orders.
+        expect(web('src/components/Search/graphql/searchPageGames.graphql')).toMatch(/catalog\(filter: \$filter, order: \$order/)
         expect(web('src/components/Search/graphql/searchGroups.graphql')).toMatch(/groupsByQuery/)
     })
 
@@ -139,7 +140,56 @@ describe('the calendar and the catalog can be typed into', () => {
 
     it('the catalog filter understands an author', () => {
         expect(web('src/components/Catalog/catalogState.ts')).toMatch(/authorIds/)
-        expect(web('src/components/Catalog/CatalogPanel.tsx')).toMatch(/Catalog\.active\.author/)
+        // Both pages name a filter with one shared function.
+        expect(web('src/components/Catalog/catalogState.ts')).toMatch(/Catalog\.active\.author/)
+    })
+})
+
+describe('the games of the search page bring the catalog facets and rankings', () => {
+    it('asks the catalog, which is where the facets and the orders live', () => {
+        const document = web('src/components/Search/graphql/searchPageGames.graphql')
+
+        expect(document).toMatch(/catalog\(filter: \$filter, order: \$order, offset: \$offset, limit: \$limit\)/)
+        expect(document).toMatch(/facets \{/)
+        expect(document).toMatch(/labels \{/)
+        expect(document).toMatch(/durations \{/)
+        expect(document).toMatch(/yearMin/)
+    })
+
+    it('leads with relevance, not with the catalog recommended order', () => {
+        expect(web('src/components/Search/searchHelpers.ts')).toMatch(
+            /SEARCH_GAMES_DEFAULT_ORDER = GameCatalogOrder\.Relevance/,
+        )
+
+        const engine = web('src/api/src/resolvers/gameCatalog.ts')
+
+        expect(engine).toMatch(/order === 'Relevance'/)
+        expect(engine).toMatch(/queryIds\.slice\(offset, offset \+ limit\)/)
+        // Without a query there is nothing to be relevant to.
+        expect(engine).toMatch(/pageGameIds\(ctx, where, 'Recommended', offset, limit, null\)/)
+        expect(web('src/api/src/schema.graphql')).toMatch(/\n    Relevance\n/)
+    })
+
+    it('reuses the catalog filter panel instead of writing a second filter', () => {
+        const panel = web('src/components/Search/GamesSearchPanel.tsx')
+
+        expect(panel).toMatch(/<CatalogFilterPanel/)
+        expect(panel).toMatch(/SEARCH_ORDER_OPTIONS/)
+        expect(panel).toMatch(/catalogActiveFilterText\(filter, t\)/)
+        expect(web('src/components/Catalog/CatalogFilterPanel.tsx')).toMatch(/orders \?\? DEFAULT_ORDER_OPTIONS/)
+        // Both pages name a filter the same way.
+        expect(web('src/components/Catalog/CatalogPanel.tsx')).toMatch(/catalogActiveFilterText\(filter, t\)/)
+    })
+
+    it('keeps the filters in the URL next to the query', () => {
+        expect(searchPanel()).toMatch(/searchPageQuery\(/)
+        expect(searchPanel()).toMatch(/searchGamesState\(router\.query\)/)
+        expect(searchPanel()).toMatch(/componentTestIds\.search\.section\('games'\)|GamesSearchPanel/)
+    })
+
+    it('the game rows can still name the author they matched', () => {
+        // The catalog path has to load them too, not just the search engine one.
+        expect(web('src/api/src/resolvers/gameCatalog.ts')).toMatch(/csld_game_has_author: \{ include: \{ csld_csld_user: true \} \}/)
     })
 })
 

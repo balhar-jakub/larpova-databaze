@@ -32,9 +32,11 @@ import {
     SEARCH_TYPES,
     SearchType,
     bestMatches,
-    searchQueryParams,
+    searchGamesState,
+    searchPageQuery,
     searchTypeFromParam,
 } from './searchHelpers'
+import { CatalogState, clearCatalogFilters } from '../Catalog/catalogState'
 import {
     SearchOverviewQuery,
     SearchOverviewQueryVariables,
@@ -170,6 +172,9 @@ const SearchPanel = ({ initialQuery, initialType }: Props) => {
     const router = useRouter()
     const [query, setQuery] = useState(initialQuery || '')
     const [selectedType, setSelectedType] = useState<SearchType | undefined>(searchTypeFromParam(initialType))
+    // The games section brings the catalog's facets and rankings along; the state
+    // lives in this page's URL next to the query, so a filtered list is a link.
+    const [gamesState, setGamesState] = useState<CatalogState>(() => searchGamesState(router.query))
     const formRef = useFocusInput<HTMLFormElement>('query')
     const formApiRef = useRef<FormApi<FormValues> | null>(null)
 
@@ -201,15 +206,40 @@ const SearchPanel = ({ initialQuery, initialType }: Props) => {
         }
     }, [query])
 
-    const updateUrl = (nextQuery: string, type?: SearchType) => {
+    const updateUrl = (nextQuery: string, type?: SearchType, nextGamesState: CatalogState = gamesState) => {
         router.replace(
             {
                 pathname: router.pathname,
-                query: searchQueryParams(nextQuery, type),
+                query: searchPageQuery(nextQuery, type, nextGamesState),
             },
             undefined,
             { shallow: true },
         )
+    }
+
+    /**
+     * The games section edits the catalog state. Its own filter panel carries the
+     * search text too — one query, one input — so a text change goes to the page.
+     */
+    const handleGamesStateChange = (patch: Partial<CatalogState>) => {
+        if ('query' in patch) {
+            const nextQuery = patch.query ?? ''
+            setQuery(nextQuery)
+            updateUrl(nextQuery, selectedType)
+        }
+
+        const { query: _query, ...rest } = patch
+        if (Object.keys(rest).length > 0) {
+            const nextState = { ...gamesState, ...rest }
+            setGamesState(nextState)
+            updateUrl(query, selectedType, nextState)
+        }
+    }
+
+    const handleGamesReset = () => {
+        const nextState = clearCatalogFilters(gamesState)
+        setGamesState(nextState)
+        updateUrl(query, selectedType, nextState)
     }
 
     const handleSearch = (values: FormValues) => {
@@ -245,15 +275,19 @@ const SearchPanel = ({ initialQuery, initialType }: Props) => {
     const total = SEARCH_TYPES.reduce((sum, type) => sum + counts[type], 0)
 
     const renderRow = (type: SearchType, item: unknown) => {
+        // Ids are unique inside a kind, not across kinds: game 3 and event 3 both
+        // exist, and the interleaved block puts them side by side.
+        const id = (item as { id: string }).id
+
         switch (type) {
             case 'games':
-                return <SearchGameRow game={item as GameRowData} query={trimmed} key={(item as GameRowData).id} />
+                return <SearchGameRow game={item as GameRowData} query={trimmed} key={`games-${id}`} />
             case 'users':
-                return <SearchPersonRow person={item as PersonRowData} query={trimmed} key={(item as PersonRowData).id} />
+                return <SearchPersonRow person={item as PersonRowData} query={trimmed} key={`users-${id}`} />
             case 'events':
-                return <SearchEventRow event={item as EventRowData} query={trimmed} key={(item as EventRowData).id} />
+                return <SearchEventRow event={item as EventRowData} query={trimmed} key={`events-${id}`} />
             default:
-                return <SearchGroupRow group={item as GroupRowData} query={trimmed} key={(item as GroupRowData).id} />
+                return <SearchGroupRow group={item as GroupRowData} query={trimmed} key={`groups-${id}`} />
         }
     }
 
@@ -403,7 +437,12 @@ const SearchPanel = ({ initialQuery, initialType }: Props) => {
                                     {counts[selectedType] > 0 ? (
                                         <>
                                             {selectedType === 'games' && (
-                                                <GamesSearchPanel query={trimmed} onUseSuggestion={handleUseSuggestion} />
+                                                <GamesSearchPanel
+                                                    query={trimmed}
+                                                    state={gamesState}
+                                                    onStateChange={handleGamesStateChange}
+                                                    onReset={handleGamesReset}
+                                                />
                                             )}
                                             {selectedType === 'users' && (
                                                 <UserSearchPanel query={trimmed} onUseSuggestion={handleUseSuggestion} />

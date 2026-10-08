@@ -49,6 +49,7 @@ export const DURATION_KEYS = ['short', 'day', 'weekend', 'long'] as const
 export type DurationKey = (typeof DURATION_KEYS)[number]
 
 export const CATALOG_ORDERS: GameCatalogOrder[] = [
+    GameCatalogOrder.Relevance,
     GameCatalogOrder.Recommended,
     GameCatalogOrder.Best,
     GameCatalogOrder.MostPlayed,
@@ -344,6 +345,49 @@ export function catalogActiveFilters(
     }
 
     return filters
+}
+
+/**
+ * The text of one active-filter chip. Shared by the catalog and by the search
+ * page's games section so both name the same filter the same way.
+ */
+export function catalogActiveFilterText(
+    filter: CatalogActiveFilter,
+    t: (key: string, options?: Record<string, unknown>) => string,
+): string {
+    switch (filter.kind) {
+        case 'label':
+            return t('Catalog.active.label', { name: filter.value })
+        case 'duration':
+            return t('Catalog.active.duration', { name: t(`Catalog.durations.${filter.value}`) })
+        case 'year':
+            return filter.from != null && filter.to != null
+                ? t('Catalog.active.yearRange', { from: filter.from, to: filter.to })
+                : filter.from != null
+                ? t('Catalog.active.yearFrom', { from: filter.from })
+                : t('Catalog.active.yearTo', { to: filter.to })
+        case 'players':
+            return filter.from != null && filter.to != null
+                ? t('Catalog.active.playersRange', { from: filter.from, to: filter.to })
+                : filter.from != null
+                ? t('Catalog.active.playersFrom', { from: filter.from })
+                : t('Catalog.active.playersTo', { to: filter.to })
+        case 'rating':
+            return t('Catalog.active.rating', { value: filter.to })
+        case 'minRatings':
+            return t('Catalog.active.minRatings', { count: filter.to })
+        case 'withComments':
+            return t('Catalog.filters.withComments')
+        case 'withImage':
+            return t('Catalog.filters.withImage')
+        case 'added':
+            return t('Catalog.active.added', { count: filter.to })
+        case 'author':
+            return t('Catalog.active.author', { name: filter.value })
+        case 'query':
+        default:
+            return t('Catalog.active.query', { query: filter.value })
+    }
 }
 
 // ── Presets ───────────────────────────────────────────────

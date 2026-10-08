@@ -340,7 +340,9 @@ export enum GameCatalogOrder {
   /** Newest first. */
   Newest = 'Newest',
   /** Bayesian average: well rated games with few ratings do not outrank proven classics. */
-  Recommended = 'Recommended'
+  Recommended = 'Recommended',
+  /** How well `filter.query` matches (exact name, name start, word starts, substring) — the ranking of the shared search engine. Without a query it falls back to `Recommended`. */
+  Relevance = 'Relevance'
 }
 
 export type GameCatalogPaged = {
@@ -1312,13 +1314,14 @@ export type SearchPageEventsQueryVariables = Exact<{
 export type SearchPageEventsQuery = { __typename?: 'Query', eventsByQuery: { __typename?: 'EventsPaged', totalAmount: number, suggestion?: string | null, duplicates: Array<{ __typename?: 'EventDuplicate', eventId: string, count: number }>, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null }> } };
 
 export type SearchPageGamesQueryVariables = Exact<{
-  query: Scalars['String'];
-  limit: Scalars['Int'];
-  offset: Scalars['Int'];
+  filter?: InputMaybe<GameCatalogFilter>;
+  order?: InputMaybe<GameCatalogOrder>;
+  offset?: InputMaybe<Scalars['Int']>;
+  limit?: InputMaybe<Scalars['Int']>;
 }>;
 
 
-export type SearchPageGamesQuery = { __typename?: 'Query', games: { __typename?: 'GamesQuery', byQueryWithTotal: { __typename?: 'GamesPaged', totalAmount: number, suggestion?: string | null, games: Array<{ __typename?: 'Game', id: string, name?: string | null, year?: number | null, amountOfComments: number, amountOfRatings: number, averageRating: number, totalRating: number, labels: Array<{ __typename?: 'Label', id: string, name?: string | null }>, authors: Array<{ __typename?: 'User', id: string, name: string }>, groupAuthor: Array<{ __typename?: 'Group', id: string, name?: string | null }> }> } } };
+export type SearchPageGamesQuery = { __typename?: 'Query', games: { __typename?: 'GamesQuery', catalog: { __typename?: 'GameCatalogPaged', totalAmount: number, games: Array<{ __typename?: 'Game', id: string, name?: string | null, year?: number | null, amountOfComments: number, amountOfRatings: number, averageRating: number, totalRating: number, labels: Array<{ __typename?: 'Label', id: string, name?: string | null }>, authors: Array<{ __typename?: 'User', id: string, name: string }>, groupAuthor: Array<{ __typename?: 'Group', id: string, name?: string | null }> }>, facets: { __typename?: 'GameCatalogFacets', yearMin?: number | null, yearMax?: number | null, labels: Array<{ __typename?: 'GameCatalogLabelFacet', id: string, name?: string | null, count: number, isRequired: boolean }>, durations: Array<{ __typename?: 'GameCatalogCount', key: string, count: number }> } } } };
 
 export type SearchPageUsersQueryVariables = Exact<{
   query: Scalars['String'];

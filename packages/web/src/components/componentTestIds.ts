@@ -72,5 +72,11 @@ export const componentTestIds = {
         emptyLink: (type: string) => `search.emptyLink.${type}`,
         typeEmpty: (type: string) => `search.typeEmpty.${type}`,
         otherTypes: 'search.otherTypes',
+        // The games section brings the catalog's facets and rankings along.
+        gamesFilterToggle: 'search.gamesFilterToggle',
+        gamesFilterPanel: 'search.gamesFilterPanel',
+        gamesOrder: 'search.gamesOrder',
+        gamesPreset: (key: string) => `search.gamesPreset.${key}`,
+        gamesActiveFilter: (key: string) => `search.gamesActiveFilter.${key}`,
     },
 }

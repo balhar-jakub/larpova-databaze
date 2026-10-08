@@ -1,6 +1,8 @@
 import { format } from 'date-fns'
 import { parseDateTime } from '../../utils/dateUtils'
 import { matchTextQuery } from '../../utils/textUtils'
+import { GameCatalogOrder } from '../../graphql/__generated__/typescript-operations'
+import { CatalogState, CATALOG_ORDERS, catalogStateToQuery, parseCatalogState } from '../Catalog/catalogState'
 
 /**
  * The shapes the search page works with. They are structural on purpose: the
@@ -98,6 +100,57 @@ export const searchQueryParams = (query: string, type?: SearchType | null): Sear
         ...(trimmed ? { q: trimmed } : {}),
         ...(type ? { typ: TYPE_PARAM[type] } : {}),
     }
+}
+
+// ── The games section: the catalog's own facets and orders ────────────────
+
+/**
+ * The games section runs the catalog's machinery — the facets (labels with their
+ * counts, durations, the year range), the ranges and the orders are all solved
+ * there, and `filter.query` goes through the same search engine, so the games
+ * are the ones the old tab showed. Its default order is the engine's own
+ * ranking, `Relevance`, not the catalog's `Recommended`: on a search page the
+ * best match leads (a game whose name *is* the query can have no ratings at all).
+ */
+export const SEARCH_GAMES_DEFAULT_ORDER = GameCatalogOrder.Relevance
+
+/**
+ * The catalog state of the games section, read from the same URL as `q` and
+ * `typ` (so a filtered list can be sent as a link). Only an explicit `order`
+ * in the URL beats the search default.
+ */
+export const searchGamesState = (urlQuery: Parameters<typeof parseCatalogState>[0]): CatalogState => {
+    const parsed = parseCatalogState(urlQuery)
+    const order = urlQuery.order
+    // Only an order the catalog knows counts as "asked for"; anything else (a typo,
+    // a stale link) leaves the search default alone.
+    const asked = typeof order === 'string' && (CATALOG_ORDERS as readonly string[]).includes(order)
+
+    return asked ? parsed : { ...parsed, order: SEARCH_GAMES_DEFAULT_ORDER }
+}
+
+/**
+ * Everything that belongs in the URL of the page: the query, the picked kind and
+ * — only for games, which are the kind with facets — the catalog parameters. The
+ * text lives once (`q`), so the facet state carries none of its own, and the
+ * search default order is left out to keep the common URL short.
+ */
+export const searchPageQuery = (
+    query: string,
+    type?: SearchType | null,
+    gamesState?: CatalogState,
+): SearchParams => {
+    const params = searchQueryParams(query, type)
+
+    if (type === 'games' && gamesState) {
+        const catalogParams = catalogStateToQuery({ ...gamesState, query: '' })
+        if (gamesState.order === SEARCH_GAMES_DEFAULT_ORDER) {
+            delete catalogParams.order
+        }
+        Object.assign(params, catalogParams)
+    }
+
+    return params
 }
 
 // ── The one type that can never be counted from a page of rows ────────────

@@ -26,6 +26,7 @@ import {
     CATALOG_PRESETS,
     CatalogActiveFilter,
     CatalogState,
+    catalogActiveFilterText,
     catalogActiveFilters,
     catalogStateKey,
     catalogStateToFilter,
@@ -283,41 +284,6 @@ const CatalogPanel = ({ initialQuery }: Props) => {
 
     const activeFilters = catalogActiveFilters(state, labelNames)
 
-    const filterText = (filter: CatalogActiveFilter) => {
-        switch (filter.kind) {
-            case 'label':
-                return t('Catalog.active.label', { name: filter.value })
-            case 'duration':
-                return t('Catalog.active.duration', { name: t(`Catalog.durations.${filter.value}`) })
-            case 'year':
-                return filter.from != null && filter.to != null
-                    ? t('Catalog.active.yearRange', { from: filter.from, to: filter.to })
-                    : filter.from != null
-                    ? t('Catalog.active.yearFrom', { from: filter.from })
-                    : t('Catalog.active.yearTo', { to: filter.to })
-            case 'players':
-                return filter.from != null && filter.to != null
-                    ? t('Catalog.active.playersRange', { from: filter.from, to: filter.to })
-                    : filter.from != null
-                    ? t('Catalog.active.playersFrom', { from: filter.from })
-                    : t('Catalog.active.playersTo', { to: filter.to })
-            case 'rating':
-                return t('Catalog.active.rating', { value: filter.to })
-            case 'minRatings':
-                return t('Catalog.active.minRatings', { count: filter.to })
-            case 'withComments':
-                return t('Catalog.filters.withComments')
-            case 'withImage':
-                return t('Catalog.filters.withImage')
-            case 'added':
-                return t('Catalog.active.added', { count: filter.to })
-            case 'author':
-                return t('Catalog.active.author', { name: filter.value })
-            case 'query':
-            default:
-                return t('Catalog.active.query', { query: filter.value })
-        }
-    }
 
     const games = page?.games ?? []
     const remaining = page ? Math.max(0, page.totalAmount - games.length) : 0
@@ -407,7 +373,7 @@ const CatalogPanel = ({ initialQuery }: Props) => {
                                             className={classes.chip}
                                             onClick={() => updateState(filter.remove)}
                                         >
-                                            {filterText(filter)}
+                                            {catalogActiveFilterText(filter, t)}
                                             <span aria-hidden="true">✕</span>
                                         </button>
                                     ))}
