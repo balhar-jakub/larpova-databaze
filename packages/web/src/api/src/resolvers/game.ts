@@ -2,6 +2,7 @@ import type { Context } from '../context.js';
 import { normalizeGame, normalizeUserRef } from './mappers.js';
 import { isAtLeastEditor } from '../auth/appUsers.js';
 import type { Prisma } from '@prisma/client';
+import { fetchGamesByIds, gamesSearchPage } from './search.js';
 
 export async function gameByIdResolver(
   _parent: unknown,
@@ -150,26 +151,20 @@ export async function ladderResolver(
 
 // ── byQuery / byQueryWithTotal resolvers ─────────────────
 
+/**
+ * Both queries delegate to the shared search engine (`search.ts`): the plain
+ * `contains` this used to run matched only a case-insensitive substring of the
+ * name, so it missed every accented name typed without diacritics, ignored the
+ * word order (`Novák Jozef` found nothing) and ranked by rating, which buried
+ * the exact match.
+ */
 export async function byQueryResolver(
   _parent: unknown,
   args: { query: string; offset?: number; limit?: number },
   ctx: Context,
 ) {
-  const offset = args.offset ?? 0;
-  const limit = args.limit ?? 25;
-
-  const games = await ctx.db.csld_game.findMany({
-    where: {
-      deleted: false,
-      name: { contains: args.query, mode: 'insensitive' },
-    },
-    orderBy: { total_rating: 'desc' },
-    skip: offset,
-    take: limit,
-    include: { csld_game_has_label: { include: { csld_label: true } } },
-  });
-
-  return games.map((g) => normalizeGame(g));
+  const page = await gamesSearchPage(ctx, args.query, args.offset ?? 0, args.limit ?? 25);
+  return fetchGamesByIds(ctx, page.ids);
 }
 
 export async function byQueryWithTotalResolver(
@@ -177,28 +172,11 @@ export async function byQueryWithTotalResolver(
   args: { query: string; offset?: number; limit?: number },
   ctx: Context,
 ) {
-  const offset = args.offset ?? 0;
-  const limit = args.limit ?? 25;
-
-  const where: Prisma.csld_gameWhereInput = {
-    deleted: false,
-    name: { contains: args.query, mode: 'insensitive' },
-  };
-
-  const [games, totalAmount] = await Promise.all([
-    ctx.db.csld_game.findMany({
-      where,
-      orderBy: { total_rating: 'desc' },
-      skip: offset,
-      take: limit,
-      include: { csld_game_has_label: { include: { csld_label: true } } },
-    }),
-    ctx.db.csld_game.count({ where }),
-  ]);
-
+  const page = await gamesSearchPage(ctx, args.query, args.offset ?? 0, args.limit ?? 25);
   return {
-    games: games.map((g) => normalizeGame(g)),
-    totalAmount,
+    games: await fetchGamesByIds(ctx, page.ids),
+    totalAmount: page.totalAmount,
+    suggestion: page.suggestion,
   };
 }
 

@@ -5,19 +5,21 @@ import { useQuery } from '@apollo/client'
 import classNames from 'classnames'
 import { darkTheme } from '../../../theme/darkTheme'
 import { IconLoading, IconSearch } from '../Icons/Icons'
-import {
-    BaseGameDataFragment,
-    SearchGamesQuery,
-    SearchGamesQueryVariables,
-} from '../../../graphql/__generated__/typescript-operations'
+import { SearchAllQuery, SearchAllQueryVariables } from '../../../graphql/__generated__/typescript-operations'
 import { GameBaseDataPanel } from '../GameBaseDataPanel/GameBaseDataPanel'
 import { useRoutes } from '../../../hooks/useRoutes'
 import { TextLink } from '../TextLink/TextLink'
+import UserLink from '../UserLink/UserLink'
 import { breakPoints } from '../../../theme/breakPoints'
+import { formatDate, toEventDate } from '../../Calendar/calendarUtils'
+import EventLink from '../EventLink/EventLink'
+import { MIN_MATCH_QUERY_LENGTH } from '../../../utils/textUtils'
+import HighlightedText from '../../Search/HighlightedText'
+import { componentTestIds } from '../../componentTestIds'
 
 export const searchInputId = 'headerSearchInput'
 
-const searchGamesQuery = require('./graphql/searchGamesQuery.graphql')
+const searchAllQuery = require('./graphql/searchAll.graphql')
 
 const useStyles = createUseStyles({
     wrapper: {
@@ -71,6 +73,8 @@ const useStyles = createUseStyles({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'stretch',
+        maxHeight: '80vh',
+        overflowY: 'auto',
     },
     resultsText: {
         padding: '10px 5px',
@@ -79,8 +83,33 @@ const useStyles = createUseStyles({
         fontSize: '0.75rem',
     },
     moreText: {
-        padding: '15px 5px 10px',
-        alignSelf: 'center',
+        padding: '4px 5px 8px',
+        alignSelf: 'flex-end',
+    },
+    groupHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
+        borderBottom: `1px solid ${darkTheme.textOnLightDark}`,
+        marginTop: 6,
+        padding: '2px 2px 2px',
+        fontSize: '0.7rem',
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+        color: darkTheme.text,
+    },
+    groupCount: {
+        fontSize: '0.68rem',
+        color: darkTheme.textGreenDark,
+    },
+    person: {
+        padding: '5px 3px',
+        fontSize: '0.8rem',
+        color: darkTheme.textLight,
+    },
+    personMeta: {
+        fontSize: '0.7rem',
+        color: darkTheme.text,
     },
     iconLoading: {
         fontSize: '1.25rem',
@@ -90,6 +119,21 @@ const useStyles = createUseStyles({
     },
     gameLoading: {
         opacity: 0.8,
+    },
+    suggestion: {
+        padding: '8px 5px 4px',
+        alignSelf: 'center',
+        fontSize: '0.75rem',
+        color: darkTheme.text,
+    },
+    suggestionLink: {
+        background: 'transparent',
+        border: 0,
+        padding: 0,
+        color: darkTheme.textGreenDark,
+        fontWeight: 700,
+        cursor: 'pointer',
+        textDecoration: 'underline',
     },
     [`@media(min-width: ${breakPoints.md}px)`]: {
         searchInput: {
@@ -101,11 +145,18 @@ const useStyles = createUseStyles({
     },
 })
 
-const MAX_RESULTS = 6
-const MIN_SEARCH_LENGTH = 3
+/** How many rows of one kind fit in the dropdown; the rest goes to the page. */
+const MAX_RESULTS_PER_KIND = 3
+const MIN_SEARCH_LENGTH = MIN_MATCH_QUERY_LENGTH
 const BLUR_TIMEOUT = 100
 const CHANGE_TIMEOUT = 500
 
+/**
+ * The search field in the page header. It used to look at games only, so a
+ * visitor typing a name of a person or of an event got "nothing found" while
+ * the site had the row all along. It now shows every kind of result at once,
+ * with the real number of matches and a link to the whole list.
+ */
 export const HeaderSearchForm = () => {
     const classes = useStyles()
     const { t } = useTranslation('common')
@@ -114,22 +165,25 @@ export const HeaderSearchForm = () => {
     const hideTimeoutRef = useRef(0)
     const changeTimeoutRef = useRef(0)
     const inputRef = useRef<HTMLInputElement | null>(null)
-    const lastGames = useRef<BaseGameDataFragment[]>([])
+    const lastResult = useRef<SearchAllQuery['search'] | undefined>(undefined)
     const routes = useRoutes()
-    const searchActive = query.length >= 3
-    const searchResult = useQuery<SearchGamesQuery, SearchGamesQueryVariables>(searchGamesQuery, {
+    const searchActive = query.length >= MIN_SEARCH_LENGTH
+    const searchResult = useQuery<SearchAllQuery, SearchAllQueryVariables>(searchAllQuery, {
         variables: {
             query,
-            limit: MAX_RESULTS,
+            limit: MAX_RESULTS_PER_KIND + 1,
         },
         fetchPolicy: 'cache-and-network',
         skip: !searchActive,
     })
 
-    const games = searchResult.data?.games.byQuery || lastGames.current
-    lastGames.current = games
-    const haveGames = games && games.length > 0
-    const loadingWithData = haveGames && searchResult.loading
+    const result = searchResult.data?.search ?? lastResult.current
+    lastResult.current = result
+    const totalResults = result
+        ? result.totalGames + result.totalUsers + result.totalEvents + result.totalGroups
+        : 0
+    const haveResults = totalResults > 0
+    const loadingWithData = haveResults && searchResult.loading
 
     const handleFocus = () => {
         // When we were within hiding timeout, cancel it
@@ -173,7 +227,27 @@ export const HeaderSearchForm = () => {
         }
     }
 
-    const moreRoute = routes.search(inputRef.current?.value)
+    const showAll = (tab: string) => {
+        const searchRoute = routes.search(query, tab)
+
+        return (
+            <TextLink
+                className={classes.groupCount}
+                href={searchRoute.href}
+                as={searchRoute.as}
+                onClick={undefined}
+            >
+                {t('PageHeader.search.showMore')}
+            </TextLink>
+        )
+    }
+
+    const groupHeader = (textKey: string, kind: string, count: number, withLink: boolean) => (
+        <div className={classes.groupHeader} data-testid={componentTestIds.search.headerGroup(kind)}>
+            <span>{t(textKey)}</span>
+            {withLink ? showAll(kind) : <span className={classes.groupCount}>{t('Search.hits', { count })}</span>}
+        </div>
+    )
 
     return (
         <form className={classes.wrapper} onSubmit={handleClickSearch}>
@@ -190,8 +264,8 @@ export const HeaderSearchForm = () => {
                 <IconSearch />
             </button>
             {searchActive && focused && (
-                <div className={classes.results} onFocus={handleFocus}>
-                    {!haveGames && (
+                <div className={classes.results} onFocus={handleFocus} data-testid={componentTestIds.search.headerResults}>
+                    {!haveResults && (
                         <div className={classes.resultsText}>
                             {searchResult.loading ? (
                                 <IconLoading className={classes.iconLoading} />
@@ -200,33 +274,89 @@ export const HeaderSearchForm = () => {
                             )}
                         </div>
                     )}
-                    {haveGames &&
-                        games?.map((game, n) => {
-                            if (n < 5) {
-                                // Game
-                                const gameClasses = classNames({
-                                    [classes.gameSpacer]: n > 0,
-                                    [classes.gameLoading]: loadingWithData,
-                                })
-                                return (
-                                    <GameBaseDataPanel
-                                        key={game.id}
-                                        game={game}
-                                        className={gameClasses}
-                                        variant="dark"
-                                    />
-                                )
-                            }
-
-                            // Show "more" link instead of the game
-                            return (
-                                <div className={classes.moreText} key="more">
-                                    <TextLink href={moreRoute.href} as={moreRoute.as}>
-                                        {t('PageHeader.search.showMore')}
-                                    </TextLink>
-                                </div>
-                            )
-                        })}
+                    {haveResults && result && (
+                        <>
+                            {result.games.length > 0 && (
+                                <>
+                                    {groupHeader('Search.tabGames', 'games', result.totalGames, true)}
+                                    {result.games.slice(0, MAX_RESULTS_PER_KIND).map((game, n) => (
+                                        <GameBaseDataPanel
+                                            key={game.id}
+                                            game={game}
+                                            className={classNames({
+                                                [classes.gameSpacer]: n > 0,
+                                                [classes.gameLoading]: loadingWithData,
+                                            })}
+                                            variant="dark"
+                                        />
+                                    ))}
+                                </>
+                            )}
+                            {result.users.length > 0 && (
+                                <>
+                                    {groupHeader('Search.tabUsers', 'users', result.totalUsers, true)}
+                                    {result.users.slice(0, MAX_RESULTS_PER_KIND).map(user => (
+                                        <div className={classes.person} key={user.id}>
+                                            <UserLink userId={user.id}>
+                                                <HighlightedText text={user.name} query={query} />
+                                            </UserLink>
+                                            {user.nickname ? (
+                                                <span className={classes.personMeta}>
+                                                    {' '}
+                                                    <HighlightedText text={user.nickname} query={query} />
+                                                </span>
+                                            ) : null}
+                                        </div>
+                                    ))}
+                                </>
+                            )}
+                            {result.events.length > 0 && (
+                                <>
+                                    {groupHeader('Search.tabEvents', 'events', result.totalEvents, true)}
+                                    {result.events.slice(0, MAX_RESULTS_PER_KIND).map(event => (
+                                        <div className={classes.person} key={event.id}>
+                                            <EventLink event={event}>
+                                                <HighlightedText text={event.name} query={query} />
+                                            </EventLink>
+                                            <span className={classes.personMeta}>
+                                                {formatDate(toEventDate(event.from) ?? new Date())}
+                                                {event.loc ? ` · ${event.loc}` : ''}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </>
+                            )}
+                            {result.groups.length > 0 && (
+                                <>
+                                    {groupHeader('Search.tabGroups', 'groups', result.totalGroups, false)}
+                                    {result.groups.slice(0, MAX_RESULTS_PER_KIND).map(group => (
+                                        <div className={classes.person} key={group.id}>
+                                            <TextLink
+                                                href={routes.groupDetail(group.id).href}
+                                                as={routes.groupDetail(group.id).as}
+                                            >
+                                                <HighlightedText text={group.name} query={query} />
+                                            </TextLink>
+                                        </div>
+                                    ))}
+                                </>
+                            )}
+                        </>
+                    )}
+                    {!searchResult.loading && result?.suggestion && (
+                        <div className={classes.suggestion}>
+                            {t('Search.didYouMean')}{' '}
+                            <button
+                                type="button"
+                                className={classes.suggestionLink}
+                                onClick={() => {
+                                    setQuery(result.suggestion as string)
+                                }}
+                            >
+                                {result.suggestion}
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </form>

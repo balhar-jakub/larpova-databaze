@@ -1,52 +1,50 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { useQuery } from '@apollo/client'
 import { useTranslation } from 'src/lib/i18n'
 import {
-    GamesPaged,
-    LadderGameDataFragment,
-    SearchPageGamesQuery,
-    SearchPageGamesQueryVariables,
+    CalendarEventDataFragment,
+    EventsPaged,
+    SearchPageEventsQuery,
+    SearchPageEventsQueryVariables,
 } from '../../graphql/__generated__/typescript-operations'
 import BigLoading from '../common/BigLoading/BigLoading'
-import LadderGamePanel from '../Ladders/LadderGamePanel'
 import Pager from '../common/Pager/Pager'
+import CalendarEventCard from '../Calendar/CalendarEventCard'
 import SearchSuggestion from './SearchSuggestion'
 import { componentTestIds } from '../componentTestIds'
 
-const searchGamesGql = require('./graphql/searchPageGames.graphql')
+const searchEventsGql = require('./graphql/searchPageEvents.graphql')
 
 interface Props {
     readonly query: string
     readonly onUseSuggestion: (suggestion: string) => void
 }
 
-const PAGE_SIZE = 25
+const PAGE_SIZE = 20
 
-const useStyles = createUseStyles({
-    heading: {
-        fontSize: '0.85rem',
-        padding: '0 0 10px',
-    },
-})
-
-type Page = Pick<GamesPaged, 'totalAmount' | 'suggestion'> & {
-    games: Array<LadderGameDataFragment>
+type Page = Pick<EventsPaged, 'totalAmount' | 'suggestion'> & {
+    events: Array<CalendarEventDataFragment>
 }
 
-const GamesSearchPanel = ({ query, onUseSuggestion }: Props) => {
+/**
+ * Events tab of the search page. Until now events were reachable only through
+ * the calendar filters (date, labels, place) — 2 733 of them had no text search
+ * at all, so "the event whose name I half remember" had no way in.
+ */
+const EventsSearchPanel = ({ query, onUseSuggestion }: Props) => {
     const { t } = useTranslation('common')
     const classes = useStyles()
     const [offset, setOffset] = useState(0)
     const [page, setPage] = useState<Page | undefined>(undefined)
-    const { loading } = useQuery<SearchPageGamesQuery, SearchPageGamesQueryVariables>(searchGamesGql, {
+    const { loading } = useQuery<SearchPageEventsQuery, SearchPageEventsQueryVariables>(searchEventsGql, {
         variables: {
             query,
             offset,
             limit: PAGE_SIZE,
         },
         onCompleted: data => {
-            setPage(data.games.byQueryWithTotal)
+            setPage(data.eventsByQuery)
         },
     })
 
@@ -61,13 +59,13 @@ const GamesSearchPanel = ({ query, onUseSuggestion }: Props) => {
 
     const heading = (
         <div className={classes.heading} data-testid={componentTestIds.search.resultCount}>
-            {page.games.length === 0
+            {page.events.length === 0
                 ? t('Search.notFound')
-                : t('Search.resultCountGames', { count: page.totalAmount })}
+                : t('Search.resultCountEvents', { count: page.totalAmount })}
         </div>
     )
 
-    if (page.games.length === 0) {
+    if (page.events.length === 0) {
         return (
             <>
                 {heading}
@@ -80,9 +78,13 @@ const GamesSearchPanel = ({ query, onUseSuggestion }: Props) => {
         <>
             {heading}
             <SearchSuggestion suggestion={page.suggestion} onUse={onUseSuggestion} />
-            <div style={loading ? { opacity: 0.5 } : undefined}>
-                {page.games.map(game => (
-                    <LadderGamePanel game={game} key={game.id} />
+            <div
+                className={classes.list}
+                style={loading ? { opacity: 0.5 } : undefined}
+                data-testid={componentTestIds.search.eventList}
+            >
+                {page.events.map(event => (
+                    <CalendarEventCard key={event.id} event={event} />
                 ))}
             </div>
             <Pager
@@ -95,4 +97,14 @@ const GamesSearchPanel = ({ query, onUseSuggestion }: Props) => {
     )
 }
 
-export default GamesSearchPanel
+const useStyles = createUseStyles({
+    heading: {
+        fontSize: '0.85rem',
+        padding: '0 0 10px',
+    },
+    list: {
+        marginBottom: 10,
+    },
+})
+
+export default EventsSearchPanel

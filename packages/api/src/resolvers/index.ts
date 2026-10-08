@@ -11,9 +11,14 @@ import { configResolver } from './config.js';
 import {
   userByIdResolver,
   userByEmailResolver,
-  usersByQueryResolver,
   loggedInUserResolver,
 } from './user.js';
+import {
+  eventsByQueryResolver,
+  searchResolver,
+  usersByQueryResolver,
+  usersByQueryWithTotalResolver,
+} from './search.js';
 import { groupByIdResolver, groupsByQueryResolver } from './group.js';
 import { eventByIdResolver, eventCalendarResolver, eventCalendarStatsResolver } from './event.js';
 import { authorizedRequiredLabelsResolver, authorizedOptionalLabelsResolver } from './label.js';
@@ -74,9 +79,12 @@ export const resolvers: any = {
     eventById: eventByIdResolver,
     eventCalendar: eventCalendarResolver,
     eventCalendarStats: eventCalendarStatsResolver,
+    eventsByQuery: eventsByQueryResolver,
+    search: searchResolver,
     userById: userByIdResolver,
     userByEmail: userByEmailResolver,
     usersByQuery: usersByQueryResolver,
+    usersByQueryWithTotal: usersByQueryWithTotalResolver,
     loggedInUser: loggedInUserResolver,
     games: gamesQueryResolver,
     authorizedRequiredLabels: authorizedRequiredLabelsResolver,

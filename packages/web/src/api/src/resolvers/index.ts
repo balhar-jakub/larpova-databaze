@@ -13,9 +13,14 @@ import { configResolver } from './config.js';
 import {
   userByIdResolver,
   userByEmailResolver,
-  usersByQueryResolver,
   loggedInUserResolver,
 } from './user.js';
+import {
+  eventsByQueryResolver,
+  usersByQueryResolver,
+  usersByQueryWithTotalResolver,
+  searchResolver,
+} from './search.js';
 import { normalizeGame, normalizeUserRef } from './mappers.js';
 import { groupByIdResolver, groupsByQueryResolver } from './group.js';
 import { eventByIdResolver, eventCalendarResolver, eventCalendarStatsResolver } from './event.js';
@@ -79,9 +84,12 @@ export const resolvers: any = {
     eventById: eventByIdResolver,
     eventCalendar: eventCalendarResolver,
     eventCalendarStats: eventCalendarStatsResolver,
+    eventsByQuery: eventsByQueryResolver,
+    search: searchResolver,
     userById: userByIdResolver,
     userByEmail: userByEmailResolver,
     usersByQuery: usersByQueryResolver,
+    usersByQueryWithTotal: usersByQueryWithTotalResolver,
     loggedInUser: loggedInUserResolver,
     games: gamesQueryResolver,
     authorizedRequiredLabels: authorizedRequiredLabelsResolver,

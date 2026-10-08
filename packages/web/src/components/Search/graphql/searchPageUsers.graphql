@@ -1,12 +1,16 @@
 query SearchPageUsers($query: String!, $offset: Int! $limit: Int!) {
-    usersByQuery(query: $query, offset: $offset, limit: $limit) {
-        id
-        name
-        nickname
-        birthDate
-        city
-        image {
+    usersByQueryWithTotal(query: $query, offset: $offset, limit: $limit) {
+        totalAmount
+        suggestion
+        users {
             id
+            name
+            nickname
+            birthDate
+            city
+            image {
+                id
+            }
         }
     }
 }

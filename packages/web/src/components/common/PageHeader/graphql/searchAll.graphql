@@ -1,0 +1,30 @@
+#import "src/graphql/fragments/baseGameData.graphql"
+
+query SearchAll($query: String!, $limit: Int!) {
+    search(query: $query, limit: $limit) {
+        totalGames
+        totalUsers
+        totalEvents
+        totalGroups
+        suggestion
+        games {
+            ...baseGameData
+        }
+        users {
+            id
+            name
+            nickname
+        }
+        events {
+            id
+            name
+            from
+            to
+            loc
+        }
+        groups {
+            id
+            name
+        }
+    }
+}

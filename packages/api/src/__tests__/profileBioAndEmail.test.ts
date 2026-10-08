@@ -200,7 +200,10 @@ describe('account email', () => {
   });
 
   it('is not harvested through usersByQuery without signing in', async () => {
-    const result = await executeQuery(server, `{ usersByQuery(query: "", limit: 5) { id email } }`);
+    // The query used to be the empty string, which matched the whole table: the
+    // search now ignores queries shorter than two characters, so the harvest
+    // path is probed with a query that really returns the other accounts.
+    const result = await executeQuery(server, `{ usersByQuery(query: "Bio", limit: 5) { id email } }`);
 
     expect(result.errors).toBeUndefined();
     const users = (result.data?.usersByQuery ?? []) as Array<{ email: string | null }>;

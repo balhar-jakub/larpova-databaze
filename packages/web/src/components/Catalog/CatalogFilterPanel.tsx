@@ -103,6 +103,21 @@ const useStyles = createUseStyles({
         fontSize: '0.7rem',
         color: darkTheme.textOnLight,
     },
+    queryInput: {
+        width: '100%',
+        padding: '4px 7px',
+        border: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
+        borderRadius: 3,
+        fontSize: '0.72rem',
+        color: darkTheme.textOnLight,
+        outline: 0,
+    },
+    queryHint: {
+        margin: '5px 0 0',
+        fontSize: '0.65rem',
+        lineHeight: 1.4,
+        color: darkTheme.textOnLightLighter,
+    },
     modes: {
         display: 'flex',
         gap: 6,
@@ -208,6 +223,24 @@ const CatalogFilterPanel = ({ state, facets, onStateChange, onReset }: Props) =>
     const classes = useStyles()
     const { t } = useTranslation('common')
     const [themesExpanded, setThemesExpanded] = useState(false)
+    // The text filter is the one thing here that is not a checkbox: it is kept in
+    // local state and committed on Enter or blur, so a request is not fired for
+    // every keystroke.
+    const [queryDraft, setQueryDraft] = useState(state.query ?? '')
+    const [lastQuery, setLastQuery] = useState(state.query ?? '')
+
+    const externalQuery = state.query ?? ''
+    if (externalQuery !== lastQuery) {
+        setLastQuery(externalQuery)
+        setQueryDraft(externalQuery)
+    }
+
+    const commitQuery = () => {
+        const next = queryDraft.trim()
+        if (next !== externalQuery) {
+            onStateChange({ query: next || undefined })
+        }
+    }
 
     const labels = facets?.labels ?? []
     const categories = labels.filter((label) => label.isRequired)
@@ -250,6 +283,26 @@ const CatalogFilterPanel = ({ state, facets, onStateChange, onReset }: Props) =>
                     ))}
                 </div>
             )}
+
+            <div className={classes.group}>
+                <h3 className={classes.groupTitle}>{t('Catalog.filters.query')}</h3>
+                <input
+                    className={classes.queryInput}
+                    type="search"
+                    value={queryDraft}
+                    placeholder={t('Catalog.filters.queryPlaceholder')}
+                    data-testid={componentTestIds.catalog.query}
+                    onChange={(event) => setQueryDraft(event.target.value)}
+                    onBlur={commitQuery}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault()
+                            commitQuery()
+                        }
+                    }}
+                />
+                <p className={classes.queryHint}>{t('Catalog.filters.queryHint')}</p>
+            </div>
 
             {categories.length > 0 && (
                 <div className={classes.group}>

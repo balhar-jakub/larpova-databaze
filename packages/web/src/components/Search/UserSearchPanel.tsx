@@ -1,22 +1,40 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { useTranslation } from 'src/lib/i18n'
 import { useQuery } from '@apollo/client'
-import { Button } from 'react-bootstrap'
-import { SearchPageUsersQuery, SearchPageUsersQueryVariables } from '../../graphql/__generated__/typescript-operations'
+import {
+    SearchPageUsersQuery,
+    SearchPageUsersQueryVariables,
+    UsersPaged,
+} from '../../graphql/__generated__/typescript-operations'
 import BigLoading from '../common/BigLoading/BigLoading'
+import Pager from '../common/Pager/Pager'
 import { darkTheme } from '../../theme/darkTheme'
 import UserLink from '../common/UserLink/UserLink'
+import { TextLink } from '../common/TextLink/TextLink'
 import { computeAge } from '../../utils/dateUtils'
 import { ProfileImage } from '../common/ProfileImage/ProfileImage'
+import { useRoutes } from '../../hooks/useRoutes'
+import HighlightedText from './HighlightedText'
+import SearchSuggestion from './SearchSuggestion'
+import { componentTestIds } from '../componentTestIds'
 
 const searchUsersGql = require('./graphql/searchPageUsers.graphql')
 
 interface Props {
     readonly query: string
+    readonly onUseSuggestion: (suggestion: string) => void
 }
 
+const PAGE_SIZE = 24
+
+type UserRow = UsersPaged['users'][number]
+
 const useStyles = createUseStyles({
+    heading: {
+        fontSize: '0.85rem',
+        padding: '0 0 10px',
+    },
     itemHolder: {
         margin: -5,
         display: 'flex',
@@ -29,81 +47,112 @@ const useStyles = createUseStyles({
         color: darkTheme.textOnLight,
         borderRadius: 10,
         display: 'flex',
+        maxWidth: 330,
     },
-    moreButtonHolder: {
-        margin: '10px 0',
-        textAlign: 'center',
+    info: {
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
+    },
+    name: {
+        color: darkTheme.textOnLightDark,
+    },
+    gamesLink: {
+        marginTop: 2,
+        fontSize: '0.75rem',
     },
 })
 
-const BATCH_SIZE = 10
-
-const User = ({ query }: Props) => {
+/**
+ * People tab of the search page. Matches names, nicknames and cities through the
+ * shared engine (diacritics and word order do not decide), shows *why* each row
+ * matched by highlighting the words, and offers the games of the person — the
+ * "who is this and what did they write" question a visitor actually has.
+ */
+const UserSearchPanel = ({ query, onUseSuggestion }: Props) => {
     const { t } = useTranslation('common')
-    const [lastOffset, setLastOffset] = useState(0)
     const classes = useStyles()
-    const { data, loading, fetchMore } = useQuery<SearchPageUsersQuery, SearchPageUsersQueryVariables>(searchUsersGql, {
+    const routes = useRoutes()
+    const [offset, setOffset] = useState(0)
+    const { data, loading } = useQuery<SearchPageUsersQuery, SearchPageUsersQueryVariables>(searchUsersGql, {
         variables: {
             query,
-            offset: 0,
-            limit: BATCH_SIZE + 1,
+            offset,
+            limit: PAGE_SIZE,
         },
     })
 
-    const loadMore = () => {
-        fetchMore({
-            variables: {
-                query,
-                offset: lastOffset + BATCH_SIZE + 1,
-                limit: BATCH_SIZE,
-            },
-        })
-        setLastOffset(last => last + BATCH_SIZE)
-    }
-
     useEffect(() => {
-        // Reset shown size when query changed
-        setLastOffset(0)
+        // Go to first page on query change
+        setOffset(0)
     }, [query])
 
-    if (!data?.usersByQuery) {
+    const page = data?.usersByQueryWithTotal
+
+    if (!page) {
         return <BigLoading />
     }
 
-    const users = data?.usersByQuery || []
-    if (users.length === 0) {
-        return <span>{t('Search.notFound')}</span>
-    }
+    const heading = (
+        <div className={classes.heading} data-testid={componentTestIds.search.resultCount}>
+            {page.users.length === 0
+                ? t('Search.notFound')
+                : t('Search.resultCountUsers', { count: page.totalAmount })}
+        </div>
+    )
 
-    const expectedLength = lastOffset + BATCH_SIZE
-    const shownUsers = users.slice(0, expectedLength)
+    if (page.users.length === 0) {
+        return (
+            <>
+                {heading}
+                <SearchSuggestion suggestion={page.suggestion} onUse={onUseSuggestion} />
+            </>
+        )
+    }
 
     return (
         <>
-            <div className={classes.itemHolder}>
-                {shownUsers.map(user => (
-                    <div className={classes.item}>
+            {heading}
+            <SearchSuggestion suggestion={page.suggestion} onUse={onUseSuggestion} />
+            <div className={classes.itemHolder} style={loading ? { opacity: 0.5 } : undefined}>
+                {page.users.map(user => (
+                    <div className={classes.item} key={user.id} data-testid={componentTestIds.search.userCard(user.id)}>
                         <ProfileImage userId={user.id} imageId={user.image?.id} />
-                        <div>
-                            {user.nickname ? `${user.nickname} ` : ''}
-                            <UserLink userId={user.id}>{user.name}</UserLink>
-                            <br />
-                            {user.city}
-                            {user.city && user.birthDate ? ', ' : ''}
-                            {user.birthDate && t('Search.userAge', { age: computeAge(user.birthDate) })}
+                        <div className={classes.info}>
+                            <span className={classes.name}>
+                                {user.nickname ? (
+                                    <>
+                                        <HighlightedText text={`${user.nickname} `} query={query} />
+                                    </>
+                                ) : null}
+                                <UserLink userId={user.id}>
+                                    <HighlightedText text={user.name} query={query} />
+                                </UserLink>
+                            </span>
+                            <span>
+                                <HighlightedText text={user.city} query={query} />
+                                {user.city && user.birthDate ? ', ' : ''}
+                                {user.birthDate ? t('Search.userAge', { age: computeAge(user.birthDate) }) : ''}
+                            </span>
+                            <TextLink
+                                className={classes.gamesLink}
+                                href={routes.gamesOfAuthor(user.id, user.name).href}
+                                as={routes.gamesOfAuthor(user.id, user.name).as}
+                            >
+                                {t('Search.userGames', { name: user.name })}
+                            </TextLink>
                         </div>
                     </div>
                 ))}
             </div>
-            {users.length > expectedLength && (
-                <div className={classes.moreButtonHolder}>
-                    <Button variant="dark" onClick={loadMore} disabled={loading}>
-                        {t('Search.moreUsers')}
-                    </Button>
-                </div>
-            )}
+            <Pager
+                currentOffset={offset}
+                totalAmount={page.totalAmount}
+                pageSize={PAGE_SIZE}
+                onOffsetChanged={setOffset}
+            />
         </>
     )
 }
 
-export default User
+export default UserSearchPanel

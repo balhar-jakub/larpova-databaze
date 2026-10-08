@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import type { Context } from '../context.js';
 import { normalizeGame } from './mappers.js';
+import { gameIdsForQuery } from './search.js';
 
 /**
  * Catalog = the browse surface of the games list (replaces the ladder there).
@@ -38,6 +39,8 @@ export type CatalogOrder =
 
 export interface CatalogFilter {
   query?: string | null;
+  /** Author ids — the "hry od X" link of a search result. */
+  authorIds?: (string | number)[] | null;
   allLabels?: (string | number)[] | null;
   anyLabels?: (string | number)[] | null;
   noLabels?: (string | number)[] | null;
@@ -136,12 +139,31 @@ export interface WhereOptions {
   skipDurations?: boolean;
 }
 
-export function buildCatalogWhere(filter: CatalogFilter = {}, options: WhereOptions = {}): Prisma.csld_gameWhereInput {
+/**
+ * `queryIds` is the result of the shared search engine for `filter.query`
+ * (`gameIdsForQuery`): the text filter cannot be a Prisma condition, because it
+ * has to fold diacritics and match word prefixes. Callers resolve it first —
+ * asynchronously — and pass the ids in; `null` means "the query is too short to
+ * filter on" and it is ignored, which keeps the box usable while typing.
+ *
+ * Facets are counted with the same where, so the label counts always answer the
+ * same question the list does ("kolik her odpovídá filtru").
+ */
+export function buildCatalogWhere(
+  filter: CatalogFilter = {},
+  options: WhereOptions = {},
+  queryIds?: number[] | null,
+): Prisma.csld_gameWhereInput {
   const and: Prisma.csld_gameWhereInput[] = [{ deleted: false }];
 
   const query = filter.query?.trim();
-  if (query) {
-    and.push({ name: { contains: query, mode: 'insensitive' } });
+  if (query && Array.isArray(queryIds)) {
+    and.push({ id: { in: queryIds } });
+  }
+
+  const authorIds = toIntIds(filter.authorIds);
+  if (authorIds.length) {
+    and.push({ csld_game_has_author: { some: { id_user: { in: authorIds } } } });
   }
 
   if (!options.skipLabels) {
@@ -282,9 +304,13 @@ export interface CatalogFacets {
   yearMax: number | null;
 }
 
-async function buildFacets(ctx: Context, filter: CatalogFilter): Promise<CatalogFacets> {
-  const labelWhere = buildCatalogWhere(filter, { skipLabels: true });
-  const durationWhere = buildCatalogWhere(filter, { skipDurations: true });
+async function buildFacets(
+  ctx: Context,
+  filter: CatalogFilter,
+  queryIds?: number[] | null,
+): Promise<CatalogFacets> {
+  const labelWhere = buildCatalogWhere(filter, { skipLabels: true }, queryIds);
+  const durationWhere = buildCatalogWhere(filter, { skipDurations: true }, queryIds);
 
   const [labelGroups, labelRows, yearAggregate, durationCounts] = await Promise.all([
     ctx.db.csld_game_has_label.groupBy({
@@ -337,7 +363,10 @@ export async function catalogResolver(
   const limit = Math.min(Math.max(1, args.limit ?? 24), 100);
   const filter = args.filter ?? {};
   const order = args.order ?? DEFAULT_ORDER;
-  const where = buildCatalogWhere(filter);
+  // The text filter is resolved by the shared search engine first, so it also
+  // covers the authors and folds diacritics; the ids then narrow the where.
+  const queryIds = await gameIdsForQuery(ctx, filter.query);
+  const where = buildCatalogWhere(filter, {}, queryIds);
 
   const [totalAmount, ids] = await Promise.all([
     ctx.db.csld_game.count({ where }),
@@ -348,7 +377,7 @@ export async function catalogResolver(
     ids.length
       ? ctx.db.csld_game.findMany({ where: { id: { in: ids } }, include: GAME_CATALOG_INCLUDE })
       : Promise.resolve([] as Awaited<ReturnType<typeof ctx.db.csld_game.findMany>>),
-    buildFacets(ctx, filter),
+    buildFacets(ctx, filter, queryIds),
   ]);
 
   const byId = new Map(games.map((game) => [game.id, game]));

@@ -219,6 +219,8 @@ export type EventMutationUpdateEventArgs = {
 export type EventsPaged = {
   __typename?: 'EventsPaged';
   events: Array<Event>;
+  /** A corrected query to offer when nothing was found (`Mysleli jste…?`). */
+  suggestion?: Maybe<Scalars['String']>;
   totalAmount: Scalars['Int'];
 };
 
@@ -291,6 +293,8 @@ export type GameCatalogFilter = {
   allLabels?: InputMaybe<Array<Scalars['ID']>>;
   /** Games that have at least one of these labels. */
   anyLabels?: InputMaybe<Array<Scalars['ID']>>;
+  /** Games of these authors (the 'hry od X' link of a search result). */
+  authorIds?: InputMaybe<Array<Scalars['ID']>>;
   /** Duration buckets: short, day, weekend, long. */
   durations?: InputMaybe<Array<Scalars['String']>>;
   /** Minimum average rating, 0-100 (80 and up is 'recommended'). */
@@ -423,6 +427,8 @@ export type GameWithRating = {
 export type GamesPaged = {
   __typename?: 'GamesPaged';
   games: Array<Game>;
+  /** A corrected query to offer when nothing was found (`Mysleli jste…?`). */
+  suggestion?: Maybe<Scalars['String']>;
   totalAmount: Scalars['Int'];
 };
 
@@ -580,15 +586,21 @@ export type Query = {
   eventById?: Maybe<Event>;
   eventCalendar: EventsPaged;
   eventCalendarStats: EventCalendarStats;
+  /** Events matching a text query (name and place, diacritics ignored, word prefixes matched). */
+  eventsByQuery: EventsPaged;
   gameById?: Maybe<Game>;
   games: GamesQuery;
   groupById?: Maybe<Group>;
   groupsByQuery: Array<Group>;
   homepage: HomepageQuery;
   loggedInUser?: Maybe<User>;
+  /** Everything matching a text query at once — what the header search field shows. */
+  search: SearchResults;
   userByEmail?: Maybe<User>;
   userById?: Maybe<User>;
   usersByQuery: Array<User>;
+  /** Same order as `usersByQuery`, with the honest total for the pager. */
+  usersByQueryWithTotal: UsersPaged;
 };
 
 
@@ -602,6 +614,7 @@ export type QueryEventCalendarArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   otherLabels?: InputMaybe<Array<Scalars['ID']>>;
+  query?: InputMaybe<Scalars['String']>;
   requiredLabels?: InputMaybe<Array<Scalars['ID']>>;
   to?: InputMaybe<Scalars['String']>;
 };
@@ -609,6 +622,15 @@ export type QueryEventCalendarArgs = {
 
 export type QueryEventCalendarStatsArgs = {
   from?: InputMaybe<Scalars['String']>;
+  to?: InputMaybe<Scalars['String']>;
+};
+
+
+export type QueryEventsByQueryArgs = {
+  from?: InputMaybe<Scalars['String']>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  query: Scalars['String'];
   to?: InputMaybe<Scalars['String']>;
 };
 
@@ -630,6 +652,12 @@ export type QueryGroupsByQueryArgs = {
 };
 
 
+export type QuerySearchArgs = {
+  limit?: InputMaybe<Scalars['Int']>;
+  query: Scalars['String'];
+};
+
+
 export type QueryUserByEmailArgs = {
   email: Scalars['String'];
 };
@@ -641,6 +669,13 @@ export type QueryUserByIdArgs = {
 
 
 export type QueryUsersByQueryArgs = {
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  query: Scalars['String'];
+};
+
+
+export type QueryUsersByQueryWithTotalArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   query: Scalars['String'];
@@ -659,6 +694,19 @@ export type RatingCount = {
   __typename?: 'RatingCount';
   count: Scalars['Int'];
   rating: Scalars['Int'];
+};
+
+export type SearchResults = {
+  __typename?: 'SearchResults';
+  events: Array<Event>;
+  games: Array<Game>;
+  groups: Array<Group>;
+  suggestion?: Maybe<Scalars['String']>;
+  totalEvents: Scalars['Int'];
+  totalGames: Scalars['Int'];
+  totalGroups: Scalars['Int'];
+  totalUsers: Scalars['Int'];
+  users: Array<User>;
 };
 
 export type SelfRated = {
@@ -845,6 +893,14 @@ export enum UserRoleIn {
   Editor = 'EDITOR',
   User = 'USER'
 }
+
+export type UsersPaged = {
+  __typename?: 'UsersPaged';
+  /** A corrected query to offer when nothing was found (`Mysleli jste…?`). */
+  suggestion?: Maybe<Scalars['String']>;
+  totalAmount: Scalars['Int'];
+  users: Array<User>;
+};
 
 export type Video = {
   __typename?: 'Video';
@@ -1217,6 +1273,15 @@ export type StartRecoverPasswordMutationVariables = Exact<{
 
 export type StartRecoverPasswordMutation = { __typename?: 'Mutation', user: { __typename?: 'UserMutation', startRecoverPassword?: boolean | null } };
 
+export type SearchPageEventsQueryVariables = Exact<{
+  query: Scalars['String'];
+  offset: Scalars['Int'];
+  limit: Scalars['Int'];
+}>;
+
+
+export type SearchPageEventsQuery = { __typename?: 'Query', eventsByQuery: { __typename?: 'EventsPaged', totalAmount: number, suggestion?: string | null, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null }> } };
+
 export type SearchPageGamesQueryVariables = Exact<{
   query: Scalars['String'];
   limit: Scalars['Int'];
@@ -1224,7 +1289,7 @@ export type SearchPageGamesQueryVariables = Exact<{
 }>;
 
 
-export type SearchPageGamesQuery = { __typename?: 'Query', games: { __typename?: 'GamesQuery', byQueryWithTotal: { __typename?: 'GamesPaged', totalAmount: number, games: Array<{ __typename?: 'Game', id: string, name?: string | null, year?: number | null, amountOfComments: number, amountOfRatings: number, averageRating: number, totalRating: number, labels: Array<{ __typename?: 'Label', id: string, name?: string | null }> }> } } };
+export type SearchPageGamesQuery = { __typename?: 'Query', games: { __typename?: 'GamesQuery', byQueryWithTotal: { __typename?: 'GamesPaged', totalAmount: number, suggestion?: string | null, games: Array<{ __typename?: 'Game', id: string, name?: string | null, year?: number | null, amountOfComments: number, amountOfRatings: number, averageRating: number, totalRating: number, labels: Array<{ __typename?: 'Label', id: string, name?: string | null }> }> } } };
 
 export type SearchPageUsersQueryVariables = Exact<{
   query: Scalars['String'];
@@ -1233,7 +1298,7 @@ export type SearchPageUsersQueryVariables = Exact<{
 }>;
 
 
-export type SearchPageUsersQuery = { __typename?: 'Query', usersByQuery: Array<{ __typename?: 'User', id: string, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, image?: { __typename?: 'Image', id: string } | null }> };
+export type SearchPageUsersQuery = { __typename?: 'Query', usersByQueryWithTotal: { __typename?: 'UsersPaged', totalAmount: number, suggestion?: string | null, users: Array<{ __typename?: 'User', id: string, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, image?: { __typename?: 'Image', id: string } | null }> } };
 
 export type LogInMutationVariables = Exact<{
   userName: Scalars['String'];
@@ -1262,6 +1327,14 @@ export type GetConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetConfigQuery = { __typename?: 'Query', config: { __typename?: 'Config', reCaptchaKey: string } };
+
+export type SearchAllQueryVariables = Exact<{
+  query: Scalars['String'];
+  limit: Scalars['Int'];
+}>;
+
+
+export type SearchAllQuery = { __typename?: 'Query', search: { __typename?: 'SearchResults', totalGames: number, totalUsers: number, totalEvents: number, totalGroups: number, suggestion?: string | null, games: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, users: Array<{ __typename?: 'User', id: string, name: string, nickname?: string | null }>, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null }>, groups: Array<{ __typename?: 'Group', id: string, name?: string | null }> } };
 
 export type SearchGamesQueryVariables = Exact<{
   query: Scalars['String'];

@@ -1,0 +1,11 @@
+#import "src/components/Calendar/graphql/calendarEventData.graphql"
+
+query SearchPageEvents($query: String!, $offset: Int!, $limit: Int!) {
+    eventsByQuery(query: $query, offset: $offset, limit: $limit) {
+        totalAmount
+        suggestion
+        events {
+            ...calendarEventData
+        }
+    }
+}

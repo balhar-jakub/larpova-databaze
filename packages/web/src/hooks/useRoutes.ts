@@ -92,8 +92,19 @@ export const useRoutes = () => {
 
             adminSelfRated: (): Route => route('/admin/selfRated'),
 
-            search: (initialQuery?: string): Route =>
-              route(initialQuery ? `/search?initialQuery=${encodeURIComponent(initialQuery)}` : '/search'),
+            search: (query?: string, tab?: string): Route => {
+              const params: string[] = []
+              if (query) params.push(`q=${encodeURIComponent(query)}`)
+              if (tab && tab !== 'games') params.push(`t=${tab}`)
+              return route(params.length ? `/search?${params.join('&')}` : '/search')
+            },
+
+            /** "Hry od X" — the catalog, filtered to one author. */
+            gamesOfAuthor: (id: string, name?: string | null): Route => {
+              const params = [`autor=${encodeURIComponent(id)}`]
+              if (name) params.push(`autorn=${encodeURIComponent(name)}`)
+              return route(`/games?${params.join('&')}`)
+            },
         }),
         [router],
     )
