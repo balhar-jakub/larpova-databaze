@@ -6,8 +6,13 @@ import { darkTheme } from '../../theme/darkTheme'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
 
 interface Props {
-    readonly signUpHref: string
-    readonly createGameHref: string
+    /** Heading and text keys; the anonymous band is the default. */
+    readonly titleKey?: string
+    readonly textKey?: string
+    readonly primaryKey?: string
+    readonly primaryHref?: string
+    readonly secondaryKey?: string
+    readonly secondaryHref?: string
 }
 
 const useStyles = createUseStyles({
@@ -72,24 +77,34 @@ const useStyles = createUseStyles({
  * The closing band: the homepage of a database that is filled by its visitors
  * has to ask for the contribution somewhere. Both buttons lead to a page that
  * already exists (registration, new game); nothing here needs an account.
+ *
+ * The signed-in visitor gets the same band with their own wording — "Vytvořit
+ * účet" is nonsense for somebody who has one.
  */
-export const HomePageCtaPanel = ({ signUpHref, createGameHref }: Props) => {
+export const HomePageCtaPanel = ({
+    titleKey = 'HomePage.ctaTitle',
+    textKey = 'HomePage.ctaText',
+    primaryKey = 'HomePage.ctaSignUp',
+    primaryHref = '/signUp',
+    secondaryKey = 'HomePage.ctaCreateGame',
+    secondaryHref = '/gameEdit',
+}: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
 
     return (
         <div className={classes.band}>
             <WidthFixer className={classes.inner}>
-                <h2 className={classes.title}>{t('HomePage.ctaTitle')}</h2>
-                <p className={classes.text}>{t('HomePage.ctaText')}</p>
+                <h2 className={classes.title}>{t(titleKey)}</h2>
+                <p className={classes.text}>{t(textKey)}</p>
                 <div className={classes.buttons}>
-                    <Link href={signUpHref} legacyBehavior>
+                    <Link href={primaryHref} legacyBehavior>
                         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                        <a className={classes.primary} href={signUpHref}>{t('HomePage.ctaSignUp')}</a>
+                        <a className={classes.primary} href={primaryHref}>{t(primaryKey)}</a>
                     </Link>
-                    <Link href={createGameHref} legacyBehavior>
+                    <Link href={secondaryHref} legacyBehavior>
                         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                        <a className={classes.secondary} href={createGameHref}>{t('HomePage.ctaCreateGame')}</a>
+                        <a className={classes.secondary} href={secondaryHref}>{t(secondaryKey)}</a>
                     </Link>
                 </div>
             </WidthFixer>

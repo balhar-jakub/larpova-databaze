@@ -68,6 +68,8 @@ type HomepageQuery {
     stats: HomepageStats!
     lastComments(offset: Int, limit: Int): [Comment!]!
     nextEvents: [Event!]!
+    "The signed-in visitor's own blocks; null for an anonymous visitor."
+    myHome: MyHomepage
 }
 
 type HomepageStats {
@@ -77,6 +79,60 @@ type HomepageStats {
     users: Int!
     labels: Int!
 }
+"""
+The signed-in visitor's own page: what they have, what to finish, what to play
+next. Null for an anonymous caller — the anonymous blocks are `HomepageQuery`
+itself.
+"""
+type MyHomepage {
+    playedCount: Int!
+    wantedCount: Int!
+    authoredCount: Int!
+    commentsCount: Int!
+    "False when the account has nothing in the database; the page shows the first steps instead."
+    hasData: Boolean!
+    "Upcoming events of the games in the visitor's \"want to play\" list."
+    myEvents: [Event!]!
+    "Wanted games with no event ahead — why the calendar keeps an ICS feed."
+    wantedWithoutEvent: Int!
+    "Played games the visitor has not rated, newest first."
+    toRate: [PersonalGame!]!
+    "The oldest rows of the \"want to play\" list."
+    oldestWanted: [PersonalGame!]!
+    "The visitor's own games, the newest rating first."
+    authored: [AuthoredGame!]!
+    "Labels of the games the visitor rated 8 or more, with how often they occur."
+    recommendedLabels: [LabelCount!]!
+    "Games recommended through those labels, in the catalog's own order."
+    recommended: [Game!]!
+}
+
+"A game with the date the visitor's own row about it was written."
+type PersonalGame {
+    game: Game!
+    since: String
+}
+
+"One of the visitor's games with the newest rating it received."
+type AuthoredGame {
+    game: Game!
+    lastRating: LastRating
+}
+
+"The newest rating a game received, as its author sees it."
+type LastRating {
+    rating: Int!
+    added: String
+    user: User
+}
+
+"A label with the number of times it occurs in the visitor's own ratings."
+type LabelCount {
+    id: ID!
+    name: String
+    count: Int!
+}
+
 
 type GamesQuery {
     byQuery(query: String!, offset: Int, limit: Int): [Game!]!
