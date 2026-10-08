@@ -42,11 +42,23 @@ describe('comment text — entities and tags', () => {
   });
 });
 
+/**
+ * The blocks the anonymous visitor gets. Every case builds its own rows: the
+ * suite runs against a seeded development database and against an empty CI one
+ * (a postgres service container with the schema pushed), so an assertion may
+ * only rely on the fixtures it created — the fixture games carry the highest
+ * averages in either database, which makes the "best rated" page deterministic.
+ */
 describe('homepage — the anonymous blocks', () => {
   let server: ApolloServer;
-  let gameId: number;
   let userId: number;
-  // Newest first — the loop creates index 4 (the newest) first, so push keeps it at 0.
+  let labelId: number;
+  let eventId: number;
+  /** The twelve fixture games, best first. */
+  const rankedGameIds: number[] = [];
+  let excludedFewRatingsId: number;
+  let excludedNoAverageId: number;
+  /** The fixture comments, newest first ("Komentář 4" is the newest). */
   const commentIds: number[] = [];
 
   beforeAll(async () => {
@@ -62,23 +74,82 @@ describe('homepage — the anonymous blocks', () => {
     });
     userId = user.id;
 
-    const game = await prisma.csld_game.create({
-      data: { name: `${marker} hra`, description: 'x', deleted: false, added_by: userId },
-    });
-    gameId = game.id;
+    // Twelve games with the highest averages in the database (100 → 94.5) and a
+    // falling number of ratings: the top six of the block are then these, in
+    // this order, whatever else the database holds.
+    for (let index = 0; index < 12; index += 1) {
+      const game = await prisma.csld_game.create({
+        data: {
+          name: `${marker} hra ${index}`,
+          description: 'x',
+          deleted: false,
+          added_by: userId,
+          average_rating: 100 - index * 0.5,
+          amount_of_ratings: 20 - index,
+          total_rating: (100 - index * 0.5) * (20 - index),
+        },
+      });
+      rankedGameIds.push(game.id);
+    }
 
-    // Four comments; the newest three belong to the block, the fourth proves the
-    // offset pages. `added` is set explicitly so the order cannot depend on the
-    // clock: index 4 is the newest ("Komentář 4").
+    // Two games that must never appear: one with a single opinion (below the
+    // five-rating gate) and one with no average at all — the very rows the old
+    // block put in front, because PostgreSQL sorts NULLs first for DESC.
+    const fewRatings = await prisma.csld_game.create({
+      data: {
+        name: `${marker} dva hlasy`,
+        description: 'x',
+        deleted: false,
+        added_by: userId,
+        average_rating: 100,
+        amount_of_ratings: 2,
+        total_rating: 200,
+      },
+    });
+    excludedFewRatingsId = fewRatings.id;
+
+    const noAverage = await prisma.csld_game.create({
+      data: {
+        name: `${marker} bez průměru`,
+        description: 'x',
+        deleted: false,
+        added_by: userId,
+        average_rating: null,
+        amount_of_ratings: 10,
+        total_rating: 99999,
+      },
+    });
+    excludedNoAverageId = noAverage.id;
+
+    const label = await prisma.csld_label.create({
+      data: { name: `${marker} štítek`, is_authorized: true, is_required: false, added_by: userId },
+    });
+    labelId = label.id;
+    await prisma.csld_game_has_label.createMany({
+      data: rankedGameIds.map((id) => ({ id_game: id, id_label: labelId })),
+    });
+
+    const event = await prisma.event.create({
+      data: {
+        name: `${marker} akce`,
+        deleted: false,
+        from: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        to: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000),
+      },
+    });
+    eventId = event.id;
+
+    // Four comments, stamped in the future so they are the newest in the
+    // database — the block's own three are then the first three of these.
     for (let index = 4; index >= 1; index -= 1) {
       const comment = await prisma.csld_comment.create({
         data: {
-          game_id: gameId,
+          game_id: rankedGameIds[0],
           user_id: userId,
           comment: `Komentář ${index} na Blackhillu&nbsp;.&iacute;`,
           is_hidden: false,
           amount_of_upvotes: 0,
-          added: new Date(Date.now() - (4 - index) * 60_000),
+          added: new Date(Date.now() + index * 60_000),
         },
       });
       commentIds.push(comment.id);
@@ -87,7 +158,12 @@ describe('homepage — the anonymous blocks', () => {
 
   afterAll(async () => {
     await prisma.csld_comment.deleteMany({ where: { id: { in: commentIds } } });
-    await prisma.csld_game.deleteMany({ where: { id: gameId } });
+    await prisma.csld_game_has_label.deleteMany({ where: { id_label: labelId } });
+    await prisma.csld_label.deleteMany({ where: { id: labelId } });
+    await prisma.event.deleteMany({ where: { id: eventId } });
+    await prisma.csld_game.deleteMany({
+      where: { id: { in: [...rankedGameIds, excludedFewRatingsId, excludedNoAverageId] } },
+    });
     await prisma.csld_csld_user.deleteMany({ where: { id: userId } });
     await prisma.$disconnect();
   });
@@ -100,14 +176,18 @@ describe('homepage — the anonymous blocks', () => {
 
     expect(result.errors).toBeUndefined();
     const games = result.data.homepage.bestRatedGames;
-    expect(games.length).toBeGreaterThan(0);
+    const ids = games.map((game: any) => game.id);
 
+    expect(ids).toEqual(rankedGameIds.slice(0, 6).map(String));
     for (const game of games) {
       expect(game.amountOfRatings).toBeGreaterThanOrEqual(5);
     }
 
     const averages = games.map((game: any) => game.averageRating);
     expect([...averages].sort((a, b) => b - a)).toEqual(averages);
+
+    expect(ids).not.toContain(String(excludedFewRatingsId));
+    expect(ids).not.toContain(String(excludedNoAverageId));
   });
 
   test('the hero stats describe the whole database', async () => {
@@ -119,27 +199,41 @@ describe('homepage — the anonymous blocks', () => {
     expect(result.errors).toBeUndefined();
     const stats = result.data.homepage.stats;
 
-    expect(stats.games).toBeGreaterThan(0);
-    expect(stats.events).toBeGreaterThan(0);
-    expect(stats.users).toBeGreaterThan(0);
+    expect(stats.games).toBeGreaterThanOrEqual(rankedGameIds.length);
+    expect(stats.events).toBeGreaterThanOrEqual(1);
+    expect(stats.upcomingEvents).toBeGreaterThanOrEqual(1);
     expect(stats.upcomingEvents).toBeLessThanOrEqual(stats.events);
-    expect(stats.labels).toBeGreaterThanOrEqual(0);
+    expect(stats.users).toBeGreaterThanOrEqual(1);
+    expect(stats.labels).toBeGreaterThanOrEqual(1);
   });
 
   test('the label tiles fit one row and carry the counts', async () => {
     const result: any = await executeQuery(
       server,
-      `{ homepage { topLabels { id name count isRequired } } }`,
+      `{ homepage { stats { games } topLabels { id name count isRequired } } }`,
     );
 
     expect(result.errors).toBeUndefined();
     const labels = result.data.homepage.topLabels;
 
     expect(labels.length).toBeLessThanOrEqual(12);
+
     // Required labels lead the row, the rest is by how many games carry them.
     const order = labels.map((label: any) => [Number(label.isRequired), label.count]);
     expect([...order].sort((a, b) => b[0] - a[0] || b[1] - a[1])).toEqual(order);
-    expect(labels.some((label: any) => label.count > 0)).toBe(true);
+
+    for (const label of labels) {
+      // A facet count above the number of games means it counted rows twice.
+      expect(label.count).toBeGreaterThan(0);
+      expect(label.count).toBeLessThanOrEqual(result.data.homepage.stats.games);
+    }
+
+    // With an empty database (CI) the fixture label is in the row and its count
+    // is exact; against a seeded one it may sit below the twelve shown.
+    const mine = labels.find((label: any) => label.name === `${marker} štítek`);
+    if (mine) {
+      expect(mine.count).toBe(rankedGameIds.length);
+    }
   });
 
   test('the comment block holds three comments, newest first and decoded', async () => {
@@ -152,8 +246,7 @@ describe('homepage — the anonymous blocks', () => {
     const comments = result.data.homepage.lastComments;
 
     expect(comments).toHaveLength(3);
-    // commentIds is filled newest first: index 0 is "Komentář 4".
-    expect(comments[0].id).toBe(String(commentIds[0]));
+    expect(comments.map((comment: any) => comment.id)).toEqual(commentIds.slice(0, 3).map(String));
     expect(comments[0].commentAsText).toBe('Komentář 4 na Blackhillu .í');
     for (const comment of comments) {
       expect(comment.commentAsText).not.toMatch(/&[a-zA-Z]+;/);
