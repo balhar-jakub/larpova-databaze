@@ -7,11 +7,11 @@ fragment userProfileData on User {
     image {
         id
     }
-    email
     name
     nickname
     birthDate
     city
+    description
     authoredGames {
         ...baseGameData
     }

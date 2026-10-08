@@ -13,6 +13,8 @@ export interface AuthUser {
   email: string;
   name: string | null;
   nickname: string | null;
+  /** Short public bio (`csld_csld_user.description`). */
+  description: string | null;
   role: number;
   image: { id: number; path: string | null } | null;
   amountOfComments: number | null;

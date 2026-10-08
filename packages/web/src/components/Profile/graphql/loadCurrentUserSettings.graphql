@@ -11,5 +11,6 @@ query LoadCurrentUserSettings {
         nickname
         birthDate
         city
+        description
     }
 }

@@ -178,6 +178,20 @@ export const resolvers: any = {
         totalAmount: total,
       };
     },
+
+    /**
+     * `email` is the account identifier — how you sign in, recover a password
+     * and add a game co-author — not public profile data. Handing it to every
+     * caller let anyone harvest all ~3200 addresses through `usersByQuery`
+     * without signing in. Only the user themselves and staff see it.
+     */
+    email: (parent: any, _args: unknown, ctx: Context) => {
+      if (!parent?.email) return null;
+      if (ctx.user && (String(ctx.user.id) === String(parent.id) || isAtLeastEditor(ctx))) {
+        return parent.email;
+      }
+      return null;
+    },
   },
 
   // Mutations — stubs for now

@@ -40,6 +40,21 @@ export const validateRequiredRichText = (input?: EditorState | string | undefine
     return undefined
 }
 
+/**
+ * Length ceiling for a rich text field, measured on the plain text so the
+ * markup does not count against the author.
+ */
+export const validateRichTextMaxLength =
+    (maxLength: number) =>
+    (input?: EditorState | string | undefined) => {
+        if (!input) {
+            return undefined
+        }
+
+        const text = typeof input === 'string' ? input.replace(/<[^>]*>/g, '') : input.getCurrentContent().getPlainText()
+        return text.length > maxLength ? 'Errors.richTextTooLong' : undefined
+    }
+
 export const validateEmail = (input?: string) => (!input || emailRe.test(input) ? undefined : 'Errors.emailRequired')
 
 export const validatePositiveInteger = (input?: string) =>

@@ -216,7 +216,7 @@ type User {
     authoredGames: [Game!]!
     name: String!
     description: String
-    email: String!
+    email: String
     nickname: String
     birthDate: String
     city: String
@@ -301,6 +301,8 @@ input UpdateLoggedInUserInput {
     nickname: String
     birthDate: String
     city: String
+    "Short public bio shown on the user's profile."
+    description: String
 }
 
 type GameMutation {

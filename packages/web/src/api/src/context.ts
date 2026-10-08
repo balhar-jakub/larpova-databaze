@@ -23,7 +23,12 @@ export interface Context {
 export async function createContext({ req, res }: ExpressContextFunctionArgument): Promise<Context> {
   return {
     db: prisma,
-    user: (req as any).user ?? null,
+    // Read lazily: passport sets `req.user` on `ctx.login()`, and a resolver
+    // that signs the caller in during the request (signup, login) has to see
+    // that user — otherwise it answers with the email of "nobody".
+    get user() {
+      return (req as any).user ?? null;
+    },
     req,
     res,
     files: getFileService(),

@@ -4,7 +4,7 @@ import type { Context } from '../context';
 function ctxWithRole(role: number): Context {
   return {
     user: {
-      id: 1, email: 'test@test.com', name: 'Test', nickname: null,
+      id: 1, email: 'test@test.com', name: 'Test', nickname: null, description: null,
       role, image: null, amountOfComments: 0, amountOfPlayed: 0, amountOfCreated: 0,
     },
     db: null as any, req: null as any, res: null as any,
