@@ -68,6 +68,13 @@ export enum AllowedAction {
   Edit = 'Edit'
 }
 
+/** One of the visitor's games with the newest rating it received. */
+export type AuthoredGame = {
+  __typename?: 'AuthoredGame';
+  game: Game;
+  lastRating?: Maybe<LastRating>;
+};
+
 export type Comment = {
   __typename?: 'Comment';
   added?: Maybe<Scalars['String']>;
@@ -590,6 +597,13 @@ export enum LadderType {
   RecentAndMostPlayed = 'RecentAndMostPlayed'
 }
 
+/** The newest rating a game received, as its author sees it. The voter is deliberately not part of this: who rated whose game is nobody's business but the voter's. */
+export type LastRating = {
+  __typename?: 'LastRating';
+  added?: Maybe<Scalars['String']>;
+  rating: Scalars['Int'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   admin: AdminMutation;
@@ -606,8 +620,8 @@ export type Mutation = {
  */
 export type MyHomepage = {
   __typename?: 'MyHomepage';
-  /** The visitor's own games, best rated first — the catalog's own order. */
-  authored: Array<Game>;
+  /** The visitor's own games, the newest rating first. */
+  authored: Array<AuthoredGame>;
   authoredCount: Scalars['Int'];
   commentsCount: Scalars['Int'];
   /** False when the account has nothing in the database; the page shows the first steps instead. */
@@ -1293,7 +1307,7 @@ export type GetHomePageDataQuery = { __typename?: 'Query', homepage: { __typenam
 export type GetHomePageUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetHomePageUserQuery = { __typename?: 'Query', homepage: { __typename?: 'HomepageQuery', myHome?: { __typename?: 'MyHomepage', playedCount: number, wantedCount: number, authoredCount: number, commentsCount: number, hasData: boolean, wantedWithoutEvent: number, myEvents: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, amountOfPlayers?: number | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }> | null }>, toRate: Array<{ __typename?: 'PersonalGame', since?: string | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number } }>, oldestWanted: Array<{ __typename?: 'PersonalGame', since?: string | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number } }>, authored: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, recommendedLabels: Array<{ __typename?: 'LabelCount', id: string, name?: string | null, count: number }>, recommended: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }> } | null, bestRatedGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, lastAddedGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, nextEvents: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, amountOfPlayers?: number | null }>, stats: { __typename?: 'HomepageStats', games: number, events: number, upcomingEvents: number, users: number, labels: number }, topLabels: Array<{ __typename?: 'GameCatalogLabelFacet', id: string, name?: string | null, count: number, isRequired: boolean }> } };
+export type GetHomePageUserQuery = { __typename?: 'Query', homepage: { __typename?: 'HomepageQuery', myHome?: { __typename?: 'MyHomepage', playedCount: number, wantedCount: number, authoredCount: number, commentsCount: number, hasData: boolean, wantedWithoutEvent: number, myEvents: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, amountOfPlayers?: number | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }> | null }>, toRate: Array<{ __typename?: 'PersonalGame', since?: string | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number } }>, oldestWanted: Array<{ __typename?: 'PersonalGame', since?: string | null, game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number } }>, authored: Array<{ __typename?: 'AuthoredGame', game: { __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }, lastRating?: { __typename?: 'LastRating', rating: number, added?: string | null } | null }>, recommendedLabels: Array<{ __typename?: 'LabelCount', id: string, name?: string | null, count: number }>, recommended: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }> } | null, bestRatedGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, lastAddedGames: Array<{ __typename?: 'Game', id: string, name?: string | null, players?: number | null, averageRating: number, amountOfComments: number, amountOfRatings: number }>, nextEvents: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, amountOfPlayers?: number | null }>, stats: { __typename?: 'HomepageStats', games: number, events: number, upcomingEvents: number, users: number, labels: number }, topLabels: Array<{ __typename?: 'GameCatalogLabelFacet', id: string, name?: string | null, count: number, isRequired: boolean }> } };
 
 export type ChangePasswordMutationVariables = Exact<{
   oldPassword: Scalars['String'];

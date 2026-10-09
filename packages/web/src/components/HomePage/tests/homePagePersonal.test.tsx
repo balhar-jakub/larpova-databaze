@@ -99,8 +99,11 @@ const personalAnswer = () => ({
                 toRate: [{ game: game('40', 'Země snů: Sen ve stínech'), since: '2020-02-02T00:00:00.000Z' }],
                 oldestWanted: [{ game: game('41', 'Camlann'), since: '2007-05-05T00:00:00.000Z' }],
                 authored: [
-                    game('50', 'Zpěvy rytířské'),
-                    { ...game('51', 'Castaways'), averageRating: 0, amountOfRatings: 0 },
+                    {
+                        game: game('50', 'Zpěvy rytířské'),
+                        lastRating: { rating: 9, added: '2026-07-13T00:00:00.000Z' },
+                    },
+                    { game: game('51', 'Castaways'), lastRating: null },
                 ],
                 recommendedLabels: [
                     { id: '4', name: 'opakovatelný', count: 33 },
@@ -151,16 +154,17 @@ test('the page names what to finish and what the visitor\'s own games are doing'
 
     expect(screen.getByText('Tvoje hry')).toBeTruthy()
     expect(screen.getByText('Zpěvy rytířské')).toBeTruthy()
-    // The rating is the same recommendation icon the games carry everywhere —
-    // one per row, also for the game nobody rated yet.
+    // The last vote is back as the same colour square the games carry in lists,
+    // with the date next to it — and with no voter.
     expect(screen.getByText('Castaways')).toBeTruthy()
     const panel = screen.getByTestId('homeAuthored.panel')
-    const badges = panel.querySelectorAll('[data-testid="gameRatingBox.wrapper"]')
-    expect(badges.length).toBe(2)
-    // The last vote is gone: no date, no voter, no number.
-    expect(screen.queryByText('13.07.2026')).toBeNull()
+    const badges = panel.querySelectorAll('[data-testid="homeAuthored.voteBadge"]')
+    expect(badges.length).toBe(1)
+    expect(badges[0].getAttribute('aria-label')).toBe('Silně doporučuji')
+    expect(screen.getByText('13.07.2026')).toBeTruthy()
+    // The voter's name is nowhere: not in the block, not in the header.
     expect(screen.queryByText('Triss')).toBeNull()
-    expect(screen.queryByText('–')).toBeNull()
+    expect(screen.queryByText('Od koho')).toBeNull()
 })
 
 test('the recommendation states the labels it is built from', () => {

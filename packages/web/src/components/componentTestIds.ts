@@ -8,6 +8,7 @@ export const componentTestIds = {
     homeAuthored: {
         panel: 'homeAuthored.panel',
         row: (gameId: string) => `homeAuthored.row.${gameId}`,
+        voteBadge: 'homeAuthored.voteBadge',
     },
     catalog: {
         panel: 'catalog.panel',
