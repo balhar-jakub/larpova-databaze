@@ -7,6 +7,7 @@ import { fieldValidator, validateRequired, validateTime } from '../../utils/vali
 import { NewLabel } from '../common/form/NewLabelsField'
 import { formatISODate } from '../../utils/dateUtils'
 import { isAbsoluteHttpUrl } from '../../utils/urlUtils'
+import { convertFileInput } from '../../utils/graphqlUtils'
 
 const buildDateTime = (date?: Date, time?: string) =>
     time ? `${formatISODate(date)}T${time}:00` : `${formatISODate(date)}T00:00:00`
@@ -24,6 +25,7 @@ export interface FormValues {
     loc: string
     games: LinkedGame[]
     description?: string | EditorState
+    coverImage?: string
     requiredLabels: string[]
     optionalLabels: string[]
     newLabels: NewLabel[]
@@ -92,6 +94,7 @@ export const createInputFromValues = (data: FormValues): CreateEventInput => ({
     games: data.games.map(({ id }) => id),
     labels: [...data.requiredLabels, ...data.optionalLabels],
     newLabels: data.newLabels,
+    coverImage: convertFileInput(data.coverImage),
 })
 
 const dateTimeRe = /^([-0-9]+)T([0-9]+:[0-9]+):/

@@ -184,6 +184,7 @@ model csld_image {
   csld_game_csld_game_imageTocsld_image       csld_game[]       @relation("csld_game_imageTocsld_image")
   csld_game_csld_game_cover_imageTocsld_image csld_game[]       @relation("csld_game_cover_imageTocsld_image")
   csld_photo                                  csld_photo[]
+  event                                       event[]           @relation("event_cover_imageTocsld_image")
 }
 
 model csld_label {
@@ -263,8 +264,10 @@ model event {
   lang                 String?
   gcaleventid          String?               @db.VarChar(100)
   gcaleventlastupdated BigInt?
+  cover_image          Int?
   csld_game_has_event  csld_game_has_event[]
   csld_csld_user       csld_csld_user?       @relation(fields: [added_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "event_added_by")
+  csld_image           csld_image?           @relation("event_cover_imageTocsld_image", fields: [cover_image], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "event_cover_image_fk")
   event_has_labels     event_has_labels[]
 }
 

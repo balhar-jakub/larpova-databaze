@@ -1,7 +1,8 @@
 import type { Context } from '../context.js';
 import type { Prisma } from '@prisma/client';
 import { isAtLeastEditor } from '../auth/appUsers.js';
-import { eventIdsForQuery, mapEventRow } from './search.js';
+import { normalizeGame } from './mappers.js';
+import { eventIdsForQuery, mapEventRow, resolveEventCoverImage, EVENT_COVER_IMAGE_INCLUDE } from './search.js';
 
 export async function eventByIdResolver(
   _parent: unknown,
@@ -15,7 +16,7 @@ export async function eventByIdResolver(
     where: { id },
     include: {
       event_has_labels: { include: { csld_label: true } },
-      csld_game_has_event: { include: { csld_game: true } },
+      ...EVENT_COVER_IMAGE_INCLUDE,
     },
   });
 
@@ -32,7 +33,9 @@ export async function eventByIdResolver(
     // either; editors and admins keep seeing it (see `gameByIdResolver`).
     games: (row.csld_game_has_event ?? [])
       .map((j) => j.csld_game)
-      .filter((g: any) => g && (isAtLeastEditor(ctx) || !g.deleted)),
+      .filter((g: any) => g && (isAtLeastEditor(ctx) || !g.deleted))
+      .map((g: any) => normalizeGame(g)),
+    coverImage: resolveEventCoverImage(row),
     allowedActions: null,
   };
 }
@@ -100,7 +103,7 @@ export async function eventCalendarResolver(
       take: limit,
       include: {
         event_has_labels: { include: { csld_label: true } },
-        csld_game_has_event: { include: { csld_game: true } },
+        ...EVENT_COVER_IMAGE_INCLUDE,
       },
     }),
     ctx.db.event.count({ where }),
