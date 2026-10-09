@@ -8,13 +8,14 @@ const useStyles = createUseStyles({
     gridHeader: {
         display: 'flex',
         flexDirection: 'row',
+        flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'center',
         color: darkTheme.text,
         textTransform: 'uppercase',
         fontWeight: 700,
         fontSize: '0.85rem',
-        height: 25,
+        minHeight: 25,
         margin: '20px 0 5px',
     },
 })
