@@ -99,11 +99,8 @@ const personalAnswer = () => ({
                 toRate: [{ game: game('40', 'Země snů: Sen ve stínech'), since: '2020-02-02T00:00:00.000Z' }],
                 oldestWanted: [{ game: game('41', 'Camlann'), since: '2007-05-05T00:00:00.000Z' }],
                 authored: [
-                    {
-                        game: game('50', 'Zpěvy rytířské'),
-                        lastRating: { rating: 9, added: '2026-07-13T00:00:00.000Z', user: { id: '7', name: 'Triss' } },
-                    },
-                    { game: game('51', 'Castaways'), lastRating: null },
+                    game('50', 'Zpěvy rytířské'),
+                    { ...game('51', 'Castaways'), averageRating: 0, amountOfRatings: 0 },
                 ],
                 recommendedLabels: [
                     { id: '4', name: 'opakovatelný', count: 33 },
@@ -154,11 +151,16 @@ test('the page names what to finish and what the visitor\'s own games are doing'
 
     expect(screen.getByText('Tvoje hry')).toBeTruthy()
     expect(screen.getByText('Zpěvy rytířské')).toBeTruthy()
-    expect(screen.getByText('13.07.2026')).toBeTruthy()
-    expect(screen.getByText('Triss')).toBeTruthy()
-    // A game nobody rated yet shows a dash, not a zero.
+    // The rating is the same recommendation icon the games carry everywhere —
+    // one per row, also for the game nobody rated yet.
     expect(screen.getByText('Castaways')).toBeTruthy()
-    expect(screen.getByText('–')).toBeTruthy()
+    const panel = screen.getByTestId('homeAuthored.panel')
+    const badges = panel.querySelectorAll('[data-testid="gameRatingBox.wrapper"]')
+    expect(badges.length).toBe(2)
+    // The last vote is gone: no date, no voter, no number.
+    expect(screen.queryByText('13.07.2026')).toBeNull()
+    expect(screen.queryByText('Triss')).toBeNull()
+    expect(screen.queryByText('–')).toBeNull()
 })
 
 test('the recommendation states the labels it is built from', () => {

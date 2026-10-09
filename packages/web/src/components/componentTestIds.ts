@@ -5,6 +5,10 @@ export const componentTestIds = {
     gameRatingBox: {
         wrapper: 'gameRatingBox.wrapper',
     },
+    homeAuthored: {
+        panel: 'homeAuthored.panel',
+        row: (gameId: string) => `homeAuthored.row.${gameId}`,
+    },
     catalog: {
         panel: 'catalog.panel',
         card: (gameId: string) => `catalogCard.${gameId}`,

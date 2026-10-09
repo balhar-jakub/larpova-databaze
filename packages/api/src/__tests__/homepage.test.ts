@@ -386,7 +386,7 @@ describe('homepage — the personal blocks', () => {
 
     // Two games of their own, each with a rating from somebody else.
     authoredTopId = (await makeGame('moje nejnověji hodnocená', 80, 4)).id;
-    authoredSecondId = (await makeGame('moje druhá', 80, 4)).id;
+    authoredSecondId = (await makeGame('moje druhá', 60, 4)).id;
     await prisma.csld_game_has_author.createMany({
       data: [
         { id_game: authoredTopId, id_user: userId },
@@ -517,17 +517,20 @@ describe('homepage — the personal blocks', () => {
     expect(mine.oldestWanted[0].since.startsWith('2019')).toBe(true);
   });
 
-  test('the author block leads with the game rated most recently', async () => {
+  test('the author block lists the visitor\'s games best rated first, without the last vote', async () => {
     const result: any = await personal(
-      `{ homepage { myHome { authored { game { id name } lastRating { rating added user { id name } } } } } }`,
+      `{ homepage { myHome { authored { id name averageRating amountOfRatings } } } }`,
     );
 
     expect(result.errors).toBeUndefined();
     const authored = result.data.homepage.myHome.authored;
-    expect(authored.map((row: any) => row.game.id)).toEqual([String(authoredTopId), String(authoredSecondId)]);
-    expect(authored[0].lastRating.rating).toBe(9);
-    expect(authored[0].lastRating.user.name).toBe(`${marker} hodnotící`);
-    expect(authored[1].lastRating.rating).toBe(6);
+    // The catalog's own "best rated" order: average first, then the number of
+    // ratings — the newest single vote no longer decides, and the vote itself
+    // (its value, date and voter) is not part of the block at all.
+    expect(authored.map((row: any) => row.id)).toEqual([String(authoredTopId), String(authoredSecondId)]);
+    expect(authored[0].averageRating).toBe(80);
+    expect(authored[0].amountOfRatings).toBe(4);
+    expect(authored[1].averageRating).toBe(60);
   });
 
   test('the recommendation is built from the labels of the games rated 8 or more', async () => {

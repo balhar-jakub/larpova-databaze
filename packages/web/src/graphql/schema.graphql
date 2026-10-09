@@ -99,8 +99,8 @@ type MyHomepage {
     toRate: [PersonalGame!]!
     "The oldest rows of the \"want to play\" list."
     oldestWanted: [PersonalGame!]!
-    "The visitor's own games, the newest rating first."
-    authored: [AuthoredGame!]!
+    "The visitor's own games, best rated first — the catalog's own order."
+    authored: [Game!]!
     "Labels of the games the visitor rated 8 or more, with how often they occur."
     recommendedLabels: [LabelCount!]!
     "Games recommended through those labels, in the catalog's own order."
@@ -111,19 +111,6 @@ type MyHomepage {
 type PersonalGame {
     game: Game!
     since: String
-}
-
-"One of the visitor's games with the newest rating it received."
-type AuthoredGame {
-    game: Game!
-    lastRating: LastRating
-}
-
-"The newest rating a game received, as its author sees it."
-type LastRating {
-    rating: Int!
-    added: String
-    user: User
 }
 
 "A label with the number of times it occurs in the visitor's own ratings."

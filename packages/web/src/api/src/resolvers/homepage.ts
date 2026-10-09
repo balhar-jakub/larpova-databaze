@@ -170,20 +170,6 @@ export async function myHomepage(ctx: Context, userId: number) {
   const wantedIds = wanted.map((row: any) => row.game_id);
   const linkedWantedIds = new Set(upcomingLinks.map((link: any) => link.game_id));
 
-  // The newest rating each of the visitor's own games received — what the author
-  // otherwise has to open fifteen detail pages to find out.
-  const lastRatings = authoredIds.length
-    ? await ctx.db.csld_rating.findMany({
-        where: { game_id: { in: authoredIds }, rating: { not: null } },
-        orderBy: { added: 'desc' },
-        include: { csld_csld_user: { include: { csld_image: true } } },
-      })
-    : [];
-  const lastRatingByGame = new Map<number, any>();
-  for (const row of lastRatings as any[]) {
-    if (!lastRatingByGame.has(row.game_id)) lastRatingByGame.set(row.game_id, row);
-  }
-
   const [myEvents, recommended] = await Promise.all([
     wantedIds.length
       ? ctx.db.event.findMany({
@@ -213,12 +199,15 @@ export async function myHomepage(ctx: Context, userId: number) {
     (a: any, b: any) => new Date(a.added).getTime() - new Date(b.added).getTime(),
   );
 
-  // The block leads with the games whose last rating is the newest: a rating on
-  // an old game is the news the author came for.
-  const authoredByRecency = [...authoredGames].sort((a: any, b: any) => {
-    const left = lastRatingByGame.get(a.id)?.added?.getTime() ?? 0;
-    const right = lastRatingByGame.get(b.id)?.added?.getTime() ?? 0;
-    return right - left;
+  // The block orders the visitor's games the way the catalog's "best rated"
+  // list does — average first, number of ratings second, name last — so the
+  // author sees their own games in the order the database itself ranks them.
+  const authoredBestFirst = [...authoredGames].sort((a: any, b: any) => {
+    const byAverage = (b.average_rating ?? 0) - (a.average_rating ?? 0);
+    if (byAverage !== 0) return byAverage;
+    const byRatings = (b.amount_of_ratings ?? 0) - (a.amount_of_ratings ?? 0);
+    if (byRatings !== 0) return byRatings;
+    return String(a.name ?? '').localeCompare(String(b.name ?? ''), 'cs');
   });
 
   const personal = (row: any) => ({
@@ -241,19 +230,7 @@ export async function myHomepage(ctx: Context, userId: number) {
       .slice(0, 2)
       .map(personal),
     oldestWanted: wantedOldestFirst.slice(0, 2).map(personal),
-    authored: authoredByRecency.slice(0, MY_HOME_AUTHORED).map((game: any) => {
-      const rating = lastRatingByGame.get(game.id);
-      return {
-        game: normalizeGame(game),
-        lastRating: rating
-          ? {
-              rating: rating.rating,
-              added: rating.added ? new Date(rating.added).toISOString() : null,
-              user: normalizeUserRef(rating.csld_csld_user),
-            }
-          : null,
-      };
-    }),
+    authored: authoredBestFirst.slice(0, MY_HOME_AUTHORED).map((game: any) => normalizeGame(game)),
     recommendedLabels,
     recommended,
   };
