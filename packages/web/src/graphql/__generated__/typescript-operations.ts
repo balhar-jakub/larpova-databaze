@@ -100,6 +100,7 @@ export type Config = {
 
 export type CreateEventInput = {
   amountOfPlayers?: InputMaybe<Scalars['Int']>;
+  coverImage?: InputMaybe<UploadedFileInput>;
   description?: InputMaybe<Scalars['String']>;
   fromDate: Scalars['String'];
   games: Array<Scalars['ID']>;
@@ -167,6 +168,8 @@ export type Event = {
   __typename?: 'Event';
   allowedActions?: Maybe<Array<AllowedAction>>;
   amountOfPlayers?: Maybe<Scalars['Int']>;
+  /** Cover image uploaded for this event; falls back to the cover image of a linked game when the event has none of its own. */
+  coverImage?: Maybe<Image>;
   deleted?: Maybe<Scalars['Boolean']>;
   description?: Maybe<Scalars['String']>;
   from?: Maybe<Scalars['String']>;
@@ -826,6 +829,7 @@ export type StatFact = {
 
 export type UpdateEventInput = {
   amountOfPlayers?: InputMaybe<Scalars['Int']>;
+  coverImage?: InputMaybe<UploadedFileInput>;
   description?: InputMaybe<Scalars['String']>;
   fromDate: Scalars['String'];
   games: Array<Scalars['ID']>;
@@ -1075,7 +1079,7 @@ export type UpdateUserRoleMutation = { __typename?: 'Mutation', admin: { __typen
 
 export type AdminUserFieldsFragment = { __typename?: 'User', id: string, name: string, nickname?: string | null, role?: UserRole | null };
 
-export type CalendarEventDataFragment = { __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null };
+export type CalendarEventDataFragment = { __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, coverImage?: { __typename?: 'Image', id: string } | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null };
 
 export type CalendarEventsQueryVariables = Exact<{
   from?: InputMaybe<Scalars['String']>;
@@ -1085,7 +1089,7 @@ export type CalendarEventsQueryVariables = Exact<{
 }>;
 
 
-export type CalendarEventsQuery = { __typename?: 'Query', eventCalendar: { __typename?: 'EventsPaged', totalAmount: number, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null }> } };
+export type CalendarEventsQuery = { __typename?: 'Query', eventCalendar: { __typename?: 'EventsPaged', totalAmount: number, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, coverImage?: { __typename?: 'Image', id: string } | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null }> } };
 
 export type CalendarStatsQueryVariables = Exact<{
   from?: InputMaybe<Scalars['String']>;
@@ -1385,7 +1389,7 @@ export type SearchOverviewQueryVariables = Exact<{
 }>;
 
 
-export type SearchOverviewQuery = { __typename?: 'Query', search: { __typename?: 'SearchResults', totalGames: number, totalUsers: number, totalEvents: number, totalGroups: number, suggestion?: string | null, games: Array<{ __typename?: 'Game', id: string, name?: string | null, year?: number | null, amountOfComments: number, amountOfRatings: number, averageRating: number, totalRating: number, labels: Array<{ __typename?: 'Label', id: string, name?: string | null }>, authors: Array<{ __typename?: 'User', id: string, name: string }>, groupAuthor: Array<{ __typename?: 'Group', id: string, name?: string | null }> }>, users: Array<{ __typename?: 'User', id: string, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, image?: { __typename?: 'Image', id: string } | null }>, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null }>, groups: Array<{ __typename?: 'Group', id: string, name?: string | null, authorsOf: Array<{ __typename?: 'Game', id: string }> }> } };
+export type SearchOverviewQuery = { __typename?: 'Query', search: { __typename?: 'SearchResults', totalGames: number, totalUsers: number, totalEvents: number, totalGroups: number, suggestion?: string | null, games: Array<{ __typename?: 'Game', id: string, name?: string | null, year?: number | null, amountOfComments: number, amountOfRatings: number, averageRating: number, totalRating: number, labels: Array<{ __typename?: 'Label', id: string, name?: string | null }>, authors: Array<{ __typename?: 'User', id: string, name: string }>, groupAuthor: Array<{ __typename?: 'Group', id: string, name?: string | null }> }>, users: Array<{ __typename?: 'User', id: string, name: string, nickname?: string | null, birthDate?: string | null, city?: string | null, image?: { __typename?: 'Image', id: string } | null }>, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, coverImage?: { __typename?: 'Image', id: string } | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null }>, groups: Array<{ __typename?: 'Group', id: string, name?: string | null, authorsOf: Array<{ __typename?: 'Game', id: string }> }> } };
 
 export type SearchPageEventsQueryVariables = Exact<{
   query: Scalars['String'];
@@ -1396,7 +1400,7 @@ export type SearchPageEventsQueryVariables = Exact<{
 }>;
 
 
-export type SearchPageEventsQuery = { __typename?: 'Query', eventsByQuery: { __typename?: 'EventsPaged', totalAmount: number, suggestion?: string | null, duplicates: Array<{ __typename?: 'EventDuplicate', eventId: string, count: number }>, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null }> } };
+export type SearchPageEventsQuery = { __typename?: 'Query', eventsByQuery: { __typename?: 'EventsPaged', totalAmount: number, suggestion?: string | null, duplicates: Array<{ __typename?: 'EventDuplicate', eventId: string, count: number }>, events: Array<{ __typename?: 'Event', id: string, name?: string | null, from?: string | null, to?: string | null, loc?: string | null, web?: string | null, registrationUrl?: string | null, registrationOpen: boolean, amountOfPlayers?: number | null, coverImage?: { __typename?: 'Image', id: string } | null, labels?: Array<{ __typename?: 'Label', id: string, name?: string | null }> | null, games?: Array<{ __typename?: 'Game', id: string, name?: string | null }> | null }> } };
 
 export type SearchPageGamesQueryVariables = Exact<{
   filter?: InputMaybe<GameCatalogFilter>;

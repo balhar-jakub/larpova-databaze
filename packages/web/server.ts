@@ -7,7 +7,7 @@
 import { createServer } from 'node:http';
 import { parse } from 'node:url';
 import next from 'next';
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -235,7 +235,7 @@ app.get('/ical', async (req, res) => {
 
 // ── Image serving (resolves image IDs to file paths) ─────
 
-app.get('/game-image/', async (req, res) => {
+async function serveImageById(req: Request, res: Response) {
   const imageId = req.query.imageId as string;
   if (!imageId) return res.status(400).end();
   try {
@@ -254,7 +254,12 @@ app.get('/game-image/', async (req, res) => {
   } catch {
     if (!res.headersSent) res.status(404).end();
   }
-});
+}
+
+// Games and events share the same `csld_image` table; both routes answer any
+// image id, the names just read better in the markup.
+app.get('/game-image/', serveImageById);
+app.get('/event-image/', serveImageById);
 
 app.get('/user-icon', async (req, res) => {
   const imageId = req.query.imageId as string;

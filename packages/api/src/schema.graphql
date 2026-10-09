@@ -287,6 +287,8 @@ type Event {
     labels: [Label!]
     games: [Game!]
     allowedActions: [AllowedAction!]
+    "Cover image uploaded for this event; falls back to the cover image of a linked game when the event has none of its own."
+    coverImage: Image
 }
 
 type EventLocation {
@@ -526,6 +528,7 @@ input CreateEventInput {
     newLabels: [NewLabelInput!]!
     latitude: Float
     longitude: Float
+    coverImage: UploadedFileInput
 }
 
 input UpdateEventInput {
@@ -544,6 +547,7 @@ input UpdateEventInput {
     newLabels: [NewLabelInput!]!
     latitude: Float
     longitude: Float
+    coverImage: UploadedFileInput
 }
 
 type AdminQuery {

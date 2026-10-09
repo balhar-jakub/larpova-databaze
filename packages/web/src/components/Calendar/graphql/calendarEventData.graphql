@@ -8,6 +8,9 @@ fragment calendarEventData on Event {
     registrationUrl
     registrationOpen
     amountOfPlayers
+    coverImage {
+        id
+    }
     labels {
         id
         name

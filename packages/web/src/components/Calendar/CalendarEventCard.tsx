@@ -28,6 +28,16 @@ const useStyles = createUseStyles({
         borderRadius: 5,
         borderLeft: `4px solid transparent`,
     },
+    cardWithImage: {
+        gridTemplateColumns: '64px 1fr 170px',
+    },
+    coverImage: {
+        width: 64,
+        height: 64,
+        borderRadius: 5,
+        objectFit: 'cover',
+        display: 'block',
+    },
     next: {
         borderLeftColor: darkTheme.textGreenDark,
     },
@@ -97,6 +107,13 @@ const useStyles = createUseStyles({
         card: {
             gridTemplateColumns: '1fr',
         },
+        cardWithImage: {
+            gridTemplateColumns: '48px 1fr',
+        },
+        coverImage: {
+            width: 48,
+            height: 48,
+        },
         actions: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -121,15 +138,26 @@ const CalendarEventCard = ({ event, isNext = false }: Props) => {
     const registrationUrl = isAbsoluteHttpUrl(event.registrationUrl) ? event.registrationUrl : undefined
     const calendarUrl = googleCalendarUrl(event)
     const games = event.games ?? []
+    const coverImageUrl = event.coverImage ? `/event-image/?imageId=${event.coverImage.id}` : undefined
 
     return (
         <div
             className={classNames(classes.card, {
+                [classes.cardWithImage]: Boolean(coverImageUrl),
                 [classes.next]: isNext,
                 [classes.registrationOpen]: event.registrationOpen && Boolean(registrationUrl),
             })}
             data-testid={`calendar.event.${event.id}`}
         >
+            {coverImageUrl && (
+                <img
+                    className={classes.coverImage}
+                    src={coverImageUrl}
+                    alt=""
+                    loading="lazy"
+                    data-testid={`calendar.eventImage.${event.id}`}
+                />
+            )}
             <div>
                 <span className={classes.name}>
                     <EventLink event={event}>{event.name}</EventLink>

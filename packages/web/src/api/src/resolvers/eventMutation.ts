@@ -3,6 +3,9 @@ import { isSignedIn } from '../auth/appUsers.js';
 import { GraphQLError } from 'graphql';
 import { syncEventToCalendar, deleteCalendarEvent } from '../external/googleCalendar.js';
 import { normalizeGame } from './mappers.js';
+import { resolveEventCoverImage, EVENT_COVER_IMAGE_INCLUDE } from './search.js';
+import { Base64UploadedFile } from '../files/fileService.js';
+import { getCoverImageStrategy } from '../files/imageStrategies.js';
 import { isAbsoluteHttpUrl } from '../../../utils/urlUtils.js';
 
 function requireAuth(ctx: Context) {
@@ -28,6 +31,7 @@ interface EventInput {
   newLabels: any[];
   latitude?: number;
   longitude?: number;
+  coverImage?: { fileName: string; contents: string };
 }
 
 export function normalizeOptionalHttpUrl(value?: string): string | null {
@@ -68,8 +72,34 @@ function mapEvent(e: any) {
       : null,
     labels: (e.event_has_labels ?? []).map((j: any) => j.csld_label).filter(Boolean),
     games: (e.csld_game_has_event ?? []).map((j: any) => j.csld_game).filter(Boolean).map((g: any) => normalizeGame(g)),
+    coverImage: resolveEventCoverImage(e),
     allowedActions: null,
   };
+}
+
+/**
+ * Save an uploaded cover image for an event: resize/crop it like a game cover,
+ * store the file, create the `csld_image` row and link it via `event.cover_image`.
+ * Mirrors the game cover upload in `gameMutation.ts`.
+ */
+async function saveEventCoverImage(ctx: Context, eventId: number, coverImage: { fileName: string; contents: string }) {
+  const uploaded = new Base64UploadedFile(coverImage.fileName, coverImage.contents);
+  const strategy = getCoverImageStrategy();
+  const result = await ctx.files.saveImageAndReturnPath(uploaded, strategy);
+
+  const image = await ctx.db.csld_image.create({
+    data: {
+      path: result.path,
+      contenttype: `image/${coverImage.fileName.split('.').pop()?.toLowerCase() || 'jpeg'}`,
+    },
+  });
+
+  await ctx.db.event.update({
+    where: { id: eventId },
+    data: { cover_image: image.id },
+  });
+
+  return image;
 }
 
 // ── createEvent ──────────────────────────────────────────
@@ -125,11 +155,16 @@ export async function createEventResolver(
     console.error('GCal sync error (create):', err);
   });
 
+  // Handle cover image upload
+  if (input.coverImage?.fileName && input.coverImage?.contents) {
+    await saveEventCoverImage(ctx, event.id, input.coverImage);
+  }
+
   const full = await ctx.db.event.findUnique({
     where: { id: event.id },
     include: {
       event_has_labels: { include: { csld_label: true } },
-      csld_game_has_event: { include: { csld_game: true } },
+      ...EVENT_COVER_IMAGE_INCLUDE,
     },
   });
 
@@ -191,11 +226,16 @@ export async function updateEventResolver(
     console.error('GCal sync error (update):', err);
   });
 
+  // Handle cover image upload
+  if (input.coverImage?.fileName && input.coverImage?.contents) {
+    await saveEventCoverImage(ctx, eventId, input.coverImage);
+  }
+
   const full = await ctx.db.event.findUnique({
     where: { id: eventId },
     include: {
       event_has_labels: { include: { csld_label: true } },
-      csld_game_has_event: { include: { csld_game: true } },
+      ...EVENT_COVER_IMAGE_INCLUDE,
     },
   });
 

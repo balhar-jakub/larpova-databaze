@@ -464,6 +464,8 @@
     "registrationOpenHint": "Zapněte pouze tehdy, když se lze přes uvedený odkaz právě přihlásit",
     "registrationUrlRequiredWhenOpen": "Pro otevřené přihlašování je nutné vyplnit odkaz",
     "loc": "Místo události",
+    "coverImage": "Obrázek události",
+    "coverImageHint": "Volitelný náhled zobrazovaný v kalendáři (ideálně 10:3, max 2 MB)",
     "description": "Popis události",
     "games": "Spárovat s existujícími hrami",
     "formError": "Formulář obsahuje chyby",

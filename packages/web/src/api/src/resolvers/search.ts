@@ -477,6 +477,17 @@ const EVENT_SEARCH_INCLUDE = {
   csld_game_has_event: { include: { csld_game: true } },
 } as const;
 
+/**
+ * Include for event queries that serve `Event.coverImage`: the event's own image
+ * plus the cover image of every linked game (the fallback source).
+ */
+export const EVENT_COVER_IMAGE_INCLUDE = {
+  csld_image: true,
+  csld_game_has_event: {
+    include: { csld_game: { include: { csld_image_csld_game_cover_imageTocsld_image: true } } },
+  },
+} as const;
+
 /** Shared shape of an event row, used by the calendar and the search alike. */
 export function mapEventRow(event: any, ctx: Context) {
   return {
@@ -493,7 +504,28 @@ export function mapEventRow(event: any, ctx: Context) {
       .map((j: any) => j.csld_game)
       .filter((g: any) => g && (isAtLeastEditor(ctx) || !g.deleted))
       .map((g: any) => normalizeGame(g)),
+    // The event's own cover image wins; when it has none, the first linked
+    // game with a cover image provides one, so a calendar row is not blank just
+    // because nobody uploaded a poster for this run.
+    coverImage: resolveEventCoverImage(event),
   };
+}
+
+/**
+ * The event's own `csld_image` relation when present, otherwise the cover image
+ * of the first linked game that has one. Both are only resolved when the caller
+ * included them — a raw row carries the scalar FK (`cover_image: 12`), which
+ * would break `Image.id` (non-nullable) if it leaked through.
+ */
+export function resolveEventCoverImage(event: any): any {
+  if (event.csld_image) return event.csld_image;
+  if (typeof event.cover_image === 'number') return null; // FK without the relation included
+  const games = event.csld_game_has_event ?? [];
+  for (const j of games) {
+    const cover = j?.csld_game?.csld_image_csld_game_cover_imageTocsld_image;
+    if (cover) return cover;
+  }
+  return null;
 }
 
 async function eventCandidates(ctx: Context, from?: string | null, to?: string | null): Promise<SearchCandidate[]> {
@@ -548,7 +580,7 @@ export async function fetchEventsByIds(ctx: Context, ids: readonly number[]) {
   if (ids.length === 0) return [];
   const rows: any[] = await ctx.db.event.findMany({
     where: { id: { in: [...ids] } },
-    include: EVENT_SEARCH_INCLUDE as any,
+    include: { ...EVENT_SEARCH_INCLUDE, ...EVENT_COVER_IMAGE_INCLUDE } as any,
   });
   const byId = new Map(rows.map((row) => [row.id, row]));
   return ids

@@ -173,7 +173,10 @@
     "registrationUrlHint": "Direct link to the registration form or ticket sales",
     "registrationOpen": "Registration is open",
     "registrationOpenHint": "Enable only while people can register using the link",
-    "registrationUrlRequiredWhenOpen": "A link is required when registration is open"
+    "registrationUrlRequiredWhenOpen": "A link is required when registration is open",
+    "loc": "Event location",
+    "coverImage": "Event image",
+    "coverImageHint": "Optional preview shown in the calendar (ideally 10:3, max 2 MB)"
   },
   "Catalog": {
     "pageTitle": "Games",

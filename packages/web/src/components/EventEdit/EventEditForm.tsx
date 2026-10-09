@@ -19,6 +19,8 @@ import {
 import { formClasses } from '../../utils/formClasses'
 import FormTextInputField from '../common/form/FormTextInputField'
 import FormRichTextInputField from '../common/form/FormRichTextInputField'
+import FormFileInputField from '../common/form/FormFileInputField'
+import { convertFileInput } from '../../utils/graphqlUtils'
 import { createInputFromValues, FormValues, validate } from './formUtils'
 import { useShowToast } from '../../hooks/useShowToast'
 import BigLoading from '../common/BigLoading/BigLoading'
@@ -170,6 +172,12 @@ const EventEditForm = ({
                                             hint={t('EventEdit.registrationOpenHint')}
                                         />
                                         <FormTextInputField name="loc" placeholder={t('EventEdit.loc')} />
+                                        <FormFileInputField
+                                            name="coverImage"
+                                            placeholder={t('EventEdit.coverImage')}
+                                            hint={t('EventEdit.coverImageHint')}
+                                            sizeLimit={2000000}
+                                        />
                                         <FormRichTextInputField name="description" hint={t('EventEdit.description')} />
                                         <GamesAutoCompleteField
                                             name="games"
