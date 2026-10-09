@@ -7,6 +7,7 @@ import { darkTheme } from '../../theme/darkTheme'
 import { GameBaseData } from '../common/GameBaseDataPanel/GameBaseDataPanel'
 import { GameEventGrid } from './GameEventGrid'
 import { GridHeader } from './GridHeader'
+import { breakPoints } from '../../theme/breakPoints'
 
 interface LabelCount {
     readonly id: string
@@ -26,6 +27,14 @@ const useStyles = createUseStyles({
         fontWeight: 400,
         textTransform: 'none',
         marginLeft: 6,
+        // On a narrow screen the long note wraps under the title instead of
+        // squeezing it; then it needs its own line of room above the chips.
+        [`@media(max-width: ${breakPoints.md - 1}px)`]: {
+            flexBasis: '100%',
+            marginLeft: 0,
+            marginTop: 4,
+            textAlign: 'center',
+        },
     },
     chips: {
         display: 'flex',
