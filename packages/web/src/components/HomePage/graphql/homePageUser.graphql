@@ -36,7 +36,13 @@ query GetHomePageUser {
                 since
             }
             authored {
-                ...baseGameData
+                game {
+                    ...baseGameData
+                }
+                lastRating {
+                    rating
+                    added
+                }
             }
             recommendedLabels {
                 id
