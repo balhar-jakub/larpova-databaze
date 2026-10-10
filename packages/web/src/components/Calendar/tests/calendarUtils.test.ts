@@ -115,6 +115,30 @@ describe('filterCalendarEvents', () => {
         expect(of({ dd: 'weekend', dk: 'noloc' })).toEqual(['b'])
     })
 
+    test('the open-registration filter keeps only sign-up-able events', () => {
+        // One event with an open registration and a link, one with the flag
+        // but no link (a legacy row), one closed with a link.
+        const signable = event('r1', 'Otevřený běh', at(2026, 10, 3), at(2026, 10, 3), {
+            registrationUrl: 'https://example.test/form',
+            registrationOpen: true,
+        })
+        const noLink = event('r2', 'Bez odkazu', at(2026, 10, 4), at(2026, 10, 4), {
+            registrationOpen: true,
+        })
+        const closed = event('r3', 'Uzavřený běh', at(2026, 10, 5), at(2026, 10, 5), {
+            registrationUrl: 'https://example.test/form-closed',
+            registrationOpen: false,
+        })
+
+        expect(
+            filterCalendarEvents([signable, noLink, closed], parseCalendarState({ reg: '1' }), today).map(
+                (item) => item.id,
+            ),
+        ).toEqual(['r1'])
+        // Without the filter everything stays.
+        expect(filterCalendarEvents([signable, noLink, closed], parseCalendarState({}), today)).toHaveLength(3)
+    })
+
     test('label filters can require all or any of the labels', () => {
         const labelled = [
             event('l1', 'One', at(2026, 10, 3), at(2026, 10, 3), { labels: [{ __typename: 'Label', id: '1', name: 'komorní' }] }),

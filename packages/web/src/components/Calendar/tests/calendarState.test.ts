@@ -19,9 +19,22 @@ describe('parseCalendarState', () => {
         expect(state.durations).toEqual([])
         expect(state.places).toEqual([])
         expect(state.withWeb).toBe(false)
+        expect(state.registrationOpen).toBe(false)
         expect(state.labels).toEqual([])
         expect(state.year).toBeUndefined()
         expect(hasCalendarFilters(state)).toBe(false)
+    })
+
+    test('the open-registration parameter selects the open-registration filter', () => {
+        const state = parseCalendarState({ reg: '1' })
+
+        expect(state.registrationOpen).toBe(true)
+        expect(hasCalendarFilters(state)).toBe(true)
+
+        // Round trip: the filter survives its own URL.
+        const query = calendarStateToQuery(state)
+        expect(query).toEqual({ reg: '1' })
+        expect(parseCalendarState(query)).toEqual(state)
     })
 
     test('legacy label parameters of the old page still select labels', () => {
@@ -82,13 +95,14 @@ describe('changing the state', () => {
     })
 
     test('clearing the filters keeps the view and the selected year', () => {
-        const state = parseCalendarState({ v: 'historie', r: '2019', kdy: 'weekend', dk: 'cz' })
+        const state = parseCalendarState({ v: 'historie', r: '2019', kdy: 'weekend', dk: 'cz', reg: '1' })
         const cleared = clearCalendarFilters(state)
 
         expect(cleared.view).toBe('historie')
         expect(cleared.year).toBe(2019)
         expect(cleared.when).toBe('all')
         expect(cleared.places).toEqual([])
+        expect(cleared.registrationOpen).toBe(false)
         expect(hasCalendarFilters(cleared)).toBe(false)
     })
 
@@ -101,13 +115,16 @@ describe('changing the state', () => {
     })
 
     test('active filters describe every filter and know how to remove it', () => {
-        const state = parseCalendarState({ kdy: 'weekend', dd: 'one', dk: 'noloc', web: '1', lb: '2' })
+        const state = parseCalendarState({ kdy: 'weekend', dd: 'one', dk: 'noloc', web: '1', reg: '1', lb: '2' })
         const filters = calendarActiveFilters(state, { '2': 'komorní' })
 
-        expect(filters.map((filter) => filter.kind)).toEqual(['when', 'duration', 'place', 'withWeb', 'label'])
+        expect(filters.map((filter) => filter.kind)).toEqual(['when', 'duration', 'place', 'withWeb', 'registrationOpen', 'label'])
         expect(filters.find((filter) => filter.kind === 'label')?.value).toBe('komorní')
 
         const withoutDurations = { ...state, ...filters.find((filter) => filter.kind === 'duration')!.remove }
         expect(withoutDurations.durations).toEqual([])
+
+        const withoutRegistration = { ...state, ...filters.find((filter) => filter.kind === 'registrationOpen')!.remove }
+        expect(withoutRegistration.registrationOpen).toBe(false)
     })
 })

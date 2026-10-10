@@ -14,6 +14,10 @@ export const componentTestIds = {
         panel: 'homeRecentGames.panel',
         row: (gameId: string) => `homeRecentGames.row.${gameId}`,
     },
+    homeOpenRegistration: {
+        panel: 'homeOpenRegistration.panel',
+        row: (eventId: string) => `homeOpenRegistration.row.${eventId}`,
+    },
     catalog: {
         panel: 'catalog.panel',
         card: (gameId: string) => `catalogCard.${gameId}`,

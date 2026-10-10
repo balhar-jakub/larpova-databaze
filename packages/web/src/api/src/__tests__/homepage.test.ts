@@ -74,6 +74,13 @@ describe('homepage — the anonymous blocks', () => {
   let excludedNoAverageId: number;
   /** The fixture comments, newest first ("Komentář 4" is the newest). */
   const homeCommentIds: number[] = [];
+  /** Events with an open registration, soonest first. */
+  let openRegSoonestId: number;
+  let openRegLaterId: number;
+  /** Events that must never appear in the open-registration block. */
+  let closedRegEventId: number;
+  let noUrlOpenRegEventId: number;
+  let pastOpenRegEventId: number;
 
   beforeAll(async () => {
     server = createTestServer();
@@ -207,6 +214,69 @@ describe('homepage — the anonymous blocks', () => {
     });
     recentNoEventGameId = recentNoEvent.id;
 
+    // The open-registration block: two events an outsider can still sign up
+    // for (soonest first), and three that must stay out — a closed
+    // registration, an open flag without a URL (a legacy row), and an open
+    // event that already lies in the past.
+    const openRegSoonest = await prisma.event.create({
+      data: {
+        name: `${marker} běh s přihláškami`,
+        deleted: false,
+        from: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        to: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000),
+        registration_url: 'https://example.test/form',
+        registration_open: true,
+      },
+    });
+    openRegSoonestId = openRegSoonest.id;
+
+    const openRegLater = await prisma.event.create({
+      data: {
+        name: `${marker} běh později`,
+        deleted: false,
+        from: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        to: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000),
+        registration_url: 'https://example.test/form-later',
+        registration_open: true,
+      },
+    });
+    openRegLaterId = openRegLater.id;
+
+    const closedReg = await prisma.event.create({
+      data: {
+        name: `${marker} uzavřená registrace`,
+        deleted: false,
+        from: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
+        to: new Date(Date.now() + 22 * 24 * 60 * 60 * 1000),
+        registration_url: 'https://example.test/form-closed',
+        registration_open: false,
+      },
+    });
+    closedRegEventId = closedReg.id;
+
+    const noUrlOpenReg = await prisma.event.create({
+      data: {
+        name: `${marker} bez odkazu`,
+        deleted: false,
+        from: new Date(Date.now() + 23 * 24 * 60 * 60 * 1000),
+        to: new Date(Date.now() + 24 * 24 * 60 * 60 * 1000),
+        registration_open: true,
+      },
+    });
+    noUrlOpenRegEventId = noUrlOpenReg.id;
+
+    const pastOpenReg = await prisma.event.create({
+      data: {
+        name: `${marker} minulá přihláška`,
+        deleted: false,
+        from: daysAgo(10),
+        to: daysAgo(9),
+        registration_url: 'https://example.test/form-past',
+        registration_open: true,
+      },
+    });
+    pastOpenRegEventId = pastOpenReg.id;
+
     // Four comments, stamped in the future so they are the newest in the
     // database — the block's own three are then the first three of these.
     for (let index = 4; index >= 1; index -= 1) {
@@ -232,7 +302,22 @@ describe('homepage — the anonymous blocks', () => {
       where: { game_id: { in: [recentNewestGameId, recentSecondGameId, recentOldGameId] } },
     });
     await prisma.event.deleteMany({
-      where: { id: { in: [eventId, recentNewestEventId, recentSecondEventId, recentOldEventId, ...eventIds] } },
+      where: {
+        id: {
+          in: [
+            eventId,
+            recentNewestEventId,
+            recentSecondEventId,
+            recentOldEventId,
+            openRegSoonestId,
+            openRegLaterId,
+            closedRegEventId,
+            noUrlOpenRegEventId,
+            pastOpenRegEventId,
+            ...eventIds,
+          ],
+        },
+      },
     });
     await prisma.csld_game.deleteMany({
       where: {
@@ -303,6 +388,37 @@ describe('homepage — the anonymous blocks', () => {
     expect(gameIds).not.toContain(String(recentNoEventGameId));
     // One row per game, even when the game has more events.
     expect(gameIds.filter((id: string) => id === String(recentSecondGameId)).length).toBe(1);
+  });
+
+  test('the open-registration block lists events an outsider can still sign up for, soonest first', async () => {
+    const result: any = await executeQuery(
+      server,
+      `{ homepage { openRegistrationEvents { id name registrationUrl registrationOpen } } }`,
+    );
+
+    expect(result.errors).toBeUndefined();
+    const events = result.data.homepage.openRegistrationEvents;
+    const ids = events.map((event: any) => event.id);
+
+    // Both fixtures are in, soonest first — but the seeded database may hold
+    // its own open registrations, so only their relative order is promised.
+    const soonestAt = ids.indexOf(String(openRegSoonestId));
+    const laterAt = ids.indexOf(String(openRegLaterId));
+    expect(soonestAt).toBeGreaterThanOrEqual(0);
+    expect(laterAt).toBeGreaterThanOrEqual(0);
+    expect(soonestAt).toBeLessThan(laterAt);
+
+    // Every row is actually sign-up-able: an open registration with a link.
+    for (const event of events) {
+      expect(event.registrationOpen).toBe(true);
+      expect(event.registrationUrl).toMatch(/^https?:\/\//);
+    }
+
+    // A closed registration, an open flag without a URL and an event that
+    // already happened never appear.
+    expect(ids).not.toContain(String(closedRegEventId));
+    expect(ids).not.toContain(String(noUrlOpenRegEventId));
+    expect(ids).not.toContain(String(pastOpenRegEventId));
   });
 
   test('the hero stats describe the whole database', async () => {

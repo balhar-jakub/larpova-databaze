@@ -16,6 +16,7 @@ import { HomeAuthoredPanel } from './HomeAuthoredPanel'
 import { HomeRecommendedPanel } from './HomeRecommendedPanel'
 import { HomePageGamesPanel } from './HomePageGamesPanel'
 import { HomeRecentGamesPanel } from './HomeRecentGamesPanel'
+import { HomeOpenRegistrationPanel } from './HomeOpenRegistrationPanel'
 import { HomePageEventsPanel } from './HomePageEventsPanel'
 import { HomePageCommentsPanel } from './HomePageCommentsPanel'
 import { HomePageCtaPanel } from './HomePageCtaPanel'
@@ -40,6 +41,8 @@ const getHomePageUserQuery = documentOf(getHomePageUserDocument)
 const CATALOG_BEST_RATED = '/games?order=Best&minr=5'
 const CATALOG_NEWEST = '/games?order=Newest'
 const CATALOG_MOST_COMMENTED = '/games?order=MostCommented'
+/** The calendar with only the open registrations showing. */
+const CALENDAR_OPEN_REGISTRATION = '/kalendar?reg=1'
 
 const useStyles = createUseStyles({
     gamesAndEvents: {
@@ -156,6 +159,7 @@ export const HomePagePanel = () => {
                                 <HomePageGamesPanel titleKey="HomePage.bestGames" noteKey="HomePage.bestGamesNote" games={homepage?.bestRatedGames} href={CATALOG_BEST_RATED} />
                                 <HomePageGamesPanel titleKey="HomePage.lastAddedGames" games={homepage?.lastAddedGames} href={CATALOG_NEWEST} />
                                 <HomeRecentGamesPanel recent={homepage?.recentGames} href="/kalendar" />
+                                <HomeOpenRegistrationPanel events={homepage?.openRegistrationEvents} href={CALENDAR_OPEN_REGISTRATION} />
                                 <HomePageEventsPanel nextEvents={homepage?.nextEvents} href="/kalendar" />
                             </Row>
                         </WidthFixer>
