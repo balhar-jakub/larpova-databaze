@@ -58,6 +58,16 @@ describe('homepage — the anonymous blocks', () => {
   let labelId: number;
   let emptyLabelId: number;
   let eventId: number;
+  /** Two fixture games with recent events, newest event first. */
+  let recentNewestGameId: number;
+  let recentSecondGameId: number;
+  let recentNewestEventId: number;
+  let recentSecondEventId: number;
+  /** A game with only an old event — outside the recent window, must not appear. */
+  let recentOldGameId: number;
+  let recentOldEventId: number;
+  /** A game with no event at all — must never appear. */
+  let recentNoEventGameId: number;
   /** The twelve fixture games, best first. */
   const rankedGameIds: number[] = [];
   let excludedFewRatingsId: number;
@@ -150,6 +160,53 @@ describe('homepage — the anonymous blocks', () => {
     });
     eventId = event.id;
 
+    // The "recently played" block: two games with events inside the window
+    // (the newest one first), one game whose only event is old, and one game
+    // with no event at all.
+    const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const recentNewest = await prisma.csld_game.create({
+      data: { name: `${marker} nedávno hraná`, description: 'x', deleted: false, added_by: userId },
+    });
+    recentNewestGameId = recentNewest.id;
+    const recentNewestEvent = await prisma.event.create({
+      data: { name: `${marker} akce nedávná`, deleted: false, from: daysAgo(2), to: daysAgo(1) },
+    });
+    recentNewestEventId = recentNewestEvent.id;
+    await prisma.csld_game_has_event.create({ data: { game_id: recentNewestGameId, event_id: recentNewestEventId } });
+
+    const recentSecond = await prisma.csld_game.create({
+      data: { name: `${marker} druhá nedávno hraná`, description: 'x', deleted: false, added_by: userId },
+    });
+    recentSecondGameId = recentSecond.id;
+    const recentSecondEvent = await prisma.event.create({
+      data: { name: `${marker} akce starší`, deleted: false, from: daysAgo(10), to: daysAgo(9) },
+    });
+    recentSecondEventId = recentSecondEvent.id;
+    await prisma.csld_game_has_event.create({ data: { game_id: recentSecondGameId, event_id: recentSecondEventId } });
+
+    // A game with two events: the block must show its latest one, not the older.
+    const recentOlderEvent = await prisma.event.create({
+      data: { name: `${marker} akce ještě starší`, deleted: false, from: daysAgo(20), to: daysAgo(19) },
+    });
+    await prisma.csld_game_has_event.create({ data: { game_id: recentSecondGameId, event_id: recentOlderEvent.id } });
+    eventIds.push(recentOlderEvent.id);
+
+    const recentOld = await prisma.csld_game.create({
+      data: { name: `${marker} dávno hraná`, description: 'x', deleted: false, added_by: userId },
+    });
+    recentOldGameId = recentOld.id;
+    const recentOldEvent = await prisma.event.create({
+      data: { name: `${marker} akce dávná`, deleted: false, from: daysAgo(400), to: daysAgo(399) },
+    });
+    recentOldEventId = recentOldEvent.id;
+    await prisma.csld_game_has_event.create({ data: { game_id: recentOldGameId, event_id: recentOldEventId } });
+
+    const recentNoEvent = await prisma.csld_game.create({
+      data: { name: `${marker} bez akce`, description: 'x', deleted: false, added_by: userId },
+    });
+    recentNoEventGameId = recentNoEvent.id;
+
     // Four comments, stamped in the future so they are the newest in the
     // database — the block's own three are then the first three of these.
     for (let index = 4; index >= 1; index -= 1) {
@@ -171,9 +228,26 @@ describe('homepage — the anonymous blocks', () => {
     await prisma.csld_comment.deleteMany({ where: { id: { in: homeCommentIds } } });
     await prisma.csld_game_has_label.deleteMany({ where: { id_label: labelId } });
     await prisma.csld_label.deleteMany({ where: { id: { in: [labelId, emptyLabelId] } } });
-    await prisma.event.deleteMany({ where: { id: eventId } });
+    await prisma.csld_game_has_event.deleteMany({
+      where: { game_id: { in: [recentNewestGameId, recentSecondGameId, recentOldGameId] } },
+    });
+    await prisma.event.deleteMany({
+      where: { id: { in: [eventId, recentNewestEventId, recentSecondEventId, recentOldEventId, ...eventIds] } },
+    });
     await prisma.csld_game.deleteMany({
-      where: { id: { in: [...rankedGameIds, excludedFewRatingsId, excludedNoAverageId] } },
+      where: {
+        id: {
+          in: [
+            ...rankedGameIds,
+            excludedFewRatingsId,
+            excludedNoAverageId,
+            recentNewestGameId,
+            recentSecondGameId,
+            recentOldGameId,
+            recentNoEventGameId,
+          ],
+        },
+      },
     });
     await prisma.csld_csld_user.deleteMany({ where: { id: userId } });
     await prisma.$disconnect();
@@ -199,6 +273,36 @@ describe('homepage — the anonymous blocks', () => {
 
     expect(ids).not.toContain(String(excludedFewRatingsId));
     expect(ids).not.toContain(String(excludedNoAverageId));
+  });
+
+  test('the "recently played" block lists games with the latest events, newest first', async () => {
+    const result: any = await executeQuery(
+      server,
+      `{ homepage { recentGames { game { id name } event { id name from to } } } }`,
+    );
+
+    expect(result.errors).toBeUndefined();
+    const rows = result.data.homepage.recentGames;
+    const gameIds = rows.map((row: any) => row.game.id);
+
+    // The seeded database already holds events inside the ninety-day window,
+    // so the block cannot promise the fixtures the first positions — only
+    // their order relative to each other.
+    const newestAt = gameIds.indexOf(String(recentNewestGameId));
+    const secondAt = gameIds.indexOf(String(recentSecondGameId));
+    expect(newestAt).toBeGreaterThanOrEqual(0);
+    expect(secondAt).toBeGreaterThanOrEqual(0);
+    expect(newestAt).toBeLessThan(secondAt);
+
+    // The game with two events shows its latest one, not the older.
+    expect(rows[newestAt].event.id).toBe(String(recentNewestEventId));
+    expect(rows[secondAt].event.id).toBe(String(recentSecondEventId));
+    // The old event is outside the window and the game without an event never
+    // appears at all.
+    expect(gameIds).not.toContain(String(recentOldGameId));
+    expect(gameIds).not.toContain(String(recentNoEventGameId));
+    // One row per game, even when the game has more events.
+    expect(gameIds.filter((id: string) => id === String(recentSecondGameId)).length).toBe(1);
   });
 
   test('the hero stats describe the whole database', async () => {

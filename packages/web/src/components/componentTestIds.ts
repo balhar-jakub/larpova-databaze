@@ -10,6 +10,10 @@ export const componentTestIds = {
         row: (gameId: string) => `homeAuthored.row.${gameId}`,
         voteBadge: 'homeAuthored.voteBadge',
     },
+    homeRecentGames: {
+        panel: 'homeRecentGames.panel',
+        row: (gameId: string) => `homeRecentGames.row.${gameId}`,
+    },
     catalog: {
         panel: 'catalog.panel',
         card: (gameId: string) => `catalogCard.${gameId}`,

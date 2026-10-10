@@ -9,7 +9,7 @@ import {
   labelFacets,
   pageGameIds,
 } from './gameCatalog.js';
-import { mapEventRow } from './search.js';
+import { mapEventRow, EVENT_COVER_IMAGE_INCLUDE } from './search.js';
 import { STATE_PLAYED, STATE_WANT_TO_PLAY } from './user.js';
 
 /**
@@ -22,6 +22,20 @@ import { STATE_PLAYED, STATE_WANT_TO_PLAY } from './user.js';
 
 /** Games per block. */
 export const HOMEPAGE_GAMES = 6;
+
+/**
+ * Games per block on the "recently played" list. The block leads with the
+ * newest activity, so it takes one card more than the rating blocks.
+ */
+export const HOMEPAGE_RECENT_GAMES = 6;
+
+/**
+ * How far back the "recently played" block reaches. Without a window the
+ * block would show the same games for weeks once the calendar runs dry;
+ * three months is the span of a larp season, and a game with no event in it
+ * is no longer "recently played".
+ */
+export const HOMEPAGE_RECENT_WINDOW_DAYS = 90;
 
 /**
  * Comments per block. The block used to take 6 comments and claim half of the
@@ -44,6 +58,16 @@ export const HOMEPAGE_LABELS = 12;
 export const MIN_RATINGS_FOR_TOP = 5;
 
 const GAME_INCLUDE = { csld_game_has_label: { include: { csld_label: true } } };
+
+/** The "recently played" block: the game row plus its latest event row. */
+const RECENT_GAME_INCLUDE = {
+  csld_game_has_label: { include: { csld_label: true } },
+  csld_image_csld_game_cover_imageTocsld_image: true,
+};
+const RECENT_EVENT_INCLUDE = {
+  event_has_labels: { include: { csld_label: true } },
+  ...EVENT_COVER_IMAGE_INCLUDE,
+};
 
 /** Cards per personal block — the same handful as the anonymous one. */
 export const MY_HOME_GAMES = 6;
@@ -81,6 +105,47 @@ const COMMENT_INCLUDE = {
   csld_game: true,
   csld_csld_user: { include: { csld_image: true } },
 };
+
+/**
+ * Games with the most recent event, newest event first — the "what is being
+ * played right now" block. The window keeps the block honest when the calendar
+ * runs dry: a game whose latest event is older is no longer "recently played",
+ * and a game with no event at all never appears here.
+ *
+ * One event per game: the latest one. The block is about games, not about
+ * listing every run of every game.
+ */
+export async function recentGames(ctx: Context) {
+  const since = new Date(Date.now() - HOMEPAGE_RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+
+  const links = await ctx.db.csld_game_has_event.findMany({
+    where: {
+      csld_game: { deleted: false },
+      event: { deleted: false, to: { gte: since } },
+    },
+    orderBy: { event: { from: 'desc' } },
+    include: {
+      csld_game: { include: RECENT_GAME_INCLUDE },
+      event: { include: RECENT_EVENT_INCLUDE },
+    },
+  });
+
+  // Latest event per game: the links come ordered by the event date, so the
+  // first link of each game is its most recent event.
+  const seen = new Set<number>();
+  const recent: { game: any; event: any }[] = [];
+  for (const link of links as any[]) {
+    if (!link.csld_game || seen.has(link.csld_game.id)) continue;
+    seen.add(link.csld_game.id);
+    recent.push({ game: link.csld_game, event: link.event });
+    if (recent.length >= HOMEPAGE_RECENT_GAMES) break;
+  }
+
+  return recent.map(({ game, event }) => ({
+    game: normalizeGame(game),
+    event: mapEventRow(event, ctx),
+  }));
+}
 
 /** One page of comments, in the shape the block renders (shared with "load more"). */
 export async function lastCommentsPage(
@@ -300,6 +365,7 @@ export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Co
     upcomingEventsTotal,
     usersTotal,
     myHome,
+    recent,
   ] = await Promise.all([
     ctx.db.csld_game.findMany({
       where: { deleted: false },
@@ -339,12 +405,14 @@ export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Co
     ctx.db.csld_csld_user.count(),
     // Only for a signed-in caller; the personal blocks are nobody else's business.
     ctx.user ? myHomepage(ctx, ctx.user.id) : Promise.resolve(null),
+    recentGames(ctx),
   ]);
 
   return {
     lastAddedGames: lastAddedGames.map((game: any) => normalizeGame(game)),
     bestRatedGames: bestRatedGames.map((game: any) => normalizeGame(game)),
     topLabels: labels.slice(0, HOMEPAGE_LABELS),
+    recentGames: recent,
     stats: {
       games: gamesTotal,
       events: eventsTotal,

@@ -60,6 +60,19 @@ query GetHomePageUser {
         lastAddedGames {
             ...baseGameData
         }
+        recentGames {
+            game {
+                ...baseGameData
+            }
+            event {
+                id
+                name
+                from
+                to
+                loc
+                amountOfPlayers
+            }
+        }
         nextEvents {
             id
             name
