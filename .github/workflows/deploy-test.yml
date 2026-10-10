@@ -77,6 +77,9 @@ jobs:
           SSH_USER: ${{ secrets.SSH_USER }}
         run: |
           ssh -o BatchMode=yes "$SSH_USER@$SSH_HOST" '
+            # Phase 6: under systemd, killing the process just triggers the
+            # Restart=always supervision — the unit must be stopped first.
+            systemctl --user stop csld-test.service 2>/dev/null || true
             for pid in $(pgrep -f "tsx.*server\.ts" 2>/dev/null); do
               cwd=$(readlink -f /proc/$pid/cwd 2>/dev/null)
               if echo "$cwd" | grep -q "/csld-test$"; then kill "$pid" 2>/dev/null || true; fi
