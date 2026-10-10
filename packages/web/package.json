@@ -9,7 +9,8 @@
     "start": "node server.ts",
     "postinstall": "prisma generate",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --passWithNoTests",
-    "test:api": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --config jest.api.config.json src/api/src/__tests__"
+    "test:api": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --config jest.api.config.json src/api/src/__tests__",
+    "codegen": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {
     "@apollo/client": "^3.8.0",

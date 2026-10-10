@@ -41,6 +41,11 @@ jobs:
         run: corepack enable && corepack prepare yarn@1 --activate
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+      - name: Generate GraphQL operation types (codegen)
+        # The generated file is gitignored (phase 6): regenerate it on every
+        # fresh checkout so the .next build has the types it imports.
+        working-directory: packages/web
+        run: yarn codegen
       - name: Push DB schema (web)
         working-directory: packages/web
         env:
@@ -118,16 +123,47 @@ jobs:
             npx prisma generate --schema prisma/schema.prisma
             npx prisma db push --schema prisma/schema.prisma
             # The session secret gate (phase 1) requires SESSION_SECRET in the
-            # environment; .env carries it, so export the file before starting.
-            set -a; . ./.env; set +a
-            nohup env PORT=8082 NODE_ENV=production npx tsx server.ts > /tmp/csld-test.log 2>&1 < /dev/null &
-            for attempt in $(seq 1 10); do
+            # environment; .env carries it, and the systemd unit loads it via
+            # EnvironmentFile.
+
+            # ── Phase 6: systemd supervision with Restart=always ──
+            # Prefer the systemd user unit; fall back to nohup only when the
+            # box has no working user systemd (e.g. no lingering).
+            SYSTEMD_OK=yes
+            systemctl --user daemon-reload 2>/dev/null || SYSTEMD_OK=no
+            if [ "$SYSTEMD_OK" = yes ]; then
+              bash scripts/install-systemd.sh test
+              systemctl --user restart csld-test.service
+              sleep 2
+            else
+              echo 'user systemd unavailable — falling back to nohup'
+              set -a; . ./.env; set +a
+              nohup env PORT=8082 NODE_ENV=production npx tsx server.ts > /tmp/csld-test.log 2>&1 < /dev/null &
+            fi
+
+            for attempt in $(seq 1 30); do
               if curl --fail --silent --show-error http://127.0.0.1:8082/health; then
-                exit 0
+                break
               fi
-              sleep 1
+              sleep 2
             done
-            printf '%s\n' 'Test application did not become healthy on port 8082.' >&2
-            tail -n 100 /tmp/csld-test.log >&2 || true
-            exit 1
+            if ! curl --fail --silent --show-error http://127.0.0.1:8082/health >/dev/null; then
+              printf '%s\n' 'Test application did not become healthy on port 8082.' >&2
+              journalctl --user -u csld-test.service -n 100 --no-pager >&2 2>/dev/null || tail -n 100 /tmp/csld-test.log >&2 || true
+              exit 1
+            fi
+
+            # ── Recovery proof: kill -9 must be survived via systemd ──
+            if [ "$SYSTEMD_OK" = yes ]; then
+              MAINPID=$(systemctl --user show csld-test.service -p MainPID --value)
+              if [ -n "$MAINPID" ] && [ "$MAINPID" != 0 ]; then
+                kill -9 "$MAINPID"
+                sleep 8
+                if ! curl --fail --silent --show-error http://127.0.0.1:8082/health >/dev/null; then
+                  printf '%s\n' 'systemd did NOT restart the app after kill -9 — supervision is broken' >&2
+                  exit 1
+                fi
+                echo 'recovery check passed: app survived kill -9 (systemd Restart=always)'
+              fi
+            fi
           REMOTE
