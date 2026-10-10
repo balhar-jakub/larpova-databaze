@@ -42,6 +42,24 @@ const useStyles = createUseStyles({
             textDecoration: 'none',
         },
     },
+    closedBadge: {
+        display: 'inline-block',
+        padding: '6px 10px',
+        borderRadius: 4,
+        backgroundColor: darkTheme.red,
+        color: darkTheme.backgroundRealWhite,
+        fontWeight: 700,
+    },
+    closedFormLink: {
+        marginTop: 2,
+        fontSize: '0.72rem',
+        color: darkTheme.textOnLightLighter,
+        textDecoration: 'underline',
+
+        '&:hover, &:focus': {
+            color: darkTheme.textOnLightDark,
+        },
+    },
 })
 
 const EventRegistrationLink = ({ url, open, className, onDarkBackground = false }: Props) => {
@@ -50,6 +68,19 @@ const EventRegistrationLink = ({ url, open, className, onDarkBackground = false 
 
     if (!isAbsoluteHttpUrl(url)) {
         return null
+    }
+
+    if (!open) {
+        // Registration exists but is closed (waiting list / reserves): the badge
+        // states it plainly, the organizer's form stays one click away.
+        return (
+            <span className={className}>
+                <span className={classes.closedBadge}>{t('Event.registrationClosed')}</span>
+                <a href={url} target="_blank" rel="noreferrer" className={classes.closedFormLink}>
+                    {t('Event.registrationOrganizerForm')}
+                </a>
+            </span>
+        )
     }
 
     return (

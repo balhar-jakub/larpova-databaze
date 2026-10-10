@@ -44,6 +44,9 @@ const useStyles = createUseStyles({
     registrationOpen: {
         boxShadow: `inset 0 0 0 1px ${darkTheme.textGreen}`,
     },
+    registrationClosed: {
+        boxShadow: `inset 0 0 0 1px ${darkTheme.red}`,
+    },
     name: {
         fontSize: '1rem',
         color: darkTheme.textOnLightDark,
@@ -79,6 +82,10 @@ const useStyles = createUseStyles({
     pillRegistration: {
         backgroundColor: darkTheme.textGreen,
         color: '#04262b',
+    },
+    pillRegistrationClosed: {
+        backgroundColor: darkTheme.red,
+        color: darkTheme.backgroundRealWhite,
     },
     meta: {
         marginTop: 3,
@@ -146,6 +153,7 @@ const CalendarEventCard = ({ event, isNext = false }: Props) => {
                 [classes.cardWithImage]: Boolean(coverImageUrl),
                 [classes.next]: isNext,
                 [classes.registrationOpen]: event.registrationOpen && Boolean(registrationUrl),
+                [classes.registrationClosed]: !event.registrationOpen && Boolean(registrationUrl),
             })}
             data-testid={`calendar.event.${event.id}`}
         >
@@ -184,6 +192,11 @@ const CalendarEventCard = ({ event, isNext = false }: Props) => {
                     {event.registrationOpen && registrationUrl && (
                         <span className={classNames(classes.pill, classes.pillRegistration)}>
                             {t('Calendar.registrationOpenPill')}
+                        </span>
+                    )}
+                    {!event.registrationOpen && registrationUrl && (
+                        <span className={classNames(classes.pill, classes.pillRegistrationClosed)}>
+                            {t('Calendar.registrationClosedPill')}
                         </span>
                     )}
                 </span>
