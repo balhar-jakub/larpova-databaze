@@ -73,6 +73,16 @@ query GetHomePageUser {
                 amountOfPlayers
             }
         }
+        openRegistrationEvents {
+            id
+            name
+            from
+            to
+            loc
+            amountOfPlayers
+            registrationUrl
+            registrationOpen
+        }
         nextEvents {
             id
             name

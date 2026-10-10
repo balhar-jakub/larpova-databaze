@@ -38,8 +38,15 @@ export const HOMEPAGE_RECENT_GAMES = 6;
 export const HOMEPAGE_RECENT_WINDOW_DAYS = 90;
 
 /**
- * Comments per block. The block used to take 6 comments and claim half of the
- * page; three are enough next to a link into the catalog.
+ * Events in the "registration open" block. The same handful as the other
+ * blocks; a longer list would promise more openings than a larp season
+ * usually has.
+ */
+export const HOMEPAGE_OPEN_REGISTRATION = 6;
+
+/**
+ * Comments per block. The block used to take 6 comments and claim half of
+ * the page; three are enough next to a link into the catalog.
  */
 export const HOMEPAGE_COMMENTS = 3;
 
@@ -145,6 +152,38 @@ export async function recentGames(ctx: Context) {
     game: normalizeGame(game),
     event: mapEventRow(event, ctx),
   }));
+}
+
+/**
+ * Upcoming events whose registration is open — "you can still sign up for
+ * these", the one question the anonymous visitor arrives with. An event
+ * without a registration URL has nothing to sign up for, so it stays out
+ * even if the flag says open (the mutation only allows open with a URL, but
+ * legacy rows predate that rule). Sorted by the event date, soonest first:
+ * the deadline, not the upload, decides the order.
+ */
+export async function openRegistrationEvents(ctx: Context) {
+  const now = new Date();
+
+  const events = await ctx.db.event.findMany({
+    where: {
+      deleted: false,
+      // The event must still be ahead: once it starts, there is nothing
+      // left to sign up for.
+      from: { gte: now },
+      registration_open: true,
+      registration_url: { not: null },
+    },
+    orderBy: { from: 'asc' },
+    take: HOMEPAGE_OPEN_REGISTRATION,
+    include: {
+      event_has_labels: { include: { csld_label: true } },
+      ...EVENT_COVER_IMAGE_INCLUDE,
+      csld_game_has_event: { include: { csld_game: true } },
+    },
+  });
+
+  return events.map((event: any) => mapEventRow(event, ctx));
 }
 
 /** One page of comments, in the shape the block renders (shared with "load more"). */
@@ -366,6 +405,7 @@ export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Co
     usersTotal,
     myHome,
     recent,
+    openRegistration,
   ] = await Promise.all([
     ctx.db.csld_game.findMany({
       where: { deleted: false },
@@ -406,6 +446,7 @@ export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Co
     // Only for a signed-in caller; the personal blocks are nobody else's business.
     ctx.user ? myHomepage(ctx, ctx.user.id) : Promise.resolve(null),
     recentGames(ctx),
+    openRegistrationEvents(ctx),
   ]);
 
   return {
@@ -413,6 +454,7 @@ export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Co
     bestRatedGames: bestRatedGames.map((game: any) => normalizeGame(game)),
     topLabels: labels.slice(0, HOMEPAGE_LABELS),
     recentGames: recent,
+    openRegistrationEvents: openRegistration,
     stats: {
       games: gamesTotal,
       events: eventsTotal,

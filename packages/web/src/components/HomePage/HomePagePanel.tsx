@@ -16,6 +16,7 @@ import { HomeAuthoredPanel } from './HomeAuthoredPanel'
 import { HomeRecommendedPanel } from './HomeRecommendedPanel'
 import { HomePageGamesPanel } from './HomePageGamesPanel'
 import { HomeRecentGamesPanel } from './HomeRecentGamesPanel'
+import { HomeOpenRegistrationPanel } from './HomeOpenRegistrationPanel'
 import { HomePageEventsPanel } from './HomePageEventsPanel'
 import { HomePageCommentsPanel } from './HomePageCommentsPanel'
 import { HomePageCtaPanel } from './HomePageCtaPanel'
@@ -156,6 +157,7 @@ export const HomePagePanel = () => {
                                 <HomePageGamesPanel titleKey="HomePage.bestGames" noteKey="HomePage.bestGamesNote" games={homepage?.bestRatedGames} href={CATALOG_BEST_RATED} />
                                 <HomePageGamesPanel titleKey="HomePage.lastAddedGames" games={homepage?.lastAddedGames} href={CATALOG_NEWEST} />
                                 <HomeRecentGamesPanel recent={homepage?.recentGames} href="/kalendar" />
+                                <HomeOpenRegistrationPanel events={homepage?.openRegistrationEvents} href="/kalendar" />
                                 <HomePageEventsPanel nextEvents={homepage?.nextEvents} href="/kalendar" />
                             </Row>
                         </WidthFixer>

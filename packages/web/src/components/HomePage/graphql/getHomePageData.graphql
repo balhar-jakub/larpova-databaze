@@ -32,6 +32,16 @@ query GetHomePageData {
                 amountOfPlayers
             }
         }
+        openRegistrationEvents {
+            id
+            name
+            from
+            to
+            loc
+            amountOfPlayers
+            registrationUrl
+            registrationOpen
+        }
         lastComments {
             ...baseCommentData
         }

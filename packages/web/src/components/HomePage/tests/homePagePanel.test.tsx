@@ -88,6 +88,28 @@ const answer = () => ({
             bestRatedGames: [game('1', 'Legie: Sibiřský příběh')],
             lastAddedGames: [game('2', 'MethanCity')],
             nextEvents: [],
+            openRegistrationEvents: [
+                {
+                    id: '32',
+                    name: 'Erebos — 6. běh',
+                    from: '1812422400000',
+                    to: '1812595200000',
+                    loc: 'Praha',
+                    amountOfPlayers: 40,
+                    registrationUrl: 'https://docs.google.com/forms/erebos',
+                    registrationOpen: true,
+                },
+                {
+                    id: '33',
+                    name: 'Erebos — 7. běh',
+                    from: '1813027200000',
+                    to: '1813200000000',
+                    loc: 'Praha',
+                    amountOfPlayers: 40,
+                    registrationUrl: 'https://docs.google.com/forms/erebos-7',
+                    registrationOpen: true,
+                },
+            ],
             lastComments: [
                 comment('1', 'Komentář na Blackhillu .'),
                 comment('2', 'Druhý komentář'),
@@ -157,6 +179,32 @@ test('with nothing written yet the comment block is not rendered at all', () => 
 
     expect(screen.queryByText('Poslední komentáře')).toBeNull()
     expect(screen.getByText('Přidejte svůj larp')).toBeTruthy()
+})
+
+test('the open-registration block lists the events with the sign-up link right in the row', () => {
+    render(<Panel />)
+
+    expect(screen.getByText('Přihlášky otevřené')).toBeTruthy()
+    expect(screen.getByText('Erebos — 6. běh')).toBeTruthy()
+    expect(screen.getByText('Erebos — 7. běh')).toBeTruthy()
+
+    // The sign-up link is the row's action, not a detail one click away.
+    const signUp = screen.getAllByText('Přihlašování otevřeno').map((node) => node.closest('a'))
+    expect(signUp).toHaveLength(2)
+    expect(signUp[0]).toBeTruthy()
+    expect((signUp[0] as HTMLAnchorElement).getAttribute('href')).toBe('https://docs.google.com/forms/erebos')
+})
+
+test('with no open registration the block leaves no hole in the row', () => {
+    const empty = answer()
+    ;(empty.data as any).homepage.openRegistrationEvents = []
+
+    queryResult = empty
+    render(<Panel />)
+
+    expect(screen.queryByText('Přihlášky otevřené')).toBeNull()
+    // The rest of the row still renders.
+    expect(screen.getByText('Nejlépe hodnocené')).toBeTruthy()
 })
 
 test('the page closes by asking for a contribution', () => {
