@@ -7,6 +7,7 @@ import { ParsedUrlQuery } from 'querystring'
 import { createUseStyles } from 'react-jss'
 import { useTranslation } from 'src/lib/i18n'
 import { darkTheme } from '../../theme/darkTheme'
+import { isAbsoluteHttpUrl } from '../../utils/urlUtils'
 import { breakPoints } from '../../theme/breakPoints'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
 import BigLoading from '../common/BigLoading/BigLoading'
@@ -498,6 +499,8 @@ const CalendarPanel = ({ initialQuery }: Props) => {
                 return t(`Calendar.filters.place_${value}`)
             case 'withWeb':
                 return t('Calendar.filters.withWeb')
+            case 'registrationOpen':
+                return t('Calendar.filters.registrationOpen')
             case 'query':
                 return t('Calendar.active.query', { query: value })
             default:
@@ -676,14 +679,17 @@ const CalendarPanel = ({ initialQuery }: Props) => {
                                             {countFor((event) => Boolean(event.web))}
                                         </span>
                                     </label>
-                                    <label className={`${classes.filter} ${classes.filterDisabled}`}>
-                                        <input type="checkbox" disabled />
+                                    <label className={classes.filter}>
+                                        <input
+                                            type="checkbox"
+                                            checked={state.registrationOpen}
+                                            onChange={() => updateState({ registrationOpen: !state.registrationOpen })}
+                                        />
                                         <span>{t('Calendar.filters.registrationOpen')}</span>
                                         <span className={classes.filterCount}>
-                                            {allEvents.filter((event) => event.registrationOpen && event.registrationUrl).length}
+                                            {countFor((event) => event.registrationOpen && isAbsoluteHttpUrl(event.registrationUrl))}
                                         </span>
                                     </label>
-                                    <p className={classes.hint}>{t('Calendar.filters.registrationNone')}</p>
                                 </div>
 
                                 <div className={classes.filterGroup}>

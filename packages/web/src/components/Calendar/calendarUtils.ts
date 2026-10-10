@@ -3,6 +3,7 @@ import { CalendarEventDataFragment } from '../../graphql/__generated__/typescrip
 import { CalendarDuration, CalendarPlace, CalendarState, CalendarWhen } from './calendarState'
 import { parseDateTime } from '../../utils/dateUtils'
 import { matchTextQuery } from '../../utils/textUtils'
+import { isAbsoluteHttpUrl } from '../../utils/urlUtils'
 
 /**
  * Helpers behind the calendar's three views: the weekend agenda, the month grid
@@ -183,6 +184,10 @@ export const filterCalendarEvents = (
         if (state.places.length && !state.places.includes(eventPlace(event))) return false
 
         if (state.withWeb && !event.web) return false
+
+        // The same rule the homepage block uses: an open flag without a
+        // sign-up link is nothing to filter on.
+        if (state.registrationOpen && !(event.registrationOpen && isAbsoluteHttpUrl(event.registrationUrl))) return false
 
         if (!matchTextQuery([event.name, event.loc], state.query)) return false
 

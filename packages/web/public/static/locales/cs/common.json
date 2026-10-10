@@ -614,7 +614,6 @@
       "place_noloc": "Bez uvedeného místa",
       "withWeb": "Má web akce",
       "registrationOpen": "Přihlášky otevřené",
-      "registrationNone": "Nikde není vyplněná otevřená registrace, filtr proto nemá co ukázat.",
       "labelsNone": "Štítek nemá ani jedna z {{total}} budoucích akcí, filtr by vyšel naprázdno.",
       "labelsModeAny": "alespoň jeden vybraný štítek",
       "placeHeuristic": "Země v datech není, „zahraničí“ se pozná z textu místa nebo z názvu akce."

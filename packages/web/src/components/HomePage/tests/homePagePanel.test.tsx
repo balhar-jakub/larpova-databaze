@@ -193,6 +193,10 @@ test('the open-registration block lists the events with the sign-up link right i
     expect(signUp).toHaveLength(2)
     expect(signUp[0]).toBeTruthy()
     expect((signUp[0] as HTMLAnchorElement).getAttribute('href')).toBe('https://docs.google.com/forms/erebos')
+
+    // "The whole calendar" continues the block's story: only the open
+    // registrations, the filter already applied.
+    expect(screen.getAllByText('celý kalendář »')[1].getAttribute('href')).toBe('/kalendar?reg=1')
 })
 
 test('with no open registration the block leaves no hole in the row', () => {

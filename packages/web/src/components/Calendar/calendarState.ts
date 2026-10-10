@@ -36,6 +36,8 @@ export interface CalendarState {
     readonly durations: readonly CalendarDuration[]
     readonly places: readonly CalendarPlace[]
     readonly withWeb: boolean
+    /** Only events with an open registration and a sign-up link. */
+    readonly registrationOpen: boolean
     readonly labels: readonly string[]
     readonly labelMode: CalendarLabelMode
     /** Year selected in the history view. */
@@ -59,6 +61,7 @@ export const DEFAULT_CALENDAR_STATE: CalendarState = {
     durations: [],
     places: [],
     withWeb: false,
+    registrationOpen: false,
     labels: [],
     labelMode: 'all',
 }
@@ -109,6 +112,7 @@ export function parseCalendarState(query: ParsedUrlQuery): CalendarState {
         durations: parseList(query.dd, CALENDAR_DURATIONS),
         places: parseList(query.dk, CALENDAR_PLACES),
         withWeb: ['1', 'true'].includes(first(query.web) ?? ''),
+        registrationOpen: ['1', 'true'].includes(first(query.reg) ?? ''),
         labels: parseIds(query.lb).length ? parseIds(query.lb) : legacyLabels,
         labelMode:
             first(query.lm) === 'any' || (!legacyRequired.length && legacyOptional.length) ? 'any' : 'all',
@@ -127,6 +131,7 @@ export function calendarStateToQuery(state: CalendarState): { [key: string]: str
     if (state.durations.length) query.dd = [...state.durations].sort().join(',')
     if (state.places.length) query.dk = [...state.places].sort().join(',')
     if (state.withWeb) query.web = '1'
+    if (state.registrationOpen) query.reg = '1'
     if (state.labels.length) query.lb = [...state.labels].sort().join(',')
     if (state.labelMode !== 'all') query.lm = state.labelMode
     if (state.year) query.r = String(state.year)
@@ -173,6 +178,7 @@ export function hasCalendarFilters(state: CalendarState): boolean {
         state.durations.length > 0 ||
         state.places.length > 0 ||
         state.withWeb ||
+        state.registrationOpen ||
         state.labels.length > 0 ||
         Boolean(state.query)
     )
@@ -182,7 +188,7 @@ export function hasCalendarFilters(state: CalendarState): boolean {
 
 export interface CalendarActiveFilter {
     readonly key: string
-    readonly kind: 'when' | 'duration' | 'place' | 'withWeb' | 'label' | 'query'
+    readonly kind: 'when' | 'duration' | 'place' | 'withWeb' | 'registrationOpen' | 'label' | 'query'
     readonly value?: string
     readonly remove: Partial<CalendarState>
 }
@@ -217,6 +223,10 @@ export function calendarActiveFilters(
 
     if (state.withWeb) {
         filters.push({ key: 'web', kind: 'withWeb', remove: { withWeb: false } })
+    }
+
+    if (state.registrationOpen) {
+        filters.push({ key: 'reg', kind: 'registrationOpen', remove: { registrationOpen: false } })
     }
 
     if (state.query) {
