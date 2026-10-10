@@ -45,6 +45,11 @@ if [ -n "$TSX_BIN" ]; then
 else
   EXEC_START="$NPX tsx server.ts"
 fi
+# The node binaries use /usr/bin/env shebangs: without PATH in the unit
+# environment, `npx` starts but cannot find `node` itself (the second
+# failure mode the phase-6 deploys caught). Bake the installing shell's
+# PATH — which includes the toolchain dir — into the unit.
+UNIT_PATH_ENV="$PATH"
 
 cat > "$UNIT_PATH" <<EOF
 [Unit]
@@ -57,6 +62,7 @@ WorkingDirectory=$APP_DIR
 EnvironmentFile=$APP_DIR/.env
 Environment=NODE_ENV=production
 Environment=PORT=$PORT
+Environment=PATH=$UNIT_PATH_ENV
 ExecStart=$EXEC_START
 Restart=always
 RestartSec=5
