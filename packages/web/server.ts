@@ -25,6 +25,7 @@ import { resolvers } from './src/api/src/resolvers/index.js';
 import { configurePassport } from './src/api/src/auth/passport.js';
 import { rememberMeMiddleware } from './src/api/src/auth/rememberMe.js';
 import { setRememberMeCookie } from './src/api/src/auth/rememberMe.js';
+import { requireSessionSecret } from './src/api/src/auth/sessionSecret.js';
 import { LocalFiles } from './src/api/src/files/fileService.js';
 import { setFileService } from './src/api/src/files/index.js';
 import { generateIcal } from './src/api/src/external/ical.js';
@@ -95,7 +96,7 @@ const sessionMiddleware = session({
     tableName: 'user_sessions',
     createTableIfMissing: true,
   }),
-  secret: process.env.SESSION_SECRET || 'dev-secret',
+  secret: requireSessionSecret(),
   resave: false,
   saveUninitialized: false,
   name: 'csld.sid',

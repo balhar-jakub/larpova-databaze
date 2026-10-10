@@ -13,6 +13,7 @@ import { resolvers } from './resolvers/index.js';
 import { createContext, prisma } from './context.js';
 import { configurePassport } from './auth/passport.js';
 import { rememberMeMiddleware } from './auth/rememberMe.js';
+import { requireSessionSecret } from './auth/sessionSecret.js';
 import { LocalFiles } from './files/fileService.js';
 import { setFileService } from './files/index.js';
 import { generateIcal } from './external/ical.js';
@@ -50,7 +51,8 @@ async function main() {
   });
 
   // ── Session middleware ───────────────────────────────
-  const SESSION_SECRET = process.env.SESSION_SECRET || 'csld-dev-secret-change-in-production';
+  // Fail-fast in production: no more silent hard-coded fallback secret.
+  const SESSION_SECRET = requireSessionSecret();
 
   app.use(
     session({

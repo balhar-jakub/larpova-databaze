@@ -82,8 +82,17 @@ jobs:
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
           REMOTE_USER: ${{ secrets.SSH_USER }}
           TARGET: /home/balda/larpova-databaze/csld-new/
+          # Phase 1: keep SESSION_SECRET in the production .env (same file the
+          # app already reads DATABASE_URL from; the deploy exports it before
+          # starting the server). rsync never touches .env.
           SCRIPT_BEFORE: |
             export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
+            cd /home/balda/larpova-databaze/csld-new
+            if grep -q "^SESSION_SECRET=" .env 2>/dev/null; then
+              sed -i "s/^SESSION_SECRET=.*/SESSION_SECRET=${{ secrets.SESSION_SECRET }}/" .env
+            else
+              printf "SESSION_SECRET=%s\n" "${{ secrets.SESSION_SECRET }}" >> .env
+            fi
             for pid in $(pgrep -f "tsx.*server\.ts" 2>/dev/null); do
               cwd=$(readlink -f /proc/$pid/cwd 2>/dev/null)
               if echo "$cwd" | grep -q "csld-new"; then kill "$pid" 2>/dev/null; fi

@@ -90,6 +90,20 @@ jobs:
             done
           '
 
+      - name: Install SESSION_SECRET into the test .env
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh -o BatchMode=yes "$SSH_USER@$SSH_HOST" '
+            cd /home/balda/larpova-databaze/csld-test
+            if grep -q "^SESSION_SECRET=" .env 2>/dev/null; then
+              sed -i "s/^SESSION_SECRET=.*/SESSION_SECRET=${{ secrets.SESSION_SECRET }}/" .env
+            else
+              printf "SESSION_SECRET=%s\n" "${{ secrets.SESSION_SECRET }}" >> .env
+            fi
+          '
+
       - name: Synchronize test application
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
@@ -110,6 +124,9 @@ jobs:
             cd /home/balda/larpova-databaze/csld-test
             npx prisma generate --schema prisma/schema.prisma
             npx prisma db push --schema prisma/schema.prisma
+            # The session secret gate (phase 1) requires SESSION_SECRET in the
+            # environment; .env carries it, so export the file before starting.
+            set -a; . ./.env; set +a
             nohup env PORT=8082 NODE_ENV=production npx tsx server.ts > /tmp/csld-test.log 2>&1 < /dev/null &
             for attempt in $(seq 1 10); do
               if curl --fail --silent --show-error http://127.0.0.1:8082/health; then
