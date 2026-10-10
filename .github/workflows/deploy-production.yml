@@ -110,6 +110,11 @@ jobs:
             # otherwise a Next major bump ships a .next build the stale
             # node_modules/next cannot load.
             yarn install --frozen-lockfile
+            # yarn 1's offline cache stores the tarball of every package in
+            # yarn.lock (~3 GB for this repo), and the box's 30 GB disk runs
+            # ~88% full — without this line every deploy grows ~/.cache/yarn
+            # until the disk fills. Pure cache: the next install repopulates it.
+            rm -rf ~/.cache/yarn
             # The app reads DATABASE_URL from .env through Next; prisma and pg_dump
             # need it in the shell environment.
             set -a; . ./.env; set +a

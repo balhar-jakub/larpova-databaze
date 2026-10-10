@@ -123,6 +123,11 @@ jobs:
             # build that the stale node_modules/next cannot load (Next 15 build
             # + Next 14 runtime = missing font-manifest.json).
             yarn install --frozen-lockfile
+            # yarn 1's offline cache stores the tarball of every package in
+            # yarn.lock (~3 GB for this repo), and the box's 30 GB disk runs
+            # ~88% full — without this line every deploy grows ~/.cache/yarn
+            # until the disk fills. Pure cache: the next install repopulates it.
+            rm -rf ~/.cache/yarn
             npx prisma generate --schema prisma/schema.prisma
             npx prisma db push --schema prisma/schema.prisma
             # The session secret gate (phase 1) requires SESSION_SECRET in the
