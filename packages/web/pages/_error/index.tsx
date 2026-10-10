@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { NextPage } from 'next'
-import { WithTranslation } from 'next-i18next'
+// Minimal shape of the old next-i18next WithTranslation (dep removed in the Next 15 upgrade)
+interface WithTranslation { t: (key: string, options?: Record<string, unknown>) => string }
 import { withTranslation } from 'src/lib/i18n'
 import { createUseStyles } from 'react-jss'
 import { WidthFixer } from 'src/components/common/WidthFixer/WidthFixer'

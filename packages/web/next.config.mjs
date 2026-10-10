@@ -5,16 +5,42 @@ if (typeof window === 'undefined') {
   };
 }
 
-import withGraphQL from 'next-plugin-graphql';
-
+// next-plugin-graphql@0.0.2 inlined: it is 8 lines of webpack config that add
+// the graphql-tag loader for .graphql/.gql imports. Inlining it removes an
+// unmaintained dependency from the critical build path.
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // graphql-tag loader for .graphql/.gql imports (inlined next-plugin-graphql)
+  webpack(config, options) {
+    if (!options.defaultLoaders) {
+      throw new Error('This plugin is not compatible with Next.js versions below 5.0.0');
+    }
+    config.module.rules.push({
+      test: /\.(graphql|gql)$/,
+      include: [options.dir],
+      exclude: /node_modules/,
+      use: [{ loader: 'graphql-tag/loader' }],
+    });
+    return config;
+  },
+
   reactStrictMode: true,
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+
+  // Phase 2 (security): the Image Optimization API (/_next/image) had an
+  // unauthenticated RCE fixed only in Next >= 15.5.24 — Next 14 is EOL and
+  // will never receive the fix. This app never uses next/image (plain <img>
+  // everywhere; uploads are resized server-side by sharp), so the optimizer
+  // brings zero value and pure risk. unoptimized:true disables the endpoint
+  // entirely. When the Next 15 upgrade lands, revisit whether to re-enable
+  // optimization for local /static/images assets.
+  images: {
+    unoptimized: true,
   },
 
   // Map old next-routes URL patterns to Next.js 14 file-system routing
@@ -66,4 +92,4 @@ const nextConfig = {
   },
 };
 
-export default withGraphQL(nextConfig);
+export default nextConfig;
