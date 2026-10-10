@@ -97,6 +97,10 @@ const personalAnswer = () => ({
                     },
                 ],
                 toRate: [{ game: game('40', 'Země snů: Sen ve stínech'), since: '2020-02-02T00:00:00.000Z' }],
+                toComment: [
+                    { game: game('45', 'Dance Macabre'), since: '2012-05-05T00:00:00.000Z' },
+                    { game: game('46', 'Fallen'), since: '2022-09-16T00:00:00.000Z' },
+                ],
                 oldestWanted: [{ game: game('41', 'Camlann'), since: '2007-05-05T00:00:00.000Z' }],
                 authored: [
                     {
@@ -105,11 +109,33 @@ const personalAnswer = () => ({
                     },
                     { game: game('51', 'Castaways'), lastRating: null },
                 ],
+                authoredComments: [
+                    {
+                        id: '900',
+                        commentAsText: 'Milý a něžný larp, který zahřeje na duši.',
+                        added: '2022-08-25T19:18:26.000Z',
+                        user: { id: '5', name: 'Tara Rees', nickname: '' },
+                        game: game('52', 'Mumini'),
+                    },
+                ],
                 recommendedLabels: [
                     { id: '4', name: 'opakovatelný', count: 33 },
                     { id: '16', name: 'komorní', count: 28 },
                 ],
                 recommended: [game('60', 'Špetka magie')],
+                recommendedEvents: [
+                    {
+                        id: '2825',
+                        name: 'Ve znamení Zla — 11. běh',
+                        from: '1793961600000',
+                        to: '1794220800000',
+                        loc: '',
+                        registrationUrl: 'https://registrace.vzz.imerze.cz/',
+                        registrationOpen: true,
+                        matchedLabels: ['opakovatelný', 'horor'],
+                        games: [game('52000', 'Ve znamení Zla')],
+                    },
+                ],
             },
         },
     },
@@ -125,7 +151,10 @@ test('a signed-in visitor gets their own numbers, not the anonymous hero', () =>
 
     expect(screen.getByText('Ahoj Balda')).toBeTruthy()
     expect(screen.getByText('tvoje larpotéka má 110 hraných her')).toBeTruthy()
-    expect(screen.getByText('110 hraných her · 19 her, které chcete hrát · 15 vašich her · 51 komentářů')).toBeTruthy()
+    // The "want to play" number is gone from the band — the band counts what
+    // awaits the visitor's voice instead, the wishlist lives in the profile.
+    expect(screen.getByText('110 hraných her · 15 vašich her · 51 komentářů · 3 hry čekají na váš hlas')).toBeTruthy()
+    expect(document.body.textContent).not.toContain('19 her, které chcete hrát')
     // Twice on purpose: the personal bar leads there and so does the closing band.
     expect(screen.getAllByText('Moje stránka')[0].getAttribute('href')).toBe('/profile/current')
     // The anonymous shop window is gone.
@@ -147,10 +176,15 @@ test('the events of the games they want to play lead the page', () => {
 test('the page names what to finish and what the visitor\'s own games are doing', () => {
     render(<Panel />)
 
-    expect(screen.getByText('Dokončit')).toBeTruthy()
+    // Every row is about the missing voice: the unplayed rating and the missing review.
+    expect(screen.getByText('Chybí váš hlas u 3 her')).toBeTruthy()
     expect(screen.getByText('Země snů: Sen ve stínech')).toBeTruthy()
     expect(screen.getByText('Hrál jste 02.02.2020 a hra nemá váš hlas.')).toBeTruthy()
-    expect(screen.getByText('V seznamu „Chci hrát“ máte 19 her. Nejstarší z roku 2007.')).toBeTruthy()
+    expect(screen.getByText('Dance Macabre')).toBeTruthy()
+    expect(screen.getAllByText('ohodnotil jste, chybí pár vět pro ostatní').length).toBe(2)
+    expect(screen.getAllByText('Dopsat recenzi »').length).toBe(2)
+    // The wishlist is a one-line pointer, not a work item.
+    expect(screen.getByText('Hry, které si chcete zahrát, jsou celé v profilu. Nejstarší z roku 2007.')).toBeTruthy()
 
     expect(screen.getByText('Tvoje hry')).toBeTruthy()
     expect(screen.getByText('Zpěvy rytířské')).toBeTruthy()
@@ -167,16 +201,28 @@ test('the page names what to finish and what the visitor\'s own games are doing'
     expect(screen.queryByText('Od koho')).toBeNull()
 })
 
-test('the recommendation states the labels it is built from', () => {
+test('the newest comments under the visitor\'s own games have their own block', () => {
     render(<Panel />)
 
-    expect(screen.getByText('Doporučeno podle štítků')).toBeTruthy()
-    expect(screen.getByText('podle štítků opakovatelný, komorní')).toBeTruthy()
-    expect(screen.getByText('Špetka magie')).toBeTruthy()
-    // The chips lead into the catalog filtered by that label, and "all of them"
-    // by all of them at once.
-    expect(screen.getByText('opakovatelný').closest('a')?.getAttribute('href')).toBe('/games?labels=4')
-    expect(screen.getByText('všechny »').getAttribute('href')).toBe('/games?labels=16,4&mode=any&rating=80')
+    expect(screen.getByText('K vašim hrám')).toBeTruthy()
+    expect(screen.getByText('Mumini')).toBeTruthy()
+    expect(screen.getByText('· Tara Rees:')).toBeTruthy()
+    expect(screen.getByText('Milý a něžný larp, který zahřeje na duši.')).toBeTruthy()
+    expect(screen.getByText('25.08.2022')).toBeTruthy()
+})
+
+test('the recommendation offers signable events built from the visitor\'s taste', () => {
+    render(<Panel />)
+
+    expect(screen.getByText('Stojí za to')).toBeTruthy()
+    expect(screen.getByText('hry s otevřenou přihláškou podle štítků her, které vám šly')).toBeTruthy()
+    // The event, why it is here, and the way to act on it.
+    expect(screen.getByText('Ve znamení Zla — 11. běh')).toBeTruthy()
+    expect(screen.getByText('shoda: opakovatelný, horor')).toBeTruthy()
+    expect(screen.getByText('Přihlásit se »').getAttribute('href')).toBe('https://registrace.vzz.imerze.cz/')
+    // The old catalog-card recommendation is gone.
+    expect(screen.queryByText('Špetka magie')).toBeNull()
+    expect(screen.queryByText('Doporučeno podle štítků')).toBeNull()
 })
 
 test('the general blocks and the registration band are gone for a signed-in visitor', () => {
@@ -202,10 +248,13 @@ test('an account with nothing gets the first steps and the anonymous content', (
         hasData: false,
         myEvents: [],
         toRate: [],
+        toComment: [],
         oldestWanted: [],
         authored: [],
+        authoredComments: [],
         recommendedLabels: [],
         recommended: [],
+        recommendedEvents: [],
     }
     queryResult = empty
     loggedInUser = { id: '2', name: 'Nový' }

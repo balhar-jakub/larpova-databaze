@@ -17,6 +17,7 @@ interface PersonalGame {
 
 interface Props {
     readonly toRate?: PersonalGame[]
+    readonly toComment?: PersonalGame[]
     readonly oldestWanted?: PersonalGame[]
     readonly wantedCount?: number
 }
@@ -45,47 +46,112 @@ const useStyles = createUseStyles({
         color: darkTheme.textGreen,
         fontSize: '0.72rem',
     },
+    item: {
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: 8,
+        backgroundColor: darkTheme.backgroundLight,
+        borderRadius: 4,
+        padding: 15,
+        marginBottom: 10,
+    },
+    itemNumber: {
+        color: darkTheme.textDark,
+        fontSize: '0.72rem',
+        fontWeight: 700,
+        flexShrink: 0,
+    },
+    itemBody: {
+        flexGrow: 1,
+        minWidth: 0,
+    },
+    itemGame: {
+        color: darkTheme.text,
+        fontSize: '0.8rem',
+        fontWeight: 700,
+    },
+    itemText: {
+        color: darkTheme.textDark,
+        fontSize: '0.7rem',
+        marginTop: 2,
+    },
+    itemAction: {
+        color: darkTheme.textGreen,
+        fontSize: '0.72rem',
+        flexShrink: 0,
+        whiteSpace: 'nowrap',
+    },
+    wantedNote: {
+        color: darkTheme.textDark,
+        fontSize: '0.7rem',
+        margin: '8px 0 0',
+    },
+    wantedLink: {
+        color: darkTheme.textGreen,
+        fontSize: '0.7rem',
+    },
 })
 
 /**
- * "Finish it": the two things the visitor left half-done. Both come from their
- * own rows — a played game without a rating (2 522 such rows in the database,
- * held by 518 people) and the "want to play" list that has been sitting there
- * since 2007. Neither was visible anywhere before this block.
+ * "Your vote is missing": the games the visitor left half-done, every row about
+ * the missing voice — a played game without the rating ("Ohodnotit") and a
+ * rated game without the review ("Dopsat recenzi"). Rated-but-unreviewed is
+ * three times more common in the database than played-but-unrated, so without
+ * the second list the block would hide the bigger half of the work. The
+ * "want to play" list is not work — it stays a one-line link to the profile.
  */
-export const HomeToFinishPanel = ({ toRate = [], oldestWanted = [], wantedCount }: Props) => {
+export const HomeToFinishPanel = ({ toRate = [], toComment = [], oldestWanted = [], wantedCount }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
 
     const wantedSince = oldestWanted[0]?.since ? parseDateTime(oldestWanted[0].since) : null
 
+    const items = [
+        ...toRate.map((row, index) => ({
+            key: `rate-${row.game?.id ?? index}`,
+            game: row.game,
+            text: t('HomePage.toFinishPlayed', {
+                when: row.since ? format(parseDateTime(row.since) || 0, 'dd.MM.yyyy') : '',
+            }),
+            action: t('HomePage.toFinishRate'),
+        })),
+        ...toComment.map((row, index) => ({
+            key: `comment-${row.game?.id ?? index}`,
+            game: row.game,
+            text: t('HomePage.toFinishCommented'),
+            action: t('HomePage.toFinishReview'),
+        })),
+    ]
+
     return (
         <Col xl={6}>
-            <GridHeader>{t('HomePage.toFinish')}</GridHeader>
-            {toRate.map((row) =>
-                row.game ? (
-                    <div className={classes.card} key={`rate-${row.game.id}`}>
-                        <GameLink game={row.game} className={classes.game}>{row.game.name}</GameLink>
-                        <p className={classes.text}>
-                            {t('HomePage.toFinishPlayed', {
-                                when: row.since ? format(parseDateTime(row.since) || 0, 'dd.MM.yyyy') : '',
-                            })}
-                        </p>
-                        <GameLink game={row.game} className={classes.action}>{t('HomePage.toFinishRate')}</GameLink>
+            <GridHeader>
+                {items.length > 0
+                    ? t('HomePage.toFinishVoice', { count: items.length })
+                    : t('HomePage.toFinish')}
+            </GridHeader>
+            {items.map((item, index) =>
+                item.game ? (
+                    <div className={classes.item} key={item.key}>
+                        <span className={classes.itemNumber}>{index + 1}.</span>
+                        <span className={classes.itemBody}>
+                            <GameLink game={item.game} className={classes.itemGame}>{item.game.name}</GameLink>
+                            <div className={classes.itemText}>{item.text}</div>
+                        </span>
+                        <GameLink game={item.game} className={classes.itemAction}>{item.action}</GameLink>
                     </div>
                 ) : null,
             )}
             {wantedCount != null && wantedCount > 0 && (
-                <div className={classes.card}>
-                    <p className={classes.text}>
-                        {t('HomePage.toFinishWanted', { count: wantedCount })}
-                        {wantedSince ? ` ${t('HomePage.toFinishOldest', { year: format(wantedSince, 'yyyy') })}` : ''}
-                    </p>
+                <p className={classes.wantedNote}>
+                    {t('HomePage.toFinishWantedShort', { count: wantedCount })}
+                    {wantedSince ? ` ${t('HomePage.toFinishOldest', { year: format(wantedSince, 'yyyy') })}` : ''}
+                    {' '}
                     <Link href="/profile/current" legacyBehavior>
                         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                        <a className={classes.action} href="/profile/current">{t('HomePage.toFinishOpenProfile')}</a>
+                        <a className={classes.wantedLink} href="/profile/current">{t('HomePage.toFinishOpenProfile')}</a>
                     </Link>
-                </div>
+                </p>
             )}
         </Col>
     )

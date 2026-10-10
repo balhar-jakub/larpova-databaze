@@ -1,23 +1,30 @@
 import React from 'react'
 import { createUseStyles } from 'react-jss'
 import { Col } from 'react-bootstrap'
-import Link from 'next/link'
+import { format } from 'date-fns-tz'
 import { useTranslation } from 'src/lib/i18n'
 import { darkTheme } from '../../theme/darkTheme'
+import { parseDateTime } from '../../utils/dateUtils'
 import { GameBaseData } from '../common/GameBaseDataPanel/GameBaseDataPanel'
-import { GameEventGrid } from './GameEventGrid'
+import { GameLink } from '../common/GameLink/GameLink'
 import { GridHeader } from './GridHeader'
 import { breakPoints } from '../../theme/breakPoints'
 
-interface LabelCount {
+/** One signable event recommended by the visitor's taste labels. */
+export interface RecommendedEvent {
     readonly id: string
     readonly name?: string | null
-    readonly count: number
+    readonly from?: string | null
+    readonly to?: string | null
+    readonly loc?: string | null
+    readonly registrationUrl?: string | null
+    readonly registrationOpen?: boolean | null
+    readonly matchedLabels?: readonly string[] | null
+    readonly games?: readonly (GameBaseData | undefined)[] | null
 }
 
 interface Props {
-    readonly labels?: LabelCount[]
-    readonly games?: (GameBaseData | undefined)[]
+    readonly events?: RecommendedEvent[]
 }
 
 const useStyles = createUseStyles({
@@ -28,7 +35,7 @@ const useStyles = createUseStyles({
         textTransform: 'none',
         marginLeft: 6,
         // On a narrow screen the long note wraps under the title instead of
-        // squeezing it; then it needs its own line of room above the chips.
+        // squeezing it; then it needs its own line of room above the rows.
         [`@media(max-width: ${breakPoints.md - 1}px)`]: {
             flexBasis: '100%',
             marginLeft: 0,
@@ -36,80 +43,130 @@ const useStyles = createUseStyles({
             textAlign: 'center',
         },
     },
-    chips: {
+    event: {
         display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 12,
+        backgroundColor: darkTheme.backgroundLight,
+        borderRadius: 4,
+        padding: '12px 14px',
         marginBottom: 8,
     },
-    chip: {
-        borderRadius: 14,
-        margin: '0 4px 6px',
-        padding: '5px 12px',
-        fontSize: '0.72rem',
+    body: {
+        flexGrow: 1,
+        minWidth: 0,
+    },
+    name: {
         color: darkTheme.text,
-        backgroundColor: darkTheme.backgroundControl,
+        fontSize: '0.8rem',
+        fontWeight: 700,
+    },
+    meta: {
+        color: darkTheme.textDark,
+        fontSize: '0.7rem',
+        marginTop: 2,
+    },
+    match: {
+        color: darkTheme.textGreen,
+        fontSize: '0.68rem',
+        marginTop: 3,
+    },
+    dateBlock: {
+        backgroundColor: darkTheme.red,
+        color: darkTheme.textLight,
+        borderRadius: 4,
+        padding: '6px 10px',
+        textAlign: 'center',
+        flexShrink: 0,
+        alignSelf: 'flex-start',
+    },
+    dateDay: {
+        fontSize: '1rem',
+        fontWeight: 700,
+        lineHeight: 1.1,
+    },
+    dateMonth: {
+        fontSize: '0.6rem',
+        textTransform: 'uppercase',
+    },
+    button: {
+        display: 'inline-block',
+        backgroundColor: darkTheme.red,
+        color: darkTheme.textLight,
+        borderRadius: 4,
+        padding: '7px 12px',
+        fontSize: '0.7rem',
+        fontWeight: 700,
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
         '&:hover': {
-            backgroundColor: darkTheme.backgroundHover,
-            color: darkTheme.text,
+            backgroundColor: darkTheme.redLight,
+            color: darkTheme.textLight,
         },
     },
-    chipCount: {
+    none: {
         color: darkTheme.textDark,
-        marginLeft: 4,
-    },
-    more: {
+        fontSize: '0.78rem',
         textAlign: 'center',
-        marginTop: 5,
-    },
-    moreLink: {
-        color: darkTheme.textGreen,
-        fontSize: '0.72rem',
+        padding: '10px 0',
     },
 })
 
 /**
- * The recommendation is built from the visitor's own taste — the labels of the
- * games they rated 8 or more — and not from the `similar_games` table, which
- * recommends the same games to everybody who liked a given title. The chips say
- * what the block is standing on, so a surprising card can be explained.
+ * The recommendation a signed-in visitor can act on: future events with an
+ * open registration whose game shares taste labels with the games they rated
+ * 8 or more (the same taste set the old "Doporučeno podle štítků" was built
+ * from, so the chips keep explaining a surprising row). Every row carries the
+ * "shoda" line and ends with the signup button — a recommendation you cannot
+ * sign up for is just a catalog row, which is what the block it replaced was.
  */
-export const HomeRecommendedPanel = ({ labels = [], games = [] }: Props) => {
+export const HomeRecommendedPanel = ({ events = [] }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
-
-    const catalogHref = labels.length
-        ? `/games?labels=${labels.map((label) => label.id).sort().join(',')}&mode=any&rating=80`
-        : '/games'
 
     return (
         <Col xl={12}>
             <GridHeader>
                 {t('HomePage.recommended')}
-                <span className={classes.note}>
-                    {t('HomePage.recommendedNote', { labels: labels.map((label) => label.name).join(', ') })}
-                </span>
+                <span className={classes.note}>{t('HomePage.recommendedNote')}</span>
             </GridHeader>
-            <div className={classes.chips}>
-                {labels.map((label) => (
-                    <Link key={label.id} href={`/games?labels=${label.id}`} legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                        <a className={classes.chip} href={`/games?labels=${label.id}`}>
-                            {label.name}
-                            <span className={classes.chipCount}>{label.count}</span>
-                        </a>
-                    </Link>
-                ))}
-            </div>
-            <GameEventGrid elements={games} />
-            {games.length > 0 && (
-                <div className={classes.more}>
-                    <Link href={catalogHref} legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                        <a className={classes.moreLink} href={catalogHref}>{t('HomePage.seeAll')}</a>
-                    </Link>
-                </div>
-            )}
+            {events.length === 0 && <div className={classes.none}>{t('HomePage.recommendedNone')}</div>}
+            {events.map((event) => {
+                const from = event.from ? parseDateTime(event.from) : null
+                const game = event.games?.[0]
+                return (
+                    <div className={classes.event} key={event.id}>
+                        {from && (
+                            <div className={classes.dateBlock}>
+                                <div className={classes.dateDay}>{format(from || 0, 'dd')}</div>
+                                <div className={classes.dateMonth}>{format(from || 0, 'MM')}</div>
+                            </div>
+                        )}
+                        <div className={classes.body}>
+                            {game && (
+                                <GameLink game={game} className={classes.name}>{event.name}</GameLink>
+                            )}
+                            <div className={classes.meta}>
+                                {event.from ? format(parseDateTime(event.from) || 0, 'dd.MM.yyyy') : ''}
+                                {event.to ? ` – ${format(parseDateTime(event.to) || 0, 'dd.MM.yyyy')}` : ''}
+                                {event.loc ? ` · ${event.loc}` : ''}
+                            </div>
+                            {event.matchedLabels && event.matchedLabels.length > 0 && (
+                                <div className={classes.match}>
+                                    {t('HomePage.recommendedMatch', {
+                                        labels: event.matchedLabels.join(', '),
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                        {event.registrationUrl && (
+                            <a className={classes.button} href={event.registrationUrl}>
+                                {t('HomePage.recommendedSignUp')}
+                            </a>
+                        )}
+                    </div>
+                )
+            })}
         </Col>
     )
 }

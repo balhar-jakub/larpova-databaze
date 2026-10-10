@@ -13,6 +13,7 @@ import { HomeEmptyPanel } from './HomeEmptyPanel'
 import { HomeMyEventsPanel } from './HomeMyEventsPanel'
 import { HomeToFinishPanel } from './HomeToFinishPanel'
 import { HomeAuthoredPanel } from './HomeAuthoredPanel'
+import { HomeAuthoredCommentsPanel } from './HomeAuthoredCommentsPanel'
 import { HomeRecommendedPanel } from './HomeRecommendedPanel'
 import { HomePageGamesPanel } from './HomePageGamesPanel'
 import { HomeRecentGamesPanel } from './HomeRecentGamesPanel'
@@ -122,9 +123,9 @@ export const HomePagePanel = () => {
                         name={loggedInUser?.name}
                         userId={loggedInUser?.id}
                         playedCount={my?.playedCount}
-                        wantedCount={my?.wantedCount}
                         authoredCount={my?.authoredCount}
                         commentsCount={my?.commentsCount}
+                        toFinishCount={(my?.toRate?.length ?? 0) + (my?.toComment?.length ?? 0)}
                     />
                 )
             ) : anonymous ? (
@@ -142,11 +143,13 @@ export const HomePagePanel = () => {
                             />
                             <HomeToFinishPanel
                                 toRate={my.toRate}
+                                toComment={my.toComment}
                                 oldestWanted={my.oldestWanted}
                                 wantedCount={my.wantedCount}
                             />
                             <HomeAuthoredPanel authored={my.authored} authoredCount={my.authoredCount} />
-                            <HomeRecommendedPanel labels={my.recommendedLabels} games={my.recommended} />
+                            <HomeAuthoredCommentsPanel comments={my.authoredComments} />
+                            <HomeRecommendedPanel events={my.recommendedEvents} />
                             <HomePageEventsPanel nextEvents={homepage?.nextEvents} href="/kalendar" />
                         </Row>
                     </WidthFixer>

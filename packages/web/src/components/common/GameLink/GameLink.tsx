@@ -7,6 +7,8 @@ import { useRoutes } from '../../../hooks/useRoutes'
 interface Props {
     readonly game: Pick<Game, 'id' | 'name'>
     readonly className?: string
+    /** The link text; defaults to the game name. */
+    readonly children?: React.ReactNode
 }
 
 export const GameLink: React.FC<Props> = ({ game, className, children }) => {
