@@ -122,6 +122,11 @@ jobs:
             set -euo pipefail
             export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
             cd /home/balda/larpova-databaze/csld-test
+            # node_modules is excluded from the rsync above, so it must be
+            # refreshed here — otherwise a Next major bump ships a fresh .next
+            # build that the stale node_modules/next cannot load (Next 15 build
+            # + Next 14 runtime = missing font-manifest.json).
+            yarn install --frozen-lockfile
             npx prisma generate --schema prisma/schema.prisma
             npx prisma db push --schema prisma/schema.prisma
             # The session secret gate (phase 1) requires SESSION_SECRET in the
