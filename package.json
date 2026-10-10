@@ -1,13 +1,12 @@
 {
   "name": "larpova-databaze",
   "private": true,
-  "description": "Československá larpová databáze — monorepo: Node.js API + React frontend + archive scripts",
+  "description": "\u010ceskoslovensk\u00e1 larpov\u00e1 datab\u00e1ze \u2014 monorepo: Node.js API + React frontend + archive scripts",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n api,web -c blue,green \"yarn dev:api\" \"yarn dev:web\"",
-    "dev:api": "yarn workspace @csld/api dev",
+    "dev": "yarn dev:web",
     "dev:web": "yarn workspace @csld/web dev",
     "crawl": "node scripts/crawl.mjs",
     "download-images": "node scripts/download-images.mjs",

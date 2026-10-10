@@ -41,23 +41,11 @@ jobs:
         run: corepack enable && corepack prepare yarn@1 --activate
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-      - name: Push DB schema (api)
-        working-directory: packages/api
-        env:
-          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
-        run: npx prisma db push --accept-data-loss
       - name: Push DB schema (web)
         working-directory: packages/web
         env:
           DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
         run: npx prisma db push --accept-data-loss
-      - name: Run API tests
-        working-directory: packages/api
-        env:
-          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
-          NODE_OPTIONS: --experimental-vm-modules
-          TZ: Europe/Prague
-        run: yarn test
       - name: Run Web tests
         working-directory: packages/web
         env:

@@ -44,29 +44,17 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Push DB schema (api)
-        working-directory: packages/api
-        run: npx prisma db push --accept-data-loss
-
       - name: Push DB schema (web)
         working-directory: packages/web
         run: npx prisma db push --accept-data-loss
-
-      - name: Run API tests
-        working-directory: packages/api
-        run: yarn test
 
       - name: Run Web tests
         working-directory: packages/web
         run: yarn test
 
-      - name: Run Web API-copy tests (drift guard for the live tree)
+      - name: Run Web API-copy tests (the live tree — phase 3 consolidation)
         working-directory: packages/web
         run: yarn test:api
-        # Known behavior drift, intentionally NOT fixed in this phase:
-        # packages/web/src/api/src/resolvers/index.ts overrides
-        # User.commentsPaged with a DB query that ignores the deleted-game
-        # editor rule (packages/api keeps it via normalizeUser). The ported
-        # deletedGames suite fails on exactly this one assertion — see the
-        # roadmap: fixing the resolver belongs to the API consolidation phase.
-        continue-on-error: true
+        # Phase 3: packages/api is gone; this suite is the ONLY API suite and
+        # the server runs this very tree (packages/web/server.ts imports it),
+        # so a red here is a real regression, not drift documentation.

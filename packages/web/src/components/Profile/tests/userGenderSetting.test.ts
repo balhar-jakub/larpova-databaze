@@ -5,7 +5,7 @@ import { normalizeUser } from '../../../api/src/resolvers/user'
 /**
  * The settings form lets a user state the gender the interface talks about them
  * with ("Hrál jsem" / "Hrála jsem"). The same cases are covered for the API copy
- * in `packages/api/src/__tests__/profileGender.test.ts`, but the web jest config
+ * in `src/api/src/__tests__/profileGender.test.ts`, but the web jest config
  * never collects the tests inside `src/api/` and `server.ts` loads
  * `./src/api/src/...` — so without a test here the write path that actually runs
  * in test and production would be unprotected.

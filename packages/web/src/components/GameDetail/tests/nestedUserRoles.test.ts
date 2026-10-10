@@ -2,7 +2,7 @@ import { normalizeGame, normalizeUserRef, normalizeUserRole } from '../../../api
 import { resolvers } from '../../../api/src/resolvers/index';
 
 /**
- * The same bug as `packages/api/src/__tests__/nestedUserRoles.test.ts`, checked
+ * The same bug as `src/api/src/__tests__/nestedUserRoles.test.ts`, checked
  * against the copy the server really loads (`server.ts` imports
  * `./src/api/src/...`): a `csld_csld_user` row reached through another type — a
  * game author, the author of a comment or of a rating — used to be served raw,

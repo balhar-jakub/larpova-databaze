@@ -8,7 +8,7 @@ import {
 
 /**
  * The client side of the search rule (see foldSearchText / matchCandidate in
- * packages/api/src/resolvers/search.ts). The results are selected by the API, so
+ * src/api/src/resolvers/search.ts). The results are selected by the API, so
  * the client only has to agree with it — about the diacritics, the word starts
  * and the highlight positions.
  */
