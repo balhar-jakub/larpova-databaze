@@ -17,6 +17,17 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  // Phase 2 (security): the Image Optimization API (/_next/image) had an
+  // unauthenticated RCE fixed only in Next >= 15.5.24 — Next 14 is EOL and
+  // will never receive the fix. This app never uses next/image (plain <img>
+  // everywhere; uploads are resized server-side by sharp), so the optimizer
+  // brings zero value and pure risk. unoptimized:true disables the endpoint
+  // entirely. When the Next 15 upgrade lands, revisit whether to re-enable
+  // optimization for local /static/images assets.
+  images: {
+    unoptimized: true,
+  },
+
   // Map old next-routes URL patterns to Next.js 14 file-system routing
   async rewrites() {
     return [
