@@ -149,15 +149,25 @@ export const resolvers: any = {
     ) => {
       const userId = typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id;
       if (!userId || isNaN(userId)) return { comments: [], totalAmount: 0 };
+      // A deleted game is invisible to everyone except editors and admins —
+      // the legacy CSLD rule (see GameBuilder.build()). A comment on such a
+      // game must vanish from the profile with it: its game link would lead to
+      // a page that no longer answers. The same query also honours manual
+      // moderation: comments hidden on the game detail are hidden here too.
+      // Editors and admins see everything, including the deleted games' rows.
+      const editorSeesDeleted = isAtLeastEditor(ctx);
+      const visibility = editorSeesDeleted
+        ? {}
+        : { is_hidden: false, csld_game: { deleted: false } };
       const comments = await ctx.db.csld_comment.findMany({
-        where: { user_id: userId, is_hidden: false },
+        where: { user_id: userId, ...visibility },
         orderBy: { added: 'desc' },
         skip: args.offset ?? 0,
         take: args.limit ?? 10,
         include: { csld_game: true },
       });
       const total = await ctx.db.csld_comment.count({
-        where: { user_id: userId, is_hidden: false },
+        where: { user_id: userId, ...visibility },
       });
       return {
         comments: comments.map((c) => ({

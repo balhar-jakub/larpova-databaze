@@ -44,7 +44,7 @@ export interface CatalogState {
 export const DEFAULT_CATALOG_SIZE = 24
 export const DEFAULT_CATALOG_ORDER = GameCatalogOrder.Recommended
 
-/** Mirrors DURATION_KEYS in packages/api/src/resolvers/gameCatalog.ts. */
+/** Mirrors DURATION_KEYS in the API copy at src/api/src/resolvers/gameCatalog.ts. */
 export const DURATION_KEYS = ['short', 'day', 'weekend', 'long'] as const
 export type DurationKey = (typeof DURATION_KEYS)[number]
 

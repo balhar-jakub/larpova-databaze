@@ -385,33 +385,19 @@ describe('homepage — the anonymous blocks', () => {
     expect(second.data.homepage.lastComments[0].id).toBe(String(homeCommentIds[1]));
   });
 
-  test('the running tree mirrors the homepage change', () => {
-    // `packages/web/server.ts` loads the second API copy, so a change that lands
-    // only in packages/api never reaches a visitor.
-    const mirrored = readFileSync(
-      join(__dirname, '../../../../../api/src/resolvers/homepage.ts'),
-      'utf-8',
-    );
-    expect(mirrored).toContain('bestRatedGames');
-    expect(mirrored).not.toContain('mostPopularGames');
-
-    const schemaCopies = [
-      '../../src/schema.graphql',
-      '../../../../../api/src/schema.graphql',
-      '../../../graphql/schema.graphql',
-    ];
-    for (const relative of schemaCopies) {
-      const schema = readFileSync(join(__dirname, relative), 'utf-8');
-      expect(schema).toContain('bestRatedGames');
-      expect(schema).toContain('HomepageStats');
-      expect(schema).not.toContain('mostPopularGames');
-    }
-
-    const mirrorIndex = readFileSync(
-      join(__dirname, '../../../../../api/src/resolvers/index.ts'),
-      'utf-8',
-    );
-    expect(mirrorIndex).toContain('lastCommentsPage');
+  test('the running tree is the only tree — no mirror copies to drift', () => {
+    // Phase 3 (API consolidation): packages/api is gone; the copy under
+    // src/api/src is the single source the server actually runs
+    // (packages/web/server.ts imports it). What remains to guard is the
+    // frontend codegen schema copy — it must stay in sync with the served
+    // schema or `yarn codegen` types drift from reality.
+    const served = readFileSync(join(__dirname, '../../src/schema.graphql'), 'utf-8');
+    const codegen = readFileSync(join(__dirname, '../../../graphql/schema.graphql'), 'utf-8');
+    expect(served).toContain('bestRatedGames');
+    expect(served).toContain('HomepageStats');
+    expect(served).not.toContain('mostPopularGames');
+    // The codegen copy must be byte-identical to the served schema.
+    expect(codegen).toBe(served);
   });
 });
 

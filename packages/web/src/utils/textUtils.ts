@@ -39,10 +39,10 @@ export const htmlToText = (html: string | null | undefined) => {
 
 // ── Highlighting search hits ─────────────────────────────
 
-/** Mirrors MIN_QUERY_LENGTH in packages/api/src/resolvers/search.ts. */
+/** Mirrors MIN_QUERY_LENGTH in the API copy at src/api/src/resolvers/search.ts. */
 export const MIN_MATCH_QUERY_LENGTH = 2
 
-/** Mirrors MAX_QUERY_TOKENS in packages/api/src/resolvers/search.ts. */
+/** Mirrors MAX_QUERY_TOKENS in the API copy at src/api/src/resolvers/search.ts. */
 const MAX_MATCH_TOKENS = 6
 
 const MATCH_WORD_SEPARATOR = /[^a-z0-9]/

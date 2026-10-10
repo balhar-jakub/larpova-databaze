@@ -1,7 +1,7 @@
 import { resolvers } from '../../../api/src/resolvers/index';
 
 /**
- * The same cases as `packages/api/src/__tests__/gameAuthorPermissions.test.ts`,
+ * The same cases as the API-copy suite `src/api/src/__tests__/gameAuthorPermissions.test.ts`,
  * but against the copy the server really loads: `server.ts` imports
  * `./src/api/src/...`, and `packages/web/jest.config.json` never collects the
  * tests in that tree (`testPathIgnorePatterns: ["<rootDir>/src/api/"]`), so

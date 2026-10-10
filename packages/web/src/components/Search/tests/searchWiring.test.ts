@@ -6,7 +6,7 @@ import path from 'path'
  * field, the search page (one page for four kinds of result, the query and the
  * picked kind in the URL), the events list, the calendar filter, the catalog
  * filter — and the resolver *tree the app really runs*, which is
- * packages/web/src/api/src (packages/api/src is the copy the tests use). A
+ * packages/web/src/api/src (src/api/src is the copy the tests use). A
  * change that lands in one of them and not the others is exactly how the header
  * field ended up searching games only.
  */
