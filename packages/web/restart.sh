@@ -4,6 +4,9 @@ set -e
 cd /home/balda/larpova-databaze/csld-new
 export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
 
+# The session secret gate requires SESSION_SECRET in the environment.
+set -a; . ./.env; set +a
+
 # Kill ONLY production instance (won't touch test on 8082)
 pkill -f "csld-new.*server\.ts" 2>/dev/null || true
 sleep 2
