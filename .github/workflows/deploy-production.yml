@@ -110,6 +110,10 @@ jobs:
           SCRIPT_AFTER: |
             export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
             cd /home/balda/larpova-databaze/csld-new
+            # node_modules is excluded from the rsync, so refresh it here —
+            # otherwise a Next major bump ships a .next build the stale
+            # node_modules/next cannot load.
+            yarn install --frozen-lockfile
             # The app reads DATABASE_URL from .env through Next; prisma and pg_dump
             # need it in the shell environment.
             set -a; . ./.env; set +a
