@@ -161,8 +161,17 @@ jobs:
               MAINPID=$(systemctl --user show csld-test.service -p MainPID --value)
               if [ -n "$MAINPID" ] && [ "$MAINPID" != 0 ]; then
                 kill -9 "$MAINPID"
-                sleep 8
-                if ! curl --fail --silent --show-error http://127.0.0.1:8082/health >/dev/null; then
+                # systemd waits RestartSec=5, then tsx boots the app — poll
+                # for up to 60s instead of a fixed sleep that races the boot.
+                RECOVERED=no
+                for attempt in $(seq 1 30); do
+                  sleep 2
+                  if curl --fail --silent --show-error http://127.0.0.1:8082/health >/dev/null 2>&1; then
+                    RECOVERED=yes
+                    break
+                  fi
+                done
+                if [ "$RECOVERED" != yes ]; then
                   printf '%s\n' 'systemd did NOT restart the app after kill -9 — supervision is broken' >&2
                   exit 1
                 fi
