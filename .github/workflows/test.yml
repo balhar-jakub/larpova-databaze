@@ -11,6 +11,14 @@ jobs:
     name: API + Web tests
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        # 22 is what the deployment box runs; 26 is the current Node LTS line
+        # (and what the box is expected to be upgraded to). Both must stay
+        # green so the upgrade is a no-event.
+        node-version: ['22', '26']
+
     services:
       postgres:
         image: postgres:16
@@ -36,13 +44,25 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ matrix.node-version }}
 
       - name: Enable Corepack (Yarn 1)
+        if: matrix.node-version != '26'
         run: corepack enable && corepack prepare yarn@1 --activate
+
+      # Node 25+ no longer bundles corepack — install Yarn 1 directly there.
+      - name: Install Yarn 1 (Node 25+ has no corepack)
+        if: matrix.node-version == '26'
+        run: npm install -g yarn@1.22.22
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+      - name: Generate GraphQL operation types (codegen)
+        # The generated file is gitignored (phase 6): every fresh checkout
+        # regenerates it from schema.graphql + the *.graphql documents, which
+        # also proves the committed schema copy is not stale.
+        working-directory: packages/web
+        run: yarn codegen
 
       - name: Push DB schema (web)
         working-directory: packages/web

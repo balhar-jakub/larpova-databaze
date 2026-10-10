@@ -1,13 +1,13 @@
 /**
  * Standalone script to run the similarity engine on the production database.
- * Usage: npx tsx run-similarity.ts
+ * Usage: npx tsx scripts/run-similarity.ts (from the repo root)
  * 
  * Connects to the DB, runs runNightlyBatch() which includes:
  *   1. recalculateAmountOfRatings()
  *   2. recalculateSimilarity() — O(n²) for ~1500 games, takes 5-15 min
  */
 import { PrismaClient } from '@prisma/client';
-import { runNightlyBatch } from './src/api/src/scheduled/tasks.js';
+import { runNightlyBatch } from '../packages/web/src/api/src/scheduled/tasks.js';
 
 async function main() {
   console.log('=== CSLD Similarity Engine Runner ===');

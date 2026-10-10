@@ -41,6 +41,11 @@ jobs:
         run: corepack enable && corepack prepare yarn@1 --activate
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+      - name: Generate GraphQL operation types (codegen)
+        # The generated file is gitignored (phase 6): regenerate it on every
+        # fresh checkout so the .next build has the types it imports.
+        working-directory: packages/web
+        run: yarn codegen
       - name: Push DB schema (web)
         working-directory: packages/web
         env:
@@ -132,8 +137,18 @@ jobs:
             PUSH_STATUS=0
             npx prisma db push --accept-data-loss --schema prisma/schema.prisma || PUSH_STATUS=$?
 
-            PORT=8080 NODE_ENV=production setsid nohup npx tsx server.ts > /tmp/csld-new.log 2>&1 < /dev/null &
-            for attempt in $(seq 1 15); do
+            # ── Phase 6: systemd supervision with Restart=always ──
+            SYSTEMD_OK=yes
+            systemctl --user daemon-reload 2>/dev/null || SYSTEMD_OK=no
+            if [ "$SYSTEMD_OK" = yes ]; then
+              bash scripts/install-systemd.sh production
+              systemctl --user restart csld-production.service
+              sleep 2
+            else
+              echo 'user systemd unavailable — falling back to nohup'
+              PORT=8080 NODE_ENV=production setsid nohup npx tsx server.ts > /tmp/csld-new.log 2>&1 < /dev/null &
+            fi
+            for attempt in $(seq 1 30); do
               if curl --fail --silent --show-error http://localhost:8080/health; then break; fi
               sleep 2
             done
