@@ -20,7 +20,9 @@ interface Props {
 
 const useStyles = createUseStyles({
     wrapper: {
-        height: 70,
+        // The card grows when it offers the signup button: a fixed height let
+        // the flex children shrink and the game name collapsed to a sliver.
+        minHeight: 70,
         display: 'flex',
         flexDirection: 'column',
         fontSize: '0.6rem',
@@ -38,6 +40,7 @@ const useStyles = createUseStyles({
         },
     },
     name: {
+        flexShrink: 0,
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
