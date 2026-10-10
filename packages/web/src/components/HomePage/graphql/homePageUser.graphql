@@ -19,6 +19,8 @@ query GetHomePageUser {
                 to
                 loc
                 amountOfPlayers
+                registrationUrl
+                registrationOpen
                 games {
                     ...baseGameData
                 }
