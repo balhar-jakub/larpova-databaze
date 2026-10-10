@@ -131,6 +131,16 @@ const main = async () => {
     await res.text();
   });
 
+  await check('Image Optimization API is DISABLED (unauthenticated RCE surface removed)', async () => {
+    // Phase 2: images.unoptimized:true. The optimizer endpoint must not serve
+    // anything — 404 (route gone) or 400 (param rejected) are both fine,
+    // a 200 would mean the vulnerable optimizer is still live.
+    const res = await get('/_next/image?url=/static/images/user-icon.png&w=64&q=75', {
+      ok: [400, 404, 405, 501],
+    });
+    await res.text();
+  });
+
   await check('unknown page 404s', async () => {
     const res = await get('/this-page-does-not-exist-xyz', { ok: [404] });
     await res.text();
