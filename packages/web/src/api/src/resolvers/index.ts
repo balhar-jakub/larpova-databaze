@@ -141,6 +141,12 @@ export const resolvers: any = {
     allowedActions: (_parent: unknown, _args: unknown, ctx: any) =>
       isAtLeastEditor(ctx) ? ['Edit', 'Delete'] : [],
   },
+  // `RecommendedEvent` carries the same raw event row (spread by `mapEventRow`),
+  // so it needs the same snake_case fallbacks as `Event` itself.
+  RecommendedEvent: {
+    registrationUrl: (event: any) => event.registrationUrl ?? event.registration_url ?? null,
+    registrationOpen: (event: any) => event.registrationOpen ?? event.registration_open ?? false,
+  },
   User: {
     commentsPaged: async (
       parent: { id: number | string },

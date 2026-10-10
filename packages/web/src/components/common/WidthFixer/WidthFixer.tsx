@@ -5,6 +5,8 @@ import { Container } from 'react-bootstrap'
 
 interface Props {
     readonly className?: string
+    /** The fixed-width content. */
+    readonly children?: React.ReactNode
 }
 
 const useStyles = createUseStyles({

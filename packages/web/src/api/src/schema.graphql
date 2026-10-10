@@ -101,14 +101,55 @@ type MyHomepage {
     wantedWithoutEvent: Int!
     "Played games the visitor has not rated, newest first."
     toRate: [PersonalGame!]!
+    "Games the visitor rated but never reviewed, newest first."
+    toComment: [PersonalGame!]!
     "The oldest rows of the \"want to play\" list."
     oldestWanted: [PersonalGame!]!
     "The visitor's own games, the newest rating first."
     authored: [AuthoredGame!]!
+    "The newest comments under the visitor's own games."
+    authoredComments: [MyHomeComment!]!
     "Labels of the games the visitor rated 8 or more, with how often they occur."
     recommendedLabels: [LabelCount!]!
     "Games recommended through those labels, in the catalog's own order."
     recommended: [Game!]!
+    "Future events with an open registration whose game matches the visitor's taste labels; the signable half of the recommendation."
+    recommendedEvents: [RecommendedEvent!]!
+}
+
+"""
+A comment under one of the visitor's own games, as the author sees it. The
+commenter's name is public on the game page, so it is public here too; the
+excerpt is the same decoded plain text the comment list shows.
+"""
+type MyHomeComment {
+    id: ID!
+    commentAsText: String
+    added: String
+    user: User
+    game: Game
+}
+
+"""
+A future event with an open registration, recommended because its game shares
+taste labels with the games the visitor rated 8 or more. `matchedLabels` says
+which ones, so a surprising card can be explained.
+"""
+type RecommendedEvent {
+    id: ID!
+    name: String
+    description: String
+    loc: String
+    web: String
+    registrationUrl: String
+    registrationOpen: Boolean!
+    deleted: Boolean
+    amountOfPlayers: Int
+    from: String
+    to: String
+    labels: [Label!]
+    games: [Game!]
+    matchedLabels: [String!]!
 }
 
 "A game with the date the visitor's own row about it was written."

@@ -535,9 +535,11 @@ describe('homepage — the personal blocks', () => {
   let wantedWithoutEventId: number;
   let unratedPlayedId: number;
   let ratedHighId: number;
+  let ratedLowId: number;
   let authoredTopId: number;
   let authoredSecondId: number;
   let recommendedId: number;
+  let alreadyKnownId: number;
 
   const marker = `hermes-my-${Date.now()}`;
 
@@ -575,7 +577,7 @@ describe('homepage — the personal blocks', () => {
     // The visitor's own rows: three played (one of them unrated), two wanted.
     unratedPlayedId = (await makeGame('hrál bez hlasu', 60, 6)).id;
     ratedHighId = (await makeGame('hodnocený 9', 90, 9)).id;
-    const ratedLow = await makeGame('hodnocený 7', 70, 7);
+    ratedLowId = (await makeGame('hodnocený 7', 70, 7)).id;
     wantedWithEventId = (await makeGame('chci hrát s akcí', 50, 5)).id;
     wantedWithoutEventId = (await makeGame('chci hrát bez akce', 50, 5)).id;
 
@@ -583,7 +585,7 @@ describe('homepage — the personal blocks', () => {
       data: [
         { game_id: unratedPlayedId, user_id: userId, state: 2, rating: null, added: new Date(Date.now() - 3 * 864e5) },
         { game_id: ratedHighId, user_id: userId, state: 2, rating: 9, added: new Date(Date.now() - 2 * 864e5) },
-        { game_id: ratedLow.id, user_id: userId, state: 2, rating: 7, added: new Date(Date.now() - 864e5) },
+        { game_id: ratedLowId, user_id: userId, state: 2, rating: 7, added: new Date(Date.now() - 864e5) },
         // The oldest row of the wanted list, and the one with an event ahead.
         { game_id: wantedWithEventId, user_id: userId, state: 1, rating: null, added: new Date('2019-04-05T00:00:00Z') },
         { game_id: wantedWithoutEventId, user_id: userId, state: 1, rating: null, added: new Date('2024-06-07T00:00:00Z') },
@@ -639,7 +641,7 @@ describe('homepage — the personal blocks', () => {
       data: [
         { id_game: ratedHighId, id_label: first.id },
         { id_game: ratedHighId, id_label: second.id },
-        { id_game: ratedLow.id, id_label: ignored.id },
+        { id_game: ratedLowId, id_label: ignored.id },
       ],
     });
 
@@ -647,18 +649,18 @@ describe('homepage — the personal blocks', () => {
     // the taste labels, one below it, and one the visitor already has a row for.
     recommendedId = (await makeGame('doporučená', 92, 30)).id;
     const tooLow = await makeGame('pod hranicí', 55, 30);
-    const alreadyKnown = await makeGame('už ji znám', 93, 40);
+    alreadyKnownId = (await makeGame('už ji znám', 93, 40)).id;
     await prisma.csld_game_has_label.createMany({
       data: [
         { id_game: recommendedId, id_label: first.id },
         { id_game: tooLow.id, id_label: first.id },
-        { id_game: alreadyKnown.id, id_label: second.id },
+        { id_game: alreadyKnownId, id_label: second.id },
       ],
     });
     // A row of any kind is enough for the recommendation to skip the game; a
     // played one keeps the "want to play" counts of the other assertions intact.
     await prisma.csld_rating.create({
-      data: { game_id: alreadyKnown.id, user_id: userId, state: 2, rating: 5, added: new Date() },
+      data: { game_id: alreadyKnownId, user_id: userId, state: 2, rating: 5, added: new Date() },
     });
   });
 
@@ -723,6 +725,55 @@ describe('homepage — the personal blocks', () => {
     expect(mine.oldestWanted[0].since.startsWith('2019')).toBe(true);
   });
 
+  test('"finish" also offers the rated games the visitor never reviewed', async () => {
+    const result: any = await personal(
+      `{ homepage { myHome { toComment { game { id name } since } } } }`,
+    );
+
+    expect(result.errors).toBeUndefined();
+    const mine = result.data.homepage.myHome;
+    const ids = mine.toComment.map((row: any) => row.game.id);
+    // The game rated 9 has the visitor's comment, the one rated 7 does not —
+    // and neither does the played game from the recommendation fixture: every
+    // rated game without the visitor's review belongs in this half.
+    expect(ids).toContain(String(ratedLowId));
+    expect(ids).toContain(String(alreadyKnownId));
+    expect(ids).not.toContain(String(ratedHighId));
+    expect(mine.toComment[0].since).toBeTruthy();
+  });
+
+  test('the newest comments under the visitor\'s own games say who wrote them and about what', async () => {
+    const comment = await prisma.csld_comment.create({
+      data: {
+        game_id: authoredTopId,
+        user_id: otherUserId,
+        comment: '<p>Hravé&nbsp;a příjemné.</p>',
+        is_hidden: false,
+        amount_of_upvotes: 0,
+        added: new Date(Date.now() - 1800_000),
+      },
+    });
+    commentIds.push(comment.id);
+
+    const result: any = await personal(
+      `{ homepage { myHome { authoredComments { id commentAsText added user { id name } game { id } } } } }`,
+    );
+
+    expect(result.errors).toBeUndefined();
+    const mine = result.data.homepage.myHome;
+    expect(mine.authoredComments.length).toBeGreaterThan(0);
+    const newest = mine.authoredComments[0];
+    // Newest first, decoded entities, the author's name, and the game it is about.
+    expect(newest.game.id).toBe(String(authoredTopId));
+    expect(newest.commentAsText).toBe('Hravé a příjemné.');
+    expect(newest.user.name).toContain(marker);
+    expect(newest.added).toBeTruthy();
+    // Comments under somebody else's games are not the author's business.
+    for (const row of mine.authoredComments) {
+      expect([String(authoredTopId), String(authoredSecondId)]).toContain(row.game.id);
+    }
+  });
+
   test('the author block leads with the game rated most recently, without naming the voter', async () => {
     const result: any = await personal(
       `{ homepage { myHome { authored { game { id name } lastRating { rating added } } } } }`,
@@ -775,6 +826,109 @@ describe('homepage — the personal blocks', () => {
     // Nothing the visitor already rated, wants or wrote comes back.
     expect(ids).not.toContain(String(unratedPlayedId));
     expect(ids).not.toContain(String(authoredTopId));
+  });
+
+  test('the signable recommendation offers open-registration events of taste-matching games only', async () => {
+    // An event ahead with an open registration, on a game carrying the taste
+    // label — and a second event on the same game (a later run) that must
+    // collapse away, a closed-registration run, and an open event on a game
+    // with no taste label at all. All rows are local to this test and removed
+    // at the end (makeGame lives inside beforeAll and pushes into the shared
+    // gameIds, which the suite-wide afterAll would leave behind mid-run).
+    const signableGame = await prisma.csld_game.create({
+      data: { name: `${marker} přihlásitelný`, description: 'x', deleted: false, added_by: userId, average_rating: 85, amount_of_ratings: 20, total_rating: 1700 },
+    });
+    const noTasteGame = await prisma.csld_game.create({
+      data: { name: `${marker} bez chuti`, description: 'x', deleted: false, added_by: userId, average_rating: 85, amount_of_ratings: 20, total_rating: 1700 },
+    });
+    await prisma.csld_game_has_label.createMany({
+      data: [
+        { id_game: signableGame.id, id_label: labelIds[0] },
+        // The no-taste game carries the ignored label only.
+        { id_game: noTasteGame.id, id_label: ignoredLabelId },
+      ],
+    });
+
+    const openEvent = await prisma.event.create({
+      data: {
+        name: `${marker} běh s přihláškou`,
+        deleted: false,
+        registration_open: true,
+        registration_url: 'https://example.test/prihlaska',
+        from: new Date(Date.now() + 40 * 864e5),
+        to: new Date(Date.now() + 41 * 864e5),
+      },
+    });
+    const laterRun = await prisma.event.create({
+      data: {
+        name: `${marker} pozdější běh`,
+        deleted: false,
+        registration_open: true,
+        registration_url: 'https://example.test/pozdeji',
+        from: new Date(Date.now() + 50 * 864e5),
+        to: new Date(Date.now() + 51 * 864e5),
+      },
+    });
+    const closedEvent = await prisma.event.create({
+      data: {
+        name: `${marker} zavřená přihláška`,
+        deleted: false,
+        registration_open: false,
+        registration_url: 'https://example.test/zavreno',
+        from: new Date(Date.now() + 45 * 864e5),
+        to: new Date(Date.now() + 46 * 864e5),
+      },
+    });
+    const noTasteEvent = await prisma.event.create({
+      data: {
+        name: `${marker} akce bez chuti`,
+        deleted: false,
+        registration_open: true,
+        registration_url: 'https://example.test/bez-chuti',
+        from: new Date(Date.now() + 42 * 864e5),
+        to: new Date(Date.now() + 43 * 864e5),
+      },
+    });
+    await prisma.csld_game_has_event.createMany({
+      data: [
+        { game_id: signableGame.id, event_id: openEvent.id },
+        { game_id: signableGame.id, event_id: laterRun.id },
+        { game_id: signableGame.id, event_id: closedEvent.id },
+        { game_id: noTasteGame.id, event_id: noTasteEvent.id },
+      ],
+    });
+    eventIds.push(openEvent.id, laterRun.id, closedEvent.id, noTasteEvent.id);
+    gameIds.push(signableGame.id, noTasteGame.id);
+
+    const result: any = await personal(
+      `{ homepage { myHome { recommendedEvents { id name registrationUrl registrationOpen matchedLabels games { id } } } } }`,
+    );
+
+    expect(result.errors).toBeUndefined();
+    const mine = result.data.homepage.myHome;
+    expect(mine.recommendedEvents).toHaveLength(1);
+    const offered = mine.recommendedEvents[0];
+    // The soonest open run of the taste-matching game, with the way to sign up.
+    expect(offered.id).toBe(String(openEvent.id));
+    expect(offered.registrationUrl).toBe('https://example.test/prihlaska');
+    expect(offered.registrationOpen).toBe(true);
+    expect(offered.games.map((game: any) => game.id)).toEqual([String(signableGame.id)]);
+    expect(offered.matchedLabels).toContain(`${marker} opakovatelný`);
+    // The later run, the closed registration and the no-taste game stay out.
+
+    // Cleanup: the extra fixtures are not shared with the other assertions.
+    await prisma.csld_game_has_event.deleteMany({
+      where: { game_id: { in: [signableGame.id, noTasteGame.id] } },
+    });
+    await prisma.event.deleteMany({
+      where: { id: { in: [openEvent.id, laterRun.id, closedEvent.id, noTasteEvent.id] } },
+    });
+    await prisma.csld_game_has_label.deleteMany({
+      where: { id_game: { in: [signableGame.id, noTasteGame.id] } },
+    });
+    await prisma.csld_game.deleteMany({
+      where: { id: { in: [signableGame.id, noTasteGame.id] } },
+    });
   });
 
   test('an account with nothing in the database says so instead of rendering empty blocks', async () => {

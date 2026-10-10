@@ -29,6 +29,12 @@ query GetHomePageUser {
                 }
                 since
             }
+            toComment {
+                game {
+                    ...baseGameData
+                }
+                since
+            }
             oldestWanted {
                 game {
                     ...baseGameData
@@ -44,6 +50,19 @@ query GetHomePageUser {
                     added
                 }
             }
+            authoredComments {
+                id
+                commentAsText
+                added
+                user {
+                    id
+                    name
+                    nickname
+                }
+                game {
+                    ...baseGameData
+                }
+            }
             recommendedLabels {
                 id
                 name
@@ -51,6 +70,19 @@ query GetHomePageUser {
             }
             recommended {
                 ...baseGameData
+            }
+            recommendedEvents {
+                id
+                name
+                from
+                to
+                loc
+                registrationUrl
+                registrationOpen
+                matchedLabels
+                games {
+                    ...baseGameData
+                }
             }
         }
         # The empty state (and the anonymous page) read these.

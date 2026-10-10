@@ -6,6 +6,8 @@ import { useRoutes } from '../../../hooks/useRoutes'
 interface Props {
     readonly event: Pick<Event, 'id' | 'name'>
     readonly className?: string
+    /** The link contents; defaults to nothing and the caller fills the card. */
+    readonly children?: React.ReactNode
 }
 
 /**

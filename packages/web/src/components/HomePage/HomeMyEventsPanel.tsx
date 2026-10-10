@@ -8,7 +8,10 @@ import { GameEventGrid } from './GameEventGrid'
 import { GridHeader } from './GridHeader'
 
 interface Props {
-    readonly events?: EventBaseData[]
+    readonly events?: Array<EventBaseData & {
+        registrationUrl?: string | null
+        registrationOpen?: boolean | null
+    }>
     readonly wantedCount?: number
     readonly withoutEvent?: number
     readonly userId?: string
@@ -65,7 +68,11 @@ const useStyles = createUseStyles({
 /**
  * "Do not miss this": the events of the games the visitor wants to play, which
  * is the one block that can only exist for a signed-in visitor. It is the first
- * block of the page because it is the only one with a deadline.
+ * block of the page because it is the only one with a deadline — and the one
+ * whose action leaves the site: an event with an open registration carries the
+ * signup URL right in the query, so the card can offer it without a second
+ * round trip (the signup button on the card renders from
+ * `registrationOpen`/`registrationUrl`).
  *
  * Only 17 of 40 upcoming events are linked to a game at all, so most visitors
  * have nothing here — the feed card next to it is the way out for them, and it

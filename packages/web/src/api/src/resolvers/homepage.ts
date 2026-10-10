@@ -102,11 +102,23 @@ export const MIN_RATING_FOR_TASTE = 8;
  */
 export const RECOMMENDED_MIN_RATING = 80;
 
-/**
- * How many of the visitor's own games the block lists before "the rest is in
+/** How many of the visitor's own games the block lists before "the rest is in
  * your profile", and how many cards the personal blocks show at all.
  */
 export const MY_HOME_AUTHORED = 6;
+
+/**
+ * Events the taste-based recommendation offers. Three or four is what a larp
+ * season has open at once; a longer list would promise more openings than
+ * exist and the block would drift into being a second calendar.
+ */
+export const MY_HOME_RECOMMENDED_EVENTS = 4;
+
+/**
+ * Comments per personal block: the "finish it" checklist and the comments on
+ * the visitor's own games. Three is what fits a card without scrolling.
+ */
+export const MY_HOME_COMMENTS = 3;
 
 const COMMENT_INCLUDE = {
   csld_game: true,
@@ -226,7 +238,13 @@ export async function lastCommentsPage(
 export async function myHomepage(ctx: Context, userId: number) {
   const now = new Date();
 
-  const [ratingRows, authoredRows, commentsCount, upcomingLinks] = await Promise.all([
+  const [
+    ratingRows,
+    authoredRows,
+    commentsCount,
+    upcomingLinks,
+    myCommentGameIds,
+  ] = await Promise.all([
     ctx.db.csld_rating.findMany({
       where: { user_id: userId, csld_game: { deleted: false } },
       include: { csld_game: { include: GAME_LIST_INCLUDE } },
@@ -244,12 +262,21 @@ export async function myHomepage(ctx: Context, userId: number) {
       where: { csld_game: { deleted: false }, event: { deleted: false, from: { gte: now } } },
       select: { game_id: true },
     }),
+    // Which of the visitor's played games already carry their review — a rated
+    // game with a comment is finished, one without is "toComment".
+    ctx.db.csld_comment.findMany({
+      where: { user_id: userId, is_hidden: false },
+      select: { game_id: true },
+    }),
   ]);
 
   const played = ratingRows.filter((row: any) => row.state === STATE_PLAYED);
   const wanted = ratingRows.filter((row: any) => row.state === STATE_WANT_TO_PLAY);
   const authoredGames = authoredRows.map((row: any) => row.csld_game).filter(Boolean);
   const authoredIds = authoredGames.map((game: any) => game.id);
+  const commentedGameIds = new Set(
+    (myCommentGameIds as any[]).map((row: any) => row.game_id).filter(Boolean),
+  );
 
   // The visitor's taste: labels of the games they rated 8 or more, counted over
   // their own ratings. The personal path used to return no labels at all, which
@@ -270,6 +297,9 @@ export async function myHomepage(ctx: Context, userId: number) {
   const recommendedLabels = [...labelCounts.values()]
     .sort((a, b) => b.count - a.count || (a.name ?? '').localeCompare(b.name ?? '', 'cs'))
     .slice(0, MY_RECOMMENDED_LABELS);
+  // The full taste set — the signable-events recommendation matches on labels
+  // beyond the four the note above the cards names.
+  const tasteLabelIds = new Set(labelCounts.keys());
 
   const wantedIds = wanted.map((row: any) => row.game_id);
   const linkedWantedIds = new Set(upcomingLinks.map((link: any) => link.game_id));
@@ -288,7 +318,7 @@ export async function myHomepage(ctx: Context, userId: number) {
     if (!lastRatingByGame.has(row.game_id)) lastRatingByGame.set(row.game_id, row);
   }
 
-  const [myEvents, recommended] = await Promise.all([
+  const [myEvents, recommended, authoredCommentRows] = await Promise.all([
     wantedIds.length
       ? ctx.db.event.findMany({
           where: {
@@ -308,6 +338,20 @@ export async function myHomepage(ctx: Context, userId: number) {
       ...ratingRows.map((row: any) => row.game_id),
       ...authoredIds,
     ]),
+    // The newest comments under the visitor's own games — the author otherwise
+    // has no way to learn that somebody wrote about their work.
+    authoredIds.length
+      ? ctx.db.csld_comment.findMany({
+          where: {
+            is_hidden: false,
+            game_id: { in: authoredIds },
+            csld_game: { deleted: false },
+          },
+          orderBy: { added: 'desc' },
+          take: MY_HOME_COMMENTS,
+          include: COMMENT_INCLUDE,
+        })
+      : Promise.resolve([] as any[]),
   ]);
 
   const knownGames = [...played, ...wanted].sort(
@@ -330,6 +374,31 @@ export async function myHomepage(ctx: Context, userId: number) {
     since: row.added ? new Date(row.added).toISOString() : null,
   });
 
+  // Games the visitor rated but never wrote about: the review is the half of
+  // the work that helps the next visitor. Rated-but-uncommented is three times
+  // more common in the database than played-but-unrated, so this list is the
+  // bigger half of "finish it".
+  const toComment = played
+    .filter((row: any) => row.rating != null)
+    .filter(
+      (row: any) =>
+        !commentedGameIds.has(row.game_id),
+    )
+    .sort((a: any, b: any) => new Date(b.added).getTime() - new Date(a.added).getTime())
+    .slice(0, MY_HOME_COMMENTS)
+    .map(personal);
+
+  // The taste-based signable events: future open-registration events of games
+  // whose labels overlap the visitor's 8+ taste. Wishlist games are excluded
+  // (the event card at the top already carries them), and duplicate runs of
+  // one game collapse to the soonest.
+  const recommendedEvents = await recommendSignableEvents(
+    ctx,
+    tasteLabelIds,
+    wantedIds,
+    now,
+  );
+
   return {
     playedCount: played.length,
     wantedCount: wanted.length,
@@ -344,6 +413,7 @@ export async function myHomepage(ctx: Context, userId: number) {
       .filter((row: any) => row.state === STATE_PLAYED && row.rating == null)
       .slice(0, 2)
       .map(personal),
+    toComment,
     oldestWanted: wantedOldestFirst.slice(0, 2).map(personal),
     authored: authoredByRecency.slice(0, MY_HOME_AUTHORED).map((game: any) => {
       const rating = lastRatingByGame.get(game.id);
@@ -357,8 +427,18 @@ export async function myHomepage(ctx: Context, userId: number) {
           : null,
       };
     }),
+    // The comments under the visitor's own games, newest first. The excerpt is
+    // the same decoded plain text the comment block uses.
+    authoredComments: authoredCommentRows.map((comment: any) => ({
+      id: comment.id,
+      commentAsText: commentAsText(comment.comment),
+      added: comment.added ? new Date(comment.added).toISOString() : null,
+      user: normalizeUserRef(comment.csld_csld_user),
+      game: comment.csld_game ? normalizeGame(comment.csld_game) : null,
+    })),
     recommendedLabels,
     recommended,
+    recommendedEvents,
   };
 }
 
@@ -388,6 +468,78 @@ async function recommendGames(ctx: Context, labelIds: string[], knownIds: number
     .map((id) => byId.get(id))
     .filter((game): game is NonNullable<typeof game> => Boolean(game))
     .map((game: any) => normalizeGame(game));
+}
+
+/**
+ * The recommendation a signed-in visitor can act on: future events with an open
+ * registration whose game shares at least one taste label (from the games they
+ * rated 8 or more). A recommendation you cannot sign up for is just a catalog
+ * row, so events without an open registration stay out; the wishlist stays out
+ * too (the event card at the top of the page already carries those), and when
+ * a game has several runs open, only the soonest is offered — the rest is in
+ * the calendar. Ranked by the number of shared labels, then by the date.
+ */
+async function recommendSignableEvents(
+  ctx: Context,
+  tasteLabelIds: Set<number>,
+  wantedIds: number[],
+  now: Date,
+) {
+  if (!tasteLabelIds.size) return [];
+
+  const events = await ctx.db.event.findMany({
+    where: {
+      deleted: false,
+      from: { gte: now },
+      // Open with a URL to sign up at; a flag without a URL is a legacy row
+      // (the mutation does not allow it any more).
+      registration_open: true,
+      registration_url: { not: null },
+      csld_game_has_event: { some: { csld_game: { deleted: false } } },
+    },
+    orderBy: { from: 'asc' },
+    include: {
+      event_has_labels: { include: { csld_label: true } },
+      csld_game_has_event: {
+        include: { csld_game: { include: GAME_LIST_INCLUDE } },
+      },
+    },
+  });
+
+  const wanted = new Set(wantedIds);
+  const seenGames = new Set<number>();
+  const scored: { event: any; matches: string[] }[] = [];
+
+  for (const event of events as any[]) {
+    // The first linked game decides; an event with several games is rare and
+    // the card shows one anyway.
+    const link = (event.csld_game_has_event ?? []).find(
+      (j: any) => j.csld_game && !j.csld_game.deleted,
+    );
+    if (!link?.csld_game) continue;
+    const game = link.csld_game;
+    if (wanted.has(game.id) || seenGames.has(game.id)) continue;
+
+    const matches: string[] = [];
+    for (const gl of game.csld_game_has_label ?? []) {
+      const label = gl.csld_label;
+      if (label && tasteLabelIds.has(label.id) && !matches.includes(label.name)) {
+        matches.push(label.name);
+      }
+    }
+    if (!matches.length) continue;
+
+    seenGames.add(game.id);
+    scored.push({ event, matches });
+  }
+
+  return scored
+    .sort((a, b) => b.matches.length - a.matches.length || new Date(a.event.from).getTime() - new Date(b.event.from).getTime())
+    .slice(0, MY_HOME_RECOMMENDED_EVENTS)
+    .map(({ event, matches }) => ({
+      ...mapEventRow(event, ctx),
+      matchedLabels: matches,
+    }));
 }
 
 export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Context) {

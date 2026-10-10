@@ -10,9 +10,10 @@ interface Props {
     readonly userId?: string
     /** Missing while the personal query is still in flight — then it is not printed. */
     readonly playedCount?: number
-    readonly wantedCount?: number
     readonly authoredCount?: number
     readonly commentsCount?: number
+    /** Games waiting for the visitor's voice: unplayed ratings and missing reviews. */
+    readonly toFinishCount?: number
 }
 
 const useStyles = createUseStyles({
@@ -69,7 +70,7 @@ const useStyles = createUseStyles({
  * header carries it on every page, and somebody who is signed in came for their
  * own list, not for a way into the database.
  */
-export const HomePersonalPanel = ({ name, userId, playedCount, wantedCount, authoredCount, commentsCount }: Props) => {
+export const HomePersonalPanel = ({ name, userId, playedCount, authoredCount, commentsCount, toFinishCount }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
 
@@ -79,9 +80,11 @@ export const HomePersonalPanel = ({ name, userId, playedCount, wantedCount, auth
         value == null ? null : t(`HomePage.${key}`, { count: value })
     const numbers = [
         count('personalPlayed', playedCount),
-        count('personalWanted', wantedCount),
         count('personalAuthored', authoredCount),
         count('personalComments', commentsCount),
+        toFinishCount != null && toFinishCount > 0
+            ? t('HomePage.personalToFinish', { count: toFinishCount })
+            : null,
     ].filter(Boolean) as string[]
 
     return (
