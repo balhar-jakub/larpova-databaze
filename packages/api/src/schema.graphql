@@ -64,6 +64,8 @@ type HomepageQuery {
     bestRatedGames: [Game!]!
     "The most used labels with their game counts — the homepage tiles."
     topLabels: [GameCatalogLabelFacet!]!
+    "Games with the most recent event, latest event first — the community activity of the last weeks."
+    recentGames: [RecentGame!]!
     "What the database holds, for the hero line."
     stats: HomepageStats!
     lastComments(offset: Int, limit: Int): [Comment!]!
@@ -123,6 +125,13 @@ type AuthoredGame {
 type LastRating {
     rating: Int!
     added: String
+}
+
+"A game with the most recent event that featured it — the community activity the homepage leads with."
+type RecentGame {
+    game: Game!
+    "The latest event the game was linked to, past or future."
+    event: Event!
 }
 
 "A label with the number of times it occurs in the visitor's own ratings."

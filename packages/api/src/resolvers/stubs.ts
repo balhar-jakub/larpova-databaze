@@ -7,6 +7,7 @@ export const resolvers = {
       stats: { games: 0, events: 0, upcomingEvents: 0, users: 0, labels: 0 },
       lastComments: [],
       nextEvents: [],
+      recentGames: [],
     }),
     gameById: () => null,
     groupById: () => null,
