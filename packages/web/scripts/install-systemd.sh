@@ -22,6 +22,30 @@ UNIT_NAME="csld-$ENV_NAME.service"
 UNIT_PATH="$HOME/.config/systemd/user/$UNIT_NAME"
 mkdir -p "$(dirname "$UNIT_PATH")"
 
+# Resolve npx/tsx to ABSOLUTE paths: the systemd user session does not
+# inherit the login-shell PATH (the heroku node toolchain lives outside
+# the default PATH), so a unit calling bare `npx` dies with status 127
+# in a restart loop — exactly what the first phase-6 test deploy caught.
+NPX="$(command -v npx || true)"
+TSX_BIN="$(command -v tsx || true)"
+if [ -z "$NPX" ]; then
+  # last resort: the toolchain path the deploy workflow exports
+  for cand in /usr/local/lib/heroku/bin/npx /usr/local/bin/npx /usr/bin/npx; do
+    if [ -x "$cand" ]; then NPX="$cand"; break; fi
+  done
+fi
+if [ -z "$NPX" ]; then
+  echo "FATAL: npx not found in PATH — cannot build a working unit" >&2
+  exit 3
+fi
+# Prefer the direct tsx binary when available (fewer moving parts than npx),
+# otherwise run it through npx.
+if [ -n "$TSX_BIN" ]; then
+  EXEC_START="$TSX_BIN server.ts"
+else
+  EXEC_START="$NPX tsx server.ts"
+fi
+
 cat > "$UNIT_PATH" <<EOF
 [Unit]
 Description=CSLD $ENV_NAME (larpovadatabaze.cz)
@@ -33,7 +57,7 @@ WorkingDirectory=$APP_DIR
 EnvironmentFile=$APP_DIR/.env
 Environment=NODE_ENV=production
 Environment=PORT=$PORT
-ExecStart=/bin/bash -lc 'exec npx tsx server.ts'
+ExecStart=$EXEC_START
 Restart=always
 RestartSec=5
 # The session secret gate (phase 1) throws when SESSION_SECRET is missing —

@@ -81,6 +81,9 @@ jobs:
           SCRIPT_BEFORE: |
             export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
             cd /home/balda/larpova-databaze/csld-new
+            # Phase 6: under systemd, killing the process just triggers the
+            # Restart=always supervision — stop the unit first.
+            systemctl --user stop csld-production.service 2>/dev/null || true
             if grep -q "^SESSION_SECRET=" .env 2>/dev/null; then
               sed -i "s/^SESSION_SECRET=.*/SESSION_SECRET=${{ secrets.SESSION_SECRET }}/" .env
             else
