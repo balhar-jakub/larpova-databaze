@@ -1,10 +1,20 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
+import { prisma } from '../context';
 
 let server: ApolloServer;
+let testGameId: string;
 
 beforeAll(async () => {
   server = createTestServer();
+  const game = await prisma.csld_game.create({
+    data: { name: 'CI test game', year: 2025, deleted: false },
+  });
+  testGameId = String(game.id);
+});
+
+afterAll(async () => {
+  await prisma.csld_game.delete({ where: { id: Number(testGameId) } });
 });
 
 describe('GraphQL read queries', () => {
@@ -21,12 +31,14 @@ describe('GraphQL read queries', () => {
   });
 
   it('gameById returns data for existing game', async () => {
-    const result = await executeQuery(server, '{ gameById(gameId: "3") { id name year } }');
+    const result = await executeQuery(server, `{ gameById(gameId: "${testGameId}") { id name year } }`);
     expect(result.errors).toBeUndefined();
     expect(result.data?.gameById).not.toBeNull();
-    expect(result.data?.gameById.id).toBe('3');
-    expect(typeof result.data?.gameById.name).toBe('string');
-    expect(typeof result.data?.gameById.year).toBe('number');
+    expect(result.data?.gameById).toMatchObject({
+      id: testGameId,
+      name: 'CI test game',
+      year: 2025,
+    });
   });
 
   it('homepage returns arrays', async () => {
@@ -62,6 +74,34 @@ describe('GraphQL read queries', () => {
     expect(Array.isArray(result.data?.eventCalendar.events)).toBe(true);
   });
 
+  it('eventCalendarStats counts the events of a month', async () => {
+    // A year nothing else uses, so the assertion does not depend on the
+    // fixture data other suites leave behind.
+    const created = await prisma.event.createMany({
+      data: [
+        { name: 'stats test A', from: new Date('1990-03-10T00:00:00Z'), to: new Date('1990-03-12T00:00:00Z'), deleted: false },
+        { name: 'stats test B', from: new Date('1990-03-24T00:00:00Z'), to: new Date('1990-03-24T00:00:00Z'), deleted: false },
+        { name: 'stats test C', from: new Date('1990-05-01T00:00:00Z'), to: new Date('1990-05-03T00:00:00Z'), deleted: false },
+      ],
+    });
+
+    try {
+      const result = await executeQuery(server, `
+        { eventCalendarStats(from: "1990-01-01", to: "1991-01-01") { totalAmount byMonth { year month count } } }
+      `);
+
+      expect(result.errors).toBeUndefined();
+      const stats = result.data?.eventCalendarStats;
+      expect(stats.totalAmount).toBe(created.count);
+      expect(stats.byMonth).toEqual([
+        { year: 1990, month: 3, count: 2 },
+        { year: 1990, month: 5, count: 1 },
+      ]);
+    } finally {
+      await prisma.event.deleteMany({ where: { name: { startsWith: 'stats test ' } } });
+    }
+  });
+
   it('userById returns null for unknown user', async () => {
     const result = await executeQuery(server, '{ userById(userId: "99999") { id } }');
     expect(result.errors).toBeUndefined();
@@ -79,7 +119,8 @@ describe('GraphQL mutations', () => {
   const testEmail = `test-${Date.now()}@integration.test`;
 
   afterAll(async () => {
-    const { prisma } = await import('../context.js');
+    // Clean up created test user
+    const { prisma } = await import('../context');
     await prisma.csld_csld_user.deleteMany({ where: { email: testEmail } });
   });
 

@@ -1,0 +1,607 @@
+{
+  "config": {
+    "config": {
+      "reCaptchaKey": ""
+    }
+  },
+  "homepage": {
+    "homepage": {
+      "lastAddedGames": [
+        {
+          "id": "54570",
+          "name": "Test hra — autor bez adminu (upraveno autorem)"
+        },
+        {
+          "id": "54569",
+          "name": "KCD larp"
+        },
+        {
+          "id": "54568",
+          "name": "Labyrint"
+        },
+        {
+          "id": "54567",
+          "name": "Good People of Languedoc"
+        },
+        {
+          "id": "54566",
+          "name": "Camlann"
+        },
+        {
+          "id": "54565",
+          "name": "Blankspace"
+        }
+      ],
+      "bestRatedGames": [
+        {
+          "id": "1364",
+          "name": "Stalker 3.1 - Stratos"
+        },
+        {
+          "id": "54459",
+          "name": "Florie: Pod tlakem"
+        },
+        {
+          "id": "54550",
+          "name": "Špetka magie"
+        },
+        {
+          "id": "45451",
+          "name": "ZA OBZOR"
+        },
+        {
+          "id": "669",
+          "name": "Medvídek Pú (LD)"
+        },
+        {
+          "id": "45700",
+          "name": "Bitva o Fort"
+        }
+      ],
+      "recentGames": [
+        {
+          "game": {
+            "id": "1293",
+            "name": "Příběhy Zapomenutých říší"
+          },
+          "event": {
+            "id": "15792"
+          }
+        },
+        {
+          "game": {
+            "id": "52000",
+            "name": "Ve znamení Zla"
+          },
+          "event": {
+            "id": "15794"
+          }
+        },
+        {
+          "game": {
+            "id": "54569",
+            "name": "KCD larp"
+          },
+          "event": {
+            "id": "15805"
+          }
+        },
+        {
+          "game": {
+            "id": "1760",
+            "name": "Erebos"
+          },
+          "event": {
+            "id": "15790"
+          }
+        },
+        {
+          "game": {
+            "id": "54565",
+            "name": "Blankspace"
+          },
+          "event": {
+            "id": "15788"
+          }
+        },
+        {
+          "game": {
+            "id": "54567",
+            "name": "Good People of Languedoc"
+          },
+          "event": {
+            "id": "2792"
+          }
+        }
+      ],
+      "stats": {
+        "games": 1511,
+        "users": 3150
+      },
+      "topLabels": [
+        {
+          "name": "svět",
+          "count": 509
+        },
+        {
+          "name": "komorní",
+          "count": 419
+        },
+        {
+          "name": "bitva",
+          "count": 232
+        },
+        {
+          "name": "družinovka",
+          "count": 224
+        },
+        {
+          "name": "dramatický",
+          "count": 188
+        },
+        {
+          "name": "městský",
+          "count": 153
+        },
+        {
+          "name": "LarpCz",
+          "count": 6
+        },
+        {
+          "name": "fantasy",
+          "count": 786
+        },
+        {
+          "name": "dřevárna",
+          "count": 535
+        },
+        {
+          "name": "opakovatelný",
+          "count": 406
+        },
+        {
+          "name": "akční",
+          "count": 351
+        },
+        {
+          "name": "současnost",
+          "count": 242
+        }
+      ],
+      "nextEvents": [
+        {
+          "id": "2794",
+          "name": "Camlann (mezinárodní)"
+        },
+        {
+          "id": "15800",
+          "name": "Šermířská burza — Olomouc"
+        },
+        {
+          "id": "15797",
+          "name": "První výstřel"
+        },
+        {
+          "id": "2793",
+          "name": "Cyberpunk London (mezinárodní)"
+        },
+        {
+          "id": "2792",
+          "name": "Good People of Languedoc (mezinárodní)"
+        },
+        {
+          "id": "15798",
+          "name": "ComicCon Brno & Junior"
+        }
+      ],
+      "lastComments": [
+        {
+          "id": "7960",
+          "commentAsText": "1. běh Decimus Valerius Severus, legát II. legie Augusta Z celé hry je cítit, že ji autoři tvořili s hromadou lásky a fascinace antickým Římem. Před hrou se šířily zvěsti, že autoři vytvářejí erotický larp, nebo že mají tendence k misogynii apod. Opravdu nechápu, kde se to objevilo, protože jsem asi ještě nenarazil na pokornější přístup organizátorů nejen k hráčům, ale i k reáliím a designu hry, prohráčském přístupu i během hry a prakticky ve všem, co se ve hře objevilo. Autoři si zaslouží obrovský obdiv, že dali na první pokus dohromady hru pro 41 hráčů, která maximálně vytěžuje tématiku a má minimum slabých, nebo hluchých míst. Skvělý herní obsah mají všichni od senátorů, až po otroky. Objevují se dobová témata a postavy, herní mechaniky jsou funkční a efektivní, dějový oblouk dává smysl a je patřičně dramatický, lokace je skvělá a o kostýmech a kuchyni je potřeba psát básně. Věřím a doufám, že se tento larp bude hrát ještě mnoho let a na výlet do antického Říma se vydají stovky hráčů. Byl to naprosto nezapomenutelný zážitek a děkuji za něj."
+        },
+        {
+          "id": "7959",
+          "commentAsText": "Nathan Fisher, 3. běh Očekávání byla vysoká a dostal jsem mnohem víc. Mám teď tři týdny po hře a pořád ve mně rezonuje. Autorům se povedlo vytvořit hru, která má tolik obsahu a natolik robustní strukturu, že funguje s minimálními externími vstupy. Světy vyschlého, trochu ponurého městečka, a živoucího, barevného, hlasitého cirkusu vedle sebe a spolu fungují naprosto přirozeně. Částečně tomu nahrává krásné prostředí (kde ve městě má každá rodina svůj opravdový dům), velkou měrou tomu přispívá úžasná produkce, zejména v cirkusu. Po setmění se cirkus světly, barvami, hudbou proměnil v magické místo, do kterého se nešlo nezamilovat. Městské rituály oproti tomu bylo ponuré, creepy a proti cirkusu představovaly výrazný kontrast. Moje postava byla rozkročená mezi městem a cirkusem a moc jsem si tu schizofrenii užil. Na druhou stranu to kladlo větší nároky na přípravu, kde k už tak dlouhé postavě (měla kolem 20 stran textu) přibyly ještě dva další dokumenty o zvycích. Hodně mi pomáhala struktura hry, kdy byly jasně dané časy velkých událostí (sice odlišné pro město a cirkus, ale dalo se s ostatním hráčstvem synchronizovat), a jako hráč jsem si díky tomu dokázal rozplánovat den tak, abych měl prostor na všechny scény, které jsem do hry chtěl dostat. Hra očekává spíš zkušenější hráče, kteří dokážou vnášet vlastní invenci a dramaticky rozvíjet svoje linky. Orgům moc děkuju a Konec zázraku si zařazuju velmi vysoko na svůj žebříček larpů, určitě do první trojky."
+        },
+        {
+          "id": "7958",
+          "commentAsText": "1. běh, Scipio, malíř Orgové začali workshopy tím, že hra má nálepku že to je nějaký sexuální larp a že to tak není. A bylo tam spoustu jiných věcí: Imerzivní lokace, krásné kostýmy, opulentní jídlo, bohoslužby, divadelní představení, zápasy gladiátorů, filosofické disputace, hraní kostek, čtení poezie, zasedání senátu a vrcholová politika, malování obrazů, pití kořeněného vína, představení vědeckého vynálezu, lázně a spoustu dalšího, prostě Řím na 120%. Moje postava neměla moc silný dramatický oblouk a měla méně obsahu. Co jsem ale pozoroval, tak u ostatních to tak nebylo. Beru, že se to vyladí po 1. běhu. Nejsilnější zážitky si ale odnáším z toho, o čem hra určitě není. Orgie byly krásně připravené, útulné místo se spoustou zákoutí, kožešin, svíček a ... hroznového vína. Ta mechanika fungovala skvěle a barvy škrabošek dělaly všechno bezpečné. Mechanika kurtizán na získávání tajemství během sexu dobře pouštěla tajemství do hry. A klub dominy Drusily také stál za to. Byl jsem překvapen, jak se v tom prostředí hráči odvazují víc, než jsem zvyklý na obsahových hrách. Ale bylo to fajn a pomohlo mi to odbourat nějaké obavy z podobných akcí. Tak jeďte zažít Řím! 8/10"
+        },
+        {
+          "id": "7957",
+          "commentAsText": "Hrála jsem první běh, takže tak trochu velký otazník. Teď po hře je z něj velmi nadšený vykřičník. Na celé hře byla vidět obrovská láska k tématu, spousta práce i péče o detaily. A teď trochu konkrétní highlighty: Kostýmy! Anna Štolcová je geniální (a nikdy nezapomenu její dravčí pohled a následný zásah, když se pruhy na tunice přetočily nebo závoj na hlavě dělal neplechu), kostýmy tomu larpu vdechly uvěřitelnost, bylo úžasné se občas jen tak procházet a kochat. Jídlo! Julie Pokorná dokázala připravit dobové pokrmy, u kterých člověk nemusel předstírat, že je na výtečné hostině v římské vile - prostě tam byl. Vynikající nečekané chutě, dobové suroviny, spousta čerstvé zeleniny - pokud si Julie otevře restauraci, rezervuju si stůl už teď! Místo! Vila Nona v celé své parádě. Nádherný dům i velká zahrada s krásnými zákoutími vás nenutily předstírat, že někde jste, prostě jste tam byli. A byly i lázně! Postavy! Má postava byla skvěle napsaná, a byť manželka senátora může znít trochu ploše, ta moje měla hloubky jak Vesuv a užila jsem si velmi zajímavé linky napříč různými skupinami. A co jsem slyšela po hře, ani otroci nebo kurtizány nespadli do monotónnosti a měli velmi zajímavou hru. A mohla bych pokračovat dál a dál. Navíc jsem měla obrovské štěstí na skvělé spoluhráče, kteří do hry šli naplno a vytvořili se mnou spoustu nezapomenutelných scén, hlasitých i velmi tichých. Takže: pokud to orgové (a celý tým) přežili a budou mít síly na další běh, jeďte tam! ❤"
+        },
+        {
+          "id": "7924",
+          "commentAsText": "Kouzelný propracovaný larp s trochu snovou tíživou atmosférou. Moc se mi líbily propletené nečernobílé charaktery, ponuro, ale i hezké věci, k tomu občasné surreálno jako třešnička na dortu. Postavy jsou dlouhé, ovšem díky tomu bylo pořád co dělat a řešit a spíš jsem trochu nestíhala. Městečko i cirkus vypadaly báječně, snadno jsem se propadala do imerze, kuchyně byla moc dobrá. Silný magický zážitek."
+        }
+      ]
+    }
+  },
+  "gamesLadder": {
+    "games": {
+      "ladder": {
+        "totalAmount": 1511,
+        "games": [
+          {
+            "id": "54570",
+            "name": "Test hra — autor bez adminu (upraveno autorem)"
+          },
+          {
+            "id": "54569",
+            "name": "KCD larp"
+          },
+          {
+            "id": "54568",
+            "name": "Labyrint"
+          },
+          {
+            "id": "54567",
+            "name": "Good People of Languedoc"
+          },
+          {
+            "id": "54566",
+            "name": "Camlann"
+          }
+        ]
+      }
+    }
+  },
+  "gameDetail": {
+    "gameById": {
+      "id": "12",
+      "name": "Plukovníkův odkaz",
+      "year": 2012,
+      "players": 6,
+      "averageRating": 72.38095238095238,
+      "amountOfRatings": 21,
+      "amountOfComments": 14,
+      "description": "<p>Plukovn&iacute;kův odkaz je př&iacute;běhov&yacute; larp z prostřed&iacute; USA v 19. stolet&iacute;, odehr&aacute;vaj&iacute;c&iacute; se ve v&yacute;chodn&iacute; č&aacute;sti USA, ve st&aacute;tu Tennessee. Už je to rok, co skončila v&aacute;lka Severu proti Jihu. Tis&iacute;ce jižanů, zničen&yacute;ch prohrou se prop&iacute;j&iacute; a prob&iacute;j&iacute; životem. Po zapr&aacute;šen&yacute;ch vesnic&iacute;ch se potuluj&iacute; dezert&eacute;ři, vysloužilci a zap&aacute;len&iacute; nacionalist&eacute; st&aacute;le přesvědčen&iacute;, že černošsk&aacute; menšina m&aacute; m&iacute;t jen jedin&eacute; pr&aacute;vo – pr&aacute;vo sloužit b&iacute;l&yacute;m. Je tepl&aacute; noc a skupina veter&aacute;nů potupen&eacute; jižansk&eacute; arm&aacute;dy se sch&aacute;z&iacute; v opuštěn&eacute;m domě, kam je sezval mlad&yacute; pr&aacute;vn&iacute;k, aby jim sdělil posledn&iacute; vůli zemřel&eacute;ho plukovn&iacute;ka a rozdělil mezi ně kořist, kterou se jim zde podařilo z&iacute;skat za v&aacute;lky. Všichni ale velmi brzy pochop&iacute;, že je s cel&yacute;m t&iacute;mto m&iacute;stem něco v nepoř&aacute;dku. Dožene star&eacute; př&aacute;tele minulost? A co všechno vlastně ukr&yacute;v&aacute; plukovn&iacute;kův odkaz? <br /><br />Plukovn&iacute;kův odkaz je př&iacute;běhov&yacute; larp pro šest hr&aacute;čů z obdob&iacute; divok&eacute;ho z&aacute;padu s trochou akce a okultn&iacute; z&aacute;pletkou. Hra je založena na prož&iacute;v&aacute;n&iacute; př&iacute;běhu optikou předem připraven&yacute;ch charakterů a je strukturovan&aacute; do jednotliv&yacute;ch sc&eacute;n s předem připravenou př&iacute;běhovou lini&iacute;. Hra obsahuje jeepov&eacute; prvky (ale nelze ji označit za jasn&yacute; jeep). Ve hře se objevuje problematika rasismu a extr&eacute;mn&iacute;ho nacionalismu a hra nen&iacute; vhodn&aacute; pro hr&aacute;če, kteř&iacute; např&iacute;klad nejsou schopni hr&aacute;t silně xenofobn&iacute; postavy.</p>",
+      "labels": [
+        {
+          "name": "komorní"
+        },
+        {
+          "name": "western"
+        },
+        {
+          "name": "opakovatelný"
+        },
+        {
+          "name": "mystický"
+        }
+      ],
+      "authors": [
+        {
+          "id": "459",
+          "name": "Jan  Zeman"
+        },
+        {
+          "id": "16",
+          "name": "Alžběta Kračmarová"
+        },
+        {
+          "id": "8",
+          "name": "Martin Hanzl"
+        },
+        {
+          "id": "6",
+          "name": "Filip Appl"
+        },
+        {
+          "id": "741",
+          "name": "Tomáš Hodek"
+        }
+      ]
+    }
+  },
+  "gamesByQuery": {
+    "games": {
+      "byQuery": [
+        {
+          "id": "49900",
+          "name": "Pán Prstenů - Bitva o Středozem [2017]"
+        },
+        {
+          "id": "365",
+          "name": "Střepy Abeiru: Krkavčí citadela"
+        },
+        {
+          "id": "48600",
+          "name": "Pomezí larp"
+        },
+        {
+          "id": "40801",
+          "name": "Skyrim IV: Mlhy Karthwastenu"
+        },
+        {
+          "id": "40300",
+          "name": "Arkham Larp - The Show Must go on"
+        }
+      ]
+    }
+  },
+  "userById": {
+    "userById": {
+      "id": "1",
+      "name": "Jakub Balhar",
+      "role": "ADMIN",
+      "amountOfComments": 101,
+      "amountOfPlayed": 111,
+      "amountOfCreated": 34,
+      "commentsPaged": {
+        "totalAmount": 51,
+        "comments": [
+          {
+            "id": "3711"
+          },
+          {
+            "id": "166711"
+          },
+          {
+            "id": "158401"
+          },
+          {
+            "id": "158400"
+          },
+          {
+            "id": "157150"
+          }
+        ]
+      }
+    }
+  },
+  "eventCalendar": {
+    "eventCalendar": {
+      "totalAmount": 2618,
+      "events": [
+        {
+          "id": "407",
+          "name": "GameCon 2009"
+        },
+        {
+          "id": "408",
+          "name": "GameCon 2010"
+        },
+        {
+          "id": "409",
+          "name": "GameCon 2011"
+        },
+        {
+          "id": "10900",
+          "name": "Orcs vs. Humans"
+        },
+        {
+          "id": "410",
+          "name": "GameCon 2012"
+        },
+        {
+          "id": "411",
+          "name": "GameCon 2013"
+        },
+        {
+          "id": "412",
+          "name": "GameCon 2014"
+        },
+        {
+          "id": "413",
+          "name": "GameCon 2015"
+        },
+        {
+          "id": "416",
+          "name": "GameCon 2016"
+        },
+        {
+          "id": "151",
+          "name": "Taura LARP VIII. - Vichry Olheimu"
+        },
+        {
+          "id": "152",
+          "name": "Flotsam: Počátky dějin"
+        },
+        {
+          "id": "50",
+          "name": "Cesta za snem"
+        },
+        {
+          "id": "51",
+          "name": "Iure"
+        },
+        {
+          "id": "100",
+          "name": "Doma je doma"
+        },
+        {
+          "id": "101",
+          "name": "Čí sny sníš"
+        },
+        {
+          "id": "52",
+          "name": "Poslední pokoj"
+        },
+        {
+          "id": "250",
+          "name": "Kroniky Belegienu: Jižní břehy"
+        },
+        {
+          "id": "102",
+          "name": "Equilibrium"
+        },
+        {
+          "id": "53",
+          "name": "Kurva se neříká"
+        },
+        {
+          "id": "54",
+          "name": "Brouk"
+        },
+        {
+          "id": "300",
+          "name": "Larpoviny"
+        },
+        {
+          "id": "55",
+          "name": "TWD Larp V: Čím se stáváme"
+        },
+        {
+          "id": "150",
+          "name": "Sklep"
+        },
+        {
+          "id": "351",
+          "name": "Pražská Hlídka XV: Kdo seje vítr, sklízí bouři"
+        },
+        {
+          "id": "200",
+          "name": "Konec dějin"
+        }
+      ]
+    }
+  },
+  "authorizedLabels": {
+    "authorizedRequiredLabels": [
+      {
+        "id": "650",
+        "name": "LarpCz"
+      },
+      {
+        "id": "3",
+        "name": "městský"
+      },
+      {
+        "id": "4",
+        "name": "bitva"
+      },
+      {
+        "id": "1",
+        "name": "komorní"
+      },
+      {
+        "id": "6",
+        "name": "družinovka"
+      },
+      {
+        "id": "2",
+        "name": "dramatický"
+      },
+      {
+        "id": "5",
+        "name": "svět"
+      }
+    ],
+    "authorizedOptionalLabels": [
+      {
+        "id": "150",
+        "name": "slovenský"
+      },
+      {
+        "id": "40",
+        "name": "steampunk"
+      },
+      {
+        "id": "10",
+        "name": "akční"
+      },
+      {
+        "id": "33",
+        "name": "experimentální"
+      },
+      {
+        "id": "53",
+        "name": "turnaje"
+      },
+      {
+        "id": "39",
+        "name": "dlouhodobý"
+      },
+      {
+        "id": "20",
+        "name": "dřevárna"
+      },
+      {
+        "id": "8",
+        "name": "komedie"
+      },
+      {
+        "id": "21",
+        "name": "střelné zbraně (airsoft)"
+      },
+      {
+        "id": "13",
+        "name": "sci-fi"
+      },
+      {
+        "id": "17",
+        "name": "western"
+      },
+      {
+        "id": "46",
+        "name": "zahraniční"
+      },
+      {
+        "id": "18",
+        "name": "jeepforma"
+      },
+      {
+        "id": "300",
+        "name": "world of darkness"
+      },
+      {
+        "id": "15",
+        "name": "historický"
+      },
+      {
+        "id": "7",
+        "name": "detektivní"
+      },
+      {
+        "id": "14",
+        "name": "postapo"
+      },
+      {
+        "id": "35",
+        "name": "večírek"
+      },
+      {
+        "id": "16",
+        "name": "současnost"
+      },
+      {
+        "id": "77",
+        "name": "sandbox"
+      },
+      {
+        "id": "22",
+        "name": "mystický"
+      },
+      {
+        "id": "24",
+        "name": "E-larp"
+      },
+      {
+        "id": "11",
+        "name": "sociální drama"
+      },
+      {
+        "id": "50",
+        "name": "simulace"
+      },
+      {
+        "id": "19",
+        "name": "opakovatelný"
+      },
+      {
+        "id": "9",
+        "name": "horor"
+      },
+      {
+        "id": "26",
+        "name": "argumentační"
+      },
+      {
+        "id": "12",
+        "name": "fantasy"
+      }
+    ]
+  }
+}
