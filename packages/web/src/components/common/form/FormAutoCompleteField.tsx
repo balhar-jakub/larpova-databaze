@@ -4,10 +4,7 @@ import {
     AsyncTypeahead,
     Menu,
     MenuItem,
-    TypeaheadLabelKey,
-    TypeaheadMenuProps,
-    TypeaheadModel,
-    TypeaheadResult,
+    type RenderMenuProps as TypeaheadRenderMenuProps,
 } from 'react-bootstrap-typeahead'
 import { createUseStyles } from 'react-jss'
 import { useTranslation } from 'src/lib/i18n'
@@ -17,7 +14,7 @@ import { darkTheme } from '../../../theme/darkTheme'
 import { IconExternalLink } from '../Icons/Icons'
 import FieldWithError from './FieldWithError'
 
-type ModelBase = TypeaheadModel & { readonly id?: string; readonly itemLabel: string }
+type ModelBase = { readonly id?: string; readonly itemLabel: string } & Record<string, any>
 
 interface Props<T extends ModelBase> {
     readonly name: string
@@ -39,9 +36,16 @@ interface RenderMenuProps<T> {
     readonly onCreateNew: () => void
 }
 
-interface OptionsMenuProps<T extends ModelBase> extends RenderMenuProps<T> {
-    readonly results: Array<TypeaheadResult<T>>
-    readonly menuProps: TypeaheadMenuProps<T>
+interface RenderMenuHofProps<T extends ModelBase> {
+    readonly createUrl?: (item: T) => string
+    readonly createNewText?: ReactNode
+    readonly entityLinkText?: ReactNode
+    readonly onCreateNew: () => void
+}
+
+interface OptionsMenuProps<T extends ModelBase> extends RenderMenuHofProps<T> {
+    readonly results: Array<T>
+    readonly menuProps: TypeaheadRenderMenuProps
 }
 
 const useStyles = createUseStyles({
@@ -92,7 +96,7 @@ const OptionsMenu = <T extends ModelBase>({
             {noResults && <div className={classes.message}>{t('AutoComplete.noResults')}</div>}
             {!noResults &&
                 results.map((item, position) => (
-                    <MenuItem<T> key={item.id || position} option={item} position={position}>
+                    <MenuItem key={item.id || position} option={item} position={position}>
                         {item.itemLabel}
                         {createUrl && (
                             <span role="link" tabIndex={0} className={classes.link} onClick={openLink(createUrl(item))}>
@@ -108,12 +112,12 @@ const OptionsMenu = <T extends ModelBase>({
     )
 }
 
-const renderMenuHof = <T extends ModelBase>(rmp: RenderMenuProps<T>) => (
-    results: Array<TypeaheadResult<T>>,
-    menuProps: TypeaheadMenuProps<T>,
+const renderMenuHof = (rmp: RenderMenuHofProps<ModelBase>) => (
+    results: Array<ModelBase>,
+    menuProps: TypeaheadRenderMenuProps,
 ) => {
     return (
-        <OptionsMenu<T>
+        <OptionsMenu
             results={results}
             menuProps={menuProps}
             entityLinkText={rmp.entityLinkText}
@@ -137,7 +141,7 @@ const FormAutoCompleteField = <T extends ModelBase>({
     onSearch,
 }: Props<T>) => {
     const [options, setOptions] = useState<T[]>([])
-    const typeaheadRef = useRef<AsyncTypeahead<any> | null>(null)
+    const typeaheadRef = useRef<any>(null)
     const { input, meta } = useField<T[]>(name, {
         validate,
     })
@@ -161,7 +165,7 @@ const FormAutoCompleteField = <T extends ModelBase>({
         onCreateNew()
     }
 
-    const renderMenu = renderMenuHof<T>({
+    const renderMenu = renderMenuHof({
         createUrl,
         createNewText,
         entityLinkText,
@@ -171,7 +175,7 @@ const FormAutoCompleteField = <T extends ModelBase>({
     return (
         <FieldWithError meta={meta} hint={hint}>
             {isInvalid => (
-                <AsyncTypeahead<T>
+                <AsyncTypeahead
                     placeholder={placeholder}
                     ref={typeaheadRef}
                     id={name}
@@ -186,7 +190,7 @@ const FormAutoCompleteField = <T extends ModelBase>({
                     minLength={3}
                     filterBy={() => true}
                     onChange={value => input.onChange({ target: { value } })}
-                    labelKey={'itemLabel' as TypeaheadLabelKey<T>}
+                    labelKey={'itemLabel' as string}
                     renderMenu={renderMenu}
                 />
             )}
