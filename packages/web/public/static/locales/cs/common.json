@@ -349,6 +349,8 @@
   "Event": {
     "web": "Web",
     "registrationLink": "Přihlášení",
+    "registrationClosed": "Registrace uzavřená",
+    "registrationOrganizerForm": "formulář pořadatele",
     "registrationOpen": "Přihlašování otevřeno",
     "loc": "Místo"
   },
@@ -563,6 +565,7 @@
     "foreign": "zahraniční",
     "international": "mezinárodní",
     "registrationOpenPill": "přihlášky otevřené",
+    "registrationClosedPill": "registrace uzavřená",
     "noPlace": "místo neuvedeno",
     "players_0": "{{count}} hráč",
     "players_1": "{{count}} hráči",

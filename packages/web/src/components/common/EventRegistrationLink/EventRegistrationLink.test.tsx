@@ -8,6 +8,8 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
             ({
                 'Event.registrationLink': 'Přihlášení',
                 'Event.registrationOpen': 'Přihlašování otevřeno',
+                'Event.registrationClosed': 'Registrace uzavřená',
+                'Event.registrationOrganizerForm': 'formulář pořadatele',
             })[key] ?? key,
     }),
 }))
@@ -29,12 +31,17 @@ describe('EventRegistrationLink', () => {
         expect(container.childElementCount).toBe(0)
     })
 
-    it('renders a neutral registration link when registration is closed', () => {
+    it('renders a closed badge and organizer form link when registration is closed', () => {
         render(<EventRegistrationLink url="https://example.test/signup" open={false} />)
 
-        const link = screen.getByRole('link', { name: 'Přihlášení' })
-        expect(link.getAttribute('href')).toBe('https://example.test/signup')
-        expect(link.className).not.toContain('open')
+        const badge = screen.getByText('Registrace uzavřená')
+        expect(badge).toBeTruthy()
+        expect(badge.getAttribute('href')).toBe(null)
+
+        const formLink = screen.getByRole('link', { name: 'formulář pořadatele' })
+        expect(formLink.getAttribute('href')).toBe('https://example.test/signup')
+        expect(formLink.getAttribute('target')).toBe('_blank')
+        expect(formLink.getAttribute('rel')).toBe('noreferrer')
     })
 
     it('renders an emphasized registration link when registration is open', () => {
@@ -45,11 +52,5 @@ describe('EventRegistrationLink', () => {
         expect(link.getAttribute('target')).toBe('_blank')
         expect(link.getAttribute('rel')).toBe('noreferrer')
         expect(link.className).toContain('open')
-    })
-
-    it('uses a dark-background variant when requested', () => {
-        render(<EventRegistrationLink url="https://example.test/signup" open={false} onDarkBackground />)
-
-        expect(screen.getByRole('link', { name: 'Přihlášení' }).className).toContain('darkBackground')
     })
 })

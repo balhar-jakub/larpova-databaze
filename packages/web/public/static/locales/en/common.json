@@ -35,6 +35,8 @@
   "Event": {
     "web": "Website",
     "registrationLink": "Registration",
+    "registrationClosed": "Registration closed",
+    "registrationOrganizerForm": "organizer's form",
     "registrationOpen": "Registration open",
     "loc": "Location"
   },
@@ -103,6 +105,7 @@
     "foreign": "abroad",
     "international": "international",
     "registrationOpenPill": "registration open",
+    "registrationClosedPill": "registration closed",
     "noPlace": "no location",
     "players_0": "{{count}} player",
     "players_1": "{{count}} players",
