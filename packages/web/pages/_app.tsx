@@ -15,6 +15,7 @@ import { InPlaceSignInContextProvider } from 'src/context/InPlaceSignInContext/I
 import InPlaceSignInWrapper from 'src/components/common/InPlaceSignInWrapper/InPlaceSignInWrapper'
 
 import '@fortawesome/fontawesome-svg-core/styles.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
 import 'react-bootstrap-typeahead/css/Typeahead.css'
 import { registerGTagPageview } from '../src/utils/gtag'
 import FirstRenderContextProvider from '../src/context/FirstRenderContext/FirstRenderContextProvider'

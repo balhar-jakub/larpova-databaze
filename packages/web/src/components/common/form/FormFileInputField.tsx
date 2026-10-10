@@ -75,16 +75,18 @@ const FormFileInputField = ({
 
     return (
         <Form.Group controlId={controlId}>
-            <Form.File custom>
-                <Form.File.Input isInvalid={showError} onFocus={onFocus} onBlur={onBlur} onChange={handleOnChange} />
-                <Form.File.Label data-browse={label || t('FormFileInput.defaultLabel')}>
-                    {fileName || placeholder || t('FormFileInput.defaultPlaceholder')}
-                </Form.File.Label>
-                <Form.Control.Feedback type="invalid">{errorText}</Form.Control.Feedback>
-                {!showError && (hint || showErrorPlaceholder) && (
-                    <Form.Text className={classes.hintHolder}>{hint || '\u00A0'}</Form.Text>
-                )}
-            </Form.File>
+            <Form.Control
+                type="file"
+                isInvalid={showError}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                onChange={handleOnChange}
+                aria-label={label || t('FormFileInput.defaultLabel')}
+            />
+            <Form.Control.Feedback type="invalid">{errorText}</Form.Control.Feedback>
+            {!showError && (hint || showErrorPlaceholder) && (
+                <Form.Text className={classes.hintHolder}>{hint || '\u00A0'}</Form.Text>
+            )}
         </Form.Group>
     )
 }

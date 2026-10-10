@@ -79,7 +79,7 @@ const FormTextInputField = ({
                                 {...inputRest}
                                 placeholder={placeholder}
                             />
-                            <InputGroup.Append>{appendIcon}</InputGroup.Append>
+                            <InputGroup.Text>{appendIcon}</InputGroup.Text>
                         </InputGroup>
                     )}
                     {/* eslint-disable-next-line react/jsx-props-no-spreading */}
