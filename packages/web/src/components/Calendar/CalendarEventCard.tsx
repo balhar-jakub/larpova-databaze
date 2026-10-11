@@ -87,6 +87,10 @@ const useStyles = createUseStyles({
         backgroundColor: darkTheme.red,
         color: darkTheme.backgroundRealWhite,
     },
+    pillRegistrationUpcoming: {
+        backgroundColor: darkTheme.blue,
+        color: darkTheme.backgroundRealWhite,
+    },
     meta: {
         marginTop: 3,
         fontSize: '0.72rem',
@@ -189,12 +193,17 @@ const CalendarEventCard = ({ event, isNext = false }: Props) => {
                             {t('Calendar.international')}
                         </span>
                     )}
+                    {event.registrationStatus === 'UPCOMING' && registrationUrl && (
+                        <span className={classNames(classes.pill, classes.pillRegistrationUpcoming)}>
+                            {t('Calendar.registrationUpcomingPill')}
+                        </span>
+                    )}
                     {event.registrationOpen && registrationUrl && (
                         <span className={classNames(classes.pill, classes.pillRegistration)}>
                             {t('Calendar.registrationOpenPill')}
                         </span>
                     )}
-                    {!event.registrationOpen && registrationUrl && (
+                    {!event.registrationOpen && event.registrationStatus !== 'UPCOMING' && registrationUrl && (
                         <span className={classNames(classes.pill, classes.pillRegistrationClosed)}>
                             {t('Calendar.registrationClosedPill')}
                         </span>
@@ -230,7 +239,12 @@ const CalendarEventCard = ({ event, isNext = false }: Props) => {
                         {t('Calendar.web')}
                     </a>
                 )}
-                <EventRegistrationLink url={registrationUrl} open={event.registrationOpen} />
+                <EventRegistrationLink
+                    url={registrationUrl}
+                    open={event.registrationOpen}
+                    status={event.registrationStatus}
+                    opensAt={event.registrationOpensAt}
+                />
                 {calendarUrl && (
                     <a
                         href={calendarUrl}

@@ -40,6 +40,8 @@ export interface EventRowData {
     readonly web?: string | null
     readonly registrationUrl?: string | null
     readonly registrationOpen: boolean
+    readonly registrationStatus?: string | null
+    readonly registrationOpensAt?: string | null
     readonly amountOfPlayers?: number | null
     readonly labels?: Array<{ readonly id: string; readonly name?: string | null }> | null
     readonly games?: Array<{ readonly id: string; readonly name?: string | null }> | null

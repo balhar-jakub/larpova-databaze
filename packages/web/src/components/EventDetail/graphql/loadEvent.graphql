@@ -8,6 +8,8 @@ query LoadEvent($eventId: ID!) {
         web
         registrationUrl
         registrationOpen
+        registrationStatus
+        registrationOpensAt
         loc
         from
         to

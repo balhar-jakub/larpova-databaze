@@ -143,6 +143,8 @@ type RecommendedEvent {
     web: String
     registrationUrl: String
     registrationOpen: Boolean!
+    registrationStatus: RegistrationStatus
+    registrationOpensAt: String
     deleted: Boolean
     amountOfPlayers: Int
     from: String
@@ -330,6 +332,10 @@ type Event {
     web: String
     registrationUrl: String
     registrationOpen: Boolean!
+    "Tri-state registration: UPCOMING (will open, URL may be added later), OPEN (sign-up live), CLOSED (full / reserves). Null when no registration was provided."
+    registrationStatus: RegistrationStatus
+    "When the organizer plans to open the sign-up; set only while the status is UPCOMING."
+    registrationOpensAt: String
     deleted: Boolean
     amountOfPlayers: Int
     from: String
@@ -560,6 +566,12 @@ input NewLabelInput {
     description: String
 }
 
+enum RegistrationStatus {
+    UPCOMING
+    OPEN
+    CLOSED
+}
+
 type EventMutation {
     createEvent(input: CreateEventInput!): Event!
     updateEvent(input: UpdateEventInput!): Event!
@@ -573,7 +585,12 @@ input CreateEventInput {
     amountOfPlayers: Int
     web: String
     registrationUrl: String
+    "Deprecated: use registrationStatus instead (OPEN when true, CLOSED when false and a URL is given)."
     registrationOpen: Boolean! = false
+    "Tri-state registration; omit for no registration info. Explicitly null clears it."
+    registrationStatus: RegistrationStatus
+    "When the sign-up will open; only meaningful with status UPCOMING."
+    registrationOpensAt: String
     loc: String
     description: String
     games: [ID!]!
@@ -592,7 +609,12 @@ input UpdateEventInput {
     amountOfPlayers: Int
     web: String
     registrationUrl: String
+    "Deprecated: use registrationStatus instead (OPEN when true, CLOSED when false and a URL is given)."
     registrationOpen: Boolean! = false
+    "Tri-state registration; omit for no registration info. Explicitly null clears it."
+    registrationStatus: RegistrationStatus
+    "When the sign-up will open; only meaningful with status UPCOMING."
+    registrationOpensAt: String
     loc: String
     description: String
     games: [ID!]!

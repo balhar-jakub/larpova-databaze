@@ -75,6 +75,16 @@ import {
 import { isAtLeastEditor } from '../auth/appUsers.js';
 import type { Context } from '../context.js';
 
+/**
+ * `registrationOpen` is derived from the tri-state `registration_status`:
+ * true only while the sign-up is live (`OPEN`). Kept as a boolean for the
+ * benefit of existing clients (homepage panels, calendar filter, search).
+ * The legacy `registration_open` column is honored for rows that were not
+ * backfilled yet.
+ */
+const registrationOpenResolver = (event: any): boolean =>
+  event.registrationOpen ?? (event.registration_status ?? (event.registration_open ? 'OPEN' : null)) === 'OPEN';
+
 export const resolvers: any = {
   Query: {
     config: configResolver,
@@ -137,7 +147,13 @@ export const resolvers: any = {
   },
   Event: {
     registrationUrl: (event: any) => event.registrationUrl ?? event.registration_url ?? null,
-    registrationOpen: (event: any) => event.registrationOpen ?? event.registration_open ?? false,
+    registrationOpen: registrationOpenResolver,
+    registrationStatus: (event: any) => event.registrationStatus ?? event.registration_status ?? null,
+    registrationOpensAt: (event: any) =>
+      event.registrationOpensAt
+        ?? (event.registration_status === 'UPCOMING' && event.registration_opens_at
+          ? event.registration_opens_at.toISOString()
+          : null),
     allowedActions: (_parent: unknown, _args: unknown, ctx: any) =>
       isAtLeastEditor(ctx) ? ['Edit', 'Delete'] : [],
   },
@@ -145,7 +161,13 @@ export const resolvers: any = {
   // so it needs the same snake_case fallbacks as `Event` itself.
   RecommendedEvent: {
     registrationUrl: (event: any) => event.registrationUrl ?? event.registration_url ?? null,
-    registrationOpen: (event: any) => event.registrationOpen ?? event.registration_open ?? false,
+    registrationOpen: registrationOpenResolver,
+    registrationStatus: (event: any) => event.registrationStatus ?? event.registration_status ?? null,
+    registrationOpensAt: (event: any) =>
+      event.registrationOpensAt
+        ?? (event.registration_status === 'UPCOMING' && event.registration_opens_at
+          ? event.registration_opens_at.toISOString()
+          : null),
   },
   User: {
     commentsPaged: async (

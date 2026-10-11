@@ -183,7 +183,9 @@ export async function openRegistrationEvents(ctx: Context) {
       // The event must still be ahead: once it starts, there is nothing
       // left to sign up for.
       from: { gte: now },
-      registration_open: true,
+      // Only a live sign-up belongs here; UPCOMING ("will open") events stay
+      // out — the panel's promise is "you can sign up right now".
+      registration_status: 'OPEN',
       registration_url: { not: null },
     },
     orderBy: { from: 'asc' },
@@ -491,9 +493,9 @@ async function recommendSignableEvents(
     where: {
       deleted: false,
       from: { gte: now },
-      // Open with a URL to sign up at; a flag without a URL is a legacy row
-      // (the mutation does not allow it any more).
-      registration_open: true,
+      // Open with a URL to sign up at; anything else is either not yet
+      // signable (UPCOMING) or already full (CLOSED).
+      registration_status: 'OPEN',
       registration_url: { not: null },
       csld_game_has_event: { some: { csld_game: { deleted: false } } },
     },

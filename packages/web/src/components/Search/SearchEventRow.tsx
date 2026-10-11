@@ -195,7 +195,12 @@ export const SearchEventRow = ({ event, query, duplicateCount = 0 }: Props) => {
                         {t('Calendar.web')}
                     </a>
                 )}
-                <EventRegistrationLink url={registrationUrl} open={event.registrationOpen} />
+                <EventRegistrationLink
+                    url={registrationUrl}
+                    open={event.registrationOpen}
+                    status={event.registrationStatus}
+                    opensAt={event.registrationOpensAt}
+                />
                 {calendarUrl && (
                     <a href={calendarUrl} target="_blank" rel="noreferrer" className={classes.action}>
                         {t('Calendar.addToCalendar')}

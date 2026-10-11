@@ -8,6 +8,8 @@ import { isAbsoluteHttpUrl } from '../../../utils/urlUtils'
 interface Props {
     readonly url?: string | null
     readonly open: boolean
+    readonly status?: string | null
+    readonly opensAt?: string | null
     readonly className?: string
     readonly onDarkBackground?: boolean
 }
@@ -50,6 +52,14 @@ const useStyles = createUseStyles({
         color: darkTheme.backgroundRealWhite,
         fontWeight: 700,
     },
+    upcomingBadge: {
+        display: 'inline-block',
+        padding: '6px 10px',
+        borderRadius: 4,
+        border: `1px solid ${darkTheme.text}`,
+        color: darkTheme.text,
+        fontWeight: 700,
+    },
     closedFormLink: {
         marginTop: 2,
         fontSize: '0.72rem',
@@ -62,12 +72,41 @@ const useStyles = createUseStyles({
     },
 })
 
-const EventRegistrationLink = ({ url, open, className, onDarkBackground = false }: Props) => {
+const formatOpensAt = (opensAt?: string | null): string | null => {
+    if (!opensAt) {
+        return null
+    }
+
+    const date = new Date(opensAt)
+    if (isNaN(date.getTime())) {
+        return null
+    }
+
+    return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' })
+}
+
+const EventRegistrationLink = ({ url, open, status, opensAt, className, onDarkBackground = false }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
 
     if (!isAbsoluteHttpUrl(url)) {
         return null
+    }
+
+    if (status === 'UPCOMING') {
+        // Registration was announced but has not opened yet; the organizer
+        // flips it manually (possibly with the URL added later).
+        const openDate = formatOpensAt(opensAt)
+        return (
+            <span className={className}>
+                <span className={classes.upcomingBadge}>
+                    {openDate ? t('Event.registrationOpensOn', { date: openDate }) : t('Event.registrationUpcoming')}
+                </span>
+                <a href={url} target="_blank" rel="noreferrer" className={classes.closedFormLink}>
+                    {t('Event.registrationOrganizerForm')}
+                </a>
+            </span>
+        )
     }
 
     if (!open) {
