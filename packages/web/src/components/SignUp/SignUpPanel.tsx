@@ -1,25 +1,20 @@
 import React, { useState } from 'react'
-import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'src/lib/i18n'
 import { useApolloClient } from '@apollo/client'
 import { Form as FinalForm } from 'react-final-form'
 import { TFunction } from 'i18next'
-import { Col, Row, Form } from 'react-bootstrap'
+import { Row, Col, Form } from 'react-bootstrap'
+import { useTranslation } from 'src/lib/i18n'
 import { useRoutes } from 'src/hooks/useRoutes'
 import { UrlObject } from 'url'
 import FormPageRow from '../common/FormPageRow/FormPageRow'
 import FormTextInputField from '../common/form/FormTextInputField'
-import { fieldValidator, validateDate, validateEmail, validateRequired } from '../../utils/validationUtils'
-import FormFileInputField from '../common/form/FormFileInputField'
-import FormSelectField from '../common/form/FormSelectField'
+import { fieldValidator, validateEmail, validateRequired } from '../../utils/validationUtils'
 import {
     CreateUserMutation,
     CreateUserMutationVariables,
-    Gender,
 } from '../../graphql/__generated__/typescript-operations'
 import { TextLink } from '../common/TextLink/TextLink'
 import ReCaptchaField from './ReCaptchaField'
-import { convertDateInput, convertFileInput } from '../../utils/graphqlUtils'
 import { useIsEmailAvailable } from '../../hooks/useIsEmailAvailable'
 import { useFocusInput } from '../../hooks/useFocusInput'
 import SubmitButton from '../common/SubmitButton/SubmitButton'
@@ -27,23 +22,11 @@ import { useIsMdOrLarger } from '../../hooks/useMediaQuery'
 
 const createUserGql = require(`./graphql/createUserMutation.graphql`)
 
-const useStyles = createUseStyles({
-    rowFixer: {
-        marginBottom: '-20px',
-    },
-})
-
 interface FormData {
     email: string
     password: string
     passwordAgain: string
-    name: string
-    nickname: string
-    city: string
-    birthDate: string
     recaptcha: string
-    profilePicture: string
-    gender: Gender
 }
 
 type TState = 'idle' | 'loading'
@@ -69,7 +52,6 @@ const EmailUsedErrorHint = ({ name, href, as }: { name: string; href: UrlObject;
 
 const SignUpPanel = () => {
     const { t } = useTranslation('common')
-    const classes = useStyles()
     const client = useApolloClient()
     const routes = useRoutes()
     const formRef = useFocusInput<HTMLFormElement>('email')
@@ -77,8 +59,6 @@ const SignUpPanel = () => {
     const { usedByUser, isEmailAvailable } = useIsEmailAvailable()
     const isMdOrLarger = useIsMdOrLarger()
     const { href: recoverHref, as: recoverAs } = routes.recoverPasswordStart()
-
-    console.log({ isMdOrLarger })
 
     const onSubmit = async (data: FormData) => {
         setState('loading')
@@ -90,12 +70,11 @@ const SignUpPanel = () => {
             return { emailAvailable: 'unavailable' }
         }
 
-        const { passwordAgain, profilePicture, birthDate, ...inputBase } = data
         const variables: CreateUserMutationVariables = {
             input: {
-                ...inputBase,
-                birthDate: convertDateInput(birthDate),
-                profilePicture: convertFileInput(profilePicture),
+                email: data.email,
+                password: data.password,
+                recaptcha: data.recaptcha,
             },
         }
 
@@ -120,7 +99,6 @@ const SignUpPanel = () => {
             <FinalForm<FormData>
                 onSubmit={onSubmit}
                 validate={validate(t)}
-                initialValues={{ gender: Gender.Unspecified }}
                 render={({ handleSubmit, values }) => {
                     const handleEmailOnBlur = () => {
                         isEmailAvailable(values.email)
@@ -139,7 +117,7 @@ const SignUpPanel = () => {
                                     ) : undefined
                                 }
                             />
-                            <Row className={classes.rowFixer}>
+                            <Row>
                                 <Col md={6}>
                                     <FormTextInputField
                                         name="password"
@@ -159,57 +137,6 @@ const SignUpPanel = () => {
                                     />
                                 </Col>
                             </Row>
-                            <hr />
-                            <FormFileInputField
-                                name="profilePicture"
-                                sizeLimit={2000000}
-                                placeholder={t('UserFields.profilePicture')}
-                                hint={t('SignUp.profilePictureHint')}
-                            />
-                            <Row>
-                                <Col md={6}>
-                                    <FormTextInputField
-                                        name="name"
-                                        placeholder={t('UserFields.name')}
-                                        hint={t('UserFields.nameHint')}
-                                        validate={fieldValidator(t, validateRequired)}
-                                    />
-                                </Col>
-                                <Col md={6}>
-                                    <FormTextInputField
-                                        name="nickname"
-                                        placeholder={t('UserFields.nickName')}
-                                        hint={t('UserFields.nickNameHint')}
-                                    />
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md={6}>
-                                    <FormTextInputField
-                                        name="city"
-                                        placeholder={t('UserFields.city')}
-                                        hint={t('UserFields.cityHint')}
-                                    />
-                                </Col>
-                                <Col md={6}>
-                                    <FormTextInputField
-                                        name="birthDate"
-                                        placeholder={t('UserFields.birthDate')}
-                                        hint={t('UserFields.birthDateHint')}
-                                        validate={fieldValidator(t, validateDate)}
-                                    />
-                                </Col>
-                            </Row>
-                            <FormSelectField
-                                name="gender"
-                                label={t('UserFields.gender')}
-                                hint={t('UserFields.genderHint')}
-                                options={[
-                                    { value: Gender.Unspecified, label: t('UserFields.genderUnspecified') },
-                                    { value: Gender.Male, label: t('UserFields.genderMale') },
-                                    { value: Gender.Female, label: t('UserFields.genderFemale') },
-                                ]}
-                            />
                             {/* ReCaptcha cannot change width when active, so we have to recreate it when size changes */}
                             {isMdOrLarger === true && <ReCaptchaField name="recaptcha" />}
                             {isMdOrLarger === false && <ReCaptchaField name="recaptcha" size="compact" />}
