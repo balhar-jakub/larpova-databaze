@@ -76,9 +76,20 @@ const useStyles = createUseStyles({
 
 interface EmailLoginFormProps {
     showDivider?: boolean;
+    /** Placeholder of the email input; defaults to the sign-in one. */
+    emailPlaceholder?: string;
+    /** Label of the submit button; defaults to the sign-in one. */
+    submitLabel?: string;
+    /** Divider caption shown under the form when `showDivider` is set. */
+    dividerLabel?: string;
 }
 
-export const EmailLoginForm = ({ showDivider }: EmailLoginFormProps) => {
+export const EmailLoginForm = ({
+    showDivider,
+    emailPlaceholder,
+    submitLabel,
+    dividerLabel,
+}: EmailLoginFormProps) => {
     const classes = useStyles();
     const { t } = useTranslation('common');
     const [email, setEmail] = useState('');
@@ -118,7 +129,7 @@ export const EmailLoginForm = ({ showDivider }: EmailLoginFormProps) => {
                 <input
                     type="email"
                     className={classes.input}
-                    placeholder={t('SignIn.emailPlaceholder')}
+                    placeholder={emailPlaceholder || t('SignIn.emailPlaceholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -129,10 +140,10 @@ export const EmailLoginForm = ({ showDivider }: EmailLoginFormProps) => {
                     </div>
                 )}
                 <button type="submit" className={classes.button} disabled={loading}>
-                    {loading ? t('SignIn.sending') : t('SignIn.sendMagicLink')}
+                    {loading ? t('SignIn.sending') : submitLabel || t('SignIn.sendMagicLink')}
                 </button>
             </form>
-            {showDivider && <div className={classes.divider}>{t('SignIn.orUsePassword')}</div>}
+            {showDivider && <div className={classes.divider}>{dividerLabel || t('SignIn.orUsePassword')}</div>}
         </div>
     );
 };

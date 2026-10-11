@@ -269,6 +269,8 @@
     "SignUp": {
         "header": "Registrace",
         "subheader": "Vítejte na česko-slovenské larpové databázi. Stačí vám e-mail a heslo — zbytek informací si doplníte ve svém profilu po přihlášení.",
+        "sendMagicLink": "Zaregistrovat se odkazem",
+        "orUsePassword": "nebo si nastavte heslo (volitelné)",
         "submit": "Registrovat",
         "emailAlreadyUsed": "Tento e-mail je již používán uživatelem {{name}}. Pokud je účet váš, můžete si obnovit heslo na stránce",
         "forgotPassword": "Zapomenuté heslo"

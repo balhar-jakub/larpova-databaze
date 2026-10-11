@@ -15,6 +15,7 @@ import {
 } from '../../graphql/__generated__/typescript-operations'
 import { TextLink } from '../common/TextLink/TextLink'
 import ReCaptchaField from './ReCaptchaField'
+import { EmailLoginForm } from '../SignIn/EmailLoginForm'
 import { useIsEmailAvailable } from '../../hooks/useIsEmailAvailable'
 import { useFocusInput } from '../../hooks/useFocusInput'
 import SubmitButton from '../common/SubmitButton/SubmitButton'
@@ -96,6 +97,17 @@ const SignUpPanel = () => {
 
     return (
         <FormPageRow headerText={t('SignUp.header')}>
+            {/*
+                The primary registration path is the magic link: the visitor only
+                enters an email and the account is created by startEmailLogin's
+                auto-registration when the link is used. The password form below
+                is the optional alternative.
+            */}
+            <EmailLoginForm
+                showDivider
+                submitLabel={t('SignUp.sendMagicLink')}
+                dividerLabel={t('SignUp.orUsePassword')}
+            />
             <FinalForm<FormData>
                 onSubmit={onSubmit}
                 validate={validate(t)}
