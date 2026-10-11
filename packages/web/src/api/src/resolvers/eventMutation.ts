@@ -23,7 +23,10 @@ interface EventInput {
   amountOfPlayers?: number;
   web?: string;
   registrationUrl?: string;
+  /** @deprecated use registrationStatus instead */
   registrationOpen?: boolean;
+  registrationStatus?: RegistrationStatus | null;
+  registrationOpensAt?: string | null;
   loc?: string;
   description?: string;
   games: string[];
@@ -33,6 +36,9 @@ interface EventInput {
   longitude?: number;
   coverImage?: { fileName: string; contents: string };
 }
+
+export const REGISTRATION_STATUSES = ['UPCOMING', 'OPEN', 'CLOSED'] as const;
+export type RegistrationStatus = typeof REGISTRATION_STATUSES[number];
 
 export function normalizeOptionalHttpUrl(value?: string): string | null {
   const url = value?.trim();
@@ -49,9 +55,47 @@ export function normalizeOptionalHttpUrl(value?: string): string | null {
   }
 }
 
-export function normalizeRegistrationInput(value: string | undefined, open?: boolean) {
+/**
+ * Resolve the tri-state registration from the input. New clients send
+ * `registrationStatus`; the deprecated `registrationOpen` boolean is mapped
+ * so old clients keep working (OPEN when true, CLOSED when false and a URL
+ * is given, nothing otherwise).
+ */
+function resolveRegistrationStatus(value: string | undefined | null, open: boolean | undefined, registrationUrl: string | null): RegistrationStatus | null {
+  if (value === '') return null;
+  if (value != null) {
+    if (!(REGISTRATION_STATUSES as readonly string[]).includes(value)) {
+      throw new GraphQLError('Invalid registration status', {
+        extensions: { code: 'INVALID_VALUE' },
+      });
+    }
+    return value as RegistrationStatus;
+  }
+  // Legacy boolean input.
+  if (open) return 'OPEN';
+  if (registrationUrl) return 'CLOSED';
+  return null;
+}
+
+/**
+ * The sign-up opens-at time; stored only while the status is UPCOMING
+ * (elsewhere it is meaningless and dropped), always normalized to a Date.
+ */
+function resolveRegistrationOpensAt(value: string | null | undefined, status: RegistrationStatus | null): Date | null {
+  if (status !== 'UPCOMING' || !value) return null;
+  const parsed = new Date(value);
+  if (isNaN(parsed.getTime())) {
+    throw new GraphQLError('Invalid registration opens-at date', {
+      extensions: { code: 'INVALID_VALUE' },
+    });
+  }
+  return parsed;
+}
+
+export function normalizeRegistrationInput(value: string | undefined, open?: boolean, status?: string | null, opensAt?: string | null) {
   const registrationUrl = normalizeOptionalHttpUrl(value);
-  if (open && !registrationUrl) {
+  const registrationStatus = resolveRegistrationStatus(status, open, registrationUrl);
+  if (registrationStatus === 'OPEN' && !registrationUrl) {
     throw new GraphQLError('Open registration requires a registration URL', {
       extensions: { code: 'INVALID_VALUE' },
     });
@@ -59,7 +103,8 @@ export function normalizeRegistrationInput(value: string | undefined, open?: boo
 
   return {
     registrationUrl,
-    registrationOpen: Boolean(open && registrationUrl),
+    registrationStatus,
+    registrationOpensAt: resolveRegistrationOpensAt(opensAt, registrationStatus),
   };
 }
 
@@ -111,7 +156,7 @@ export async function createEventResolver(
 ) {
   requireAuth(ctx);
   const { input } = args;
-  const registration = normalizeRegistrationInput(input.registrationUrl, input.registrationOpen);
+  const registration = normalizeRegistrationInput(input.registrationUrl, input.registrationOpen, input.registrationStatus, input.registrationOpensAt);
 
   const event = await ctx.db.event.create({
     data: {
@@ -120,7 +165,8 @@ export async function createEventResolver(
       loc: input.loc ?? null,
       web: input.web ?? null,
       registration_url: registration.registrationUrl,
-      registration_open: registration.registrationOpen,
+      registration_status: registration.registrationStatus,
+      registration_opens_at: registration.registrationOpensAt,
       from: new Date(input.fromDate),
       to: new Date(input.toDate),
       amountofplayers: input.amountOfPlayers ?? null,
@@ -182,7 +228,7 @@ export async function updateEventResolver(
   const { input } = args;
   const eventId = parseInt(input.id, 10);
   if (isNaN(eventId)) throw new GraphQLError('Invalid event ID');
-  const registration = normalizeRegistrationInput(input.registrationUrl, input.registrationOpen);
+  const registration = normalizeRegistrationInput(input.registrationUrl, input.registrationOpen, input.registrationStatus, input.registrationOpensAt);
 
   await ctx.db.event.update({
     where: { id: eventId },
@@ -192,7 +238,8 @@ export async function updateEventResolver(
       loc: input.loc ?? null,
       web: input.web ?? null,
       registration_url: registration.registrationUrl,
-      registration_open: registration.registrationOpen,
+      registration_status: registration.registrationStatus,
+      registration_opens_at: registration.registrationOpensAt,
       from: new Date(input.fromDate),
       to: new Date(input.toDate),
       amountofplayers: input.amountOfPlayers ?? null,

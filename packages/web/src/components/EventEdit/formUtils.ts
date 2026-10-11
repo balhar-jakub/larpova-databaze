@@ -21,7 +21,9 @@ export interface FormValues {
     amountOfPlayers?: string
     web?: string
     registrationUrl?: string
-    registrationOpen: boolean
+    registrationStatus: string
+    registrationOpensDate?: Date
+    registrationOpensTime?: string
     loc: string
     games: LinkedGame[]
     description?: string | EditorState
@@ -72,13 +74,23 @@ export const validate = (t: TFunction) => (data: FormValues) => {
         }
     }
 
-    if (data.registrationOpen && !data.registrationUrl?.trim()) {
+    if (data.registrationStatus === 'OPEN' && !data.registrationUrl?.trim()) {
         res.registrationUrl = t('EventEdit.registrationUrlRequiredWhenOpen')
     } else if (data.registrationUrl && !isAbsoluteHttpUrl(data.registrationUrl)) {
         res.registrationUrl = t('Errors.invalidUrl')
     }
 
     return res
+}
+
+const buildOpensAtDateTime = (data: FormValues): string | undefined => {
+    if (data.registrationStatus !== 'UPCOMING') {
+        return undefined
+    }
+
+    return data.registrationOpensDate
+        ? buildDateTime(data.registrationOpensDate, data.registrationOpensTime)
+        : undefined
 }
 
 export const createInputFromValues = (data: FormValues): CreateEventInput => ({
@@ -88,7 +100,8 @@ export const createInputFromValues = (data: FormValues): CreateEventInput => ({
     amountOfPlayers: data.amountOfPlayers ? parseInt(data.amountOfPlayers, 10) : undefined,
     web: data.web,
     registrationUrl: data.registrationUrl,
-    registrationOpen: data.registrationOpen,
+    registrationStatus: (data.registrationStatus || undefined) as CreateEventInput['registrationStatus'],
+    registrationOpensAt: buildOpensAtDateTime(data),
     loc: data.loc,
     description: editorStateToHtml(data.description),
     games: data.games.map(({ id }) => id),
@@ -124,10 +137,22 @@ const getTime = (dateTime: string | undefined | null) => {
     return match[2]
 }
 
-type LoadedEvent = Pick<Event, 'id' | 'name' | 'from' | 'to' | 'amountOfPlayers' | 'web' | 'registrationUrl' | 'registrationOpen' | 'loc' | 'description'> & {
+type LoadedEvent = Pick<Event, 'id' | 'name' | 'from' | 'to' | 'amountOfPlayers' | 'web' | 'registrationUrl' | 'registrationStatus' | 'registrationOpensAt' | 'loc' | 'description'> & {
     games?: Maybe<Array<Pick<Game, 'id' | 'name' | 'year'>>>
     labels?: Maybe<Array<Pick<Label, 'id' | 'name' | 'description' | 'isRequired'>>>
 }
+
+const getOpensDate = (opensAt: string | null | undefined): Date | undefined => {
+    const match = parseDateTime(opensAt)
+    if (!match) {
+        return undefined
+    }
+
+    return new Date(match[1])
+}
+
+const getOpensTime = (opensAt: string | null | undefined): string | undefined =>
+    getTime(opensAt)
 
 export const toInitialValues = (event: LoadedEvent): FormValues => ({
     name: event.name ?? '',
@@ -138,7 +163,9 @@ export const toInitialValues = (event: LoadedEvent): FormValues => ({
     amountOfPlayers: event.amountOfPlayers?.toString(),
     web: event.web ?? undefined,
     registrationUrl: event.registrationUrl ?? undefined,
-    registrationOpen: event.registrationOpen,
+    registrationStatus: event.registrationStatus ?? '',
+    registrationOpensDate: getOpensDate(event.registrationOpensAt),
+    registrationOpensTime: getOpensTime(event.registrationOpensAt),
     loc: event.loc ?? '',
     description: event.description ?? undefined,
     games: (event.games ?? []).map(({ id, name, year }) => ({
@@ -153,7 +180,7 @@ export const toInitialValues = (event: LoadedEvent): FormValues => ({
 
 export const emptyInitialValues: FormValues = {
     name: '',
-    registrationOpen: false,
+    registrationStatus: '',
     loc: '',
     games: [],
     requiredLabels: [],

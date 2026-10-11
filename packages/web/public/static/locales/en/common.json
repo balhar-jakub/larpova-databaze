@@ -55,6 +55,8 @@
     "registrationClosed": "Registration closed",
     "registrationOrganizerForm": "organizer's form",
     "registrationOpen": "Registration open",
+    "registrationUpcoming": "Registration will open later",
+    "registrationOpensOn": "Registration opens {{date}}",
     "loc": "Location"
   },
   "Calendar": {
@@ -123,6 +125,7 @@
     "international": "international",
     "registrationOpenPill": "registration open",
     "registrationClosedPill": "registration closed",
+    "registrationUpcomingPill": "registration will open",
     "noPlace": "no location",
     "players_0": "{{count}} player",
     "players_1": "{{count}} players",
@@ -191,6 +194,14 @@
   "EventEdit": {
     "registrationUrl": "Registration link",
     "registrationUrlHint": "Direct link to the registration form or ticket sales",
+    "registrationStatus": "Registration",
+    "registrationStatusHint": "The sign-up state; you can fill in the link later by editing the event",
+    "registrationStatusNone": "not stated",
+    "registrationStatusUpcoming": "will open later",
+    "registrationStatusOpen": "open",
+    "registrationStatusClosed": "closed",
+    "registrationOpensDate": "Registration opens (date)",
+    "registrationOpensTime": "Registration opens (time)",
     "registrationOpen": "Registration is open",
     "registrationOpenHint": "Enable only while people can register using the link",
     "registrationUrlRequiredWhenOpen": "A link is required when registration is open",

@@ -150,6 +150,8 @@ const EventDetailPanel = ({ eventId }: Props) => {
                                     <EventRegistrationLink
                                         url={event.registrationUrl}
                                         open={event.registrationOpen}
+                                        status={event.registrationStatus}
+                                        opensAt={event.registrationOpensAt}
                                         onDarkBackground
                                     />
                                 </div>

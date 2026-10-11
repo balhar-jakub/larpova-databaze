@@ -32,28 +32,83 @@ describe('normalizeOptionalHttpUrl', () => {
 });
 
 describe('normalizeRegistrationInput', () => {
-  it('rejects open registration without a URL', () => {
+  it('rejects open registration without a URL (status input)', () => {
+    expect(() => normalizeRegistrationInput(undefined, undefined, 'OPEN')).toThrow(GraphQLError);
+  });
+
+  it('rejects open registration without a URL (legacy boolean input)', () => {
     expect(() => normalizeRegistrationInput(undefined, true)).toThrow(GraphQLError);
   });
 
-  it('normalizes a valid open registration', () => {
-    expect(normalizeRegistrationInput(' https://example.test/form ', true)).toEqual({
+  it('rejects an unknown status value', () => {
+    expect(() => normalizeRegistrationInput(undefined, undefined, 'SOMEDAY')).toThrow(GraphQLError);
+  });
+
+  it('normalizes a valid open registration (status input)', () => {
+    expect(normalizeRegistrationInput(' https://example.test/form ', undefined, 'OPEN')).toEqual({
       registrationUrl: 'https://example.test/form',
-      registrationOpen: true,
+      registrationStatus: 'OPEN',
+      registrationOpensAt: null,
     });
   });
 
-  it('allows a closed registration link', () => {
+  it('maps the legacy open boolean to OPEN', () => {
+    expect(normalizeRegistrationInput('https://example.test/form', true)).toEqual({
+      registrationUrl: 'https://example.test/form',
+      registrationStatus: 'OPEN',
+      registrationOpensAt: null,
+    });
+  });
+
+  it('maps the legacy closed boolean with a URL to CLOSED', () => {
     expect(normalizeRegistrationInput('https://example.test/form', false)).toEqual({
       registrationUrl: 'https://example.test/form',
-      registrationOpen: false,
+      registrationStatus: 'CLOSED',
+      registrationOpensAt: null,
     });
   });
 
-  it('defaults omitted registration state to closed', () => {
+  it('defaults omitted registration state to none', () => {
     expect(normalizeRegistrationInput('https://example.test/form')).toEqual({
       registrationUrl: 'https://example.test/form',
-      registrationOpen: false,
+      registrationStatus: 'CLOSED',
+      registrationOpensAt: null,
+    });
+  });
+
+  it('allows upcoming registration without a URL', () => {
+    expect(normalizeRegistrationInput(undefined, undefined, 'UPCOMING')).toEqual({
+      registrationUrl: null,
+      registrationStatus: 'UPCOMING',
+      registrationOpensAt: null,
+    });
+  });
+
+  it('keeps the opens-at time only for UPCOMING', () => {
+    const opensAt = '2026-11-15T10:00:00.000Z';
+
+    expect(normalizeRegistrationInput(undefined, undefined, 'UPCOMING', opensAt)).toEqual({
+      registrationUrl: null,
+      registrationStatus: 'UPCOMING',
+      registrationOpensAt: new Date(opensAt),
+    });
+
+    expect(normalizeRegistrationInput('https://example.test/form', undefined, 'OPEN', opensAt)).toEqual({
+      registrationUrl: 'https://example.test/form',
+      registrationStatus: 'OPEN',
+      registrationOpensAt: null,
+    });
+  });
+
+  it('rejects a malformed opens-at time', () => {
+    expect(() => normalizeRegistrationInput(undefined, undefined, 'UPCOMING', 'not a date')).toThrow(GraphQLError);
+  });
+
+  it('treats an explicit empty-string status as no registration', () => {
+    expect(normalizeRegistrationInput('https://example.test/form', undefined, '')).toEqual({
+      registrationUrl: 'https://example.test/form',
+      registrationStatus: null,
+      registrationOpensAt: null,
     });
   });
 });
@@ -66,7 +121,7 @@ const eventInput = {
   labels: [],
   newLabels: [],
   registrationUrl: 'https://example.test/form',
-  registrationOpen: true,
+  registrationStatus: 'OPEN' as const,
 };
 
 const eventRow = {
@@ -75,7 +130,8 @@ const eventRow = {
   from: new Date(eventInput.fromDate),
   to: new Date(eventInput.toDate),
   registration_url: eventInput.registrationUrl,
-  registration_open: true,
+  registration_status: 'OPEN',
+  registration_opens_at: null,
   event_has_labels: [],
   csld_game_has_event: [],
 };
@@ -117,7 +173,8 @@ describe('event registration persistence', () => {
     expect(event.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         registration_url: 'https://example.test/form',
-        registration_open: true,
+        registration_status: 'OPEN',
+        registration_opens_at: null,
       }),
     });
   });
@@ -131,7 +188,8 @@ describe('event registration persistence', () => {
       where: { id: 123 },
       data: expect.objectContaining({
         registration_url: 'https://example.test/form',
-        registration_open: true,
+        registration_status: 'OPEN',
+        registration_opens_at: null,
       }),
     });
   });
@@ -141,10 +199,39 @@ describe('event registration GraphQL field mapping', () => {
   it('maps snake_case database fields', () => {
     expect(resolvers.Event.registrationUrl(eventRow)).toBe('https://example.test/form');
     expect(resolvers.Event.registrationOpen(eventRow)).toBe(true);
+    expect(resolvers.Event.registrationStatus(eventRow)).toBe('OPEN');
+    expect(resolvers.Event.registrationOpensAt(eventRow)).toBeNull();
+  });
+
+  it('derives registrationOpen from the tri-state status', () => {
+    expect(resolvers.Event.registrationOpen({ registration_status: 'OPEN' })).toBe(true);
+    expect(resolvers.Event.registrationOpen({ registration_status: 'UPCOMING' })).toBe(false);
+    expect(resolvers.Event.registrationOpen({ registration_status: 'CLOSED' })).toBe(false);
+  });
+
+  it('serves registrationOpensAt only for UPCOMING rows', () => {
+    const opensAt = new Date('2026-11-15T10:00:00.000Z');
+
+    expect(resolvers.Event.registrationOpensAt({
+      registration_status: 'UPCOMING',
+      registration_opens_at: opensAt,
+    })).toBe(opensAt.toISOString());
+
+    expect(resolvers.Event.registrationOpensAt({
+      registration_status: 'OPEN',
+      registration_opens_at: opensAt,
+    })).toBeNull();
+  });
+
+  it('honors the legacy registration_open column for non-migrated rows', () => {
+    expect(resolvers.Event.registrationOpen({ registration_open: true })).toBe(true);
+    expect(resolvers.Event.registrationOpen({ registration_open: false })).toBe(false);
   });
 
   it('defaults legacy rows without registration fields', () => {
     expect(resolvers.Event.registrationUrl({})).toBeNull();
     expect(resolvers.Event.registrationOpen({})).toBe(false);
+    expect(resolvers.Event.registrationStatus({})).toBeNull();
+    expect(resolvers.Event.registrationOpensAt({})).toBeNull();
   });
 });

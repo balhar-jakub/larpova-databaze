@@ -26,7 +26,8 @@ import { useShowToast } from '../../hooks/useShowToast'
 import BigLoading from '../common/BigLoading/BigLoading'
 import SubmitButton from '../common/SubmitButton/SubmitButton'
 import FormDateInputField from '../common/form/FormDateInputField'
-import FormCheckBoxField from '../common/form/FormCheckBoxField'
+import FormSelectField from '../common/form/FormSelectField'
+import { FormSpy } from 'react-final-form'
 
 const createEventGql = require('./graphql/createEvent.graphql')
 const updateEventGql = require('./graphql/updateEvent.graphql')
@@ -161,16 +162,41 @@ const EventEditForm = ({
                                             validate={fieldValidator(t, validatePositiveInteger)}
                                         />
                                         <FormTextInputField name="web" placeholder={t('EventEdit.web')} />
+                                        <FormSelectField
+                                            name="registrationStatus"
+                                            label={t('EventEdit.registrationStatus')}
+                                            hint={t('EventEdit.registrationStatusHint')}
+                                            options={[
+                                                { value: '', label: t('EventEdit.registrationStatusNone') },
+                                                { value: 'UPCOMING', label: t('EventEdit.registrationStatusUpcoming') },
+                                                { value: 'OPEN', label: t('EventEdit.registrationStatusOpen') },
+                                                { value: 'CLOSED', label: t('EventEdit.registrationStatusClosed') },
+                                            ]}
+                                        />
                                         <FormTextInputField
                                             name="registrationUrl"
                                             placeholder={t('EventEdit.registrationUrl')}
                                             hint={t('EventEdit.registrationUrlHint')}
                                         />
-                                        <FormCheckBoxField
-                                            name="registrationOpen"
-                                            label={t('EventEdit.registrationOpen')}
-                                            hint={t('EventEdit.registrationOpenHint')}
-                                        />
+                                        <FormSpy<FormValues> subscription={{ values: true }}>
+                                            {({ values }) => values.registrationStatus === 'UPCOMING' && (
+                                                <Row>
+                                                    <Col md={6}>
+                                                        <FormDateInputField
+                                                            name="registrationOpensDate"
+                                                            placeholder={t('EventEdit.registrationOpensDate')}
+                                                        />
+                                                    </Col>
+                                                    <Col md={6}>
+                                                        <FormTextInputField
+                                                            name="registrationOpensTime"
+                                                            placeholder={t('EventEdit.registrationOpensTime')}
+                                                            hint={t('EventEdit.timeHint')}
+                                                        />
+                                                    </Col>
+                                                </Row>
+                                            )}
+                                        </FormSpy>
                                         <FormTextInputField name="loc" placeholder={t('EventEdit.loc')} />
                                         <FormFileInputField
                                             name="coverImage"

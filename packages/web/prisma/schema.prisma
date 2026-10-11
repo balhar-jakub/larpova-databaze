@@ -259,7 +259,8 @@ model event {
   added_by             Int?
   web                  String?
   registration_url     String?
-  registration_open    Boolean               @default(false)
+  registration_status  String?
+  registration_opens_at DateTime?          @db.Timestamptz(6)
   deleted              Boolean?              @default(false)
   lang                 String?
   gcaleventid          String?               @db.VarChar(100)

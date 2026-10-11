@@ -225,7 +225,7 @@ describe('homepage — the anonymous blocks', () => {
         from: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
         to: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000),
         registration_url: 'https://example.test/form',
-        registration_open: true,
+        registration_status: 'OPEN',
       },
     });
     openRegSoonestId = openRegSoonest.id;
@@ -237,7 +237,7 @@ describe('homepage — the anonymous blocks', () => {
         from: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         to: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000),
         registration_url: 'https://example.test/form-later',
-        registration_open: true,
+        registration_status: 'OPEN',
       },
     });
     openRegLaterId = openRegLater.id;
@@ -249,7 +249,7 @@ describe('homepage — the anonymous blocks', () => {
         from: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
         to: new Date(Date.now() + 22 * 24 * 60 * 60 * 1000),
         registration_url: 'https://example.test/form-closed',
-        registration_open: false,
+        registration_status: 'CLOSED',
       },
     });
     closedRegEventId = closedReg.id;
@@ -260,7 +260,7 @@ describe('homepage — the anonymous blocks', () => {
         deleted: false,
         from: new Date(Date.now() + 23 * 24 * 60 * 60 * 1000),
         to: new Date(Date.now() + 24 * 24 * 60 * 60 * 1000),
-        registration_open: true,
+        registration_status: 'OPEN',
       },
     });
     noUrlOpenRegEventId = noUrlOpenReg.id;
@@ -272,7 +272,7 @@ describe('homepage — the anonymous blocks', () => {
         from: daysAgo(10),
         to: daysAgo(9),
         registration_url: 'https://example.test/form-past',
-        registration_open: true,
+        registration_status: 'OPEN',
       },
     });
     pastOpenRegEventId = pastOpenReg.id;
@@ -853,7 +853,7 @@ describe('homepage — the personal blocks', () => {
       data: {
         name: `${marker} běh s přihláškou`,
         deleted: false,
-        registration_open: true,
+        registration_status: 'OPEN',
         registration_url: 'https://example.test/prihlaska',
         from: new Date(Date.now() + 40 * 864e5),
         to: new Date(Date.now() + 41 * 864e5),
@@ -863,7 +863,7 @@ describe('homepage — the personal blocks', () => {
       data: {
         name: `${marker} pozdější běh`,
         deleted: false,
-        registration_open: true,
+        registration_status: 'OPEN',
         registration_url: 'https://example.test/pozdeji',
         from: new Date(Date.now() + 50 * 864e5),
         to: new Date(Date.now() + 51 * 864e5),
@@ -873,7 +873,7 @@ describe('homepage — the personal blocks', () => {
       data: {
         name: `${marker} zavřená přihláška`,
         deleted: false,
-        registration_open: false,
+        registration_status: 'CLOSED',
         registration_url: 'https://example.test/zavreno',
         from: new Date(Date.now() + 45 * 864e5),
         to: new Date(Date.now() + 46 * 864e5),
@@ -883,7 +883,7 @@ describe('homepage — the personal blocks', () => {
       data: {
         name: `${marker} akce bez chuti`,
         deleted: false,
-        registration_open: true,
+        registration_status: 'OPEN',
         registration_url: 'https://example.test/bez-chuti',
         from: new Date(Date.now() + 42 * 864e5),
         to: new Date(Date.now() + 43 * 864e5),
