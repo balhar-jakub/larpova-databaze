@@ -119,7 +119,7 @@ export async function logOutResolver(
 interface CreateUserInput {
   email: string;
   password: string;
-  name: string;
+  name?: string;
   nickname?: string;
   birthDate?: string;
   city?: string;
@@ -135,7 +135,7 @@ export async function createUserResolver(
 ) {
   const { input } = args;
 
-  if (!input.email || !input.password || !input.name) {
+  if (!input.email || !input.password) {
     throw new GraphQLError('Missing required fields', {
       extensions: { code: 'VALIDATION_FAILED' },
     });
@@ -171,7 +171,10 @@ export async function createUserResolver(
     data: {
       email: input.email.toLowerCase(),
       password: passwordHash,
-      name: input.name,
+      // Registration only asks for email + password; the display name is a
+      // placeholder from the email the user can change in settings after
+      // signing in (same fallback as startEmailLogin's auto-registration).
+      name: input.name?.trim() || input.email.split('@')[0],
       nickname: input.nickname ?? null,
       birth_date: input.birthDate ? new Date(input.birthDate) : null,
       address: input.city ?? null,

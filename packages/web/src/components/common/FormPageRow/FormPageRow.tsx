@@ -5,6 +5,7 @@ import { WidthFixer } from '../WidthFixer/WidthFixer'
 
 interface Props {
     readonly headerText?: string
+    readonly children?: React.ReactNode
 }
 
 const useStyles = createUseStyles({

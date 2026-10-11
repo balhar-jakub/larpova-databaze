@@ -268,11 +268,10 @@
     },
     "SignUp": {
         "header": "Registrace",
-        "subheader": "Vítejte na česko-slovenské larpové databázi. Po vyplnění formuláře se stanete registrovaným uživatelem a můžete tak využít všech funkcí jako hodnocení a a komentování jednotlivých larpů, stejně jako jejich zařazení do vaší larpotéky.",
+        "subheader": "Vítejte na česko-slovenské larpové databázi. Stačí vám e-mail a heslo — zbytek informací si doplníte ve svém profilu po přihlášení.",
         "submit": "Registrovat",
         "emailAlreadyUsed": "Tento e-mail je již používán uživatelem {{name}}. Pokud je účet váš, můžete si obnovit heslo na stránce",
-        "forgotPassword": "Zapomenuté heslo",
-        "profilePictureHint": "Vyberte svoji profilovou fotografii o rozměrech 120x120px. Maximální velikost fotografie jsou 2MB."
+        "forgotPassword": "Zapomenuté heslo"
     },
     "FormFileInput": {
         "defaultLabel": "Vybrat...",

@@ -13,6 +13,18 @@
     "magicLinkError": "Failed to send. Please try again.",
     "orUsePassword": "or use your password"
   },
+  "UserFields": {
+    "email": "Email",
+    "password": "Password",
+    "passwordAgain": "Password again"
+  },
+  "SignUp": {
+    "header": "Sign up",
+    "subheader": "Welcome to the Czech-Slovak larp database. All you need is an email and a password \u2014 you can fill in the rest of your profile after signing in.",
+    "submit": "Create account",
+    "emailAlreadyUsed": "This email is already used by {{name}}. If the account is yours, you can recover your password on the",
+    "forgotPassword": "Password recovery"
+  },
   "GameDetail": {
     "rate": "Your rating:",
     "changeRating": "Change your rating:",

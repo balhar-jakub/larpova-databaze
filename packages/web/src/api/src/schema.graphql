@@ -450,7 +450,7 @@ input CreateUserInput {
     email: String!
     password: String!
     profilePicture: UploadedFileInput
-    name: String!
+    name: String
     nickname: String
     birthDate: String
     city: String
