@@ -20,9 +20,12 @@
   },
   "SignUp": {
     "header": "Sign up",
-    "sendMagicLink": "Register with a login link",
-    "orUsePassword": "or set a password (optional)",
-    "subheader": "Welcome to the Czech-Slovak larp database. All you need is an email and a password \u2014 you can fill in the rest of your profile after signing in.",
+    "linkIntro": "All we need is your email \u2014 we will send you a link to sign in with. The account is created automatically; you can fill in the rest of your profile later.",
+    "passwordIntro": "Create the account with a password \u2014 you will then sign in with your email and password. No link will be sent to your inbox.",
+    "sendMagicLink": "Send a login link",
+    "setPasswordToggle": "I want to set a password right away",
+    "backToLinkToggle": "Back to signing in with a link",
+    "linkNotArrivedUsePassword": "Link not arrived? Set a password instead",
     "submit": "Create account",
     "emailAlreadyUsed": "This email is already used by {{name}}. If the account is yours, you can recover your password on the",
     "forgotPassword": "Password recovery"

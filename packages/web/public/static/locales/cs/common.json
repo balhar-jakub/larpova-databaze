@@ -268,9 +268,12 @@
     },
     "SignUp": {
         "header": "Registrace",
-        "subheader": "Vítejte na česko-slovenské larpové databázi. Stačí vám e-mail a heslo — zbytek informací si doplníte ve svém profilu po přihlášení.",
-        "sendMagicLink": "Zaregistrovat se odkazem",
-        "orUsePassword": "nebo si nastavte heslo (volitelné)",
+        "linkIntro": "Stačí vám e-mail — pošleme vám odkaz, kterým se přihlásíte. Účet se vytvoří sám, zbytek informací si doplníte po přihlášení.",
+        "passwordIntro": "Účet si založíte heslem — přihlašovat se pak budete e-mailem a heslem. Odkaz do schránky se posílat nebude.",
+        "sendMagicLink": "Poslat odkaz pro přihlášení",
+        "setPasswordToggle": "Chci si rovnou nastavit heslo",
+        "backToLinkToggle": "Zpět na přihlášení odkazem",
+        "linkNotArrivedUsePassword": "Odkaz nedorazil? Nastavte si místo něj heslo",
         "submit": "Registrovat",
         "emailAlreadyUsed": "Tento e-mail je již používán uživatelem {{name}}. Pokud je účet váš, můžete si obnovit heslo na stránce",
         "forgotPassword": "Zapomenuté heslo"

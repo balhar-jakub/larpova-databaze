@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { Form as FinalForm } from 'react-final-form';
 import { useMutation } from '@apollo/client';
-import { createUseStyles } from 'react-jss';
 import { useTranslation } from '../../lib/i18n';
+import { createUseStyles } from 'react-jss';
 import { darkTheme } from '../../theme/darkTheme';
+import { fieldValidator, validateEmail, validateRequired } from '../../utils/validationUtils';
+import FormTextInputField from '../common/form/FormTextInputField';
+import SubmitButton from '../common/SubmitButton/SubmitButton';
 import {
     StartEmailLoginMutation,
     StartEmailLoginMutationVariables,
@@ -13,36 +17,6 @@ const startEmailLoginGql = require('./graphql/startEmailLogin.graphql');
 const useStyles = createUseStyles({
     wrapper: {
         margin: '12px 0',
-    },
-    input: {
-        width: '100%',
-        padding: '10px 12px',
-        border: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
-        borderRadius: 4,
-        backgroundColor: darkTheme.backgroundRealWhite,
-        color: darkTheme.textOnLightDark,
-        fontSize: '0.9rem',
-        marginBottom: 8,
-        '&::placeholder': {
-            color: darkTheme.textDark,
-        },
-    },
-    button: {
-        width: '100%',
-        padding: '10px 16px',
-        border: 'none',
-        borderRadius: 4,
-        backgroundColor: darkTheme.textGreen,
-        color: darkTheme.backgroundRealWhite,
-        fontSize: '0.9rem',
-        cursor: 'pointer',
-        '&:hover': {
-            opacity: 0.9,
-        },
-        '&:disabled': {
-            opacity: 0.5,
-            cursor: 'not-allowed',
-        },
     },
     feedback: {
         textAlign: 'center',
@@ -62,62 +36,56 @@ const useStyles = createUseStyles({
         '&::before': {
             content: '""',
             flex: 1,
-            borderBottom: `1px solid ${darkTheme.borderLight}`,
+            borderBottom: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
             marginRight: 12,
         },
         '&::after': {
             content: '""',
             flex: 1,
-            borderBottom: `1px solid ${darkTheme.borderLight}`,
+            borderBottom: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
             marginLeft: 12,
         },
     },
 });
 
-interface EmailLoginFormProps {
-    showDivider?: boolean;
-    /** Placeholder of the email input; defaults to the sign-in one. */
-    emailPlaceholder?: string;
-    /** Label of the submit button; defaults to the sign-in one. */
-    submitLabel?: string;
-    /** Divider caption shown under the form when `showDivider` is set. */
-    dividerLabel?: string;
+interface FormData {
+    email: string;
 }
 
-export const EmailLoginForm = ({
-    showDivider,
-    emailPlaceholder,
-    submitLabel,
-    dividerLabel,
-}: EmailLoginFormProps) => {
+interface EmailLoginFormProps {
+    showDivider?: boolean;
+}
+
+/**
+ * The email-only "magic link" login form. Uses the shared FormTextInputField +
+ * SubmitButton so the sign-in and sign-up pages speak one visual language.
+ */
+export const EmailLoginForm = ({ showDivider }: EmailLoginFormProps) => {
     const classes = useStyles();
     const { t } = useTranslation('common');
-    const [email, setEmail] = useState('');
-    const [sent, setSent] = useState(false);
+    const [sentTo, setSentTo] = useState<string | undefined>(undefined);
 
     const [startLogin, { loading, error }] = useMutation<
         StartEmailLoginMutation,
         StartEmailLoginMutationVariables
     >(startEmailLoginGql);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!email.includes('@')) return;
-
+    const handleSubmit = async (data: FormData) => {
+        const email = data.email.trim();
         const loginUrlTemplate = `${window.location.origin}/auth/email-login?token={token}`;
 
         await startLogin({
-            variables: { email: email.trim(), loginUrlTemplate },
+            variables: { email, loginUrlTemplate },
         });
 
-        setSent(true);
+        setSentTo(email);
     };
 
-    if (sent) {
+    if (sentTo) {
         return (
             <div className={classes.wrapper}>
                 <div className={classes.feedback}>
-                    {t('SignIn.magicLinkSent', { email })}
+                    {t('SignIn.magicLinkSent', { email: sentTo })}
                 </div>
             </div>
         );
@@ -125,25 +93,27 @@ export const EmailLoginForm = ({
 
     return (
         <div className={classes.wrapper}>
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="email"
-                    className={classes.input}
-                    placeholder={emailPlaceholder || t('SignIn.emailPlaceholder')}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                />
-                {error && (
-                    <div className={`${classes.feedback} ${classes.error}`}>
-                        {t('SignIn.magicLinkError')}
-                    </div>
+            <FinalForm<FormData>
+                onSubmit={handleSubmit}
+                render={({ handleSubmit: formSubmit }) => (
+                    <form onSubmit={formSubmit}>
+                        <FormTextInputField
+                            name="email"
+                            type="email"
+                            autoComplete="email"
+                            placeholder={t('SignIn.emailPlaceholder')}
+                            validate={fieldValidator(t, [validateRequired, validateEmail])}
+                        />
+                        {error && (
+                            <div className={`${classes.feedback} ${classes.error}`}>
+                                {t('SignIn.magicLinkError')}
+                            </div>
+                        )}
+                        <SubmitButton submitting={loading}>{t('SignIn.sendMagicLink')}</SubmitButton>
+                    </form>
                 )}
-                <button type="submit" className={classes.button} disabled={loading}>
-                    {loading ? t('SignIn.sending') : submitLabel || t('SignIn.sendMagicLink')}
-                </button>
-            </form>
-            {showDivider && <div className={classes.divider}>{dividerLabel || t('SignIn.orUsePassword')}</div>}
+            />
+            {showDivider && <div className={classes.divider}>{t('SignIn.orUsePassword')}</div>}
         </div>
     );
 };
