@@ -896,7 +896,7 @@
         "eventsLegendUnique": "unikátní akce",
         "eventsLegendRaw": "všechny záznamy v kalendáři",
         "ratingsTitle": "Jak byli larpi hodnoceni",
-        "ratingsSubtitle": "Podíl hlasů v pásmech doporučení. Šedý díl sloupce 2014 je jednorázový import starých hodnocení z 1. 6. 2014.",
+        "ratingsSubtitle": "Podíl hlasů v pásmech doporučení, od roku 2015. Starší hlasy přibyly jednorázovým importem z 1. 6. 2014 — grafy hodnocení je vynechávají.",
         "averageTitle": "Průměrné hodnocení a počet hlasů",
         "averageSubtitle": "Rok hlasu je rok, kdy bylo hodnocení přidáno, ne rok konání akce.",
         "averageLegendVotes": "hlasy přidané v roce",

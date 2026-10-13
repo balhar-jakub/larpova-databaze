@@ -318,7 +318,7 @@
     "eventsLegendUnique": "unique events",
     "eventsLegendRaw": "all calendar records",
     "ratingsTitle": "How larps were rated",
-    "ratingsSubtitle": "Share of votes per recommendation band. The grey part of 2014 is the one-time import of legacy ratings from 1 Jun 2014.",
+    "ratingsSubtitle": "Share of votes per recommendation band, from 2015 on. Older votes arrived in the one-time import of 1 Jun 2014 — the rating charts omit them.",
     "averageTitle": "Average rating and number of votes",
     "averageSubtitle": "A vote's year is the year it was added, not the year the event ran.",
     "averageLegendVotes": "votes added in the year",

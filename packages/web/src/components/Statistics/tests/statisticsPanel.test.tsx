@@ -122,4 +122,23 @@ describe('StatisticsPanel', () => {
         const notes = screen.getByTestId('statistics.notes')
         expect(notes.textContent).not.toContain('1. 6. 2014')
     })
+
+    it('omits pre-2015 years from the rating charts but keeps them in events', async () => {
+        queryAnswer = Promise.resolve({
+            data: {
+                statistics: statisticsData([
+                    year({ year: 2014, ratings: 7307, importedRatings: 5778, averageRating: 7.53, bands: [2540, 2818, 1429, 411, 109], events: 1 }),
+                    year(),
+                ]),
+            },
+        })
+        render(<StatisticsPanel />)
+        await screen.findByText('Kolik akcí proběhlo')
+        // The events chart still renders 2014 (its bar carries the year label)…
+        expect(screen.getByTestId('statistics.eventsChart').textContent).toContain('2014')
+        // …but none of the rating charts shows it.
+        expect(screen.getByTestId('statistics.bandsChart').textContent).not.toContain('2014')
+        expect(screen.getByTestId('statistics.averageChart').textContent).not.toContain('14')
+        expect(screen.getByTestId('statistics.votesChart').textContent).not.toContain('14')
+    })
 })

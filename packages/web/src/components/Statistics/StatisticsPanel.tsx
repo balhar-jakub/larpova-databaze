@@ -36,6 +36,15 @@ const BAND_COLORS = [
 /** Vote pairs, best first — numbers only, so no translation is needed. */
 const BAND_LABELS = ['9–10', '7–8', '5–6', '3–4', '1–2']
 
+/**
+ * The ratings charts start here: older votes are the 2014 one-time import of
+ * legacy ratings, so showing them next to the organic years would dwarf
+ * everything and say "the community voted like crazy in 2014" when it is
+ * really "the history arrived in one batch". Older years stay in the API and
+ * in the honesty notes — only the rating charts ignore them.
+ */
+const RATINGS_FROM_YEAR = 2015
+
 const fmt = (n: number) => new Intl.NumberFormat('cs-CZ').format(n)
 
 interface Props {}
@@ -267,7 +276,7 @@ const BandsChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, stri
     const PAD_L = 46
     const PAD_B = 24
     const PAD_T = 8
-    const rated = years.filter((y) => y.ratings > 0)
+    const rated = years.filter((y) => y.year >= RATINGS_FROM_YEAR && y.ratings > 0)
     const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(rated.length - 1, 1)
     const bw = ((W - PAD_L - 10) / Math.max(rated.length, 1)) * 0.6
     const areaH = H - PAD_B - PAD_T
@@ -326,7 +335,7 @@ const AverageChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, st
     const PAD_L = 40
     const PAD_B = 22
     const PAD_T = 10
-    const rated = years.filter((y): y is StatsYearRow & { averageRating: number } => y.averageRating !== null)
+    const rated = years.filter((y): y is StatsYearRow & { averageRating: number } => y.year >= RATINGS_FROM_YEAR && y.averageRating !== null)
     const ymin = 7.0
     const ymax = 9.0
     const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(rated.length - 1, 1)
@@ -373,7 +382,7 @@ const VotesChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, stri
     const PAD_L = 46
     const PAD_B = 22
     const PAD_T = 10
-    const rated = years.filter((y) => y.ratings > 0)
+    const rated = years.filter((y) => y.year >= RATINGS_FROM_YEAR && y.ratings > 0)
     const max = niceMax(Math.max(...rated.map((y) => y.ratings), 10))
     const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(rated.length - 1, 1)
     const y = (v: number) => H - PAD_B - (v * (H - PAD_B - PAD_T)) / max
