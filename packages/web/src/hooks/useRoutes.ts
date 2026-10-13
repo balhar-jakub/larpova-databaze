@@ -55,6 +55,8 @@ export const useRoutes = () => {
 
             calendar: (): Route => route('/kalendar'),
 
+            statistics: (): Route => route('/statistiky'),
+
             currentProfile: (): Route =>
               route('/profile?id=current', '/profile/current'),
 

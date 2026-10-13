@@ -47,6 +47,16 @@ export const componentTestIds = {
         items: 'carouselItems',
         item: (offset: number) => `carouselItem${offset}`,
     },
+    statistics: {
+        panel: 'statistics.panel',
+        eventsChart: 'statistics.eventsChart',
+        bandsChart: 'statistics.bandsChart',
+        averageChart: 'statistics.averageChart',
+        votesChart: 'statistics.votesChart',
+        newGamesChart: 'statistics.newGamesChart',
+        topGames: (year: number) => `statistics.topGames.${year}`,
+        notes: 'statistics.notes',
+    },
     search: {
         panel: 'search.panel',
         tabs: 'search.tabs',
