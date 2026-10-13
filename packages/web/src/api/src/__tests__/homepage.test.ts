@@ -68,6 +68,9 @@ describe('homepage — the anonymous blocks', () => {
   let recentOldEventId: number;
   /** A game with no event at all — must never appear. */
   let recentNoEventGameId: number;
+  /** A game whose only event lies in the future — upcoming, not recently played. */
+  let recentFutureGameId: number;
+  let recentFutureEventId: number;
   /** The twelve fixture games, best first. */
   const rankedGameIds: number[] = [];
   let excludedFewRatingsId: number;
@@ -214,6 +217,18 @@ describe('homepage — the anonymous blocks', () => {
     });
     recentNoEventGameId = recentNoEvent.id;
 
+    // A game whose only event is still ahead of us: it belongs to the
+    // upcoming blocks, not to "recently played".
+    const recentFuture = await prisma.csld_game.create({
+      data: { name: `${marker} teprve budoucí`, description: 'x', deleted: false, added_by: userId },
+    });
+    recentFutureGameId = recentFuture.id;
+    const recentFutureEvent = await prisma.event.create({
+      data: { name: `${marker} akce budoucí`, deleted: false, from: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), to: new Date(Date.now() + 61 * 24 * 60 * 60 * 1000) },
+    });
+    recentFutureEventId = recentFutureEvent.id;
+    await prisma.csld_game_has_event.create({ data: { game_id: recentFutureGameId, event_id: recentFutureEventId } });
+
     // The open-registration block: two events an outsider can still sign up
     // for (soonest first), and three that must stay out — a closed
     // registration, an open flag without a URL (a legacy row), and an open
@@ -299,7 +314,7 @@ describe('homepage — the anonymous blocks', () => {
     await prisma.csld_game_has_label.deleteMany({ where: { id_label: labelId } });
     await prisma.csld_label.deleteMany({ where: { id: { in: [labelId, emptyLabelId] } } });
     await prisma.csld_game_has_event.deleteMany({
-      where: { game_id: { in: [recentNewestGameId, recentSecondGameId, recentOldGameId] } },
+      where: { game_id: { in: [recentNewestGameId, recentSecondGameId, recentOldGameId, recentFutureGameId] } },
     });
     await prisma.event.deleteMany({
       where: {
@@ -309,6 +324,7 @@ describe('homepage — the anonymous blocks', () => {
             recentNewestEventId,
             recentSecondEventId,
             recentOldEventId,
+            recentFutureEventId,
             openRegSoonestId,
             openRegLaterId,
             closedRegEventId,
@@ -330,6 +346,7 @@ describe('homepage — the anonymous blocks', () => {
             recentSecondGameId,
             recentOldGameId,
             recentNoEventGameId,
+            recentFutureGameId,
           ],
         },
       },
@@ -382,10 +399,11 @@ describe('homepage — the anonymous blocks', () => {
     // The game with two events shows its latest one, not the older.
     expect(rows[newestAt].event.id).toBe(String(recentNewestEventId));
     expect(rows[secondAt].event.id).toBe(String(recentSecondEventId));
-    // The old event is outside the window and the game without an event never
-    // appears at all.
+    // The old event is outside the window, the game without an event and the
+    // game whose event still lies ahead never appear at all.
     expect(gameIds).not.toContain(String(recentOldGameId));
     expect(gameIds).not.toContain(String(recentNoEventGameId));
+    expect(gameIds).not.toContain(String(recentFutureGameId));
     // One row per game, even when the game has more events.
     expect(gameIds.filter((id: string) => id === String(recentSecondGameId)).length).toBe(1);
   });
