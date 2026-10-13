@@ -3,6 +3,7 @@
         "csld": "Larpová databáze",
         "games": "Hry",
         "calendar": "Kalendář akcí",
+        "statistics": "Statistiky",
         "blog": "Články",
         "addEvent": "+ Přidat událost do kalendáře",
         "addGame": "+ Přidat hru",
@@ -882,5 +883,37 @@
         "text": "Používáme Google Analytics, abychom věděli, které stránky databáze se používají. Bez tvého souhlasu sbíráme jen anonymní data bez cookies.",
         "accept": "Přijmout",
         "reject": "Odmítnout"
+    },
+    "Statistics": {
+        "pageTitle": "Statistiky",
+        "pageDescription": "Jak se proměňovaly larpy a jejich hodnocení — počty akcí, her a hodnocení po jednotlivých letech.",
+        "kpiGames": "her v databázi",
+        "kpiEvents": "unikátních akcí",
+        "kpiRatings": "hodnocení (hlasů)",
+        "kpiComments": "recenzí",
+        "eventsTitle": "Kolik akcí proběhlo",
+        "eventsSubtitle": "Zeleně unikátní akce; šedý stín jsou všechny záznamy v kalendáři (včetně duplicit z importů).",
+        "eventsLegendUnique": "unikátní akce",
+        "eventsLegendRaw": "všechny záznamy v kalendáři",
+        "ratingsTitle": "Jak byli larpi hodnoceni",
+        "ratingsSubtitle": "Podíl hlasů v pásmech doporučení. Šedý díl sloupce 2014 je jednorázový import starých hodnocení z 1. 6. 2014.",
+        "averageTitle": "Průměrné hodnocení a počet hlasů",
+        "averageSubtitle": "Rok hlasu je rok, kdy bylo hodnocení přidáno, ne rok konání akce.",
+        "averageLegendVotes": "hlasy přidané v roce",
+        "averageLegendImport": "import 1. 6. 2014",
+        "topGamesTitle": "Hry roku",
+        "topGamesSubtitle": "Nejvíce hodnocené hry daného ročníku, s odznakem hodnocení tak, jak ho používá zbytek webu.",
+        "topGameVotes": "{{count}}× hlasů",
+        "topGameTotal": "celkem {{count}} hodnocení",
+        "topGameNoRatings": "bez hodnocení",
+        "newGamesTitle": "Nové hry v databázi",
+        "newGamesSubtitle": "Kolik her přibylo k profilu v daném roce.",
+        "notesTitle": "Jak jsme k číslům přišli",
+        "notes": {
+            "events": "Akce: počítáme unikátní kombinace název + termín ({{raw}} záznamů kalendáře, {{unique}} unikátních akcí).",
+            "import": "Hodnocení: rok hlasu = rok přidání hodnocení. {{count}} hlasů roku 2014 přibylo jedním importem 1. 6. 2014 — v grafech je vyznačen.",
+            "live": "Počítáme jen živé záznamy: smazané hry a akce se v číslech neobjevují.",
+            "topGames": "Hry roku: řazeno počtem hlasů přidaných v daném roce."
+        }
     }
 }

@@ -1,0 +1,31 @@
+# The whole statistics page in one query: KPI totals plus every per-year
+# series the charts draw. One round trip, no pagination — the series cover
+# ~15 years and the top games are at most 5 per year.
+query StatisticsPage {
+    statistics {
+        gamesTotal
+        eventsTotal
+        ratingsTotal
+        commentsTotal
+        years {
+            year
+            events
+            eventsRaw
+            newGames
+            ratings
+            importedRatings
+            averageRating
+            bands
+            topGames {
+                game {
+                    id
+                    name
+                    averageRating
+                    amountOfRatings
+                }
+                votesInYear
+                averageInYear
+            }
+        }
+    }
+}

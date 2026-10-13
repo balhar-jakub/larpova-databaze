@@ -1,0 +1,125 @@
+/**
+ * @jest-environment jsdom
+ */
+import React from 'react'
+import { render, screen } from '@testing-library/react'
+import { jest } from '@jest/globals'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { translate } from 'src/lib/translationLookup'
+
+/**
+ * The statistics page renders from one `statistics` query. These tests pin
+ * the honesty rules of the design: the KPI totals, the raw-vs-unique event
+ * shadow, the 2014 import drawn separately, the "Hry roku" cards with the
+ * site's rating badge — and that the import note stays hidden when the data
+ * has no imported votes (a fresh database).
+ */
+
+const cs = JSON.parse(
+    readFileSync(fileURLToPath(new URL('../../../../public/static/locales/cs/common.json', import.meta.url)), 'utf-8'),
+)
+
+let queryAnswer: Promise<{ data: Record<string, unknown> }> = Promise.resolve({ data: {} })
+
+jest.unstable_mockModule('src/lib/i18n', () => ({
+    useTranslation: () => ({ t: (key: string, options?: Record<string, unknown>) => translate(cs, key, options), locale: 'cs', ready: true }),
+}))
+jest.unstable_mockModule('@apollo/client', () => ({
+    useApolloClient: () => ({ query: () => queryAnswer }),
+}))
+jest.unstable_mockModule('next/link', () => ({
+    default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+jest.unstable_mockModule('../../common/OpenGraphMeta/OpenGraphMeta', () => ({ default: () => null }))
+jest.unstable_mockModule('../../common/GameLink/GameLink', () => ({
+    GameLink: ({ game, children }: { game: { id: string; name?: string | null }, children: React.ReactNode }) => (
+        <a href={`/larp/${game.id}`}>{children ?? game.name}</a>
+    ),
+}))
+
+let StatisticsPanel: typeof import('../StatisticsPanel').default
+
+beforeAll(async () => {
+    StatisticsPanel = (await import('../StatisticsPanel')).default
+})
+
+const year = (over: Record<string, unknown> = {}) => ({
+    year: 2025,
+    events: 3,
+    eventsRaw: 3,
+    newGames: 1,
+    ratings: 4,
+    importedRatings: 0,
+    averageRating: 8.5,
+    bands: [2, 1, 1, 0, 0],
+    topGames: [],
+    ...over,
+})
+
+const statisticsData = (years: Record<string, unknown>[]) => ({
+    gamesTotal: 1513,
+    eventsTotal: 1020,
+    ratingsTotal: 17029,
+    commentsTotal: 4806,
+    years,
+})
+
+describe('StatisticsPanel', () => {
+    it('renders the KPI totals from the query', async () => {
+        queryAnswer = Promise.resolve({ data: { statistics: statisticsData([year()]) } })
+        render(<StatisticsPanel />)
+        await screen.findByText('1 513')
+        expect(screen.getByText('1 020')).toBeTruthy()
+        expect(screen.getByText('17 029')).toBeTruthy()
+        expect(screen.getByText('4 806')).toBeTruthy()
+        expect(screen.getByText('Kolik akcí proběhlo')).toBeTruthy()
+    })
+
+    it('renders all five charts and the "Hry roku" cards', async () => {
+        queryAnswer = Promise.resolve({
+            data: {
+                statistics: statisticsData([
+                    year({
+                        year: 2025,
+                        topGames: [
+                            { game: { id: '1', name: 'Erebos', averageRating: 96.5, amountOfRatings: 38 }, votesInYear: 17, averageInYear: 9.7 },
+                        ],
+                    }),
+                ]),
+            },
+        })
+        render(<StatisticsPanel />)
+        await screen.findByText('Erebos')
+        expect(screen.getByTestId('statistics.eventsChart')).toBeTruthy()
+        expect(screen.getByTestId('statistics.bandsChart')).toBeTruthy()
+        expect(screen.getByTestId('statistics.averageChart')).toBeTruthy()
+        expect(screen.getByTestId('statistics.votesChart')).toBeTruthy()
+        expect(screen.getByTestId('statistics.newGamesChart')).toBeTruthy()
+        expect(screen.getByTestId('statistics.topGames.2025')).toBeTruthy()
+    })
+
+    it('shows the import note when the data has imported votes', async () => {
+        queryAnswer = Promise.resolve({
+            data: {
+                statistics: statisticsData([
+                    year({ year: 2014, ratings: 7307, importedRatings: 5778, averageRating: 7.53, bands: [2540, 2818, 1429, 411, 109] }),
+                ]),
+            },
+        })
+        render(<StatisticsPanel />)
+        await screen.findByText('Jak jsme k číslům přišli')
+        const notes = screen.getByTestId('statistics.notes')
+        // `Intl` groups with a non-breaking space, so compare loosely.
+        expect(notes.textContent).toContain('778 hlasů roku 2014')
+        expect(notes.textContent).toContain('1. 6. 2014')
+    })
+
+    it('hides the import note when the data has no imported votes', async () => {
+        queryAnswer = Promise.resolve({ data: { statistics: statisticsData([year()]) } })
+        render(<StatisticsPanel />)
+        await screen.findByText('Kolik akcí proběhlo')
+        const notes = screen.getByTestId('statistics.notes')
+        expect(notes.textContent).not.toContain('1. 6. 2014')
+    })
+})

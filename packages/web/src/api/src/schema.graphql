@@ -7,6 +7,8 @@ type Query {
     eventById(eventId: ID!): Event
     eventCalendar(offset: Int, limit: Int, from: String, to: String, requiredLabels: [ID!], otherLabels: [ID!], query: String): EventsPaged!
     eventCalendarStats(from: String, to: String): EventCalendarStats!
+    "Year-by-year history of games, events and ratings — the data of the statistics page."
+    statistics: Statistics!
     "Events matching a text query (name and place, diacritics ignored, word prefixes matched)."
     eventsByQuery(query: String!, offset: Int, limit: Int, from: String, to: String): EventsPaged!
     "Everything matching a text query at once — what the header search field shows."
@@ -731,4 +733,61 @@ type EventCalendarMonthCount {
     year: Int!
     month: Int!
     count: Int!
+}
+
+"""
+Year-by-year history of the database's content, the data behind the statistics
+page. All series share one row per calendar year, so one query fetches the whole
+page.
+
+Honesty of the data, because two one-off imports would otherwise read as
+explosions of activity:
+
+- `events` counts *unique* events — the same name with the same start date is
+  one event, however many duplicate rows the calendar holds. `eventsRaw` is
+  every live row, so the UI can show the duplicates instead of hiding them
+  (2022 holds 1 130 rows for 110 unique events).
+- `importedRatings` are the votes that arrived in the 2014 one-time import
+  (all `csld_rating.added` on 2014-06-01): they count towards `ratings`, but
+  the UI draws them separately, and `averageRating` includes them — the mean
+  of the era is the mean of what the database held.
+- A game's year here is the year its *rating was added* (`csld_rating.added`),
+  not the year the event ran: the legacy rows carry no playable event date.
+"""
+type Statistics {
+    gamesTotal: Int!
+    "Unique live events across all years."
+    eventsTotal: Int!
+    ratingsTotal: Int!
+    commentsTotal: Int!
+    "One row per calendar year that has any activity, ascending."
+    years: [StatsYear!]!
+}
+
+type StatsYear {
+    year: Int!
+    "Unique live events started in this year."
+    events: Int!
+    "All live event rows started in this year, duplicates included."
+    eventsRaw: Int!
+    "Games whose record was added in this year."
+    newGames: Int!
+    "Ratings (votes) added in this year, import included."
+    ratings: Int!
+    "Of which arrived in the 2014-06-01 import."
+    importedRatings: Int!
+    "Average rating of the votes added in this year; null when none."
+    averageRating: Float
+    "Vote counts per recommendation band, [9-10, 7-8, 5-6, 3-4, 1-2]."
+    bands: [Int!]!
+    "Games with the most votes added in this year, best first."
+    topGames: [StatsTopGame!]!
+}
+
+type StatsTopGame {
+    game: Game!
+    "Votes this game received in this year."
+    votesInYear: Int!
+    "Average of those votes; null when the game's year had none."
+    averageInYear: Float
 }
