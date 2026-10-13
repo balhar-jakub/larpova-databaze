@@ -135,12 +135,16 @@ const COMMENT_INCLUDE = {
  * listing every run of every game.
  */
 export async function recentGames(ctx: Context) {
-  const since = new Date(Date.now() - HOMEPAGE_RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const now = new Date();
+  const since = new Date(now.getTime() - HOMEPAGE_RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
   const links = await ctx.db.csld_game_has_event.findMany({
     where: {
       csld_game: { deleted: false },
-      event: { deleted: false, to: { gte: since } },
+      // The window is the past: an event still ahead of us is upcoming, not
+      // recently played — without the upper bound a future event leads the
+      // block (it sorts newest), pushing the actually-played games out.
+      event: { deleted: false, from: { gte: since, lte: now } },
     },
     orderBy: { event: { from: 'desc' } },
     include: {
