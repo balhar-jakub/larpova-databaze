@@ -60,6 +60,7 @@ import {
 } from './gameMutation.js';
 import { createGroupResolver, updateGroupResolver } from './groupMutation.js';
 import { gameAllowedActions } from './gamePermissions.js';
+import { isLinkedGameAuthor } from './eventPermissions.js';
 import {
   createEventResolver,
   updateEventResolver,
@@ -156,8 +157,16 @@ export const resolvers: any = {
         ?? (event.registration_status === 'UPCOMING' && event.registration_opens_at
           ? event.registration_opens_at.toISOString()
           : null),
-    allowedActions: (_parent: unknown, _args: unknown, ctx: any) =>
-      isAtLeastEditor(ctx) ? ['Edit', 'Delete'] : [],
+    // Authors of the games linked to the event may manage it (they may only
+    // remove game links, see updateEventResolver), editors and admins any
+    // event. Mirrors Game.allowedActions above.
+    allowedActions: async (_parent: any, _args: unknown, ctx: any) => {
+      if (!ctx.user) return [];
+      if (isAtLeastEditor(ctx)) return ['Edit', 'Delete'];
+      const eventId = Number((_parent as any).id);
+      if (isNaN(eventId)) return [];
+      return (await isLinkedGameAuthor(eventId, ctx)) ? ['Edit', 'Delete'] : [];
+    },
   },
   // `RecommendedEvent` carries the same raw event row (spread by `mapEventRow`),
   // so it needs the same snake_case fallbacks as `Event` itself.

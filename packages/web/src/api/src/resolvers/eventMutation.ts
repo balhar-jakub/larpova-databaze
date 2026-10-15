@@ -1,5 +1,6 @@
 import type { Context } from '../context.js';
-import { isSignedIn } from '../auth/appUsers.js';
+import { isSignedIn, isAtLeastEditor } from '../auth/appUsers.js';
+import { isLinkedGameAuthor } from './eventPermissions.js';
 import { GraphQLError } from 'graphql';
 import { syncEventToCalendar, deleteCalendarEvent } from '../external/googleCalendar.js';
 import { normalizeGame } from './mappers.js';
@@ -12,6 +13,21 @@ function requireAuth(ctx: Context) {
   if (!isSignedIn(ctx)) {
     throw new GraphQLError('Authentication required', {
       extensions: { code: 'AUTHENTICATION_REQUIRED' },
+    });
+  }
+}
+
+/**
+ * Authors of the games linked to an event may manage the event, editors and
+ * admins any event. Without this check any signed-in user could rewrite or
+ * delete any event through the API — the buttons were hidden in the UI, the
+ * API was not.
+ */
+async function requireEventAuthorOrEditor(eventId: number, ctx: Context) {
+  if (isAtLeastEditor(ctx)) return;
+  if (!(await isLinkedGameAuthor(eventId, ctx))) {
+    throw new GraphQLError('Not authorized to modify this event', {
+      extensions: { code: 'ACCESS_DENIED' },
     });
   }
 }
@@ -228,7 +244,27 @@ export async function updateEventResolver(
   const { input } = args;
   const eventId = parseInt(input.id, 10);
   if (isNaN(eventId)) throw new GraphQLError('Invalid event ID');
+  await requireEventAuthorOrEditor(eventId, ctx);
   const registration = normalizeRegistrationInput(input.registrationUrl, input.registrationOpen, input.registrationStatus, input.registrationOpensAt);
+
+  // The author of a linked game may not rewrite the game links wholesale:
+  // adding a link to a game they author would grant them rights over an
+  // event they had none. They may only remove links (e.g. their own game
+  // turned out not to run at the event); editors and admins resync freely.
+  const gameIds = (input.games ?? []).map((gameId: string) => parseInt(gameId, 10)).filter((id: number) => !isNaN(id));
+  if (!isAtLeastEditor(ctx)) {
+    const existing = await ctx.db.csld_game_has_event.findMany({
+      where: { event_id: eventId },
+      select: { game_id: true },
+    });
+    const existingIds = new Set(existing.map((link: { game_id: number }) => link.game_id));
+    const added = gameIds.filter((id: number) => !existingIds.has(id));
+    if (added.length > 0) {
+      throw new GraphQLError('Not authorized to add game links to this event', {
+        extensions: { code: 'ACCESS_DENIED' },
+      });
+    }
+  }
 
   await ctx.db.event.update({
     where: { id: eventId },
@@ -299,6 +335,7 @@ export async function deleteEventResolver(
   requireAuth(ctx);
   const eventId = parseInt(args.eventId, 10);
   if (isNaN(eventId)) throw new GraphQLError('Invalid event ID');
+  await requireEventAuthorOrEditor(eventId, ctx);
 
   await ctx.db.event.update({
     where: { id: eventId },
