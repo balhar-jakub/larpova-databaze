@@ -760,6 +760,66 @@ describe('homepage — the personal blocks', () => {
     expect(mine.toComment[0].since).toBeTruthy();
   });
 
+  test('games with ratings or comments turned off stay out of the "finish" block', async () => {
+    // Two local games: one played without a rating but with the ratings turned
+    // off, one rated without a review but with the comments turned off. The
+    // detail page refuses both actions, so the block must not ask for them.
+    // (Local rows, removed at the end — the shared counts stay untouched.)
+    const disabledRatingsGame = await prisma.csld_game.create({
+      data: {
+        name: `${marker} hlasování vypnuto`,
+        description: 'x',
+        deleted: false,
+        added_by: userId,
+        average_rating: 50,
+        amount_of_ratings: 5,
+        total_rating: 250,
+        ratingsdisabled: true,
+      },
+    });
+    const disabledCommentsGame = await prisma.csld_game.create({
+      data: {
+        name: `${marker} komentáře vypnuty`,
+        description: 'x',
+        deleted: false,
+        added_by: userId,
+        average_rating: 50,
+        amount_of_ratings: 5,
+        total_rating: 250,
+        commentsdisabled: true,
+      },
+    });
+    await prisma.csld_rating.createMany({
+      data: [
+        { game_id: disabledRatingsGame.id, user_id: userId, state: 2, rating: null, added: new Date(Date.now() - 5 * 864e5) },
+        { game_id: disabledCommentsGame.id, user_id: userId, state: 2, rating: 8, added: new Date(Date.now() - 4 * 864e5) },
+      ],
+    });
+
+    const result: any = await personal(
+      `{ homepage { myHome { toRate { game { id } } toComment { game { id } } } } }`,
+    );
+
+    expect(result.errors).toBeUndefined();
+    const mine = result.data.homepage.myHome;
+    const toRateIds = mine.toRate.map((row: any) => row.game.id);
+    const toCommentIds = mine.toComment.map((row: any) => row.game.id);
+    // Neither impossible ask appears, while the ordinary played-unrated game
+    // and the rated-unreviewed one still do.
+    expect(toRateIds).not.toContain(String(disabledRatingsGame.id));
+    expect(toCommentIds).not.toContain(String(disabledCommentsGame.id));
+    expect(toRateIds).toContain(String(unratedPlayedId));
+    expect(toCommentIds).toContain(String(ratedLowId));
+
+    // Cleanup: the extra fixtures are not shared with the other assertions.
+    await prisma.csld_rating.deleteMany({
+      where: { game_id: { in: [disabledRatingsGame.id, disabledCommentsGame.id] } },
+    });
+    await prisma.csld_game.deleteMany({
+      where: { id: { in: [disabledRatingsGame.id, disabledCommentsGame.id] } },
+    });
+  });
+
   test('the newest comments under the visitor\'s own games say who wrote them and about what', async () => {
     const comment = await prisma.csld_comment.create({
       data: {
