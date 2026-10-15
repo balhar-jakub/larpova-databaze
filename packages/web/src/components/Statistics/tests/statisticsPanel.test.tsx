@@ -123,22 +123,49 @@ describe('StatisticsPanel', () => {
         expect(notes.textContent).not.toContain('1. 6. 2014')
     })
 
-    it('omits pre-2015 years from the rating charts but keeps them in events', async () => {
+    it('omits pre-2015 years from all charts, not just the rating ones', async () => {
         queryAnswer = Promise.resolve({
             data: {
                 statistics: statisticsData([
-                    year({ year: 2014, ratings: 7307, importedRatings: 5778, averageRating: 7.53, bands: [2540, 2818, 1429, 411, 109], events: 1 }),
+                    year({ year: 2014, ratings: 7307, importedRatings: 5778, averageRating: 7.53, bands: [2540, 2818, 1429, 411, 109], events: 1, newGames: 80, topGames: [
+                        { game: { id: '2', name: 'Importovaná hra', averageRating: 95, amountOfRatings: 500 }, votesInYear: 500, averageInYear: 9.5 },
+                    ] }),
                     year(),
                 ]),
             },
         })
         render(<StatisticsPanel />)
         await screen.findByText('Kolik akcí proběhlo')
-        // The events chart still renders 2014 (its bar carries the year label)…
-        expect(screen.getByTestId('statistics.eventsChart').textContent).toContain('2014')
-        // …but none of the rating charts shows it.
+        // No chart renders 2014 — the import year stays in the honesty notes only.
+        expect(screen.getByTestId('statistics.eventsChart').textContent).not.toContain('2014')
         expect(screen.getByTestId('statistics.bandsChart').textContent).not.toContain('2014')
         expect(screen.getByTestId('statistics.averageChart').textContent).not.toContain('14')
         expect(screen.getByTestId('statistics.votesChart').textContent).not.toContain('14')
+        expect(screen.getByTestId('statistics.newGamesChart').textContent).not.toContain('2014')
+        expect(screen.queryByTestId('statistics.topGames.2014')).toBeNull()
+        expect(screen.queryByText('Importovaná hra')).toBeNull()
+    })
+
+    it('renders the vote count on the "Hry roku" cards with Czech plurals', async () => {
+        queryAnswer = Promise.resolve({
+            data: {
+                statistics: statisticsData([
+                    year({
+                        year: 2025,
+                        topGames: [
+                            { game: { id: '1', name: 'Erebos', averageRating: 96.5, amountOfRatings: 38 }, votesInYear: 17, averageInYear: 9.7 },
+                            { game: { id: '3', name: 'Samota', averageRating: 93.1, amountOfRatings: 21 }, votesInYear: 2, averageInYear: 9.5 },
+                            { game: { id: '4', name: 'Koule', averageRating: 90.0, amountOfRatings: 9 }, votesInYear: 1, averageInYear: 8 },
+                        ],
+                    }),
+                ]),
+            },
+        })
+        render(<StatisticsPanel />)
+        await screen.findByText('Erebos')
+        // 5+ votes → "hlasů", 2–4 → "hlasy", 1 → "hlas" (no "{{count}}× hlasů").
+        expect(screen.getByText('17 hlasů')).toBeTruthy()
+        expect(screen.getByText('2 hlasy')).toBeTruthy()
+        expect(screen.getByText('1 hlas')).toBeTruthy()
     })
 })

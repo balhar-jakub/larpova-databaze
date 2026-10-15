@@ -37,13 +37,14 @@ const BAND_COLORS = [
 const BAND_LABELS = ['9–10', '7–8', '5–6', '3–4', '1–2']
 
 /**
- * The ratings charts start here: older votes are the 2014 one-time import of
- * legacy ratings, so showing them next to the organic years would dwarf
- * everything and say "the community voted like crazy in 2014" when it is
- * really "the history arrived in one batch". Older years stay in the API and
- * in the honesty notes — only the rating charts ignore them.
+ * The charts start here: older data is the 2014 one-time import of legacy
+ * records (ratings, but also calendar and game rows the import carried), so
+ * showing it next to the organic years would dwarf everything and say "the
+ * community did all this in 2014" when it is really "the history arrived in
+ * one batch". Older years stay in the API and in the honesty notes — the
+ * charts ignore them.
  */
-const RATINGS_FROM_YEAR = 2015
+const FROM_YEAR = 2015
 
 const fmt = (n: number) => new Intl.NumberFormat('cs-CZ').format(n)
 
@@ -220,10 +221,11 @@ const EventsChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, str
     const PAD_L = 46
     const PAD_B = 24
     const PAD_T = 12
-    const max = niceMax(Math.max(...years.map((y) => y.eventsRaw), 10))
-    const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(years.length - 1, 1)
+    const shown = years.filter((y) => y.year >= FROM_YEAR)
+    const max = niceMax(Math.max(...shown.map((y) => y.eventsRaw), 10))
+    const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(shown.length - 1, 1)
     const y = (v: number) => H - PAD_B - (v * (H - PAD_B - PAD_T)) / max
-    const bw = ((W - PAD_L - 10) / Math.max(years.length, 1)) * 0.55
+    const bw = ((W - PAD_L - 10) / Math.max(shown.length, 1)) * 0.55
     const ticks = 4
     return (
         <svg
@@ -243,7 +245,7 @@ const EventsChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, str
                     </g>
                 )
             })}
-            {years.map((yr, i) => (
+            {shown.map((yr, i) => (
                 <g key={yr.year}>
                     {yr.eventsRaw > yr.events && (
                         <rect
@@ -276,7 +278,7 @@ const BandsChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, stri
     const PAD_L = 46
     const PAD_B = 24
     const PAD_T = 8
-    const rated = years.filter((y) => y.year >= RATINGS_FROM_YEAR && y.ratings > 0)
+    const rated = years.filter((y) => y.year >= FROM_YEAR && y.ratings > 0)
     const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(rated.length - 1, 1)
     const bw = ((W - PAD_L - 10) / Math.max(rated.length, 1)) * 0.6
     const areaH = H - PAD_B - PAD_T
@@ -335,7 +337,7 @@ const AverageChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, st
     const PAD_L = 40
     const PAD_B = 22
     const PAD_T = 10
-    const rated = years.filter((y): y is StatsYearRow & { averageRating: number } => y.year >= RATINGS_FROM_YEAR && y.averageRating !== null)
+    const rated = years.filter((y): y is StatsYearRow & { averageRating: number } => y.year >= FROM_YEAR && y.averageRating !== null)
     const ymin = 7.0
     const ymax = 9.0
     const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(rated.length - 1, 1)
@@ -382,7 +384,7 @@ const VotesChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, stri
     const PAD_L = 46
     const PAD_B = 22
     const PAD_T = 10
-    const rated = years.filter((y) => y.year >= RATINGS_FROM_YEAR && y.ratings > 0)
+    const rated = years.filter((y) => y.year >= FROM_YEAR && y.ratings > 0)
     const max = niceMax(Math.max(...rated.map((y) => y.ratings), 10))
     const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(rated.length - 1, 1)
     const y = (v: number) => H - PAD_B - (v * (H - PAD_B - PAD_T)) / max
@@ -438,7 +440,7 @@ const NewGamesChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, s
     const PAD_L = 46
     const PAD_B = 24
     const PAD_T = 10
-    const withGames = years.filter((y) => y.newGames > 0)
+    const withGames = years.filter((y) => y.year >= FROM_YEAR && y.newGames > 0)
     const max = niceMax(Math.max(...withGames.map((y) => y.newGames), 10))
     const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(withGames.length - 1, 1)
     const y = (v: number) => H - PAD_B - (v * (H - PAD_B - PAD_T)) / max
@@ -523,7 +525,7 @@ const StatisticsPanel = (_props: Props) => {
 
     const years = data?.years ?? []
     // "Hry roku" cards: the newest years the data has, like the mockup.
-    const topYears = [...years].filter((y) => y.topGames.length > 0).slice(-5).reverse()
+    const topYears = [...years].filter((y) => y.year >= FROM_YEAR && y.topGames.length > 0).slice(-5).reverse()
 
     return (
         <>
@@ -654,6 +656,7 @@ const StatisticsPanel = (_props: Props) => {
                                         </li>
                                     )}
                                     <li>{t('Statistics.notes.live')}</li>
+                                    <li>{t('Statistics.notes.since')}</li>
                                     <li>{t('Statistics.notes.topGames')}</li>
                                 </ul>
                             </details>
