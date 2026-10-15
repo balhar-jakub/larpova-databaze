@@ -223,9 +223,13 @@ const EventsChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, str
     const PAD_T = 12
     const shown = years.filter((y) => y.year >= FROM_YEAR)
     const max = niceMax(Math.max(...shown.map((y) => y.eventsRaw), 10))
-    const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(shown.length - 1, 1)
+    // Bars are laid out edge to edge inside the plot area (the first bar's left
+    // edge sits on PAD_L), so no bar ever reaches into the y-label gutter.
+    const inner = W - PAD_L - 10
+    const step = inner / Math.max(shown.length, 1)
+    const x = (i: number) => PAD_L + step * i + step / 2
     const y = (v: number) => H - PAD_B - (v * (H - PAD_B - PAD_T)) / max
-    const bw = ((W - PAD_L - 10) / Math.max(shown.length, 1)) * 0.55
+    const bw = step * 0.55
     const ticks = 4
     return (
         <svg
@@ -279,8 +283,12 @@ const BandsChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, stri
     const PAD_B = 24
     const PAD_T = 8
     const rated = years.filter((y) => y.year >= FROM_YEAR && y.ratings > 0)
-    const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(rated.length - 1, 1)
-    const bw = ((W - PAD_L - 10) / Math.max(rated.length, 1)) * 0.6
+    // Edge-to-edge band layout: the first column's left edge sits on PAD_L,
+    // clear of the y-label gutter.
+    const inner = W - PAD_L - 10
+    const step = inner / Math.max(rated.length, 1)
+    const x = (i: number) => PAD_L + step * i + step / 2
+    const bw = step * 0.6
     const areaH = H - PAD_B - PAD_T
     const y = (frac: number) => PAD_T + (1 - frac) * areaH
     return (
@@ -340,7 +348,11 @@ const AverageChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, st
     const rated = years.filter((y): y is StatsYearRow & { averageRating: number } => y.year >= FROM_YEAR && y.averageRating !== null)
     const ymin = 7.0
     const ymax = 9.0
-    const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(rated.length - 1, 1)
+    // Edge-to-edge layout: the first point sits half a step right of PAD_L,
+    // clear of the y-label gutter.
+    const inner = W - PAD_L - 10
+    const step = inner / Math.max(rated.length, 1)
+    const x = (i: number) => PAD_L + step * i + step / 2
     const y = (v: number) => H - PAD_B - ((v - ymin) * (H - PAD_B - PAD_T)) / (ymax - ymin)
     const points = rated.map((yr, i) => `${x(i)},${y(yr.averageRating)}`).join(' ')
     const area = `${PAD_L},${y(ymin)} ${points} ${x(rated.length - 1)},${y(ymin)}`
@@ -386,9 +398,13 @@ const VotesChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, stri
     const PAD_T = 10
     const rated = years.filter((y) => y.year >= FROM_YEAR && y.ratings > 0)
     const max = niceMax(Math.max(...rated.map((y) => y.ratings), 10))
-    const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(rated.length - 1, 1)
+    // Edge-to-edge layout: the first bar's left edge sits on PAD_L, clear of
+    // the y-label gutter.
+    const inner = W - PAD_L - 10
+    const step = inner / Math.max(rated.length, 1)
+    const x = (i: number) => PAD_L + step * i + step / 2
     const y = (v: number) => H - PAD_B - (v * (H - PAD_B - PAD_T)) / max
-    const bw = ((W - PAD_L - 10) / Math.max(rated.length, 1)) * 0.6
+    const bw = step * 0.6
     return (
         <svg
             viewBox={`0 0 ${W} ${H}`}
@@ -442,9 +458,13 @@ const NewGamesChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, s
     const PAD_T = 10
     const withGames = years.filter((y) => y.year >= FROM_YEAR && y.newGames > 0)
     const max = niceMax(Math.max(...withGames.map((y) => y.newGames), 10))
-    const x = (i: number) => PAD_L + (i * (W - PAD_L - 10)) / Math.max(withGames.length - 1, 1)
+    // Edge-to-edge layout: the first bar's left edge sits on PAD_L, clear of
+    // the y-label gutter.
+    const inner = W - PAD_L - 10
+    const step = inner / Math.max(withGames.length, 1)
+    const x = (i: number) => PAD_L + step * i + step / 2
     const y = (v: number) => H - PAD_B - (v * (H - PAD_B - PAD_T)) / max
-    const bw = ((W - PAD_L - 10) / Math.max(withGames.length, 1)) * 0.6
+    const bw = step * 0.6
     return (
         <svg
             viewBox={`0 0 ${W} ${H}`}
