@@ -154,6 +154,12 @@ const createContext = () => {
         csld_game_has_event: {
           create: jest.fn(),
           deleteMany: jest.fn(),
+          findMany: jest.fn(async () => ([{ game_id: 1 }] as never)),
+        },
+        // updateEvent authorizes the caller as an author of a linked game
+        // before writing; the persistence tests run as a plain linked author.
+        csld_game_has_author: {
+          findFirst: jest.fn(async () => ({ id_game: 1, id_user: 42 }) as never),
         },
         event_has_labels: {
           create: jest.fn(),
