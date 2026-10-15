@@ -168,4 +168,35 @@ describe('StatisticsPanel', () => {
         expect(screen.getByText('2 hlasy')).toBeTruthy()
         expect(screen.getByText('1 hlas')).toBeTruthy()
     })
+
+    it('keeps the y-axis labels out of the first bar: bars start right of the label gutter', async () => {
+        queryAnswer = Promise.resolve({
+            data: {
+                statistics: statisticsData([
+                    year({ year: 2015, events: 1, eventsRaw: 2, newGames: 131, ratings: 2270, averageRating: 7.91, bands: [950, 920, 291, 81, 28] }),
+                    year({ year: 2016, events: 2, eventsRaw: 2, newGames: 223, ratings: 1983, averageRating: 8.01, bands: [902, 700, 250, 80, 51] }),
+                ]),
+            },
+        })
+        render(<StatisticsPanel />)
+        await screen.findByText('Kolik akcí proběhlo')
+        // Every y-tick label is anchored "end" at PAD_L - 6, so its right edge is
+        // that x. Every bar/point must start at or right of PAD_L — the labels'
+        // gutter is never reached. Read from the rendered attributes (jsdom has
+        // no getBBox).
+        for (const id of ['statistics.eventsChart', 'statistics.bandsChart', 'statistics.votesChart', 'statistics.newGamesChart']) {
+            const svg = screen.getByTestId(id)
+            const anchors = [...svg.querySelectorAll('text')].filter((t) => t.getAttribute('text-anchor') === 'end')
+            expect(anchors.length).toBeGreaterThan(0)
+            const labelRight = Math.max(...anchors.map((t) => parseFloat(t.getAttribute('x') ?? '0')))
+            const bars = [...svg.querySelectorAll('rect')].map((r) => parseFloat(r.getAttribute('x') ?? '0'))
+            expect(bars.length).toBeGreaterThan(0)
+            expect(Math.min(...bars)).toBeGreaterThanOrEqual(labelRight)
+        }
+        const avg = screen.getByTestId('statistics.averageChart')
+        const avgAnchors = [...avg.querySelectorAll('text')].filter((t) => t.getAttribute('text-anchor') === 'end')
+        const labelRight = Math.max(...avgAnchors.map((t) => parseFloat(t.getAttribute('x') ?? '0')))
+        const points = [...avg.querySelectorAll('circle')].map((c) => parseFloat(c.getAttribute('cx') ?? '0') - 3.5)
+        expect(Math.min(...points)).toBeGreaterThanOrEqual(labelRight)
+    })
 })
