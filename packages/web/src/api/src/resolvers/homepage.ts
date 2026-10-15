@@ -390,6 +390,9 @@ export async function myHomepage(ctx: Context, userId: number) {
       (row: any) =>
         !commentedGameIds.has(row.game_id),
     )
+    // A game whose author turned the comments off cannot be reviewed either —
+    // the detail page refuses the form, so the block must not ask for it.
+    .filter((row: any) => !row.csld_game?.commentsdisabled)
     .sort((a: any, b: any) => new Date(b.added).getTime() - new Date(a.added).getTime())
     .slice(0, MY_HOME_COMMENTS)
     .map(personal);
@@ -417,6 +420,11 @@ export async function myHomepage(ctx: Context, userId: number) {
     wantedWithoutEvent: wantedIds.filter((id: number) => !linkedWantedIds.has(id)).length,
     toRate: knownGames
       .filter((row: any) => row.state === STATE_PLAYED && row.rating == null)
+      // Same for the rating: a played game with the ratings turned off keeps
+      // its state rows, but the vote itself is impossible, so it never belongs
+      // in the "finish" list. The rows stay in the database untouched — when
+      // the author turns the ratings back on, the game returns on its own.
+      .filter((row: any) => !row.csld_game?.ratingsdisabled)
       .slice(0, 2)
       .map(personal),
     toComment,
