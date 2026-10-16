@@ -64,6 +64,13 @@ query GameDetail($gameId: ID!) {
             amountOfRatings
             year
         }
+        articles {
+            id
+            url
+            title
+            source
+            publishedAt
+        }
         events {
             id
             name
