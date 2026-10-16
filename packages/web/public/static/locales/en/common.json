@@ -42,7 +42,8 @@
     "restoreGame": "Restore game",
     "gameRestored": "Game restored",
     "gameNotFound": "Game not found. It may have been deleted, or the link is wrong.",
-    "deletedGameNotice": "This game is deleted — only editors and administrators can see it. You can restore it."
+    "deletedGameNotice": "This game is deleted — only editors and administrators can see it. You can restore it.",
+    "articles": "Articles about the game"
   },
   "Rating": {
     "stronglyRecommended": "Strongly recommend",

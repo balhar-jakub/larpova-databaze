@@ -344,6 +344,8 @@ type Game {
     wantsToPlay: [User!]!
     similarGames: [Game!]!
     gamesOfAuthors: [Game!]!
+    "Articles about this game (metadata + external link)."
+    articles: [Article!]!
     events: [Event!]!
     video: Video
     coverImage: Image

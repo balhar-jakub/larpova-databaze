@@ -35,7 +35,7 @@ import {
   adminSelfRatedResolver,
 } from './admin.js';
 import { donationsResolver } from './donations.js';
-import { articlesResolver, articleByIdResolver } from './article.js';
+import { articlesResolver, articleByIdResolver, gameArticlesResolver } from './article.js';
 import {
   logInResolver,
   logOutResolver,
@@ -142,6 +142,7 @@ export const resolvers: any = {
 
   Game: {
     gamesOfAuthors: gamesOfAuthorsResolver,
+    articles: gameArticlesResolver,
     commentsPaged: commentsPagedResolver,
     currentUsersRating: (parent: any, _args: unknown, ctx: Context) => {
       if (!ctx.user) return null;

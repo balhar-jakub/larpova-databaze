@@ -174,6 +174,34 @@ export async function articleByIdResolver(
 }
 
 /**
+ * `Game.articles` — articles about the game, newest first. Resolved per
+ * game row (not via the include of `gameByIdResolver`) so it stays lazy:
+ * only the detail query that selects `articles` pays for the join.
+ */
+export async function gameArticlesResolver(
+  parent: { id: number | string },
+  _args: unknown,
+  ctx: Context,
+) {
+  const gameId = typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id;
+  if (!gameId || isNaN(gameId)) return [];
+
+  const rows = await ctx.db.csld_article.findMany({
+    where: {
+      language: 'cs',
+      csld_article_has_game: { some: { game_id: gameId } },
+    },
+    orderBy: { published_at: 'desc' },
+    include: {
+      csld_article_has_game: { include: { csld_game: true } },
+      csld_csld_user: true,
+    },
+  });
+
+  return rows.map((row) => mapArticleRow(row as never));
+}
+
+/**
  * Removes Czech diacritics for the diacritics-insensitive query matching.
  * Same normalization the search resolvers apply.
  */

@@ -5,7 +5,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { PrismaClient } from '@prisma/client';
-import { articlesResolver, articleByIdResolver } from '../resolvers/article.js';
+import { articlesResolver, articleByIdResolver, gameArticlesResolver } from '../resolvers/article.js';
 
 const db = new PrismaClient();
 const MARK = 'jest-article-test-';
@@ -129,5 +129,75 @@ describe('articles resolvers', () => {
       user: null,
     } as never);
     expect(bogus).toBeNull();
+  });
+
+  describe('Game.articles', () => {
+    let linkedGame: { id: number };
+    let emptyGame: { id: number };
+    let linkedArticle: Awaited<ReturnType<typeof createArticle>>;
+
+    beforeAll(async () => {
+      linkedGame = await db.csld_game.create({
+        data: { name: `${MARK}hra s clanky` },
+      });
+      emptyGame = await db.csld_game.create({
+        data: { name: `${MARK}hra bez clanku` },
+      });
+      linkedArticle = await createArticle({
+        source: 'LARPY_CZ',
+        sourceId: `${MARK}linked`,
+        title: 'Recenze testovací hry',
+      });
+      await db.csld_article_has_game.create({
+        data: { article_id: linkedArticle.id, game_id: linkedGame.id },
+      });
+    });
+
+    afterAll(async () => {
+      await db.csld_article_has_game.deleteMany({
+        where: { article_id: linkedArticle.id },
+      });
+      await db.csld_article.deleteMany({ where: { source_id: { startsWith: MARK } } });
+      await db.csld_game.deleteMany({ where: { name: { startsWith: `${MARK}hra ` } } });
+    });
+
+    it('returns the articles linked to the game, mapped to the Article shape', async () => {
+      const rows = await gameArticlesResolver(
+        { id: linkedGame.id },
+        {},
+        { db, user: null } as never,
+      );
+      const ids = rows.map((a: { id: number }) => a.id);
+      expect(ids).toEqual([linkedArticle.id]);
+      expect(rows[0].title).toBe('Recenze testovací hry');
+      expect(rows[0].url).toBe(`https://example.com/${MARK}linked`);
+      // the article's own games back-reference resolves through the join
+      expect(rows[0].games.map((g: { id: number }) => g.id)).toContain(linkedGame.id);
+    });
+
+    it('returns an empty list for a game with no articles', async () => {
+      const rows = await gameArticlesResolver(
+        { id: emptyGame.id },
+        {},
+        { db, user: null } as never,
+      );
+      expect(rows).toEqual([]);
+    });
+
+    it('accepts a string id (GraphQL ID is a string) and returns [] for junk', async () => {
+      const rows = await gameArticlesResolver(
+        { id: String(linkedGame.id) },
+        {},
+        { db, user: null } as never,
+      );
+      expect(rows.map((a: { id: number }) => a.id)).toEqual([linkedArticle.id]);
+
+      const junk = await gameArticlesResolver(
+        { id: 'abc' },
+        {},
+        { db, user: null } as never,
+      );
+      expect(junk).toEqual([]);
+    });
   });
 });

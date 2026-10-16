@@ -20,6 +20,7 @@ import { GameHeaderPanel } from './GameHeaderPanel'
 import { GameRatingPanel } from './GameRatingPanel'
 import { GameListPanel } from '../common/GameListPanel/GameListPanel'
 import { EventListPanel } from '../HomePage/EventListPanel'
+import { ArticleListPanel } from './ArticleListPanel'
 import { GamePagedCommentsPanel } from './GamePagedCommentsPanel'
 import RatingsListPanel from './RatingsListPanel'
 import { isAtLeastEditor } from '../../utils/roleUtils'
@@ -105,6 +106,7 @@ const emptyGame = {
     ratingStats: [],
     similarGames: [],
     gamesOfAuthors: [],
+    articles: [],
     events: [],
     photos: [],
     video: undefined,
@@ -282,6 +284,9 @@ export const GameDetailPanel = ({ gameId }: Props) => {
                             )}
                             <GameListPanel games={game.similarGames} titleKey="GameDetail.similarGames" />
                             <EventListPanel events={game.events} titleKey="GameDetail.events" />
+                            {!!game.articles?.length && (
+                                <ArticleListPanel articles={game.articles} titleKey="GameDetail.articles" />
+                            )}
                             <GameListPanel games={game.gamesOfAuthors} titleKey="GameDetail.gamesOfAuthors" />
                             {isAtLeastEditor(loggedInUser?.role) && (
                                 <RatingsListPanel
