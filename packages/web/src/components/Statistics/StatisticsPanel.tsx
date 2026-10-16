@@ -518,10 +518,9 @@ const StatisticsPanel = (_props: Props) => {
     }, [client])
 
     const years = data?.years ?? []
-    // "Ročenky" cards: the newest years the community actually voted in —
-    // each links to its yearbook page. The yearbook itself is content, not
-    // statistics, so a year qualifies by having any votes at all.
-    const yearbookYears = [...years].filter((y) => y.year >= FROM_YEAR && y.ratings > 0).slice(-5).reverse()
+    // "Ročenky" cards: every year the community voted in — the yearbook is
+    // generic, so each of them has a page. The newest come first.
+    const yearbookYears = [...years].filter((y) => y.year >= FROM_YEAR && y.ratings > 0).reverse()
 
     return (
         <>

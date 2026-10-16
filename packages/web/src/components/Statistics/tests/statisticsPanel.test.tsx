@@ -100,6 +100,30 @@ describe('StatisticsPanel', () => {
         expect(screen.getByTestId('statistics.yearbooks.2025').getAttribute('href')).toBe('/rocenka/2025')
     })
 
+    it('renders a "Ročenky" card for every voted-in year, not just the newest five', async () => {
+        queryAnswer = Promise.resolve({
+            data: {
+                statistics: statisticsData([
+                    year({ year: 2015, ratings: 2270 }),
+                    year({ year: 2016, ratings: 1983 }),
+                    year({ year: 2017, ratings: 120 }),
+                    year({ year: 2018, ratings: 80 }),
+                    year({ year: 2019, ratings: 60 }),
+                    year({ year: 2020, ratings: 40 }),
+                    year({ year: 2021, ratings: 20 }),
+                    year({ year: 2022, ratings: 10 }),
+                ]),
+            },
+        })
+        render(<StatisticsPanel />)
+        await screen.findByText('Ročenka 2022')
+        for (const y of [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022]) {
+            expect(screen.getByTestId(`statistics.yearbooks.${y}`)).toBeTruthy()
+        }
+        // A year without votes is not a yearbook year.
+        expect(screen.queryByTestId('statistics.yearbooks.2014')).toBeNull()
+    })
+
     it('shows the import note when the data has imported votes', async () => {
         queryAnswer = Promise.resolve({
             data: {
