@@ -1,6 +1,7 @@
 # The whole statistics page in one query: KPI totals plus every per-year
 # series the charts draw. One round trip, no pagination — the series cover
-# ~15 years and the top games are at most 5 per year.
+# ~15 years. The per-year top games used to feed the "Hry roku" cards here;
+# that section is now the "Ročenky" links and needs no per-game data.
 query StatisticsPage {
     statistics {
         gamesTotal
@@ -16,16 +17,6 @@ query StatisticsPage {
             importedRatings
             averageRating
             bands
-            topGames {
-                game {
-                    id
-                    name
-                    averageRating
-                    amountOfRatings
-                }
-                votesInYear
-                averageInYear
-            }
         }
     }
 }

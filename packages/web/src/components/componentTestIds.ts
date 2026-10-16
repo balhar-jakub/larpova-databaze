@@ -54,7 +54,7 @@ export const componentTestIds = {
         averageChart: 'statistics.averageChart',
         votesChart: 'statistics.votesChart',
         newGamesChart: 'statistics.newGamesChart',
-        topGames: (year: number) => `statistics.topGames.${year}`,
+        yearbooks: (year: number) => `statistics.yearbooks.${year}`,
         notes: 'statistics.notes',
     },
     yearReview: {

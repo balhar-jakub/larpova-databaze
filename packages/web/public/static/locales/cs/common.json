@@ -929,11 +929,12 @@
         "averageSubtitle": "Rok hlasu je rok, kdy bylo hodnocení přidáno, ne rok konání akce.",
         "averageLegendVotes": "hlasy přidané v roce",
         "averageLegendImport": "import 1. 6. 2014",
-        "topGamesTitle": "Hry roku",
-        "topGamesSubtitle": "Nejčastěji hodnocené hry daného ročníku, s odznakem hodnocení tak, jak ho používá zbytek webu.",
-        "topGameVotes_0": "1 hlas",
-        "topGameVotes_1": "{{count}} hlasy",
-        "topGameVotes_2": "{{count}} hlasů",
+        "yearbooksTitle": "Ročenky",
+        "yearbooksSubtitle": "Co se na scéně v daném roce dělo — hry, o kterých se mluvilo, recenze a komentáře v jednom příběhu.",
+        "yearbookCard": "Ročenka {{year}}",
+        "yearbookVotes_0": "1 hlas v roce",
+        "yearbookVotes_1": "{{count}} hlasy v roce",
+        "yearbookVotes_2": "{{count}} hlasů v roce",
         "newGamesTitle": "Nové hry v databázi",
         "newGamesSubtitle": "Kolik her přibylo v databázi v daném roce.",
         "notesTitle": "Jak jsme k číslům přišli",
@@ -941,8 +942,7 @@
             "events": "Akce: počítáme jedinečné kombinace název + termín ({{raw}} záznamů kalendáře, {{unique}} jedinečných akcí).",
             "import": "Hodnocení: rok hlasu = rok přidání hodnocení. {{count}} hlasů roku 2014 přibylo jedním importem 1. 6. 2014 — v grafech vyznačen.",
             "live": "Počítáme jen živé záznamy: smazané hry a akce se v číslech neobjevují.",
-            "since": "Grafy zobrazují roky 2015 a novější. Starší data přibylo jednorázovým importem z roku 2014 a říkalo by o nich spíš historii databáze než komunitu.",
-            "topGames": "Hry roku: řazeno počtem hlasů přidaných v daném roce."
+            "since": "Grafy zobrazují roky 2015 a novější. Starší data přibylo jednorázovým importem z roku 2014 a říkalo by o nich spíš historii databáze než komunitu."
         }
     }
 }

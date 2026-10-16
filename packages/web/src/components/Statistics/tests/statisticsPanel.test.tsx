@@ -11,8 +11,8 @@ import { translate } from 'src/lib/translationLookup'
 /**
  * The statistics page renders from one `statistics` query. These tests pin
  * the honesty rules of the design: the KPI totals, the raw-vs-unique event
- * shadow, the 2014 import drawn separately, the "Hry roku" cards with the
- * site's rating badge — and that the import note stays hidden when the data
+ * shadow, the 2014 import drawn separately, the "Ročenky" cards linking to
+ * the yearbook pages — and that the import note stays hidden when the data
  * has no imported votes (a fresh database).
  */
 
@@ -29,7 +29,9 @@ jest.unstable_mockModule('@apollo/client', () => ({
     useApolloClient: () => ({ query: () => queryAnswer }),
 }))
 jest.unstable_mockModule('next/link', () => ({
-    default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    default: ({ href, children, ...rest }: { href: string; children: React.ReactNode; [k: string]: unknown }) => (
+        <a href={href} {...rest}>{children}</a>
+    ),
 }))
 jest.unstable_mockModule('../../common/OpenGraphMeta/OpenGraphMeta', () => ({ default: () => null }))
 jest.unstable_mockModule('../../common/GameLink/GameLink', () => ({
@@ -76,27 +78,26 @@ describe('StatisticsPanel', () => {
         expect(screen.getByText('Kolik akcí proběhlo')).toBeTruthy()
     })
 
-    it('renders all five charts and the "Hry roku" cards', async () => {
+    it('renders all five charts and the "Ročenky" cards', async () => {
         queryAnswer = Promise.resolve({
             data: {
                 statistics: statisticsData([
-                    year({
-                        year: 2025,
-                        topGames: [
-                            { game: { id: '1', name: 'Erebos', averageRating: 96.5, amountOfRatings: 38 }, votesInYear: 17, averageInYear: 9.7 },
-                        ],
-                    }),
+                    year({ year: 2025, ratings: 384 }),
+                    year({ year: 2024, ratings: 120 }),
                 ]),
             },
         })
         render(<StatisticsPanel />)
-        await screen.findByText('Erebos')
+        await screen.findByText('Ročenka 2025')
         expect(screen.getByTestId('statistics.eventsChart')).toBeTruthy()
         expect(screen.getByTestId('statistics.bandsChart')).toBeTruthy()
         expect(screen.getByTestId('statistics.averageChart')).toBeTruthy()
         expect(screen.getByTestId('statistics.votesChart')).toBeTruthy()
         expect(screen.getByTestId('statistics.newGamesChart')).toBeTruthy()
-        expect(screen.getByTestId('statistics.topGames.2025')).toBeTruthy()
+        expect(screen.getByTestId('statistics.yearbooks.2025')).toBeTruthy()
+        expect(screen.getByTestId('statistics.yearbooks.2024')).toBeTruthy()
+        // Each card links to its yearbook page.
+        expect(screen.getByTestId('statistics.yearbooks.2025').getAttribute('href')).toBe('/rocenka/2025')
     })
 
     it('shows the import note when the data has imported votes', async () => {
@@ -127,9 +128,7 @@ describe('StatisticsPanel', () => {
         queryAnswer = Promise.resolve({
             data: {
                 statistics: statisticsData([
-                    year({ year: 2014, ratings: 7307, importedRatings: 5778, averageRating: 7.53, bands: [2540, 2818, 1429, 411, 109], events: 1, newGames: 80, topGames: [
-                        { game: { id: '2', name: 'Importovaná hra', averageRating: 95, amountOfRatings: 500 }, votesInYear: 500, averageInYear: 9.5 },
-                    ] }),
+                    year({ year: 2014, ratings: 7307, importedRatings: 5778, averageRating: 7.53, bands: [2540, 2818, 1429, 411, 109], events: 1, newGames: 80 }),
                     year(),
                 ]),
             },
@@ -142,31 +141,25 @@ describe('StatisticsPanel', () => {
         expect(screen.getByTestId('statistics.averageChart').textContent).not.toContain('14')
         expect(screen.getByTestId('statistics.votesChart').textContent).not.toContain('14')
         expect(screen.getByTestId('statistics.newGamesChart').textContent).not.toContain('2014')
-        expect(screen.queryByTestId('statistics.topGames.2014')).toBeNull()
-        expect(screen.queryByText('Importovaná hra')).toBeNull()
+        expect(screen.queryByTestId('statistics.yearbooks.2014')).toBeNull()
     })
 
-    it('renders the vote count on the "Hry roku" cards with Czech plurals', async () => {
+    it('renders the vote count on the "Ročenky" cards with Czech plurals', async () => {
         queryAnswer = Promise.resolve({
             data: {
                 statistics: statisticsData([
-                    year({
-                        year: 2025,
-                        topGames: [
-                            { game: { id: '1', name: 'Erebos', averageRating: 96.5, amountOfRatings: 38 }, votesInYear: 17, averageInYear: 9.7 },
-                            { game: { id: '3', name: 'Samota', averageRating: 93.1, amountOfRatings: 21 }, votesInYear: 2, averageInYear: 9.5 },
-                            { game: { id: '4', name: 'Koule', averageRating: 90.0, amountOfRatings: 9 }, votesInYear: 1, averageInYear: 8 },
-                        ],
-                    }),
+                    year({ year: 2025, ratings: 384 }),
+                    year({ year: 2023, ratings: 3 }),
+                    year({ year: 2022, ratings: 1 }),
                 ]),
             },
         })
         render(<StatisticsPanel />)
-        await screen.findByText('Erebos')
+        await screen.findByText('Ročenka 2025')
         // 5+ votes → "hlasů", 2–4 → "hlasy", 1 → "hlas" (no "{{count}}× hlasů").
-        expect(screen.getByText('17 hlasů')).toBeTruthy()
-        expect(screen.getByText('2 hlasy')).toBeTruthy()
-        expect(screen.getByText('1 hlas')).toBeTruthy()
+        expect(screen.getByText('384 hlasů v roce')).toBeTruthy()
+        expect(screen.getByText('3 hlasy v roce')).toBeTruthy()
+        expect(screen.getByText('1 hlas v roce')).toBeTruthy()
     })
 
     it('keeps the y-axis labels out of the first bar: bars start right of the label gutter', async () => {

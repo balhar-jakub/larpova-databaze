@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useApolloClient } from '@apollo/client'
 import { DocumentNode } from 'graphql'
+import Link from 'next/link'
 import { createUseStyles } from 'react-jss'
 import { useTranslation } from 'src/lib/i18n'
 import { darkTheme } from '../../theme/darkTheme'
@@ -8,8 +9,6 @@ import { breakPoints } from '../../theme/breakPoints'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
 import BigLoading from '../common/BigLoading/BigLoading'
 import OpenGraphMeta from '../common/OpenGraphMeta/OpenGraphMeta'
-import { GameRatingBox } from '../common/GameRatingBox/GameRatingBox'
-import { GameLink } from '../common/GameLink/GameLink'
 import { componentTestIds } from '../componentTestIds'
 import { StatisticsPageQuery } from '../../graphql/__generated__/typescript-operations'
 
@@ -22,7 +21,6 @@ const statisticsGql = documentOf(statisticsDocument)
 
 type StatisticsData = StatisticsPageQuery['statistics']
 type StatsYearRow = StatisticsData['years'][number]
-type TopGameRow = StatsYearRow['topGames'][number]
 
 /** Band colours best-first, mirroring `darkTheme`'s recommendation levels. */
 const BAND_COLORS = [
@@ -147,40 +145,34 @@ const useStyles = createUseStyles({
         gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
         gap: 12,
     },
-    topCol: {
-        border: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
-        borderRadius: 5,
-        padding: '10px 12px',
-    },
-    topColTitle: {
-        margin: '0 0 6px',
-        fontSize: '0.85rem',
-        fontWeight: 700,
-        color: darkTheme.textOnLightDark,
-    },
-    topRow: {
+    yearbookCard: {
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
-        padding: '5px 0',
-        borderTop: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
-    },
-    topName: {
-        flex: 1,
-        minWidth: 100,
-        fontSize: '0.8rem',
-    },
-    topLink: {
-        color: darkTheme.textGreenDark,
+        gap: 10,
+        border: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
+        borderRadius: 5,
+        padding: '14px 16px',
+        textDecoration: 'none',
+        background: darkTheme.backgroundNearWhite,
         '&:hover': {
-            color: darkTheme.textOnLightDark,
+            borderColor: darkTheme.textGreenDark,
         },
     },
-    topVotes: {
-        fontSize: '0.7rem',
+    yearbookTitle: {
+        fontWeight: 700,
+        fontSize: '0.95rem',
+        color: darkTheme.textOnLightDark,
+    },
+    yearbookMeta: {
+        flex: 1,
+        fontSize: '0.75rem',
         color: darkTheme.textOnLightLighter,
         whiteSpace: 'nowrap',
         fontVariantNumeric: 'tabular-nums',
+    },
+    yearbookArrow: {
+        color: darkTheme.textGreenDark,
+        fontSize: '1.1rem',
     },
     notes: {
         borderTop: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
@@ -497,24 +489,6 @@ const NewGamesChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, s
     )
 }
 
-/** One year's "Hry roku" card: badge in the site's own rating visual. */
-const TopGameRowView: React.FC<{ entry: TopGameRow; classes: Record<string, string>; t: (k: string, v?: Record<string, number>) => string }> = ({ entry, classes, t }) => (
-    <div className={classes.topRow}>
-        <GameRatingBox
-            rating={entry.averageInYear ?? undefined}
-            averageRating={entry.game.averageRating}
-            amountOfRatings={entry.game.amountOfRatings}
-            size="small"
-        />
-        <span className={classes.topName}>
-            <GameLink game={entry.game} className={classes.topLink}>
-                {entry.game.name}
-            </GameLink>
-        </span>
-        <span className={classes.topVotes}>{t('Statistics.topGameVotes', { count: entry.votesInYear })}</span>
-    </div>
-)
-
 /**
  * The statistics page: how the scene and its ratings changed year by year.
  * One query feeds everything; the charts are inline SVG so the page carries no
@@ -544,8 +518,10 @@ const StatisticsPanel = (_props: Props) => {
     }, [client])
 
     const years = data?.years ?? []
-    // "Hry roku" cards: the newest years the data has, like the mockup.
-    const topYears = [...years].filter((y) => y.year >= FROM_YEAR && y.topGames.length > 0).slice(-5).reverse()
+    // "Ročenky" cards: the newest years the community actually voted in —
+    // each links to its yearbook page. The yearbook itself is content, not
+    // statistics, so a year qualifies by having any votes at all.
+    const yearbookYears = [...years].filter((y) => y.year >= FROM_YEAR && y.ratings > 0).slice(-5).reverse()
 
     return (
         <>
@@ -636,18 +612,17 @@ const StatisticsPanel = (_props: Props) => {
                                 </div>
                             </section>
 
-                            {topYears.length > 0 && (
+                            {yearbookYears.length > 0 && (
                                 <section className={classes.section}>
-                                    <h2 className={classes.sectionTitle}>{t('Statistics.topGamesTitle')}</h2>
-                                    <div className={classes.sectionSubtitle}>{t('Statistics.topGamesSubtitle')}</div>
+                                    <h2 className={classes.sectionTitle}>{t('Statistics.yearbooksTitle')}</h2>
+                                    <div className={classes.sectionSubtitle}>{t('Statistics.yearbooksSubtitle')}</div>
                                     <div className={classes.tops}>
-                                        {topYears.map((yr) => (
-                                            <div key={yr.year} className={classes.topCol} data-testid={componentTestIds.statistics.topGames(yr.year)}>
-                                                <h3 className={classes.topColTitle}>{yr.year}</h3>
-                                                {yr.topGames.map((entry) => (
-                                                    <TopGameRowView key={entry.game.id} entry={entry} classes={classes} t={t} />
-                                                ))}
-                                            </div>
+                                        {yearbookYears.map((yr) => (
+                                            <Link key={yr.year} href={`/rocenka/${yr.year}`} className={classes.yearbookCard} data-testid={componentTestIds.statistics.yearbooks(yr.year)}>
+                                                <span className={classes.yearbookTitle}>{t('Statistics.yearbookCard', { year: yr.year })}</span>
+                                                <span className={classes.yearbookMeta}>{t('Statistics.yearbookVotes', { count: yr.ratings })}</span>
+                                                <span className={classes.yearbookArrow}>→</span>
+                                            </Link>
                                         ))}
                                     </div>
                                 </section>
@@ -677,7 +652,6 @@ const StatisticsPanel = (_props: Props) => {
                                     )}
                                     <li>{t('Statistics.notes.live')}</li>
                                     <li>{t('Statistics.notes.since')}</li>
-                                    <li>{t('Statistics.notes.topGames')}</li>
                                 </ul>
                             </details>
                         </>
