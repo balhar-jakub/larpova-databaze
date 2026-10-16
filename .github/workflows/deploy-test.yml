@@ -52,7 +52,7 @@ jobs:
         # reach the expected schema before anything ships.
         working-directory: packages/web
         env:
-          DATABASE_URL: postgresql://csld:***@localhost:5432/csld
+          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
         run: npx prisma migrate deploy
       - name: Run Web tests
         working-directory: packages/web
