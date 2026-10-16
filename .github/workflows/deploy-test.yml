@@ -133,27 +133,20 @@ jobs:
             rm -rf ~/.cache/yarn
             npx prisma generate --schema prisma/schema.prisma
 
-            # The app's API layer reads DATABASE_URL from src/api/.env (see
-            # src/api/src/context.ts); the Next server reads .env.prod
-            # (server/index.ts). Source every candidate that exists — later
-            # files only add variables, they do not unset earlier ones.
-            set -a
-            for envfile in src/api/.env .env.prod .env; do
-              [ -f "$envfile" ] && . "./$envfile"
-            done
-            set +a
-            : "${DATABASE_URL:?DATABASE_URL not found in any env file}"
-
             # A dump before the migrations, same as production takes: the
             # test database shares the instance with production, and a bad
-            # migration must be recoverable.
+            # migration must be recoverable. Prisma loads the DATABASE_URL
+            # from its own .env discovery itself; for pg_dump we read it the
+            # same way Prisma does — from the .env in the package root when
+            # present. Best-effort: a missing dump must not stop the deploy
+            # (the warning is loud, prod takes its own dump).
             PG_DUMP=''
             for candidate in /usr/lib/postgresql/*/bin/pg_dump pg_dump; do
               if [ -x "$candidate" ]; then PG_DUMP="$candidate"; fi
             done
             mkdir -p /home/balda/larpova-databaze/backups
             BACKUP=/home/balda/larpova-databaze/backups/csld-test-before-$(date +%Y%m%d-%H%M%S).sql
-            if [ -n "$PG_DUMP" ] && "$PG_DUMP" "$DATABASE_URL" > "$BACKUP" 2>/tmp/pg_dump.err && [ -s "$BACKUP" ]; then
+            if [ -n "$PG_DUMP" ] && [ -n "$DATABASE_URL" ] && "$PG_DUMP" "$DATABASE_URL" > "$BACKUP" 2>/tmp/pg_dump.err && [ -s "$BACKUP" ]; then
               echo "test backup written: $BACKUP ($(du -h "$BACKUP" | cut -f1))"
             else
               echo 'WARNING: could not take a dump, continuing:' >&2
@@ -192,16 +185,13 @@ jobs:
               sleep 2
             else
               echo 'user systemd unavailable — falling back to nohup'
-            # The app's API layer reads DATABASE_URL from src/api/.env (see
-            # src/api/src/context.ts); the Next server reads .env.prod
-            # (server/index.ts). Source every candidate that exists — later
-            # files only add variables, they do not unset earlier ones.
-            set -a
-            for envfile in src/api/.env .env.prod .env; do
-              [ -f "$envfile" ] && . "./$envfile"
-            done
-            set +a
-            : "${DATABASE_URL:?DATABASE_URL not found in any env file}"
+              # .env carries SESSION_SECRET (the session secret gate in
+              # server.ts throws without it). The original db-push flow
+              # never needed DATABASE_URL here — server.ts's API layer
+              # resolves its own env files — so only source what exists.
+              set -a
+              [ -f .env ] && . ./.env
+              set +a
               nohup env PORT=8082 NODE_ENV=production npx tsx server.ts > /tmp/csld-test.log 2>&1 < /dev/null &
             fi
 
