@@ -46,11 +46,14 @@ jobs:
         # fresh checkout so the .next build has the types it imports.
         working-directory: packages/web
         run: yarn codegen
-      - name: Push DB schema (web)
+      - name: Apply DB migrations (web)
+        # Migrations are the reviewable DB change record (prisma/migrations);
+        # applying them on a clean container proves a fresh database can
+        # reach the expected schema before anything ships.
         working-directory: packages/web
         env:
-          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
-        run: npx prisma db push --accept-data-loss
+          DATABASE_URL: postgresql://csld:***@localhost:5432/csld
+        run: npx prisma migrate deploy
       - name: Run Web tests
         working-directory: packages/web
         env:
@@ -96,13 +99,13 @@ jobs:
             PID=$(ss -tlnp 2>/dev/null | grep ':8080' | sed -n 's/.*pid=\([0-9]*\).*/\1/p')
             [ -n "$PID" ] && kill "$PID" 2>/dev/null
             sleep 2
-          # The database is synced with `prisma db push`, which refuses to run when
-          # it would drop something the schema no longer knows about unless
-          # --accept-data-loss is passed. Without the flag the push failed, the
-          # script carried on and the app started against a stale schema — which is
-          # how a deploy that reported success broke the game detail and calendar
-          # pages. So: print the drift, dump the database first, push with the flag,
-          # and fail the run when the push did not go through.
+          # The database is synced with `prisma migrate deploy` — the migrations
+          # live in the repo (prisma/migrations), were reviewed in their PRs,
+          # and each applies exactly once (tracked in _prisma_migrations).
+          # The old `prisma db push` generated SQL on the fly that nobody saw
+          # before it ran, and `--accept-data-loss` silently dropped columns.
+          # A failed migration stops the run; the pg_dump above is the
+          # rollback path (migrations are not automatically reversible).
           SCRIPT_AFTER: |
             export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
             cd /home/balda/larpova-databaze/csld-new
@@ -143,7 +146,7 @@ jobs:
             fi
 
             PUSH_STATUS=0
-            npx prisma db push --accept-data-loss --schema prisma/schema.prisma || PUSH_STATUS=$?
+            npx prisma migrate deploy --schema prisma/schema.prisma || PUSH_STATUS=$?
 
             # ── Phase 6: systemd supervision with Restart=always ──
             SYSTEMD_OK=yes
@@ -162,10 +165,10 @@ jobs:
             done
             echo
             if [ "$PUSH_STATUS" -ne 0 ]; then
-              echo "prisma db push failed (exit $PUSH_STATUS) — the database is NOT in sync with the schema" >&2
+              echo "prisma migrate deploy failed (exit $PUSH_STATUS) — the database is NOT in sync with the schema" >&2
               exit 1
             fi
-            echo 'production is up and the schema is in sync'
+            echo 'production is up and the migrations are applied'
       # easingthemes/ssh-deploy prints "Remote script failed" as a warning and still
       # reports the step as successful, which is how a deploy that broke the site
       # went green. This step is the actual gate: it fails the run when the app is

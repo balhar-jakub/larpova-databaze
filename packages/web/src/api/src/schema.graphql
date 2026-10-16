@@ -23,7 +23,44 @@ type Query {
     authorizedOptionalLabels: [Label!]!
     admin: AdminQuery!
     donations: [Donation!]!
+    "Metadata of larp articles published in Czech (larpy.cz, larp.cz)."
+    articles(source: ArticleSource, query: String, offset: Int, limit: Int): ArticlesPaged!
+    articleById(articleId: ID!): Article
     config: Config!
+}
+
+enum ArticleSource {
+    LARPY_CZ
+    LARP_CZ
+}
+
+type ArticlesPaged {
+    articles: [Article!]!
+    totalAmount: Int!
+}
+
+type Article {
+    id: ID!
+    "Where the article comes from (LARPY_CZ | LARP_CZ)."
+    source: ArticleSource!
+    "Id of the article at the source site."
+    sourceId: String!
+    "URL of the original article (external link)."
+    url: String!
+    title: String!
+    "Short summary from the source, HTML stripped."
+    perex: String
+    language: String!
+    "Author names as published at the source."
+    authors: String
+    "CSLD user matched to the author, when one exists."
+    author: User
+    publishedAt: String
+    categories: [String!]!
+    tags: [String!]!
+    imageUrl: String
+    "Games this article is about."
+    games: [Game!]!
 }
 
 type UsersPaged {
