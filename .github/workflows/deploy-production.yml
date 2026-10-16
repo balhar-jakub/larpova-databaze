@@ -145,6 +145,18 @@ jobs:
               head -3 /tmp/pg_dump.err >&2 || true
             fi
 
+            # ── Phase 5b: apply DB migrations ──
+            # The migrations live in the repo and are reviewed in their PRs.
+            # Baseline adoption: production tables predate the migration
+            # history, so on the very first run `0_init` would fail with
+            # "table already exists". When the database has tables but no
+            # migration history yet, mark the baseline as applied and let
+            # `migrate deploy` apply everything after it. Idempotent:
+            # once _prisma_migrations has the baseline, this is a no-op.
+            if ! npx prisma migrate resolve --applied 0_init >/dev/null 2>&1; then
+              echo 'note: 0_init resolve failed (already recorded or not the first run) — continuing with migrate deploy'
+            fi
+
             PUSH_STATUS=0
             npx prisma migrate deploy --schema prisma/schema.prisma || PUSH_STATUS=$?
 
