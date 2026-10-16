@@ -10,7 +10,7 @@ interface InitialProps {
 }
 
 /**
- * The year review (`/rocnika/2025`): the content yearbook of one calendar
+ * The year review (`/rocenka/2025`): the content yearbook of one calendar
  * year — the games the community talked about, quotes from the year's
  * reviews, the new catalog games and the year's articles. The year comes
  * from the URL; a missing or invalid year falls back to the current one.
