@@ -1,0 +1,56 @@
+# The whole year review in one query: featured and runner-up games with the
+# votes they received in the year, the quotes, the new catalog games and the
+# year's articles. One round trip, no pagination — the resolver caps itself.
+query YearReviewPage($year: Int!) {
+    yearReview(year: $year) {
+        year
+        featuredGames {
+            game {
+                id
+                name
+                averageRating
+                amountOfRatings
+                labels { id name }
+                authors { id name image { id } }
+                coverImage { id }
+            }
+            votesInYear
+            averageInYear
+        }
+        runnerUpGames {
+            game {
+                id
+                name
+                averageRating
+                amountOfRatings
+                coverImage { id }
+            }
+            votesInYear
+        }
+        newGames {
+            id
+            name
+            added
+            averageRating
+            amountOfRatings
+            coverImage { id }
+        }
+        quotes {
+            id
+            text
+            added
+            user { id name image { id } }
+            game { id name }
+        }
+        articles {
+            id
+            source
+            url
+            title
+            perex
+            authors
+            publishedAt
+            categories
+        }
+    }
+}

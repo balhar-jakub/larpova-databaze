@@ -57,6 +57,14 @@ export const componentTestIds = {
         topGames: (year: number) => `statistics.topGames.${year}`,
         notes: 'statistics.notes',
     },
+    yearReview: {
+        page: 'yearReview.page',
+        featured: 'yearReview.featured',
+        runnerUps: 'yearReview.runnerUps',
+        newGames: 'yearReview.newGames',
+        quotes: 'yearReview.quotes',
+        articles: 'yearReview.articles',
+    },
     search: {
         panel: 'search.panel',
         tabs: 'search.tabs',
