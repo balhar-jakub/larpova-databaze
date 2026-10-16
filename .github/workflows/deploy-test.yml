@@ -146,7 +146,7 @@ jobs:
             done
             mkdir -p /home/balda/larpova-databaze/backups
             BACKUP=/home/balda/larpova-databaze/backups/csld-test-before-$(date +%Y%m%d-%H%M%S).sql
-            if [ -n "$PG_DUMP" ] && [ -n "$DATABASE_URL" ] && "$PG_DUMP" "$DATABASE_URL" > "$BACKUP" 2>/tmp/pg_dump.err && [ -s "$BACKUP" ]; then
+            if [ -n "$PG_DUMP" ] && [ -n "${DATABASE_URL:-}" ] && "$PG_DUMP" "${DATABASE_URL}" > "$BACKUP" 2>/tmp/pg_dump.err && [ -s "$BACKUP" ]; then
               echo "test backup written: $BACKUP ($(du -h "$BACKUP" | cut -f1))"
             else
               echo 'WARNING: could not take a dump, continuing:' >&2
