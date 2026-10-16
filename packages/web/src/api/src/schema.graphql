@@ -9,6 +9,8 @@ type Query {
     eventCalendarStats(from: String, to: String): EventCalendarStats!
     "Year-by-year history of games, events and ratings — the data of the statistics page."
     statistics: Statistics!
+    "The content yearbook of one calendar year: talked-about games, quotes from reviews, new catalog games and articles."
+    yearReview(year: Int!): YearReview!
     "Events matching a text query (name and place, diacritics ignored, word prefixes matched)."
     eventsByQuery(query: String!, offset: Int, limit: Int, from: String, to: String): EventsPaged!
     "Everything matching a text query at once — what the header search field shows."
@@ -829,4 +831,62 @@ type StatsTopGame {
     votesInYear: Int!
     "Average of those votes; null when the game's year had none."
     averageInYear: Float
+}
+
+"""
+The content yearbook of one calendar year — what the community talked about,
+not just the numbers (those live in `statistics`). Games are ranked by the
+value votes they received in the year; quotes are one comment per game, the
+most substantial ones; `newGames` is everything added to the catalog in the
+year, oldest first. All the honesty rules (value votes only, hidden comments
+excluded, soft-deleted games dropped) are applied by the resolver.
+"""
+type YearReview {
+    year: Int!
+    "Up to 3 most-discussed games, big cards with cover, labels and authors."
+    featuredGames: [YearReviewGame!]!
+    "The next 7 of the ranked games, small rows."
+    runnerUpGames: [YearReviewGame!]!
+    "Every game added to the catalog in the year, oldest first."
+    newGames: [Game!]!
+    "One comment per ranked game — the year's most substantial reviews."
+    quotes: [YearReviewQuote!]!
+    "Czech larp articles published in the year, newest first."
+    articles: [YearReviewArticle!]!
+}
+
+"A ranked game of the year: the game plus how the community judged it in the year."
+type YearReviewGame {
+    game: Game!
+    "Value votes this game received in the year."
+    votesInYear: Int!
+    "Average of those votes."
+    averageInYear: Float!
+}
+
+"""
+A quote from a review written in the year. The user is the comment's author;
+their `image` is nulled when the picture is the legacy default avatar, so the
+UI shows its own placeholder instead of the old blue silhouette.
+"""
+type YearReviewQuote {
+    id: ID!
+    "Plain-text excerpt of the comment, HTML stripped and entities decoded."
+    text: String
+    added: String
+    user: User
+    game: Game
+}
+
+"An article of the year — metadata and an external link, same fields as `Article`."
+type YearReviewArticle {
+    id: ID!
+    source: String!
+    url: String!
+    title: String!
+    perex: String
+    authors: String
+    publishedAt: String
+    categories: [String!]!
+    imageUrl: String
 }

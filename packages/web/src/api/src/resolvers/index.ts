@@ -26,6 +26,7 @@ import { normalizeGame, normalizeUserRef } from './mappers.js';
 import { groupByIdResolver, groupsByQueryResolver } from './group.js';
 import { eventByIdResolver, eventCalendarResolver, eventCalendarStatsResolver } from './event.js';
 import { statisticsResolver } from './stats.js';
+import { yearReviewResolver } from './yearReview.js';
 import { authorizedRequiredLabelsResolver, authorizedOptionalLabelsResolver } from './label.js';
 import {
   adminResolver,
@@ -99,6 +100,7 @@ export const resolvers: any = {
     eventCalendar: eventCalendarResolver,
     eventCalendarStats: eventCalendarStatsResolver,
     statistics: statisticsResolver,
+    yearReview: yearReviewResolver,
     eventsByQuery: eventsByQueryResolver,
     search: searchResolver,
     userById: userByIdResolver,
