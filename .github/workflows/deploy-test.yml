@@ -164,6 +164,17 @@ jobs:
             # `migrate deploy` applies the pending ones in order, once each,
             # tracked in _prisma_migrations. A failed migration stops the
             # deploy instead of leaving a half-applied schema.
+            # ── Apply DB migrations ──
+            # Baseline adoption: the test database's tables predate the
+            # migration history, so on the very first run `0_init` would
+            # fail with "table already exists". When the database has no
+            # migration history yet, mark the baseline as applied and let
+            # `migrate deploy` apply everything after it. Idempotent:
+            # once _prisma_migrations has the baseline, this is a no-op.
+            if ! npx prisma migrate resolve --applied 0_init >/dev/null 2>&1; then
+              echo 'note: 0_init resolve failed (already recorded or not the first run) — continuing with migrate deploy'
+            fi
+
             MIGRATE_STATUS=0
             npx prisma migrate deploy --schema prisma/schema.prisma || MIGRATE_STATUS=$?
             # The session secret gate (phase 1) requires SESSION_SECRET in the
