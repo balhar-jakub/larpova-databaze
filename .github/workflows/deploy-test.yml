@@ -133,9 +133,13 @@ jobs:
             rm -rf ~/.cache/yarn
             npx prisma generate --schema prisma/schema.prisma
 
-            # The app reads DATABASE_URL from .env; prisma and pg_dump need
-            # it in the shell environment.
-            set -a; . ./.env; set +a
+            # The app reads DATABASE_URL from .env.prod in production (see
+            # server/index.ts getEnvFileName); prisma and pg_dump need it in
+            # the shell environment. Prefer .env.prod, fall back to .env
+            # for environments that use it.
+            set -a
+            . ./.env.prod 2>/dev/null || . ./.env
+            set +a
 
             # A dump before the migrations, same as production takes: the
             # test database shares the instance with production, and a bad
@@ -185,7 +189,9 @@ jobs:
               sleep 2
             else
               echo 'user systemd unavailable — falling back to nohup'
-              set -a; . ./.env; set +a
+              set -a
+              . ./.env.prod 2>/dev/null || . ./.env
+              set +a
               nohup env PORT=8082 NODE_ENV=production npx tsx server.ts > /tmp/csld-test.log 2>&1 < /dev/null &
             fi
 
