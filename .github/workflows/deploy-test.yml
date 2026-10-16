@@ -133,13 +133,16 @@ jobs:
             rm -rf ~/.cache/yarn
             npx prisma generate --schema prisma/schema.prisma
 
-            # The app reads DATABASE_URL from .env.prod in production (see
-            # server/index.ts getEnvFileName); prisma and pg_dump need it in
-            # the shell environment. Prefer .env.prod, fall back to .env
-            # for environments that use it.
+            # The app's API layer reads DATABASE_URL from src/api/.env (see
+            # src/api/src/context.ts); the Next server reads .env.prod
+            # (server/index.ts). Source every candidate that exists — later
+            # files only add variables, they do not unset earlier ones.
             set -a
-            . ./.env.prod 2>/dev/null || . ./.env
+            for envfile in src/api/.env .env.prod .env; do
+              [ -f "$envfile" ] && . "./$envfile"
+            done
             set +a
+            : "${DATABASE_URL:?DATABASE_URL not found in any env file}"
 
             # A dump before the migrations, same as production takes: the
             # test database shares the instance with production, and a bad
@@ -189,9 +192,16 @@ jobs:
               sleep 2
             else
               echo 'user systemd unavailable — falling back to nohup'
-              set -a
-              . ./.env.prod 2>/dev/null || . ./.env
-              set +a
+            # The app's API layer reads DATABASE_URL from src/api/.env (see
+            # src/api/src/context.ts); the Next server reads .env.prod
+            # (server/index.ts). Source every candidate that exists — later
+            # files only add variables, they do not unset earlier ones.
+            set -a
+            for envfile in src/api/.env .env.prod .env; do
+              [ -f "$envfile" ] && . "./$envfile"
+            done
+            set +a
+            : "${DATABASE_URL:?DATABASE_URL not found in any env file}"
               nohup env PORT=8082 NODE_ENV=production npx tsx server.ts > /tmp/csld-test.log 2>&1 < /dev/null &
             fi
 
