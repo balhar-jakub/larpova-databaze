@@ -351,11 +351,12 @@
     "averageSubtitle": "A vote's year is the year it was added, not the year the event ran.",
     "averageLegendVotes": "votes added in the year",
     "averageLegendImport": "import of 1 Jun 2014",
-    "topGamesTitle": "Games of the year",
-    "topGamesSubtitle": "The most-rated games of each year, with the same rating badge the rest of the site uses.",
-    "topGameVotes_0": "1 vote",
-    "topGameVotes_1": "{{count}} votes",
-    "topGameVotes_2": "{{count}} votes",
+    "yearbooksTitle": "Yearbooks",
+    "yearbooksSubtitle": "What the scene lived through that year \u2014 the games people talked about, the reviews and comments, in one story.",
+    "yearbookCard": "Yearbook {{year}}",
+    "yearbookVotes_0": "1 vote in the year",
+    "yearbookVotes_1": "{{count}} votes in the year",
+    "yearbookVotes_2": "{{count}} votes in the year",
     "newGamesTitle": "New games in the database",
     "newGamesSubtitle": "How many games were added each year.",
     "notesTitle": "How we arrived at the numbers",
@@ -363,8 +364,7 @@
       "events": "Events: unique name + date combinations ({{raw}} calendar records, {{unique}} unique events).",
       "import": "Ratings: a vote's year is when it was added. {{count}} votes of 2014 arrived in a single import on 1 Jun 2014 — marked in the charts.",
       "live": "Only live records count: deleted games and events are not in the numbers.",
-      "since": "The charts show 2015 and later. Older data arrived in the one-time import of 2014 and would say more about the database's history than about the community.",
-      "topGames": "Games of the year: ordered by votes added in that year."
+      "since": "The charts show 2015 and later. Older data arrived in the one-time import of 2014 and would say more about the database's history than about the community."
     }
   }
 }
