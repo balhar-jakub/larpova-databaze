@@ -71,6 +71,7 @@ model csld_csld_user {
   csld_photo                csld_photo[]
   csld_rating               csld_rating[]
   event                     event[]
+  csld_article              csld_article[]
 
   @@index([amount_of_comments], map: "user_amount_of_comments_idx")
   @@index([amount_of_played], map: "user_amount_of_played_idx")
@@ -131,6 +132,7 @@ model csld_game {
   csld_rating                                     csld_rating[]
   similar_games_similar_games_id_game1Tocsld_game similar_games[]        @relation("similar_games_id_game1Tocsld_game")
   similar_games_similar_games_id_game2Tocsld_game similar_games[]        @relation("similar_games_id_game2Tocsld_game")
+  csld_article_has_game                           csld_article_has_game[]
 
   @@index([added], map: "game_added_idx")
   @@index([amount_of_comments], map: "game_amount_of_comments_idx")
@@ -309,4 +311,37 @@ model similar_games {
   similarity_coefficient                      Float?
   csld_game_similar_games_id_game1Tocsld_game csld_game? @relation("similar_games_id_game1Tocsld_game", fields: [id_game1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "similar_games_game_1_fk")
   csld_game_similar_games_id_game2Tocsld_game csld_game? @relation("similar_games_id_game2Tocsld_game", fields: [id_game2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "similar_games_game_2_fk")
+}
+
+model csld_article {
+  id           Int                       @id @default(autoincrement())
+  source       String
+  source_id    String
+  url          String
+  title        String
+  perex        String?
+  language     String                    @default("cs") @db.VarChar(10)
+  authors      String?
+  author_id    Int?
+  published_at DateTime?
+  categories   String[]
+  tags         String[]
+  image_url    String?
+  fetched_at   DateTime                  @default(now()) @db.Timestamp(6)
+  csld_article_has_game csld_article_has_game[]
+  csld_csld_user          csld_csld_user? @relation(fields: [author_id], references: [id], onDelete: Restrict, map: "csld_article_user_fk")
+
+  @@unique([source, source_id])
+  @@index([published_at])
+  @@map(name: "csld_article")
+}
+
+model csld_article_has_game {
+  article_id  Int          @map("article_id")
+  game_id     Int          @map("game_id")
+  csld_article csld_article @relation(fields: [article_id], references: [id], onDelete: Cascade, map: "csld_article_game_article_fk")
+  csld_game    csld_game    @relation(fields: [game_id], references: [id], onDelete: Cascade, map: "csld_article_game_game_fk")
+
+  @@id([article_id, game_id])
+  @@map(name: "csld_article_has_game")
 }

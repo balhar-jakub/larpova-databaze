@@ -35,6 +35,7 @@ import {
   adminSelfRatedResolver,
 } from './admin.js';
 import { donationsResolver } from './donations.js';
+import { articlesResolver, articleByIdResolver } from './article.js';
 import {
   logInResolver,
   logOutResolver,
@@ -110,6 +111,8 @@ export const resolvers: any = {
     authorizedOptionalLabels: authorizedOptionalLabelsResolver,
     admin: adminResolver,
     donations: donationsResolver,
+    articles: articlesResolver,
+    articleById: articleByIdResolver,
   },
 
   GamesQuery: {

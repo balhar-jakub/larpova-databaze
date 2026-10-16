@@ -1,6 +1,8 @@
 import type { PrismaClient } from '@prisma/client';
 import { recalculateSimilarity } from './similarityEngine.js';
 import { importLarpCzEvents } from '../external/larpCzImport.js';
+import { importLarpyCzArticles } from '../external/larpyCzArticlesImport.js';
+import { importLarpCzArticles } from '../external/larpCzArticlesImport.js';
 
 /**
  * Nightly recalculation of amount_of_ratings.
@@ -55,6 +57,20 @@ export async function runNightlyBatch(db: PrismaClient): Promise<void> {
       await importLarpCzEvents(db);
     } catch (err) {
       console.error('Nightly: larp.cz import failed:', err);
+    }
+  }
+
+  // Article metadata imports (larpy.cz + larp.cz), if enabled
+  if (process.env.INTEGRATE_ARTICLES === 'true') {
+    try {
+      await importLarpyCzArticles(db);
+    } catch (err) {
+      console.error('Nightly: larpy.cz article import failed:', err);
+    }
+    try {
+      await importLarpCzArticles(db);
+    } catch (err) {
+      console.error('Nightly: larp.cz article import failed:', err);
     }
   }
 

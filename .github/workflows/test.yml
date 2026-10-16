@@ -33,6 +33,22 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      # Shadow database for `prisma migrate diff --from-migrations`: Prisma
+      # replays the migrations into it and drops/recreates its content, so
+      # it must NOT be the database the tests run against.
+      postgres-shadow:
+        image: postgres:16
+        env:
+          POSTGRES_USER: csld
+          POSTGRES_PASSWORD: csld
+          POSTGRES_DB: csld_shadow
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     env:
       DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
@@ -64,9 +80,32 @@ jobs:
         working-directory: packages/web
         run: yarn codegen
 
-      - name: Push DB schema (web)
+      - name: Apply DB migrations (web)
+        # Migrations are the reviewable DB change record (prisma/migrations);
+        # applying them on a clean container also proves a fresh database
+        # can reach the expected schema — a migration that assumes data
+        # that must not exist yet fails here, in the PR, not on production.
         working-directory: packages/web
-        run: npx prisma db push --accept-data-loss
+        run: npx prisma migrate deploy
+
+      - name: Migrations must match schema.prisma
+        # The guard: schema.prisma and prisma/migrations must agree, or a
+        # schema change without a migration slips through review and the
+        # first drift appears on the production deploy. Any non-comment
+        # line means they disagree — fail the PR.
+        working-directory: packages/web
+        run: |
+          npx prisma migrate diff \
+            --from-migrations prisma/migrations \
+            --to-schema-datamodel prisma/schema.prisma \
+            --shadow-database-url postgresql://csld:csld@localhost:5433/csld_shadow \
+            --script > /tmp/migration_drift.sql
+          if grep -v '^--' /tmp/migration_drift.sql | grep -q .; then
+            echo 'schema.prisma and prisma/migrations have drifted:' >&2
+            cat /tmp/migration_drift.sql >&2
+            exit 1
+          fi
+          echo 'migrations match schema.prisma'
 
       - name: Run Web tests
         working-directory: packages/web
