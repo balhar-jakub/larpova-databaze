@@ -77,6 +77,23 @@ query GameDetail($gameId: ID!) {
             from
             to
         }
+        series {
+            id
+            name
+            description
+            amountOfGames
+            amountOfRatings
+            amountOfPlayed
+            firstYear
+            lastYear
+            games {
+                id
+                name
+                year
+                averageRating
+                amountOfRatings
+            }
+        }
         allowedActions
         ratings {
             id

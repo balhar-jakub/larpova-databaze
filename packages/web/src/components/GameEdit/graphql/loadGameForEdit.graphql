@@ -30,6 +30,11 @@ query LoadGameForEdit($gameId: ID!) {
         }
         ratingsDisabled
         commentsDisabled
+        series {
+            id
+            name
+            amountOfGames
+        }
         labels {
             id
             isRequired

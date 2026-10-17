@@ -5,6 +5,10 @@ type Query {
     groupById(groupId: ID!): Group
     groupsByQuery(query: String!, offset: Int, limit: Int): [Group!]!
     eventById(eventId: ID!): Event
+    "A series of recurring games (Florie, Zlenice…) by id."
+    seriesById(seriesId: ID!): Series
+    "Series whose name matches the text query — the picker of the game edit form."
+    seriesByQuery(query: String!, offset: Int, limit: Int): [Series!]!
     eventCalendar(offset: Int, limit: Int, from: String, to: String, requiredLabels: [ID!], otherLabels: [ID!], query: String): EventsPaged!
     eventCalendarStats(from: String, to: String): EventCalendarStats!
     "Year-by-year history of games, events and ratings — the data of the statistics page."
@@ -348,6 +352,8 @@ type Game {
     gamesOfAuthors: [Game!]!
     "Articles about this game (metadata + external link)."
     articles: [Article!]!
+    "The series this game is an instalment of (Florie, Zlenice…); null for a standalone game."
+    series: Series
     events: [Event!]!
     video: Video
     coverImage: Image
@@ -358,6 +364,42 @@ type Game {
 type CommentsPaged {
     comments: [Comment!]!
     totalAmount: Int!
+}
+
+"""
+A series of recurring games — Florie, Zlenice, Bezkrálí and the like. Each
+instalment stays a full game row (its ratings, comments and play states are its
+own); the series is the relationship that groups them, with aggregate numbers
+over all instalments. A series with fewer than two visible instalments is an
+editing state, not a data error — the panel simply renders it honestly.
+"""
+type Series {
+    id: ID!
+    name: String
+    description: String
+    "All instalments of the series, oldest first; soft-deleted games hidden (editors and admins see them)."
+    games: [Game!]!
+    "Instalment count shown to this viewer (see `games`)."
+    amountOfGames: Int!
+    "Ratings summed over all instalments."
+    amountOfRatings: Int!
+    "Players summed over all instalments."
+    amountOfPlayed: Int!
+    "Comments summed over all instalments."
+    amountOfComments: Int!
+    "First instalment year, null when no instalment carries a year."
+    firstYear: Int
+    "Latest instalment year, null when no instalment carries a year."
+    lastYear: Int
+    added: String!
+}
+
+input SeriesAssignmentInput {
+    gameId: ID!
+    "Existing series id, or null to unlink the game from any series."
+    seriesId: ID
+    "Set together with an empty/unknown seriesId to create a new series by name."
+    newSeriesName: String
 }
 
 type GamesPaged {
@@ -524,6 +566,8 @@ type GameMutation {
     updateGame(input: UpdateGameInput!): Game!
     deleteGame(gameId: ID!): Game!
     restoreGame(gameId: ID!): Game!
+    "Assign a game to a series (or unlink it). Authors may series-link the games they wrote, editors and admins any game."
+    setGameSeries(input: SeriesAssignmentInput!): Game!
     rateGame(gameId: ID!, rating: Int): Game!
     deleteGameRating(gameId: ID!, userId: ID): Game!
     setGamePlayedState(gameId: ID!, state: Int!): Game!

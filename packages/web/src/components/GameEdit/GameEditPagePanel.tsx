@@ -14,6 +14,7 @@ import {
     LoadGameForEditQuery,
     LoadGameForEditQueryVariables,
     Maybe,
+    Series,
     User,
     Video,
 } from '../../graphql/__generated__/typescript-operations'
@@ -47,6 +48,7 @@ type LoadedGame = Pick<
     groupAuthor: Array<{ __typename?: 'Group' } & Pick<Group, 'id' | 'name'>>
     video?: Maybe<{ __typename?: 'Video' } & Pick<Video, 'id' | 'path'>>
     labels: Array<{ __typename?: 'Label' } & Pick<Label, 'id' | 'isRequired'>>
+    series?: Maybe<{ __typename?: 'Series' } & Pick<Series, 'id' | 'name' | 'amountOfGames'>>
 }
 
 const useStyles = createUseStyles({
@@ -91,6 +93,14 @@ const toInitialValues = (game: LoadedGame): FormValues => ({
     galleryUrl: game.galleryURL ?? undefined,
     ratingsDisabled: game.ratingsDisabled === true,
     commentsDisabled: game.commentsDisabled === true,
+    series: game.series
+        ? {
+              id: game.series.id,
+              name: game.series.name ?? '',
+              amountOfGames: game.series.amountOfGames,
+              itemLabel: `${game.series.name ?? ''} (${game.series.amountOfGames})`,
+          }
+        : null,
     requiredLabels: game.labels.filter(({ isRequired }) => isRequired).map(({ id }) => id),
     optionalLabels: game.labels.filter(({ isRequired }) => !isRequired).map(({ id }) => id),
     newLabels: [],
