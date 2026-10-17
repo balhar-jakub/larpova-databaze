@@ -188,7 +188,7 @@ const GameEditForm = ({
                         .then(() => showToast(t(linked ? 'GameEdit.seriesSaved' : 'GameEdit.gameUpdated'), 'success'))
                         // A failed link must not be reported as a saved game: the
                         // rest of the form did save, so say what did not.
-                        .catch(() => showToast(t('GameEdit.seriesFailed'), 'error'))
+                        .catch(() => showToast(t('GameEdit.seriesFailed'), 'alert'))
                         .finally(() => onGameSaved(updatedGame))
                 }
             })
@@ -199,7 +199,7 @@ const GameEditForm = ({
                 if (createdGame) {
                     syncSeries(createdGame.id, data.series, false)
                         .then(() => showToast(t(data.series ? 'GameEdit.seriesSaved' : 'GameEdit.gameCreated'), 'success'))
-                        .catch(() => showToast(t('GameEdit.seriesFailed'), 'error'))
+                        .catch(() => showToast(t('GameEdit.seriesFailed'), 'alert'))
                         .finally(() => onGameSaved(createdGame))
                 }
             })
