@@ -195,6 +195,15 @@ export const resolvers: any = {
           ? event.registration_opens_at.toISOString()
           : null),
   },
+  Label: {
+    // Labels are served as raw csld_label rows (a game's labels, the admin list,
+    // the authorized catalogues), where the columns are snake_case. Without these
+    // resolvers every label answered isRequired/isAuthorized as null, so the edit
+    // form's mandatory-labels list came out empty and its validator refused to
+    // save any game — the flags are meaningful data, not decoration.
+    isRequired: (row: any) => row.isRequired ?? row.is_required ?? null,
+    isAuthorized: (row: any) => row.isAuthorized ?? row.is_authorized ?? null,
+  },
   User: {
     commentsPaged: async (
       parent: { id: number | string },
