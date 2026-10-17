@@ -94,7 +94,10 @@ const sessionMiddleware = session({
   store: new PgStore({
     conString: process.env.DATABASE_URL,
     tableName: 'user_sessions',
-    createTableIfMissing: true,
+    // The table is created by the migration
+    // prisma/migrations/20261017100000_track_user_sessions and declared as
+    // `user_sessions` in prisma/schema.prisma: the app must not create schema
+    // objects at runtime, or the post-deploy drift gate reads them as drift.
   }),
   secret: requireSessionSecret(),
   resave: false,

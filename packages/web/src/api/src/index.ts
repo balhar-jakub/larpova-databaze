@@ -32,22 +32,14 @@ async function main() {
     connectionString: process.env.DATABASE_URL,
   });
 
-  // Create session table if it doesn't exist
-  await pgPool.query(`
-    CREATE TABLE IF NOT EXISTS "user_sessions" (
-      "sid" varchar NOT NULL COLLATE "default",
-      "sess" json NOT NULL,
-      "expire" timestamp(6) NOT NULL,
-      CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
-    );
-    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "user_sessions" ("expire");
-  `);
-
+  // The session table comes from the migration
+  // prisma/migrations/20261017100000_track_user_sessions and is declared as
+  // `user_sessions` in prisma/schema.prisma. Creating schema objects at runtime
+  // is what the post-deploy drift gate then reports as drift.
   const PgStore = pgSession(session);
   const sessionStore = new PgStore({
     pool: pgPool,
     tableName: 'user_sessions',
-    createTableIfMissing: true,
   });
 
   // ── Session middleware ───────────────────────────────

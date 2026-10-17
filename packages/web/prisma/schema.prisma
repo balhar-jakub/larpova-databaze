@@ -357,3 +357,17 @@ model csld_article_has_game {
   @@id([article_id, game_id])
   @@map(name: "csld_article_has_game")
 }
+
+/// The session table connect-pg-simple writes to. It is declared here so the
+/// database matches schema.prisma — the post-deploy drift gate compares the two,
+/// and a table the app created at runtime but the schema did not know about read
+/// as drift ("DROP TABLE user_sessions") on every production deploy. The DDL
+/// (column types, session_pkey, IDX_session_expire) mirrors the statement
+/// connect-pg-simple runs, so a table it created earlier is already identical.
+model user_sessions {
+  sid    String   @id(map: "session_pkey") @db.VarChar
+  sess   Json     @db.Json
+  expire DateTime @db.Timestamp(6)
+
+  @@index([expire], map: "IDX_session_expire")
+}
