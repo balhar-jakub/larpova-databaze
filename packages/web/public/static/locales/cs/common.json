@@ -423,7 +423,8 @@
         "series": "Série",
         "seriesHint": "Opakující se hra (Florie, Zlenice…). Začněte psát a vyberte existující, nebo vytvořte novou.",
         "createSeries": "Vytvořit novou sérii",
-        "seriesSaved": "Hra byla zařazena do série"
+        "seriesSaved": "Hra byla zařazena do série",
+        "seriesFailed": "Hru se nepodařilo zařadit do série"
     },
     "AutoComplete": {
         "startTyping": "Napište alespoň tři znaky pro vyhledání",

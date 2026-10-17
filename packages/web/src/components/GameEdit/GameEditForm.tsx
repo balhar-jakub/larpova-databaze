@@ -16,6 +16,7 @@ import {
 import FormFileInputField from '../common/form/FormFileInputField'
 import FormCheckBoxField from '../common/form/FormCheckBoxField'
 import SeriesAutoCompleteField, { SeriesChoice } from './SeriesAutoCompleteField'
+import { seriesChanged } from './seriesChoice'
 import AuthorsAutoCompleteField from './AuthorsAutoCompleteField'
 import GroupsAutoCompleteField from './GroupsAutoCompleteField'
 import { GroupAuthor } from './NewGroupModal'
@@ -182,10 +183,13 @@ const GameEditForm = ({
             updateGame({ variables: { input } }).then(response => {
                 const updatedGame = response.data?.game.updateGame
                 if (updatedGame) {
-                    syncSeries(updatedGame.id, data.series, !!initialValues?.series).finally(() => {
-                        showToast(t('GameEdit.gameUpdated'), 'success')
-                        onGameSaved(updatedGame)
-                    })
+                    const linked = seriesChanged(data.series, initialValues?.series)
+                    syncSeries(updatedGame.id, data.series, !!initialValues?.series)
+                        .then(() => showToast(t(linked ? 'GameEdit.seriesSaved' : 'GameEdit.gameUpdated'), 'success'))
+                        // A failed link must not be reported as a saved game: the
+                        // rest of the form did save, so say what did not.
+                        .catch(() => showToast(t('GameEdit.seriesFailed'), 'error'))
+                        .finally(() => onGameSaved(updatedGame))
                 }
             })
         } else {
@@ -193,10 +197,10 @@ const GameEditForm = ({
             createGame({ variables: { input } }).then(response => {
                 const createdGame = response.data?.game.createGame
                 if (createdGame) {
-                    syncSeries(createdGame.id, data.series, false).finally(() => {
-                        showToast(t('GameEdit.gameCreated'), 'success')
-                        onGameSaved(createdGame)
-                    })
+                    syncSeries(createdGame.id, data.series, false)
+                        .then(() => showToast(t(data.series ? 'GameEdit.seriesSaved' : 'GameEdit.gameCreated'), 'success'))
+                        .catch(() => showToast(t('GameEdit.seriesFailed'), 'error'))
+                        .finally(() => onGameSaved(createdGame))
                 }
             })
         }
