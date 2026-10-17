@@ -20,6 +20,7 @@ import { GameHeaderPanel } from './GameHeaderPanel'
 import { GameRatingPanel } from './GameRatingPanel'
 import { GameListPanel } from '../common/GameListPanel/GameListPanel'
 import { EventListPanel } from '../HomePage/EventListPanel'
+import { SeriesListPanel } from './SeriesListPanel'
 import { ArticleListPanel } from './ArticleListPanel'
 import { GamePagedCommentsPanel } from './GamePagedCommentsPanel'
 import RatingsListPanel from './RatingsListPanel'
@@ -101,6 +102,7 @@ const emptyGame = {
     labels: [],
     authors: [],
     groupAuthor: [],
+    series: null,
     averageRating: 0,
     amountOfRatings: 0,
     ratingStats: [],
@@ -283,6 +285,7 @@ export const GameDetailPanel = ({ gameId }: Props) => {
                                 <ActionButton onClick={handleRestoreGame}>{t('GameDetail.restoreGame')}</ActionButton>
                             )}
                             <GameListPanel games={game.similarGames} titleKey="GameDetail.similarGames" />
+                            <SeriesListPanel series={game.series} currentGameId={gameId} />
                             <EventListPanel events={game.events} titleKey="GameDetail.events" />
                             {!!game.articles?.length && (
                                 <ArticleListPanel articles={game.articles} titleKey="GameDetail.articles" />

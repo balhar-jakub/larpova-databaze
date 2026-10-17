@@ -1,0 +1,8 @@
+mutation SetGameSeries($input: SeriesAssignmentInput!) {
+    game {
+        setGameSeries(input: $input) {
+            id
+            name
+        }
+    }
+}

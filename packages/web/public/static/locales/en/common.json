@@ -40,6 +40,10 @@
     "deleteComment": "Delete your comment",
     "addComment": "Add your comment",
     "restoreGame": "Restore game",
+    "series": "Series",
+    "seriesInstalment": "This game",
+    "seriesRatings": "ratings",
+    "seriesPlayed": "players",
     "gameRestored": "Game restored",
     "gameNotFound": "Game not found. It may have been deleted, or the link is wrong.",
     "deletedGameNotice": "This game is deleted — only editors and administrators can see it. You can restore it.",
@@ -366,5 +370,11 @@
       "live": "Only live records count: deleted games and events are not in the numbers.",
       "since": "The charts show 2015 and later. Older data arrived in the one-time import of 2014 and would say more about the database's history than about the community."
     }
+  },
+  "GameEdit": {
+    "series": "Series",
+    "seriesHint": "A recurring game (Florie, Zlenice…). Start typing to pick an existing series, or create a new one.",
+    "createSeries": "Create a new series",
+    "seriesSaved": "The game was added to the series"
   }
 }

@@ -118,6 +118,7 @@ model csld_game {
   name                                            String?
   description                                     String?
   blueprint_path                                  String?
+  series_id                                       Int?
   csld_comment                                    csld_comment[]
   csld_csld_user                                  csld_csld_user?        @relation(fields: [added_by], references: [id], onDelete: Restrict, map: "csld_game_added_by_fk")
   csld_image_csld_game_imageTocsld_image          csld_image?            @relation("csld_game_imageTocsld_image", fields: [image], references: [id], onDelete: Restrict, map: "csld_game_image_fk")
@@ -133,6 +134,7 @@ model csld_game {
   similar_games_similar_games_id_game1Tocsld_game similar_games[]        @relation("similar_games_id_game1Tocsld_game")
   similar_games_similar_games_id_game2Tocsld_game similar_games[]        @relation("similar_games_id_game2Tocsld_game")
   csld_article_has_game                           csld_article_has_game[]
+  csld_series                                     csld_series?           @relation(fields: [series_id], references: [id], onDelete: SetNull, onUpdate: Cascade, map: "csld_game_series_fk")
 
   @@index([added], map: "game_added_idx")
   @@index([amount_of_comments], map: "game_amount_of_comments_idx")
@@ -175,6 +177,16 @@ model csld_game_has_label {
   csld_label csld_label @relation(fields: [id_label], references: [id], onDelete: Cascade, map: "label_fk")
 
   @@id([id_label, id_game])
+}
+
+model csld_series {
+  id          Int        @id @default(autoincrement())
+  name        String?
+  description String?
+  added       DateTime   @default(now()) @db.Timestamp(6)
+  added_by    Int?
+  deleted     Boolean?   @default(false)
+  csld_game   csld_game[]
 }
 
 model csld_image {

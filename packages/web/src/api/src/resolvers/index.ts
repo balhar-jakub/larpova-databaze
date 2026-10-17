@@ -25,6 +25,11 @@ import {
 import { normalizeGame, normalizeUserRef } from './mappers.js';
 import { groupByIdResolver, groupsByQueryResolver } from './group.js';
 import { eventByIdResolver, eventCalendarResolver, eventCalendarStatsResolver } from './event.js';
+import {
+  seriesByIdResolver,
+  seriesByQueryResolver,
+  gameSeriesResolver,
+} from './series.js';
 import { statisticsResolver } from './stats.js';
 import { yearReviewResolver } from './yearReview.js';
 import { authorizedRequiredLabelsResolver, authorizedOptionalLabelsResolver } from './label.js';
@@ -59,6 +64,7 @@ import {
   restoreGameResolver,
   createGameResolver,
   updateGameResolver,
+  setGameSeriesResolver,
 } from './gameMutation.js';
 import { createGroupResolver, updateGroupResolver } from './groupMutation.js';
 import { gameAllowedActions } from './gamePermissions.js';
@@ -97,6 +103,8 @@ export const resolvers: any = {
     groupById: groupByIdResolver,
     groupsByQuery: groupsByQueryResolver,
     eventById: eventByIdResolver,
+    seriesById: seriesByIdResolver,
+    seriesByQuery: seriesByQueryResolver,
     eventCalendar: eventCalendarResolver,
     eventCalendarStats: eventCalendarStatsResolver,
     statistics: statisticsResolver,
@@ -145,6 +153,7 @@ export const resolvers: any = {
   Game: {
     gamesOfAuthors: gamesOfAuthorsResolver,
     articles: gameArticlesResolver,
+    series: gameSeriesResolver,
     commentsPaged: commentsPagedResolver,
     currentUsersRating: (parent: any, _args: unknown, ctx: Context) => {
       if (!ctx.user) return null;
@@ -266,6 +275,7 @@ export const resolvers: any = {
     updateGame: updateGameResolver,
     deleteGame: deleteGameResolver,
     restoreGame: restoreGameResolver,
+    setGameSeries: setGameSeriesResolver,
     rateGame: rateGameResolver,
     deleteGameRating: deleteGameRatingResolver,
     setGamePlayedState: setGamePlayedStateResolver,

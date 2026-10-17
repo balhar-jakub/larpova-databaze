@@ -15,6 +15,7 @@ import {
 } from '../../utils/validationUtils'
 import FormFileInputField from '../common/form/FormFileInputField'
 import FormCheckBoxField from '../common/form/FormCheckBoxField'
+import SeriesAutoCompleteField, { SeriesChoice } from './SeriesAutoCompleteField'
 import AuthorsAutoCompleteField from './AuthorsAutoCompleteField'
 import GroupsAutoCompleteField from './GroupsAutoCompleteField'
 import { GroupAuthor } from './NewGroupModal'
@@ -24,6 +25,8 @@ import {
     CreateGameMutation,
     CreateGameMutationVariables,
     Game,
+    SetGameSeriesMutation,
+    SetGameSeriesMutationVariables,
     UpdateGameInput,
     UpdateGameMutation,
     UpdateGameMutationVariables,
@@ -39,8 +42,15 @@ import BigLoading from '../common/BigLoading/BigLoading'
 import SubmitButton from '../common/SubmitButton/SubmitButton'
 import { NewLabel } from '../common/form/NewLabelsField'
 
+import * as setGameSeriesDocument from './graphql/setGameSeries.graphql'
+
 const createGameGql = require('./graphql/createGame.graphql')
 const updateGameGql = require('./graphql/updateGame.graphql')
+
+// The webpack loader exports the document as CommonJS, an ESM import of a stub
+// (tests) arrives empty — unwrap whichever shape turned up.
+const documentOf = (value: unknown) => ((value as { default?: unknown })?.default ?? value) as any
+const setGameSeriesGql = documentOf(setGameSeriesDocument)
 
 export interface FormValues {
     name?: string
@@ -61,6 +71,7 @@ export interface FormValues {
     video?: string
     ratingsDisabled?: boolean
     commentsDisabled?: boolean
+    series?: SeriesChoice | null
     requiredLabels: string[]
     optionalLabels: string[]
     newLabels: NewLabel[]
@@ -140,7 +151,30 @@ const GameEditForm = ({
     const [updateGame, { loading: updateGameLoading }] = useMutation<UpdateGameMutation, UpdateGameMutationVariables>(
         updateGameGql,
     )
+    const [setGameSeries] = useMutation<SetGameSeriesMutation, SetGameSeriesMutationVariables>(
+        setGameSeriesGql,
+    )
     const showToast = useShowToast()
+
+    /**
+     * The series link is a separate mutation (setGameSeries), not a field of
+     * CreateGameInput/UpdateGameInput — it has its own permission check and can
+     * create the series by name. Called with the saved game's id; a null choice
+     * with nothing previously chosen skips the call entirely.
+     */
+    const syncSeries = (gameId: string, series: SeriesChoice | null | undefined, hadSeries: boolean) => {
+        if (!series && !hadSeries) return Promise.resolve()
+        return setGameSeries({
+            variables: {
+                input: {
+                    gameId,
+                    ...(series?.id ? { seriesId: series.id } : {}),
+                    ...(series && !series.id ? { newSeriesName: series.name } : {}),
+                    ...(!series ? { seriesId: null } : {}),
+                },
+            },
+        })
+    }
 
     const handleOnSubmit = (data: FormValues) => {
         if (gameId) {
@@ -148,8 +182,10 @@ const GameEditForm = ({
             updateGame({ variables: { input } }).then(response => {
                 const updatedGame = response.data?.game.updateGame
                 if (updatedGame) {
-                    showToast(t('GameEdit.gameUpdated'), 'success')
-                    onGameSaved(updatedGame)
+                    syncSeries(updatedGame.id, data.series, !!initialValues?.series).finally(() => {
+                        showToast(t('GameEdit.gameUpdated'), 'success')
+                        onGameSaved(updatedGame)
+                    })
                 }
             })
         } else {
@@ -157,8 +193,10 @@ const GameEditForm = ({
             createGame({ variables: { input } }).then(response => {
                 const createdGame = response.data?.game.createGame
                 if (createdGame) {
-                    showToast(t('GameEdit.gameCreated'), 'success')
-                    onGameSaved(createdGame)
+                    syncSeries(createdGame.id, data.series, false).finally(() => {
+                        showToast(t('GameEdit.gameCreated'), 'success')
+                        onGameSaved(createdGame)
+                    })
                 }
             })
         }
@@ -224,7 +262,13 @@ const GameEditForm = ({
                                             validate={piValidator}
                                         />
                                     </Col>
-                                    <Col md={6} />
+                                    <Col md={6}>
+                                        <SeriesAutoCompleteField
+                                            name="series"
+                                            placeholder={t('GameEdit.series')}
+                                            hint={t('GameEdit.seriesHint')}
+                                        />
+                                    </Col>
                                 </Row>
                                 <Row>
                                     <Col md={3}>

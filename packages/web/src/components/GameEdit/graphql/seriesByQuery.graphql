@@ -1,0 +1,7 @@
+query SeriesByQuery($query: String!) {
+    seriesByQuery(query: $query, limit: 10) {
+        id
+        name
+        amountOfGames
+    }
+}

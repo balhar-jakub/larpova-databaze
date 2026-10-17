@@ -199,7 +199,11 @@
         "ownRatingWarning_female": "Jste uvedena jako autorka této hry. Silně nedoporučujeme autorům hodnotit vlastní hry. Nezakazujeme to pouze proto, že existují výjimečné případy, kdy to smysl má, například freeformové hry, překlad zahraniční hry, uváděný někým jiným, atp.",
         "ownRatingWarningDismiss": "Rozumím, přesto chci hodnotit svojit hru",
         "ratingsDisabled": "Autoři hry si nepřejí, aby byla hodnocena",
-        "commentsDisabled": "Autoři hry si nepřejí, aby byla komentována"
+        "commentsDisabled": "Autoři hry si nepřejí, aby byla komentována",
+        "series": "Série",
+        "seriesInstalment": "Tato hra",
+        "seriesRatings": "hlasů",
+        "seriesPlayed": "hráčů"
     },
     "Rating": {
         "stronglyRecommended": "Silně doporučuji",
@@ -415,7 +419,11 @@
         "addGameTab": "Přidat hru",
         "editGameTab": "Upravit hru",
         "gameCreated": "Hra byla vytvořena",
-        "gameUpdated": "Hra byla aktualizována"
+        "gameUpdated": "Hra byla aktualizována",
+        "series": "Série",
+        "seriesHint": "Opakující se hra (Florie, Zlenice…). Začněte psát a vyberte existující, nebo vytvořte novou.",
+        "createSeries": "Vytvořit novou sérii",
+        "seriesSaved": "Hra byla zařazena do série"
     },
     "AutoComplete": {
         "startTyping": "Napište alespoň tři znaky pro vyhledání",

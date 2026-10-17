@@ -367,6 +367,82 @@ export async function deleteCommentResolver(
   return game ? normalizeGame(game) : null;
 }
 
+// ── setGameSeries ───────────────────────────────────────
+
+/**
+ * Assign a game to a series (or unlink it from any series). The series is a
+ * relationship between existing game rows: an instalment never loses its own
+ * ratings, comments or play states, and the aggregate numbers on the series are
+ * always computed over the instalments (see `normalizeSeries`).
+ *
+ * Permission mirrors updateGame: the game's authors may link the games they
+ * wrote, editors and admins any game. Creating a series by name is part of the
+ * same mutation (the edit form's picker offers "create new"); the series starts
+ * empty of description — editing the description is an editor's job.
+ */
+export async function setGameSeriesResolver(
+  _parent: unknown,
+  args: { input: { gameId: string; seriesId?: string; newSeriesName?: string } },
+  ctx: Context,
+) {
+  requireAuth(ctx);
+  const { input } = args;
+  const gameId = parseInt(input.gameId, 10);
+  if (isNaN(gameId)) throw new GraphQLError('Invalid game ID');
+
+  const game = await ctx.db.csld_game.findUnique({
+    where: { id: gameId },
+    include: { csld_game_has_author: true },
+  });
+  if (!game) {
+    throw new GraphQLError('Game not found', { extensions: { code: 'NOT_FOUND' } });
+  }
+  if (!(await isGameAuthor(game, ctx)) && !isAtLeastEditor(ctx)) {
+    throw new GraphQLError('Not authorized to edit this game', {
+      extensions: { code: 'ACCESS_DENIED' },
+    });
+  }
+
+  // Resolve the target series: existing id, a new one by name, or none (unlink).
+  let seriesId: number | null = null;
+  if (input.seriesId) {
+    seriesId = parseInt(input.seriesId, 10);
+    if (isNaN(seriesId)) throw new GraphQLError('Invalid series ID');
+    const exists = await ctx.db.csld_series.findUnique({ where: { id: seriesId } });
+    if (!exists || (exists.deleted && !isAtLeastEditor(ctx))) {
+      throw new GraphQLError('Series not found', { extensions: { code: 'NOT_FOUND' } });
+    }
+  } else if (input.newSeriesName?.trim()) {
+    const name = input.newSeriesName.trim();
+    // Reuse an existing series with the same name instead of creating a silent duplicate.
+    const existing = await ctx.db.csld_series.findFirst({ where: { name, deleted: false } });
+    seriesId = existing
+      ? existing.id
+      : (
+          await ctx.db.csld_series.create({
+            data: { name, added_by: ctx.user!.id, deleted: false },
+          })
+        ).id;
+  }
+
+  await ctx.db.csld_game.update({
+    where: { id: gameId },
+    data: { series_id: seriesId },
+  });
+
+  const fullGame = await ctx.db.csld_game.findUnique({
+    where: { id: gameId },
+    include: {
+      csld_game_has_label: { include: { csld_label: true } },
+      csld_game_has_author: { include: { csld_csld_user: true } },
+      csld_game_has_group: { include: { csld_csld_group: true } },
+      csld_game_has_event: { include: { event: true } },
+      csld_rating: { include: { csld_csld_user: true } },
+    },
+  });
+  return fullGame ? normalizeGame(fullGame) : null;
+}
+
 // ── deleteGame ───────────────────────────────────────────
 
 export async function deleteGameResolver(
