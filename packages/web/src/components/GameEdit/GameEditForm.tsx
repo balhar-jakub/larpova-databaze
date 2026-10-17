@@ -183,7 +183,11 @@ const GameEditForm = ({
             updateGame({ variables: { input } }).then(response => {
                 const updatedGame = response.data?.game.updateGame
                 if (updatedGame) {
-                    const linked = seriesChanged(data.series, initialValues?.series)
+                    // "Added to the series" is only true when the saved game has
+                    // one: a removal is a change too, and claiming the game was
+                    // added while it was taken out is the same false report this
+                    // message replaced.
+                    const linked = Boolean(data.series) && seriesChanged(data.series, initialValues?.series)
                     syncSeries(updatedGame.id, data.series, !!initialValues?.series)
                         .then(() => showToast(t(linked ? 'GameEdit.seriesSaved' : 'GameEdit.gameUpdated'), 'success'))
                         // A failed link must not be reported as a saved game: the
