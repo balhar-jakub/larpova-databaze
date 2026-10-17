@@ -375,6 +375,7 @@
     "series": "Series",
     "seriesHint": "A recurring game (Florie, Zlenice…). Start typing to pick an existing series, or create a new one.",
     "createSeries": "Create a new series",
-    "seriesSaved": "The game was added to the series"
+    "seriesSaved": "The game was added to the series",
+    "seriesFailed": "The game could not be added to the series"
   }
 }
