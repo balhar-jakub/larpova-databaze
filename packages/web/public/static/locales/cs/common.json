@@ -378,13 +378,15 @@
         "deleteEventConfirmation": "Opravdu smazat událost?"
     },
     "GameEdit": {
-        "help": "Nápověda",
         "help1": "Je záměrem, aby každý larp měl více štítků.",
         "help2": "Každý larp musí mít alespoň jeden štítek ze sekce povinné.",
         "help3": "Pokud larp nespadá jednoznačně pod jeden štítků, zaškrtněte jich více a upřesněte rozdíl v popisu.",
         "help4": "Každý nový štítek musí být schválen moderátorem.",
-        "gameFields": "Údaje hry",
-        "requiredFields": "Povinné údaje",
+        "labelsHelp": "Nápověda ke štítkům",
+        "formLead": "Hru můžete uložit i s minimem údajů (název, autoři, popis a alespoň jeden povinný štítek) – zbytek doplníte, kdykoli budete chtít.",
+        "showFields": "Zobrazit rozšiřující údaje",
+        "mediaFields": "Fotogalerie, video a autor fotografií",
+        "settingsToggle": "Zakázat hodnocení a komentování",
         "additionalFields": "Rozšiřující údaje",
         "presentationFields": "Prezentace hry",
         "settingsFields": "Nastavení hry",
@@ -512,7 +514,9 @@
     "LabelsEditColumn": {
         "labels": "Štítky",
         "requiredLabels": "Povinné",
+        "requiredLabelsSection": "Povinné štítky",
         "optionalLabels": "Volitelné",
+        "optionalLabelsSection": "Volitelné štítky",
         "labelsHint": "Označte štítky, které vystihují váš larp. Pokud nespadá jednoznačně pod jednu kategorii, vyberte jich více."
     },
     "Ladder": {

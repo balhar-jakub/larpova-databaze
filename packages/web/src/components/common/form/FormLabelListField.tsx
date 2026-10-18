@@ -3,8 +3,10 @@ import { useField } from 'react-final-form'
 import { Form } from 'react-bootstrap'
 import { FieldValidator } from 'final-form'
 import { createUseStyles } from 'react-jss'
+import classNames from 'classnames'
 import { Label } from '../../../graphql/__generated__/typescript-operations'
 import FormCheckLabelWithTooltip from './FormCheckLabelWithTooltip'
+import { breakPoints } from '../../../theme/breakPoints'
 
 export type LabelInList = Pick<Label, 'id' | 'name' | 'description'>
 
@@ -13,15 +15,28 @@ interface Props {
     readonly labels: Array<LabelInList>
     readonly validate?: FieldValidator<string[]>
     readonly onChange?: (newValue: string[]) => void
+    // A full-width form can afford to lay the checkboxes out in a grid; the
+    // narrow label column of the event form keeps the single stacked column.
+    readonly columns?: number
 }
+
+const columnsStyles = (columns: number) => ({
+    [`@media(min-width: ${breakPoints.md}px)`]: {
+        display: 'grid',
+        gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+        columnGap: 18,
+    },
+})
 
 const useStyles = createUseStyles({
     checkBox: {
         userSelect: 'none',
     },
+    columns2: columnsStyles(2),
+    columns3: columnsStyles(3),
 })
 
-const FormLabelListField = ({ name, labels, validate, onChange }: Props) => {
+const FormLabelListField = ({ name, labels, validate, onChange, columns }: Props) => {
     const {
         input: { value, onChange: inputOnChange },
         meta: { error, submitFailed },
@@ -43,9 +58,13 @@ const FormLabelListField = ({ name, labels, validate, onChange }: Props) => {
     }
 
     const lastIndex = labels.length - 1
+    const gridClassName = classNames({
+        [classes.columns2]: columns === 2,
+        [classes.columns3]: columns === 3,
+    })
 
     return (
-        <Form.Group>
+        <Form.Group className={gridClassName || undefined}>
             {labels.map((label, index) => (
                 <Form.Check
                     key={label.id}
