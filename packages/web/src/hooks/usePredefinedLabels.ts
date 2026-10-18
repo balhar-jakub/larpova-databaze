@@ -3,7 +3,12 @@ import { useQuery } from '@apollo/client'
 import isInBrowser from 'is-in-browser'
 import { Label, LoadLabelsQuery, LoadLabelsQueryVariables } from '../graphql/__generated__/typescript-operations'
 
-const loadLabelsGql = require('./graphql/loadLabels.graphql')
+import * as loadLabelsDocument from './graphql/loadLabels.graphql'
+
+// The webpack loader exports the document as CommonJS, an ESM import of a stub
+// (tests) arrives empty — unwrap whichever shape turned up.
+const documentOf = (value: unknown) => ((value as { default?: unknown })?.default ?? value) as any
+const loadLabelsGql = documentOf(loadLabelsDocument)
 
 export interface LabelData {
     readonly id: string

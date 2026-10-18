@@ -376,6 +376,15 @@
     "seriesHint": "A recurring game (Florie, Zlenice…). Start typing to pick an existing series, or create a new one.",
     "createSeries": "Create a new series",
     "seriesSaved": "The game was added to the series",
-    "seriesFailed": "The game could not be added to the series"
+    "seriesFailed": "The game could not be added to the series",
+    "labelsHelp": "Labels help",
+    "formLead": "You can save the game with the minimum (name, authors, description and at least one required label) and add the rest whenever you like.",
+    "showFields": "Show more fields",
+    "mediaFields": "Photo gallery, video and photo credit",
+    "settingsToggle": "Disable ratings and comments"
+  },
+  "LabelsEditColumn": {
+    "requiredLabelsSection": "Required labels",
+    "optionalLabelsSection": "Optional labels"
   }
 }
