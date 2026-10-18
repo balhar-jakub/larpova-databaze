@@ -1,5 +1,6 @@
 import type { Context } from '../context.js';
 import { isAtLeastEditor } from '../auth/appUsers.js';
+import { findUserByEmail } from '../auth/emailLookup.js';
 import { normalizeGame, normalizeGender, normalizeUserRole } from './mappers.js';
 import { commentAsText } from './textUtils.js';
 
@@ -117,10 +118,10 @@ export async function userByEmailResolver(
   ctx: Context,
 ) {
   if (!args.email) return null;
-  const row = await ctx.db.csld_csld_user.findUnique({
-    where: { email: args.email },
-    include: { csld_image: true },
-  });
+  // Case-insensitive: the sign-up form and the author picker both ask "is this
+  // address taken", and answering "free" for a case variant is how duplicate
+  // accounts got created (docs/navrh-normalizace-emailu.md).
+  const row = await findUserByEmail(ctx.db, args.email);
   return normalizeUser(row, isAtLeastEditor(ctx));
 }
 

@@ -51,11 +51,22 @@ function fakeDb() {
     const db: any = {
         csld_csld_user: {
             findUnique: async () => row,
+            findMany: async () => [row],
             update: async (args: any) => {
                 writes.push(args)
                 Object.assign(row, args.data)
                 return row
             },
+        },
+        // The settings save checks whether the new address belongs to somebody
+        // else, through the case-insensitive lookup in api/src/auth/emailLookup.ts.
+        // The fake holds a single row, so answer for it; the SQL behind the
+        // helper is covered by the DB-backed suite
+        // (src/api/src/__tests__/emailCaseInsensitive.test.ts).
+        $queryRaw: async (_strings: TemplateStringsArray, ...values: unknown[]) => {
+            const wanted = String(values[0] ?? '').trim().toLowerCase()
+            const stored = String(row.email ?? '').trim().toLowerCase()
+            return wanted === stored ? [{ id: row.id }] : []
         },
     }
 
