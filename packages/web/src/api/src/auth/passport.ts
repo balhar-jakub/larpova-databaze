@@ -2,12 +2,17 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import type { Context } from '../context.js';
 import { validatePassword, isLegacyMd5, generatePbkdf2Hash } from './password.js';
+import { findUserByEmail, normalizeEmail } from './emailLookup.js';
 import type { AuthUser } from './appUsers.js';
 
 type Db = Context['db'];
 
 export function configurePassport(db: Db) {
   // ── Local Strategy ──────────────────────────────────
+  // NOTE: nothing calls `passport.authenticate('local')` — the password flow is
+  // `logInResolver` in resolvers/userMutation.ts, which does not upgrade legacy
+  // MD5 hashes the way this strategy does. Kept in sync with the case-insensitive
+  // lookup so reviving it does not bring the e-mail bug back.
   passport.use(
     new LocalStrategy(
       {
@@ -16,10 +21,7 @@ export function configurePassport(db: Db) {
       },
       async (email, password, done) => {
         try {
-          const user = await db.csld_csld_user.findUnique({
-            where: { email: email.toLowerCase() },
-            include: { csld_image: true },
-          });
+          const user = await findUserByEmail(db, email);
 
           if (!user) {
             return done(null, false, { message: 'Invalid email or password' });
@@ -31,7 +33,7 @@ export function configurePassport(db: Db) {
 
           // MD5 → PBKDF2 upgrade on successful legacy login
           if (isLegacyMd5(user.password)) {
-            const newHash = generatePbkdf2Hash(password, email);
+            const newHash = generatePbkdf2Hash(password, normalizeEmail(email));
             await db.csld_csld_user.update({
               where: { id: user.id },
               data: { password: newHash },

@@ -1,5 +1,6 @@
 import type { Context } from '../context.js';
 import { validatePassword, generatePbkdf2Hash } from '../auth/password.js';
+import { findUserByEmail, findUserCandidatesByEmail, normalizeEmail } from '../auth/emailLookup.js';
 import type { AuthUser } from '../auth/appUsers.js';
 import { setRememberMeCookie, clearRememberMeCookie } from '../auth/rememberMe.js';
 import { GraphQLError } from 'graphql';
@@ -72,10 +73,12 @@ export async function logInResolver(
     return userToGraphQL(ctx.user);
   }
 
-  const row = await ctx.db.csld_csld_user.findUnique({
-    where: { email: userName.toLowerCase() },
-    include: { csld_image: true },
-  });
+  // Case-insensitive, because the column is not: 351 production rows store the
+  // address with capitals (docs/navrh-normalizace-emailu.md). The password picks
+  // the account when the address alone is ambiguous (the five duplicate pairs).
+  const candidates = await findUserCandidatesByEmail(ctx.db, userName);
+
+  const row = candidates.find((candidate) => validatePassword(password, candidate.password));
 
   if (!row) {
     throw new GraphQLError('Invalid email or password', {
@@ -83,10 +86,12 @@ export async function logInResolver(
     });
   }
 
-  if (!validatePassword(password, row.password)) {
-    throw new GraphQLError('Invalid email or password', {
-      extensions: { code: 'AUTHENTICATION_FAILED' },
-    });
+  if (candidates.length > 1) {
+    console.warn(
+      `[logIn] ${candidates.length} accounts match "${normalizeEmail(userName)}" ` +
+        `(ids ${candidates.map((candidate) => candidate.id).join(', ')}); ` +
+        `the password identified id ${row.id}.`,
+    );
   }
 
   const user = mapUser(row);
@@ -149,10 +154,10 @@ export async function createUserResolver(
     });
   }
 
-  // Check if email already exists
-  const existing = await ctx.db.csld_csld_user.findUnique({
-    where: { email: input.email.toLowerCase() },
-  });
+  // Case-insensitive: a case variant of a registered address is the same account,
+  // not a free address — this is the check that let sign-up create second accounts.
+  const email = normalizeEmail(input.email);
+  const existing = await findUserByEmail(ctx.db, email);
 
   if (existing) {
     throw new GraphQLError('Email already registered', {
@@ -160,8 +165,9 @@ export async function createUserResolver(
     });
   }
 
-  // Hash password with PBKDF2 using email as salt
-  const passwordHash = generatePbkdf2Hash(input.password, input.email);
+  // Hash password with PBKDF2 using the address as salt (as stored, so the salt
+  // keeps matching the column after the e-mail normalisation migration)
+  const passwordHash = generatePbkdf2Hash(input.password, email);
 
   // Store the optional profile picture before the account exists, so a broken
   // image fails the registration instead of leaving a user without a picture.
@@ -169,7 +175,7 @@ export async function createUserResolver(
 
   const row = await ctx.db.csld_csld_user.create({
     data: {
-      email: input.email.toLowerCase(),
+      email,
       password: passwordHash,
       // Registration only asks for email + password; the display name is a
       // placeholder from the email the user can change in settings after
@@ -236,12 +242,22 @@ export async function updateLoggedInUserResolver(
     select: { image: true },
   });
 
+  // A case variant of somebody else's address is the same mailbox, and the
+  // case-sensitive column would happily store it as a second account.
+  const email = normalizeEmail(input.email);
+  const takenBy = await findUserByEmail(ctx.db, email);
+  if (takenBy && takenBy.id !== ctx.user.id) {
+    throw new GraphQLError('Email already registered', {
+      extensions: { code: 'VALIDATION_FAILED' },
+    });
+  }
+
   const imageId = await saveProfilePicture(ctx, input.profilePicture);
 
   await ctx.db.csld_csld_user.update({
     where: { id: ctx.user.id },
     data: {
-      email: input.email.toLowerCase(),
+      email,
       name: input.name,
       nickname: input.nickname ?? null,
       birth_date: input.birthDate ? new Date(input.birthDate) : null,
@@ -310,9 +326,7 @@ export async function startRecoverPasswordResolver(
   args: { email: string; recoverUrl: string },
   ctx: Context,
 ) {
-  const user = await ctx.db.csld_csld_user.findUnique({
-    where: { email: args.email.toLowerCase() },
-  });
+  const user = await findUserByEmail(ctx.db, args.email);
 
   if (!user) return true; // Don't reveal if email exists
 
@@ -389,7 +403,7 @@ export async function startEmailLoginResolver(
   args: { email: string; loginUrlTemplate: string },
   ctx: Context,
 ) {
-  const email = args.email.toLowerCase().trim();
+  const email = normalizeEmail(args.email);
 
   if (!email || !email.includes('@')) {
     throw new GraphQLError('Invalid email', {
@@ -397,14 +411,14 @@ export async function startEmailLoginResolver(
     });
   }
 
-  // Find or create user
-  let user = await ctx.db.csld_csld_user.findUnique({
-    where: { email },
-  });
+  // Find or create user — case-insensitively, so an existing account stored with
+  // capitals is signed in instead of a second one being registered for it.
+  let user = await findUserByEmail(ctx.db, email);
 
   if (!user) {
     // Auto-register — create user with placeholder name
     user = await ctx.db.csld_csld_user.create({
+      include: { csld_image: true },
       data: {
         email,
         name: email.split('@')[0], // placeholder, user can update later
