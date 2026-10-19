@@ -10,6 +10,20 @@ aplikace funguje i po backfillu.
 
 ---
 
+## Provedeno (19. 10. 2026)
+
+- **Krok 1 — kód (PR #86)** sloučen a nasazen na test i produkci. Živě ověřeno na obou: `userByEmail`
+  vrací stejný účet pro `Cilkaj@seznam.cz` i `cilkaj@seznam.cz` (dřív druhá varianta nic) a adresy
+  pěti dvojic už míří na účty s historií (`clementois@…` → 1103, `vojta1662000@…` → 2469, `gaome@…` → 620).
+- **Krok 2 — sloučení dvojic** spuštěn nejdřív na `csld_test`, pak na produkci, každý po vlastním
+  dumpu (`backups/csld-test-schema-before-pair-merge-20261018-135152.sql`,
+  `backups/csld-prod-before-pair-merge-20261019-110655.sql`). Na obou stejný výsledek: 5 shell řádků
+  smazáno, 7 kolizních hodnocení zahozeno, 2 přesunuta (1103: 30 → 32), **0 case-insensitive dvojic**,
+  0 osiřelých hodnocení ani tokenů; test 3 179 → 3 174 účtů, produkce 3 183 → 3 178. Zdraví obou
+  instancí OK, journal bez chyb.
+- **Krok 3 — tento PR**: `scripts/fix-case-duplicate-users.sql` (už spuštěný; guard zabrání druhému
+  spuštění i špatnému schématu), backfill migrace s guardem a index pro lookup.
+
 ## Současný stav (produkce, `public`, 17. 10. 2026)
 
 | Co | Počet |
@@ -231,24 +245,30 @@ Předpoklady a důsledky, které je potřeba odsouhlasit:
 - Sloučení **není** vratné z dat samotných (case už nevrátíš) → proto vlastní dump předem;
   deploy si sice bere `pg_dump` automaticky, ale tenhle krok běží mimo deploy.
 
-## Návrh 5 (volitelně) — trvalá pojistka na úrovni DB
+## Návrh 5 — index na `lower(btrim(email))` (nikoli unique)
 
-Aby se normalizace nemohla vrátit (ruční `INSERT` ze skriptu, import), funkční unique index:
+Lookup porovnává `lower(btrim(email))` na obou stranách → seq scan, naměřeno ~5 ms na produkčních
+datech. Migrace proto staví index přesně na ten výraz (index na `lower(email)` by se pro tenhle
+dotaz nepoužil — Postgres vyžaduje shodu výrazu):
 
 ```sql
-CREATE UNIQUE INDEX IF NOT EXISTS user_email_lower_uniq ON csld_csld_user (lower(email));
+CREATE INDEX IF NOT EXISTS user_email_normalized_idx ON csld_csld_user (lower(btrim(email)));
 ```
 
-**Ověřeno proti oběma drift gateům** (PostgreSQL 18 + Prisma 6.19.3, migrační historie z repa):
-- post-deploy gate v `deploy-*.yml` (`migrate diff --from-url … --to-schema-datamodel … --script`):
-  „This is an empty migration.", 0 nekomentářových řádků;
-- PR gate v `test.yml` (`migrate diff --from-migrations prisma/migrations --to-schema-datamodel …
-  --shadow-database-url … --script`, jiný směr a jiný příkaz): také 0 nekomentářových řádků.
+**Proč ne UNIQUE** (původní návrh): unique index by case-variantě zabránil na úrovni DB, ale
 
-Prisma expression indexy neumí, takže je ignoruje v obou směrech. Kontrolní pokus s přebytečným
-sloupcem drift vyhlásil, takže gates fungují. Index ale **nelze zapsat do `schema.prisma`**, takže
-zůstane jen v SQL migraci — při budoucím `prisma migrate dev` na jiném stroji se musí vytvořit znovu.
-Když se do helperu přidá fallback přes `lower(email) =` (raw query), použije se stejný index.
+- stará aplikace ukládala adresy s velkými písmeny, takže budoucí import starých dat by na něm
+  spadl místo toho, aby se dal sloučit;
+- lookup má pro víc shod definované chování a test ho pinuje tím, že takovou dvojici vytvoří —
+  s unique indexem ten stav nejde vytvořit, takže ani otestovat.
+
+Jednotlivé hodnoty drží aplikace (normalizace při zápisu) a guard v backfill migraci; index je jen
+o plánu čtení.
+
+**Ověřeno:** po migraci `EXPLAIN` použije `Index Scan using user_email_normalized_idx`; PR gate
+(`--from-migrations … --shadow-database-url …`) i post-deploy gate (`--from-url …`) vracejí
+0 nekomentářových řádků, kontrolní pokus s přebytečným sloupcem 1 — takže gates fungují a index
+je neshodí.
 
 ## Pořadí kroků
 
