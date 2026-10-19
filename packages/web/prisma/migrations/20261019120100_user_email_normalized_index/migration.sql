@@ -1,0 +1,18 @@
+-- Index for the case-insensitive e-mail lookup (auth/emailLookup.ts).
+--
+-- The lookup compares `lower(btrim(email))` on both sides, which is a sequential
+-- scan of the whole user table; `EXPLAIN (ANALYZE)` on production data (3 182 rows)
+-- measured ~5 ms per lookup, paid on every sign-in and on every blur of the e-mail
+-- field in the sign-up and settings forms. The expression here is exactly the one
+-- the query uses (an index on `lower(email)` would not serve it), and exactly the
+-- one the previous migration wrote.
+--
+-- Deliberately NOT unique: a case-variant duplicate must stay representable.
+--  - the legacy application stored addresses with capitals by nature, so a future
+--    import of old data would abort on a UNIQUE index instead of merging;
+--  - the lookup has a defined behaviour for several matches (deterministic pick,
+--    logged), and the test suite pins it by creating such a pair — a UNIQUE index
+--    makes that state impossible to create and therefore impossible to test.
+-- The write paths normalise the address (resolvers), which is what keeps new rows
+-- single-valued; this index is about the read plan only.
+CREATE INDEX IF NOT EXISTS user_email_normalized_idx ON csld_csld_user (lower(btrim(email)));
