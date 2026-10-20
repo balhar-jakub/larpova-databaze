@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
 import { generatePbkdf2Hash, validatePassword } from '../auth/password';
 
 /**
@@ -147,13 +148,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  const rows = await prisma.csld_csld_user.findMany({
-    where: { email: { contains: String(stamp) } },
-    select: { id: true },
-  });
-  const ids = rows.map((row) => row.id);
-  await prisma.csld_email_authentication.deleteMany({ where: { user_id: { in: ids } } });
-  await prisma.csld_csld_user.deleteMany({ where: { id: { in: ids } } });
+  // Shared with the other suites: one database, parallel workers, and
+  // `csld_label.added_by` is ON DELETE RESTRICT.
+  await deleteFixtureUsers(prisma, await fixtureUserIds(prisma, stamp));
 });
 
 describe('password recovery on a mixed-case stored address', () => {
