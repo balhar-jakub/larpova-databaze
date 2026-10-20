@@ -1,4 +1,9 @@
 {
+  "PageFooter": {
+    "copyright": "\u00a9 2013\u20132021 Larp Database",
+    "privacy": "Privacy policy",
+    "team": "LD team: Jakub Balhar \u2022 Michal Havelka \u2022 Petr Kub\u011bnsk\u00fd \u2022 Filip Appl \u2022 Tom\u00e1\u0161 Felcman \u2022 Michal K\u00e1ra"
+  },
   "PageHeader": {
     "statistics": "Statistics"
   },
@@ -42,7 +47,9 @@
     "linkNotArrivedUsePassword": "Link not arrived? Set a password instead",
     "submit": "Create account",
     "emailAlreadyUsed": "This email is already used by {{name}}. If the account is yours, you can recover your password on the",
-    "forgotPassword": "Password recovery"
+    "forgotPassword": "Password recovery",
+    "privacyNote": "By submitting you agree to the processing of your data under the",
+    "privacyLink": "privacy policy"
   },
   "GameDetail": {
     "rate": "Your rating:",
