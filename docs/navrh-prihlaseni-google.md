@@ -286,7 +286,16 @@ API suite 328 → 347 testů, web 498 → 504.
    něj Google externí aplikaci nepustí do produkce), audience External + publikovat, scopes
    `openid email profile`.
 
-**Co zůstává na fázi 2:** stránka se zásadami ochrany osobních údajů + odkaz v patičce (blokuje
-publikaci consent screenu), propojení/odpojení Google účtu v profilu (GraphQL — dvě kopie schématu +
+**Zásady ochrany osobních údajů (dřív blokovaly publikaci consent screenu) jsou hotové** — stránka
+`/ochrana-osobnich-udaju`, odkaz v patičce na každé stránce a upozornění pod registrací
+(`src/components/Privacy/PrivacyPolicyPanel.tsx`). Text není šablona: vychází z ověřeného seznamu
+údajů (sloupce `csld_csld_user` včetně data narození a města, obsah, cookies `csld.sid`/`LoggedIn`,
+tokeny, Google Analytics s Consent Mode, reCAPTCHA, Gmail SMTP, nginx logy 14 dní, denní zálohy do
+soukromého GitHub repozitáře) a testy hlídají jednotlivá tvrzení. Dvě věci k rozhodnutí provozovatele:
+(1) zálohy drží historii bez zkracování, takže výmaz ze záloh je dnes ruční — vyplatí se doplnit
+retenci do `csld-backup-git.sh`; (2) `birth_date` a `address` (zobrazovaný jako „město“) jsou
+nepovinné, ale u 1 157 resp. 1 799 účtů vyplněné — stojí za revizi, jestli je ještě potřebujeme.
+
+**Co zůstává na fázi 2:** propojení/odpojení Google účtu v profilu (GraphQL — dvě kopie schématu +
 codegen) a nastavení hesla bez starého hesla (jinak se uživatel s prázdným heslem k heslu dostane jen
 přes „Zapomenuté heslo“).

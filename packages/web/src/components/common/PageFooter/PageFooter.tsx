@@ -32,6 +32,10 @@ export const PageFooter = () => {
         <div className={classes.footerWrapper}>
             <WidthFixer>
                 <span>{t('PageFooter.copyright')}</span>
+                &nbsp;·&nbsp;
+                <a href="/ochrana-osobnich-udaju" className={classes.link}>
+                    {t('PageFooter.privacy')}
+                </a>
                 &nbsp;&nbsp;&nbsp;
                 <a
                     href="https://www.facebook.com/groups/larpovadatabaze/"

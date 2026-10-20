@@ -75,6 +75,8 @@ export const useRoutes = () => {
 
             signUp: (): Route => route('/signUp'),
 
+            privacyPolicy: (): Route => route('/ochrana-osobnich-udaju'),
+
             gameCreate: (): Route => route('/gameEdit'),
 
             gameEdit: (id: string): Route =>

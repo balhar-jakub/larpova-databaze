@@ -213,6 +213,13 @@ const SignUpPanel = () => {
                             <button type="button" className="btn btn-link p-0" onClick={() => setMode(mode === 'link' ? 'password' : 'link')}>
                                 {mode === 'link' ? t('SignUp.setPasswordToggle') : t('SignUp.backToLinkToggle')}
                             </button>
+                            <div className="small text-muted mt-2">
+                                {t('SignUp.privacyNote')}{' '}
+                                <a href="/ochrana-osobnich-udaju" className="text-decoration-underline">
+                                    {t('SignUp.privacyLink')}
+                                </a>
+                                .
+                            </div>
                         </form>
                     )
                 }}

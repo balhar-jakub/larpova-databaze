@@ -24,6 +24,7 @@
     },
     "PageFooter": {
         "copyright": "© 2013–2021 Larpová databáze",
+        "privacy": "Ochrana osobních údajů",
         "team": "Tým LD: Jakub Balhar • Michal Havelka • Petr Kuběnský • Filip Appl • Tomáš Felcman • Michal Kára"
     },
     "HomePage": {
@@ -293,7 +294,9 @@
         "linkNotArrivedUsePassword": "Odkaz nedorazil? Nastavte si místo něj heslo",
         "submit": "Registrovat",
         "emailAlreadyUsed": "Tento e-mail je již používán uživatelem {{name}}. Pokud je účet váš, můžete si obnovit heslo na stránce",
-        "forgotPassword": "Zapomenuté heslo"
+        "forgotPassword": "Zapomenuté heslo",
+        "privacyNote": "Odesláním souhlasíte se zpracováním údajů podle",
+        "privacyLink": "zásad ochrany osobních údajů"
     },
     "FormFileInput": {
         "defaultLabel": "Vybrat...",
