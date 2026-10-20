@@ -29,6 +29,8 @@ const pairShellEmail = pairKeptEmail.toLowerCase();
 /** Two ordinary accounts, for the settings-form guard. */
 const plainEmail = `plain-${stamp}@integration.test`;
 const otherEmail = `other-${stamp}@integration.test`;
+/** Two rows, neither with a password — the pick has to fall back to the oldest. */
+const shellsEmail = `Shells-${stamp}@integration.test`;
 
 let server: ApolloServer;
 let mixedId: number;
@@ -36,6 +38,8 @@ let pairKeptId: number;
 let pairShellId: number;
 let plainId: number;
 let otherId: number;
+let shellsOldId: number;
+let shellsNewId: number;
 
 /** Context of a signed-in caller, as the server builds it from the session. */
 function asUser(id: number, email: string) {
@@ -85,6 +89,14 @@ beforeAll(async () => {
   plainId = plain.id;
   const other = await prisma.csld_csld_user.create({ data: account(otherEmail, 'Other') });
   otherId = other.id;
+  const shellOld = await prisma.csld_csld_user.create({
+    data: { email: shellsEmail, password: '', role: 1, name: 'shell-old', is_author: false },
+  });
+  shellsOldId = shellOld.id;
+  const shellNew = await prisma.csld_csld_user.create({
+    data: { email: shellsEmail.toLowerCase(), password: '', role: 1, name: 'shell-new', is_author: false },
+  });
+  shellsNewId = shellNew.id;
 });
 
 afterAll(async () => {
@@ -150,6 +162,24 @@ describe('findUserByEmail', () => {
     expect(row?.id).toBe(pairKeptId);
     expect(warnings.join('\n')).toContain(`ids ${pairKeptId}, ${pairShellId}`);
     expect(warnings.join('\n')).toContain('Merge the duplicate rows');
+  });
+
+  it('falls back to the oldest row when no candidate has a password', async () => {
+    const warnings: string[] = [];
+    const original = console.warn;
+    console.warn = (...args: unknown[]) => {
+      warnings.push(args.map(String).join(' '));
+    };
+
+    let row;
+    try {
+      row = await findUserByEmail(prisma, shellsEmail.toLowerCase());
+    } finally {
+      console.warn = original;
+    }
+
+    expect(row?.id).toBe(shellsOldId);
+    expect(warnings.join('\n')).toContain(`ids ${shellsOldId}, ${shellsNewId}`);
   });
 });
 
@@ -242,6 +272,36 @@ describe('resolvers on a case-variant address', () => {
 
     const tokens = await prisma.csld_email_authentication.count({ where: { user_id: mixedId } });
     expect(tokens).toBeGreaterThan(0);
+  });
+
+  it('startEmailLogin registers a brand-new address once, in canonical form', async () => {
+    // Signing up from the sign-in form: nobody has this address, so the resolver
+    // creates the account — with the normalised address, not the typed spelling.
+    const typed = `New.Signup-${stamp}@Integration.Test`;
+    const canonical = typed.toLowerCase();
+
+    const result = await executeQuery(
+      server,
+      `mutation Start($email: String!, $template: String!) {
+         user { startEmailLogin(email: $email, loginUrlTemplate: $template) }
+       }`,
+      { email: typed, template: 'http://test/auth/email-login?token={token}' },
+    );
+
+    expect(result.errors).toBeUndefined();
+    expect(result.data?.user?.startEmailLogin).toBe(true);
+
+    const rows = await prisma.csld_csld_user.findMany({
+      where: { email: { contains: String(stamp) } },
+      select: { id: true, email: true, password: true, role: true },
+    });
+    const created = rows.filter((row) => row.email?.startsWith('new.signup-'));
+    expect(created).toHaveLength(1);
+    expect(created[0].email).toBe(canonical);
+    expect(created[0].password).toBe('');
+    expect(created[0].role).toBe(1);
+
+    expect(await prisma.csld_email_authentication.count({ where: { user_id: created[0].id } })).toBe(1);
   });
 
   it("updateLoggedInUser refuses a case variant of somebody else's address", async () => {

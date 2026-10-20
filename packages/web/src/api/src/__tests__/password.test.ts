@@ -49,6 +49,12 @@ describe('Password verification', () => {
       expect(validatePassword('test', '')).toBe(false);
     });
 
+    it('rejects a stored hash whose iteration count is not a number, without throwing', () => {
+      // A corrupt row must answer "wrong password", never crash the login resolver.
+      expect(validatePassword('test', 'abc:00ff:00ff')).toBe(false);
+      expect(validatePassword('test', 'NaN:00ff:00ff')).toBe(false);
+    });
+
     it('rejects empty password input', () => {
       const hash = generatePbkdf2Hash('somepass', 'empty@test.com');
       expect(validatePassword('', hash)).toBe(false); // empty input rejected
