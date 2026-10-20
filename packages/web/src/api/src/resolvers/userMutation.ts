@@ -1,5 +1,5 @@
 import type { Context } from '../context.js';
-import { validatePassword, generatePbkdf2Hash } from '../auth/password.js';
+import { validatePassword, isLegacyMd5, generatePbkdf2Hash } from '../auth/password.js';
 import { findUserByEmail, findUserCandidatesByEmail, normalizeEmail } from '../auth/emailLookup.js';
 import type { AuthUser } from '../auth/appUsers.js';
 import { setRememberMeCookie, clearRememberMeCookie } from '../auth/rememberMe.js';
@@ -92,6 +92,25 @@ export async function logInResolver(
         `(ids ${candidates.map((candidate) => candidate.id).join(', ')}); ` +
         `the password identified id ${row.id}.`,
     );
+  }
+
+  // Legacy MD5 → PBKDF2 upgrade, on a password that just validated. The upgrade
+  // used to live only in passport.ts's local strategy, which nothing calls
+  // (`passport.authenticate('local')` appears nowhere), so 461 production
+  // accounts had been stuck on unsalted MD5 for good. Credential-less rows
+  // (magic-link/OAuth, `password = ''`) never reach this: `validatePassword`
+  // returns false for an empty stored hash. A failure here must not fail the
+  // sign-in — the credential is valid either way and the next login retries —
+  // so it is logged, not thrown.
+  if (isLegacyMd5(row.password)) {
+    try {
+      await ctx.db.csld_csld_user.update({
+        where: { id: row.id },
+        data: { password: generatePbkdf2Hash(password, normalizeEmail(row.email ?? '')) },
+      });
+    } catch (err) {
+      console.warn(`[logIn] MD5 → PBKDF2 upgrade failed for user ${row.id}:`, err);
+    }
   }
 
   const user = mapUser(row);

@@ -10,9 +10,10 @@ type Db = Context['db'];
 export function configurePassport(db: Db) {
   // ── Local Strategy ──────────────────────────────────
   // NOTE: nothing calls `passport.authenticate('local')` — the password flow is
-  // `logInResolver` in resolvers/userMutation.ts, which does not upgrade legacy
-  // MD5 hashes the way this strategy does. Kept in sync with the case-insensitive
-  // lookup so reviving it does not bring the e-mail bug back.
+  // `logInResolver` in resolvers/userMutation.ts, which does the same
+  // MD5 → PBKDF2 upgrade this strategy does. Kept in sync with the
+  // case-insensitive lookup and the upgrade, so reviving it cannot reintroduce
+  // either bug.
   passport.use(
     new LocalStrategy(
       {
