@@ -370,10 +370,23 @@ DB (předpokládá se kopie produkce — před krokem 2 se to ověří dotazem);
 (přihlášená session během backfillu — e-mail v session se nemění, takže se nic neděje, ale
 nezkoušel jsem to na živém provozu).
 
-## Vedlejší nález (nesouvisí, ale leží ve stejné funkci)
+## Vedlejší nález: MD5 hashe (opraveno v PR #88)
 
 `passport.ts` je **mrtvá cesta** — nikdo nevolá `passport.authenticate('local')`, login jde přes
-`logInResolver`. Důsledek: **MD5→PBKDF2 upgrade z `passport.ts:33–39` se nikdy nespustí, takže
-461 účtů s legacy MD5 hashem zůstává na MD5 navždy.** Oprava je ~15 řádků v `logInResolver`
-(převzít upgrade z mrtvé strategie + test v `password.test.ts`). Doporučuji jako samostatný,
-nezávislý krok — klidně hned po této normalizaci.
+`logInResolver`. Důsledek byl, že **MD5→PBKDF2 upgrade z `passport.ts:33–39` se nikdy nespustil**;
+upgrade je proto od PR #88 přesunutý do `logInResolver` (proběhne po úspěšném ověření hesla, chyba
+zápisu přihlášení neshodí).
+
+Přesné složení `password` sloupce na produkci (20. 10. 2026, po normalizaci e-mailů):
+
+| Formát | Účtů | Co to je |
+| --- | --- | --- |
+| PBKDF2 (`1000:salt:hash`) | 2 718 | normální stav |
+| 32 hex znaků | **305** | legacy MD5 — **tyhle upgrady na login přepíše** |
+| prázdné | 16 | magic-link účty bez hesla |
+| 13 znaků, jiný formát | **141** | všechny patří syntetickým `…@larpovadatabaze.cz` účtům z importu staré aplikace; MD5 to být nemůže (digest má 32 hex), takže se heslem nikdy nepřihlásí — a jejich adresa ani nedoručí magic link (mrtvé účty) |
+
+Dřívější číslo „461" v tomto dokumentu bylo špatné: `count(*) where password not like '%:%'` počítá
+i prázdné heslo a těch 141 placeholderů. Upgrade se týká **305** účtů. Placeholdery u 141 syntetických
+účtů jsou kandidát na úklid (nastavit `password = ''`, aby byly čestně „bez hesla"), ale nic
+nebezpečného nedělají — `validatePassword` je nikdy nepustí.
