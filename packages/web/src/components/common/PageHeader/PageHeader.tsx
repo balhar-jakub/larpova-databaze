@@ -162,9 +162,12 @@ export const PageHeader = () => {
         }
     }, [setShowMenu])
 
-    // Set document title
+    // Fallback document title only. Pages that set their own title through
+    // OpenGraphMeta (the privacy policy, statistics, the homepage) must keep it —
+    // an unconditional assignment here gave every page in the app the same tab
+    // title, whatever the page asked for.
     useEffect(() => {
-        document.title = t('PageHeader.csld')
+        if (!document.title) document.title = t('PageHeader.csld')
     }, [t])
 
     // When link is clicked, we need to hide in-place login, so user sees page content
