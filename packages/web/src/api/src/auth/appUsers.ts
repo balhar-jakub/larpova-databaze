@@ -28,6 +28,45 @@ export function isSignedIn(ctx: Context): ctx is Context & { user: AuthUser } {
   return ctx.user !== null;
 }
 
+/** The row shape every session path loads (`findUnique` + `include: { csld_image: true }`). */
+export interface SessionUserRow {
+  id: number;
+  email?: string | null;
+  name: string | null;
+  nickname: string | null;
+  description?: string | null;
+  gender?: number | null;
+  role: number;
+  csld_image?: { id: number; path: string | null } | null;
+  amount_of_comments: number | null;
+  amount_of_played: number | null;
+  amount_of_created: number | null;
+}
+
+/**
+ * The single place a database row becomes a session user.
+ *
+ * There used to be four hand-built copies (deserialize hook, remember-me
+ * middleware, the magic-link callback, the OAuth callback); they drifted, and all
+ * of them once omitted the required `description`. One mapper, so the next field
+ * added to `AuthUser` cannot go missing in three of four places.
+ */
+export function toAuthUser(row: SessionUserRow): AuthUser {
+  return {
+    id: row.id,
+    email: row.email ?? '',
+    name: row.name,
+    nickname: row.nickname,
+    description: row.description ?? null,
+    gender: row.gender ?? null,
+    role: row.role,
+    image: row.csld_image ? { id: row.csld_image.id, path: row.csld_image.path } : null,
+    amountOfComments: row.amount_of_comments,
+    amountOfPlayed: row.amount_of_played,
+    amountOfCreated: row.amount_of_created,
+  };
+}
+
 export function isEditor(ctx: Context): boolean {
   if (!ctx.user) return false;
   return ctx.user.role === CsldRole.EDITOR || ctx.user.role === CsldRole.ADMIN;

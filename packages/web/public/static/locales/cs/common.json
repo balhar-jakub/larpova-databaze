@@ -226,7 +226,18 @@
         "forgotPassword": "Zapomenuté heslo",
         "signUp": "Registrace",
         "submit": "Přihlásit",
-        "error": "Přihlašovací údaje nesouhlasí. Zkuste to znovu, nebo použijte odkaz pro zapomenuté heslo pod formulářem."
+        "error": "Přihlašovací údaje nesouhlasí. Zkuste to znovu, nebo použijte odkaz pro zapomenuté heslo pod formulářem.",
+        "googleSignIn": "Pokračovat přes Google",
+        "googleOrEmail": "nebo e-mailem",
+        "googleError": {
+            "google_cancelled": "Přihlášení přes Google bylo zrušeno.",
+            "google_state": "Přihlášení přes Google vypršelo. Zkuste to prosím znovu.",
+            "google_failed": "Přihlášení přes Google se nezdařilo. Zkuste to znovu, nebo použijte e-mail.",
+            "google_unavailable": "Přihlášení přes Google zatím není na tomto serveru nastavené.",
+            "google_unverified": "Google nepotvrdil e-mailovou adresu tohoto účtu, takže ho nelze propojit. Přihlaste se e-mailem nebo heslem.",
+            "google_ambiguous": "Tuto e-mailovou adresu má v databázi víc účtů. Přihlaste se heslem nebo odkazem e-mailem a účet propojte v profilu.",
+            "google_conflict": "Účet už je propojený s jiným Google účtem."
+        }
     },
     "Errors": {
         "emailRequired": "Neplatná emailová adresa",
