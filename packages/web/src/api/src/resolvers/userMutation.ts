@@ -96,12 +96,13 @@ export async function logInResolver(
 
   // Legacy MD5 → PBKDF2 upgrade, on a password that just validated. The upgrade
   // used to live only in passport.ts's local strategy, which nothing calls
-  // (`passport.authenticate('local')` appears nowhere), so 461 production
-  // accounts had been stuck on unsalted MD5 for good. Credential-less rows
-  // (magic-link/OAuth, `password = ''`) never reach this: `validatePassword`
-  // returns false for an empty stored hash. A failure here must not fail the
-  // sign-in — the credential is valid either way and the next login retries —
-  // so it is logged, not thrown.
+  // (`passport.authenticate('local')` appears nowhere), so the 305 production
+  // accounts that still hold an unsalted 32-hex MD5 hash had been stuck on it for
+  // good. Credential-less rows (magic-link/OAuth, `password = ''`) never reach
+  // this: `validatePassword` returns false for an empty stored hash, and neither
+  // do the 141 synthetic accounts whose 13-character placeholder is not a digest
+  // at all. A failure here must not fail the sign-in — the credential is valid
+  // either way and the next login retries — so it is logged, not thrown.
   if (isLegacyMd5(row.password)) {
     try {
       await ctx.db.csld_csld_user.update({
