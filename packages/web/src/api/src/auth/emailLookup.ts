@@ -46,7 +46,10 @@ export async function findUserCandidatesByEmail(
   db: Db,
   rawEmail: string | null | undefined,
 ): Promise<UserWithImage[]> {
-  if (!normalizeEmail(rawEmail)) return [];
+  // `== null` (not `!`) so TypeScript narrows `rawEmail` to a string below: after
+  // this guard the address is non-empty, so the query takes it as-is and lets the
+  // database do the trimming and casing.
+  if (rawEmail == null || !normalizeEmail(rawEmail)) return [];
 
   // One id lookup, matching the way the normalisation migration rewrites the
   // column (`lower(btrim(email))`). Deliberately NOT `findUnique(normalizeEmail(…))`
@@ -58,7 +61,7 @@ export async function findUserCandidatesByEmail(
   // index once it exists; until then it is a scan of a ~3k-row table.
   const matches = await db.$queryRaw<{ id: number }[]>`
     SELECT id FROM csld_csld_user
-    WHERE email IS NOT NULL AND lower(btrim(email)) = lower(btrim(${rawEmail ?? ''}))
+    WHERE email IS NOT NULL AND lower(btrim(email)) = lower(btrim(${rawEmail}))
   `;
   if (matches.length === 0) return [];
 
@@ -98,5 +101,7 @@ export async function findUserByEmail(
  * `rows` come in id order.
  */
 function pickPrimaryCandidate(rows: UserWithImage[]): UserWithImage {
-  return rows.find((row) => (row.password ?? '').length > 0) ?? rows[0];
+  // `password` is NOT NULL in the schema, so the empty string is the only
+  // "no credential" state to check for.
+  return rows.find((row) => row.password.length > 0) ?? rows[0];
 }
