@@ -3,8 +3,21 @@
  */
 import React from 'react'
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from '@jest/globals'
-import { PrivacyPolicyPanel } from '../PrivacyPolicyPanel'
+import { jest, describe, it, expect, beforeAll } from '@jest/globals'
+
+// The panel renders OpenGraphMeta, which needs the router and the head manager.
+jest.unstable_mockModule('next/router', () => ({
+    useRouter: () => ({ asPath: '/ochrana-osobnich-udaju', query: {}, push: () => undefined }),
+}))
+jest.unstable_mockModule('next/head', () => ({
+    default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+
+let PrivacyPolicyPanel: typeof import('../PrivacyPolicyPanel').PrivacyPolicyPanel
+
+beforeAll(async () => {
+    PrivacyPolicyPanel = (await import('../PrivacyPolicyPanel')).PrivacyPolicyPanel
+})
 
 /**
  * The privacy policy is a legal statement, so the assertions are the claims a

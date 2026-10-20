@@ -1,6 +1,7 @@
 import React from 'react'
 import { createUseStyles } from 'react-jss'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
+import OpenGraphMeta from '../common/OpenGraphMeta/OpenGraphMeta'
 import { darkTheme } from '../../theme/darkTheme'
 
 /**
@@ -100,7 +101,13 @@ export const PrivacyPolicyPanel = () => {
     const classes = useStyles()
 
     return (
-        <div className={classes.row} data-testid="privacy.panel">
+        <>
+            <OpenGraphMeta
+                title="Ochrana osobních údajů | Larpová databáze"
+                description="Jaké údaje o vás Larpová databáze zpracovává, komu se dostanou, jak dlouho je uchováváme a jak je nechat smazat."
+                image="/images/lk-logo.png"
+            />
+            <div className={classes.row} data-testid="privacy.panel">
             <WidthFixer>
                 <h1 className={classes.title}>Ochrana osobních údajů</h1>
                 <div className={classes.subtitle}>
@@ -189,16 +196,15 @@ export const PrivacyPolicyPanel = () => {
                         </li>
                     </ul>
                     <p className={classes.p}>
-                        Neprofitujeme z vašich údajů v tom smyslu, že bychom je prodávali, a nepoužíváme je k
-                        reklamě. Nenajdete tu žádné reklamní sítě ani profilování, které by o vás rozhodovalo
-                        automaticky.
+                        Vaše údaje neprodáváme a nepoužíváme je k reklamě. Nenajdete tu žádné reklamní sítě ani
+                        profilování, které by o vás rozhodovalo automaticky.
                     </p>
                 </div>
 
                 <div className={classes.section}>
                     <h2 className={classes.h2}>5. Komu se údaje dostanou</h2>
                     <p className={classes.p}>
-                        Sami je nepředáváme nikomu k marketingu. Používáme ale služby, které při provozu databáze
+                        Údaje nepředáváme nikomu k marketingu. Používáme ale služby, které při provozu databáze
                         údaje zpracovávají:
                     </p>
                     <ul className={classes.list}>
@@ -264,7 +270,7 @@ export const PrivacyPolicyPanel = () => {
                                 <td>
                                     <code>csld-ga-consent</code> (v prohlížeči, ne cookie)
                                 </td>
-                                <td>Vaše rozhodnutí o měření, aby jsme se neptali pořád.</td>
+                                <td>Vaše rozhodnutí o měření, abychom se neptali pořád.</td>
                                 <td>do vymazání úložiště</td>
                                 <td>—</td>
                             </tr>
@@ -330,8 +336,8 @@ export const PrivacyPolicyPanel = () => {
                 <div className={classes.section}>
                     <h2 className={classes.h2}>9. Děti</h2>
                     <p className={classes.p}>
-                        Databáze není určená dětem mladším 15 let. Pokud je vám méně, může účet založit jen
-                        zákonný zástupce.
+                        Databáze není určená dětem mladším 15 let. Pokud je vám méně než 15, používejte ji
+                        prosím se souhlasem zákonného zástupce.
                     </p>
                 </div>
 
@@ -362,7 +368,8 @@ export const PrivacyPolicyPanel = () => {
                     — odpovídáme do měsíce.
                 </div>
             </WidthFixer>
-        </div>
+            </div>
+        </>
     )
 }
 
