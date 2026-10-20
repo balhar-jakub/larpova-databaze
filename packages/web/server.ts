@@ -317,6 +317,7 @@ app.get('/auth/email-login', async (req, res) => {
       email: user.email!,
       name: user.name,
       nickname: user.nickname,
+      description: user.description ?? null,
       role: user.role,
       image: user.csld_image
         ? { id: user.csld_image.id, path: user.csld_image.path }

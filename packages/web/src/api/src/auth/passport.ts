@@ -1,69 +1,21 @@
 import passport from 'passport';
-import { Strategy as LocalStrategy } from 'passport-local';
 import type { Context } from '../context.js';
-import { validatePassword, isLegacyMd5, generatePbkdf2Hash } from './password.js';
-import { findUserByEmail, normalizeEmail } from './emailLookup.js';
 import type { AuthUser } from './appUsers.js';
 
 type Db = Context['db'];
 
+/**
+ * Session plumbing only.
+ *
+ * There is deliberately no LocalStrategy here: the password flow is `logInResolver`
+ * in resolvers/userMutation.ts, which owns the case-insensitive lookup and the
+ * MD5 → PBKDF2 upgrade. A LocalStrategy used to sit in this file, and nothing ever
+ * called `passport.authenticate('local')` — it was dead code duplicating the
+ * resolver, and its copy of the hash upgrade never ran for anybody (see
+ * docs/navrh-normalizace-emailu.md). `ctx.login(user)` needs nothing more than the
+ * two hooks below.
+ */
 export function configurePassport(db: Db) {
-  // ── Local Strategy ──────────────────────────────────
-  // NOTE: nothing calls `passport.authenticate('local')` — the password flow is
-  // `logInResolver` in resolvers/userMutation.ts, which does the same
-  // MD5 → PBKDF2 upgrade this strategy does. Kept in sync with the
-  // case-insensitive lookup and the upgrade, so reviving it cannot reintroduce
-  // either bug.
-  passport.use(
-    new LocalStrategy(
-      {
-        usernameField: 'email',
-        passwordField: 'password',
-      },
-      async (email, password, done) => {
-        try {
-          const user = await findUserByEmail(db, email);
-
-          if (!user) {
-            return done(null, false, { message: 'Invalid email or password' });
-          }
-
-          if (!validatePassword(password, user.password)) {
-            return done(null, false, { message: 'Invalid email or password' });
-          }
-
-          // MD5 → PBKDF2 upgrade on successful legacy login
-          if (isLegacyMd5(user.password)) {
-            const newHash = generatePbkdf2Hash(password, normalizeEmail(email));
-            await db.csld_csld_user.update({
-              where: { id: user.id },
-              data: { password: newHash },
-            });
-          }
-
-          const authUser: AuthUser = {
-            id: user.id,
-            email: user.email!,
-            name: user.name,
-            nickname: user.nickname,
-            gender: user.gender ?? null,
-            role: user.role,
-            image: user.csld_image
-              ? { id: user.csld_image.id, path: user.csld_image.path }
-              : null,
-            amountOfComments: user.amount_of_comments,
-            amountOfPlayed: user.amount_of_played,
-            amountOfCreated: user.amount_of_created,
-          };
-
-          return done(null, authUser);
-        } catch (err) {
-          return done(err);
-        }
-      },
-    ),
-  );
-
   // ── Serialization ────────────────────────────────────
   passport.serializeUser<number>((user, done) => {
     const authUser = user as AuthUser;
@@ -84,6 +36,7 @@ export function configurePassport(db: Db) {
         email: user.email!,
         name: user.name,
         nickname: user.nickname,
+        description: user.description ?? null,
         gender: user.gender ?? null,
         role: user.role,
         image: user.csld_image
