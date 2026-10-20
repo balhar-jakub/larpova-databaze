@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
+import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
 import { linkGoogleIdentity, googleSignInConfigured, type GoogleEnv } from '../auth/googleLink';
 import { generatePbkdf2Hash } from '../auth/password';
 
@@ -58,7 +59,7 @@ beforeAll(async () => {
     data: {
       user_id: linkedId,
       provider: 'google',
-      provider_account_id: 'sub-existing',
+      provider_account_id: `sub-existing-${stamp}`,
       provider_email: linkedEmail,
       last_login_at: new Date(Date.now() - 24 * 60 * 60 * 1000),
     },
@@ -67,32 +68,27 @@ beforeAll(async () => {
     data: {
       user_id: conflictId,
       provider: 'google',
-      provider_account_id: 'sub-other',
+      provider_account_id: `sub-other-${stamp}`,
       provider_email: conflictEmail,
     },
   });
 });
 
 afterAll(async () => {
-  const rows = await prisma.csld_csld_user.findMany({
-    where: { email: { contains: String(stamp) } },
-    select: { id: true },
-  });
-  const ids = rows.map((row) => row.id);
-  await prisma.csld_oauth_account.deleteMany({ where: { user_id: { in: ids } } });
-  await prisma.csld_email_authentication.deleteMany({ where: { user_id: { in: ids } } });
-  await prisma.csld_csld_user.deleteMany({ where: { id: { in: ids } } });
+  // Shared with the other suites: one database, parallel workers, and
+  // `csld_label.added_by` is ON DELETE RESTRICT.
+  await deleteFixtureUsers(prisma, await fixtureUserIds(prisma, stamp));
 });
 
 describe('rule 1 — an existing link signs that user in', () => {
   it('uses the identity key, not the address, and refreshes the link', async () => {
     const before = await prisma.csld_oauth_account.findFirst({
-      where: { provider_account_id: 'sub-existing' },
+      where: { provider_account_id: `sub-existing-${stamp}` },
       select: { last_login_at: true },
     });
 
     const outcome = await linkGoogleIdentity(prisma, {
-      sub: 'sub-existing',
+      sub: `sub-existing-${stamp}`,
       email: `moved-to-a-new-address-${stamp}@integration.test`,
       emailVerified: true,
     });
@@ -100,7 +96,7 @@ describe('rule 1 — an existing link signs that user in', () => {
     expect(outcome).toEqual({ kind: 'sign-in', userId: linkedId, how: 'linked' });
 
     const after = await prisma.csld_oauth_account.findFirst({
-      where: { provider_account_id: 'sub-existing' },
+      where: { provider_account_id: `sub-existing-${stamp}` },
       select: { provider_email: true, last_login_at: true },
     });
     expect(after?.provider_email).toBe(`moved-to-a-new-address-${stamp}@integration.test`);
@@ -111,7 +107,7 @@ describe('rule 1 — an existing link signs that user in', () => {
 describe('rule 2 — a verified address with exactly one account links it', () => {
   it('links and signs in', async () => {
     const outcome = await linkGoogleIdentity(prisma, {
-      sub: 'sub-plain',
+      sub: `sub-plain-${stamp}`,
       email: plainEmail.toUpperCase(),
       emailVerified: true,
     });
@@ -119,7 +115,7 @@ describe('rule 2 — a verified address with exactly one account links it', () =
     expect(outcome).toEqual({ kind: 'sign-in', userId: plainId, how: 'email' });
 
     const link = await prisma.csld_oauth_account.findFirst({
-      where: { provider_account_id: 'sub-plain' },
+      where: { provider_account_id: `sub-plain-${stamp}` },
       select: { user_id: true, provider_email: true },
     });
     expect(link?.user_id).toBe(plainId);
@@ -130,7 +126,7 @@ describe('rule 2 — a verified address with exactly one account links it', () =
 describe('rule 3 — an address several accounts share is never guessed', () => {
   it('refuses, names the candidates, and writes nothing', async () => {
     const outcome = await linkGoogleIdentity(prisma, {
-      sub: 'sub-dup',
+      sub: `sub-dup-${stamp}`,
       email: dupEmailTyped,
       emailVerified: true,
     });
@@ -138,14 +134,14 @@ describe('rule 3 — an address several accounts share is never guessed', () => 
     expect(outcome.kind).toBe('ambiguous');
     if (outcome.kind !== 'ambiguous') return;
     expect(outcome.userIds.sort()).toEqual([...dupIds].sort());
-    expect(await linkCount('sub-dup')).toBe(0);
+    expect(await linkCount(`sub-dup-${stamp}`)).toBe(0);
   });
 });
 
 describe('rule 4 — nobody holds the address, so the account is registered', () => {
   it('creates the account in canonical form and links it', async () => {
     const outcome = await linkGoogleIdentity(prisma, {
-      sub: 'sub-fresh',
+      sub: `sub-fresh-${stamp}`,
       email: freshTyped,
       emailVerified: true,
       name: 'Jana Nováková',
@@ -165,7 +161,7 @@ describe('rule 4 — nobody holds the address, so the account is registered', ()
     expect(user?.is_author).toBe(false);
 
     const link = await prisma.csld_oauth_account.findFirst({
-      where: { provider_account_id: 'sub-fresh' },
+      where: { provider_account_id: `sub-fresh-${stamp}` },
       select: { user_id: true, provider_email: true },
     });
     expect(link?.user_id).toBe(outcome.userId);
@@ -174,7 +170,7 @@ describe('rule 4 — nobody holds the address, so the account is registered', ()
 
   it('falls back to the local part when Google sends no name', async () => {
     const typed = `google-noname-${stamp}@integration.test`;
-    const outcome = await linkGoogleIdentity(prisma, { sub: 'sub-noname', email: typed, emailVerified: true });
+    const outcome = await linkGoogleIdentity(prisma, { sub: `sub-noname-${stamp}`, email: typed, emailVerified: true });
 
     expect(outcome.kind).toBe('registered');
     if (outcome.kind !== 'registered') return;
@@ -186,27 +182,27 @@ describe('rule 4 — nobody holds the address, so the account is registered', ()
 describe('rule 5 — an account bound to another Google identity is refused', () => {
   it('refuses and leaves the existing link alone', async () => {
     const outcome = await linkGoogleIdentity(prisma, {
-      sub: 'sub-new',
+      sub: `sub-new-${stamp}`,
       email: conflictEmail,
       emailVerified: true,
     });
 
     expect(outcome).toEqual({ kind: 'conflict', userId: conflictId });
-    expect(await linkCount('sub-new')).toBe(0);
-    expect(await linkCount('sub-other')).toBe(1);
+    expect(await linkCount(`sub-new-${stamp}`)).toBe(0);
+    expect(await linkCount(`sub-other-${stamp}`)).toBe(1);
   });
 });
 
 describe('an unverified address never links', () => {
   it('refuses and writes nothing', async () => {
     const outcome = await linkGoogleIdentity(prisma, {
-      sub: 'sub-unverified',
+      sub: `sub-unverified-${stamp}`,
       email: plainEmail,
       emailVerified: false,
     });
 
     expect(outcome).toEqual({ kind: 'unverified' });
-    expect(await linkCount('sub-unverified')).toBe(0);
+    expect(await linkCount(`sub-unverified-${stamp}`)).toBe(0);
   });
 });
 
@@ -220,7 +216,7 @@ describe('linking never grants authorisation', () => {
 
     let outcome;
     try {
-      outcome = await linkGoogleIdentity(prisma, { sub: 'sub-staff', email: staffEmail.toUpperCase(), emailVerified: true });
+      outcome = await linkGoogleIdentity(prisma, { sub: `sub-staff-${stamp}`, email: staffEmail.toUpperCase(), emailVerified: true });
     } finally {
       console.warn = original;
     }
@@ -235,7 +231,7 @@ describe('linking never grants authorisation', () => {
     expect(user?.is_author).toBe(true);
 
     const log = warnings.join('\n');
-    expect(log).toContain(`auto-linked sub sub-staff to existing account ${staffId}`);
+    expect(log).toContain(`auto-linked sub sub-staff-${stamp} to existing account ${staffId}`);
     expect(log).toContain('STAFF account (role 2)');
   });
 });
