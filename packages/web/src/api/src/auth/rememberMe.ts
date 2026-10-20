@@ -73,6 +73,7 @@ export function rememberMeMiddleware(db: PrismaClient) {
         email: user.email!,
         name: user.name,
         nickname: user.nickname,
+        description: user.description ?? null,
         role: user.role,
         image: user.csld_image ? { id: user.csld_image.id, path: user.csld_image.path } : null,
         amountOfComments: user.amount_of_comments,
