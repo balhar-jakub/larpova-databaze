@@ -1,6 +1,6 @@
 import passport from 'passport';
 import type { Context } from '../context.js';
-import type { AuthUser } from './appUsers.js';
+import { toAuthUser, type AuthUser } from './appUsers.js';
 
 type Db = Context['db'];
 
@@ -31,23 +31,7 @@ export function configurePassport(db: Db) {
 
       if (!user) return done(null, null);
 
-      const authUser: AuthUser = {
-        id: user.id,
-        email: user.email!,
-        name: user.name,
-        nickname: user.nickname,
-        description: user.description ?? null,
-        gender: user.gender ?? null,
-        role: user.role,
-        image: user.csld_image
-          ? { id: user.csld_image.id, path: user.csld_image.path }
-          : null,
-        amountOfComments: user.amount_of_comments,
-        amountOfPlayed: user.amount_of_played,
-        amountOfCreated: user.amount_of_created,
-      };
-
-      done(null, authUser);
+      done(null, toAuthUser(user));
     } catch (err) {
       done(err);
     }

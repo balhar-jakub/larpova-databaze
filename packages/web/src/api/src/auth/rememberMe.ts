@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import type { Request, Response, NextFunction } from 'express';
 import type { PrismaClient } from '@prisma/client';
-import type { AuthUser } from './appUsers.js';
+import { toAuthUser, type AuthUser } from './appUsers.js';
 
 const REMEMBER_ME_KEY = process.env.REMEMBER_ME_KEY || 'csld-remember-me-key';
 const COOKIE_NAME = 'LoggedIn'; // matches Java cookie name for browser compatibility
@@ -68,18 +68,7 @@ export function rememberMeMiddleware(db: PrismaClient) {
 
       if (!user) return next();
 
-      const authUser: AuthUser = {
-        id: user.id,
-        email: user.email!,
-        name: user.name,
-        nickname: user.nickname,
-        description: user.description ?? null,
-        role: user.role,
-        image: user.csld_image ? { id: user.csld_image.id, path: user.csld_image.path } : null,
-        amountOfComments: user.amount_of_comments,
-        amountOfPlayed: user.amount_of_played,
-        amountOfCreated: user.amount_of_created,
-      };
+      const authUser: AuthUser = toAuthUser(user);
 
       // Set user on request so Passport sees them
       (req as any).user = authUser;

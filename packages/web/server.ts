@@ -25,6 +25,8 @@ import { resolvers } from './src/api/src/resolvers/index.js';
 import { configurePassport } from './src/api/src/auth/passport.js';
 import { rememberMeMiddleware } from './src/api/src/auth/rememberMe.js';
 import { setRememberMeCookie } from './src/api/src/auth/rememberMe.js';
+import { createGoogleRouter } from './src/api/src/auth/googleRoutes.js';
+import { toAuthUser } from './src/api/src/auth/appUsers.js';
 import { requireSessionSecret } from './src/api/src/auth/sessionSecret.js';
 import { LocalFiles } from './src/api/src/files/fileService.js';
 import { setFileService } from './src/api/src/files/index.js';
@@ -286,6 +288,23 @@ app.get('/user-icon', async (req, res) => {
   }
 });
 
+// ── Google sign-in ───────────────────────────────────────
+// Mounted before the catch-all; inert (and the button hidden) until
+// GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET exist in the environment.
+
+app.use(
+  '/auth/google',
+  createGoogleRouter({
+    prisma,
+    loadUser: (id) => prisma.csld_csld_user.findUnique({ where: { id }, include: { csld_image: true } }),
+    login: async (req, user) => {
+      await new Promise<void>((resolve, reject) => {
+        (req as any).login(user, (err: Error | null) => (err ? reject(err) : resolve()));
+      });
+    },
+  }),
+);
+
 // ── Email magic-link callback ────────────────────────────
 
 app.get('/auth/email-login', async (req, res) => {
@@ -311,21 +330,7 @@ app.get('/auth/email-login', async (req, res) => {
       return res.redirect('/signIn?error=expired_token');
     }
 
-    const user = auth.csld_csld_user;
-    const authUser = {
-      id: user.id,
-      email: user.email!,
-      name: user.name,
-      nickname: user.nickname,
-      description: user.description ?? null,
-      role: user.role,
-      image: user.csld_image
-        ? { id: user.csld_image.id, path: user.csld_image.path }
-        : null,
-      amountOfComments: user.amount_of_comments,
-      amountOfPlayed: user.amount_of_played,
-      amountOfCreated: user.amount_of_created,
-    };
+    const authUser = toAuthUser(auth.csld_csld_user);
 
     // Log in via Passport
     await new Promise<void>((resolve, reject) => {

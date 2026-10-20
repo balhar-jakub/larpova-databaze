@@ -16,6 +16,7 @@ import {
     StartEmailLoginMutationVariables,
 } from '../../graphql/__generated__/typescript-operations'
 import { TextLink } from '../common/TextLink/TextLink'
+import { GoogleSignInButton } from '../SignIn/GoogleSignInButton'
 import ReCaptchaField from './ReCaptchaField'
 import { useIsEmailAvailable } from '../../hooks/useIsEmailAvailable'
 import { useFocusInput } from '../../hooks/useFocusInput'
@@ -149,6 +150,7 @@ const SignUpPanel = () => {
 
     return (
         <FormPageRow headerText={t('SignUp.header')}>
+            <GoogleSignInButton showDivider />
             <FinalForm<FormData>
                 onSubmit={(data) => (mode === 'link' ? sendMagicLink(data) : createWithPassword(data))}
                 validate={validate(t)}

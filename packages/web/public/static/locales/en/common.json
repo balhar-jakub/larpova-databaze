@@ -14,7 +14,18 @@
     "sending": "Sending...",
     "magicLinkSent": "A login link was sent to {{email}}. Check your inbox.",
     "magicLinkError": "Failed to send. Please try again.",
-    "orUsePassword": "or use your password"
+    "orUsePassword": "or use your password",
+    "googleSignIn": "Continue with Google",
+    "googleOrEmail": "or by e-mail",
+    "googleError": {
+      "google_cancelled": "Google sign-in was cancelled.",
+      "google_state": "Google sign-in expired. Please try again.",
+      "google_failed": "Google sign-in failed. Try again, or use your e-mail.",
+      "google_unavailable": "Google sign-in is not configured on this server yet.",
+      "google_unverified": "Google did not confirm this e-mail address, so the account cannot be linked. Sign in with e-mail or password instead.",
+      "google_ambiguous": "More than one account uses this e-mail address. Sign in with a password or a login link and link the account in your profile.",
+      "google_conflict": "This account is already linked to a different Google account."
+    }
   },
   "UserFields": {
     "email": "Email",

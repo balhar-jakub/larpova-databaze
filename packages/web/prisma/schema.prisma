@@ -65,6 +65,7 @@ model csld_csld_user {
   csld_csld_group           csld_csld_group[]
   csld_image                csld_image?                 @relation(fields: [image], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FKo1rwv4yy7imwowct55qidvrt5")
   csld_email_authentication csld_email_authentication[]
+  csld_oauth_account        csld_oauth_account[]
   csld_game                 csld_game[]
   csld_game_has_author      csld_game_has_author[]
   csld_label                csld_label[]
@@ -370,4 +371,28 @@ model user_sessions {
   expire DateTime @db.Timestamp(6)
 
   @@index([expire], map: "IDX_session_expire")
+}
+
+/// An external identity a user can sign in with (currently Google only).
+///
+/// `provider_account_id` is Google's `sub`, the stable account id — the e-mail is
+/// kept beside it as a hint only, because a Google account can change address and
+/// the address is what the linking rule matches on, never the identity key.
+/// Deliberately a separate table rather than columns on `csld_csld_user`: one user
+/// can have several identities, and each extra provider would otherwise add
+/// columns to the legacy user table.
+model csld_oauth_account {
+  id                  Int             @id @default(autoincrement())
+  user_id             Int
+  provider            String          @db.VarChar(32)
+  provider_account_id String          @db.VarChar(255)
+  provider_email      String?         @db.VarChar(255)
+  created_at          DateTime        @default(now()) @db.Timestamp(6)
+  last_login_at       DateTime        @default(now()) @db.Timestamp(6)
+  csld_csld_user      csld_csld_user  @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "csld_oauth_account_user_fk")
+
+  @@unique([provider, provider_account_id], map: "csld_oauth_account_provider_account_key")
+  @@unique([user_id, provider], map: "csld_oauth_account_user_provider_key")
+  @@index([user_id], map: "csld_oauth_account_user_idx")
+  @@map(name: "csld_oauth_account")
 }

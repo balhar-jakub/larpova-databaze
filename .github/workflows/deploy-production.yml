@@ -92,6 +92,27 @@ jobs:
             else
               printf "SESSION_SECRET=%s\n" "${{ secrets.SESSION_SECRET }}" >> .env
             fi
+            # Google sign-in: written only when the repo secret exists, so a deploy
+            # without credentials leaves the feature inert (the button hides itself)
+            # instead of shipping an empty client id. The redirect URI is not a
+            # secret and differs per instance, so it is set here.
+            if [ -n "${{ secrets.GOOGLE_CLIENT_ID }}" ]; then
+              if grep -q "^GOOGLE_CLIENT_ID=" .env 2>/dev/null; then
+                sed -i "s|^GOOGLE_CLIENT_ID=.*|GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}|" .env
+              else
+                printf "GOOGLE_CLIENT_ID=%s\n" "${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+              fi
+              if grep -q "^GOOGLE_CLIENT_SECRET=" .env 2>/dev/null; then
+                sed -i "s|^GOOGLE_CLIENT_SECRET=.*|GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}|" .env
+              else
+                printf "GOOGLE_CLIENT_SECRET=%s\n" "${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+              fi
+              if grep -q "^GOOGLE_REDIRECT_URI=" .env 2>/dev/null; then
+                sed -i "s|^GOOGLE_REDIRECT_URI=.*|GOOGLE_REDIRECT_URI=https://larpovadatabaze.cz/auth/google/callback|" .env
+              else
+                printf "GOOGLE_REDIRECT_URI=%s\n" "https://larpovadatabaze.cz/auth/google/callback" >> .env
+              fi
+            fi
             for pid in $(pgrep -f "tsx.*server\.ts" 2>/dev/null); do
               cwd=$(readlink -f /proc/$pid/cwd 2>/dev/null)
               if echo "$cwd" | grep -q "csld-new"; then kill "$pid" 2>/dev/null; fi
