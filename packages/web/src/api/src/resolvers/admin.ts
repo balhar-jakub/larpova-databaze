@@ -1,13 +1,19 @@
 import type { Context } from '../context.js';
 import { GraphQLError } from 'graphql';
-import { isAtLeastEditor } from '../auth/appUsers.js';
+import { isAdmin, isAtLeastEditor } from '../auth/appUsers.js';
 import { normalizeGame, normalizeUserRef } from './mappers.js';
 import { normalizeUser } from './user.js';
 
+/**
+ * The admin area is staff-only. The original comment read "no user = no admin,
+ * check role >= 3 when auth is implemented" — auth is implemented, and the
+ * gateway silently kept admitting every signed-in plain USER to allUsers,
+ * stats and selfRated. Role check via the shared helper, same as
+ * adminMutation.ts.
+ */
 function requireAdmin(ctx: Context) {
-  // No user = no admin. When auth is implemented, check role >= 3.
-  if (!ctx.user) {
-    throw new GraphQLError('Access denied', {
+  if (!isAdmin(ctx)) {
+    throw new GraphQLError('Admin access required', {
       extensions: { code: 'ACCESS_DENIED' },
     });
   }
@@ -24,6 +30,9 @@ export async function adminAllLabelsResolver(
   _args: unknown,
   ctx: Context,
 ) {
+  // Defense in depth: the `admin` gateway also guards, but a sub-resolver
+  // reused from any other mount point must still refuse non-admins.
+  requireAdmin(ctx);
   return ctx.db.csld_label.findMany({
     orderBy: { name: 'asc' },
     include: { csld_csld_user: true },
@@ -35,6 +44,7 @@ export async function adminAllUsersResolver(
   _args: unknown,
   ctx: Context,
 ) {
+  requireAdmin(ctx);
   const rows = await ctx.db.csld_csld_user.findMany({
     orderBy: { name: 'asc' },
     include: { csld_image: true },
@@ -49,6 +59,7 @@ export async function adminStatsResolver(
   _args: unknown,
   ctx: Context,
 ) {
+  requireAdmin(ctx);
   // Return stats from csld_rating aggregated by year/month
   const rows = await ctx.db.$queryRaw<Array<{ year: number; month: number; numRatings: bigint; averageRating: number; numComments: bigint }>>`
     SELECT
@@ -78,6 +89,7 @@ export async function adminSelfRatedResolver(
   _args: unknown,
   ctx: Context,
 ) {
+  requireAdmin(ctx);
   const rows = await ctx.db.csld_rating.findMany({
     where: { by_author: true },
     include: {
