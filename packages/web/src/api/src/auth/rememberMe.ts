@@ -2,8 +2,12 @@ import crypto from 'node:crypto';
 import type { Request, Response, NextFunction } from 'express';
 import type { PrismaClient } from '@prisma/client';
 import { toAuthUser, type AuthUser } from './appUsers.js';
+import { requireRememberMeKey } from './rememberMeKey.js';
 
-const REMEMBER_ME_KEY = process.env.REMEMBER_ME_KEY || 'csld-remember-me-key';
+// Fail-fast gate (same playbook as SESSION_SECRET): in production this throws
+// when REMEMBER_ME_KEY is missing/short instead of silently signing cookies
+// with a publicly-known fallback (forged-cookie auth bypass).
+const REMEMBER_ME_KEY = requireRememberMeKey();
 const COOKIE_NAME = 'LoggedIn'; // matches Java cookie name for browser compatibility
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
