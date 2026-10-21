@@ -25,7 +25,10 @@ export function setRememberMeCookie(res: Response, userId: number): void {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
-    secure: false, // set to true in production
+    // The remember-me token is a 30-day auth credential: in production the
+    // browser must never send it over plain HTTP. Local dev/test stays on
+    // plain HTTP, so the flag follows the environment.
+    secure: process.env.NODE_ENV === 'production',
   });
 }
 
