@@ -1,0 +1,45 @@
+name: Post-deploy smoke
+
+# Phase 4: the smoke suite (e2e-smoke.mjs, incl. the negative-auth battery)
+# runs against the TEST instance after every deploy there. The deploy
+# workflow's own health check proves the app booted; this proves the
+# surfaces and the auth doors behave. Test deploys finish before this fires
+# (it triggers on workflow_run completion of Deploy to Test on main), so the
+# instance is already up.
+#
+# Manual runs also cover PRODUCTION (read-only probes only — the negative-auth
+# battery sends no valid credentials, it only asserts closed doors):
+#   gh workflow run smoke.yml -f target=production
+# or locally: CSLD_BASE=https://larpovadatabaze.cz node scripts/e2e-smoke.mjs
+
+on:
+  workflow_run:
+    workflows: ['Deploy to Test']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Instance to smoke'
+        type: choice
+        default: test
+        options: [test, production]
+
+jobs:
+  smoke:
+    name: E2E + negative-auth smoke
+    runs-on: ubuntu-latest
+    # A failed deploy must not produce a smoke failure of its own — the deploy
+    # job already failed. Only successful deploys get smoked.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run smoke suite
+        env:
+          CSLD_BASE: ${{ github.event_name == 'workflow_dispatch' && (inputs.target == 'production' && 'https://larpovadatabaze.cz' || 'https://csld.vezlute.cz') || 'https://csld.vezlute.cz' }}
+        run: node scripts/e2e-smoke.mjs
