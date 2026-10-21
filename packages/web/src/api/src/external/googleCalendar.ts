@@ -3,6 +3,15 @@ import type { PrismaClient } from '@prisma/client';
 
 let calendarClient: calendar_v3.Calendar | null = null;
 
+/**
+ * Test seam (same spirit as setFileService): inject a calendar client so the
+ * sync logic can be tested without network access. `null` restores the
+ * lazily-built real client.
+ */
+export function setCalendarClientForTesting(client: calendar_v3.Calendar | null): void {
+  calendarClient = client;
+}
+
 function getCalendarClient(): calendar_v3.Calendar {
   if (calendarClient) return calendarClient;
 
