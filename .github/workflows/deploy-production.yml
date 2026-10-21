@@ -3,8 +3,10 @@ name: Deploy to Production
 on:
   workflow_dispatch:
 
+# Same group as Deploy to Test — see the comment there. Serialized: the
+# two workflows never touch the box at the same time.
 concurrency:
-  group: deploy-production
+  group: csld-box-deploy
   cancel-in-progress: false
 
 jobs:

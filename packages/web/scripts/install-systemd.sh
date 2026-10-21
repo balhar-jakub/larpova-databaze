@@ -55,6 +55,11 @@ cat > "$UNIT_PATH" <<EOF
 [Unit]
 Description=CSLD $ENV_NAME (larpovadatabaze.cz)
 After=network.target
+# The session secret gate (phase 1) throws when SESSION_SECRET is missing —
+# a restart loop would be loud, which is exactly what we want.
+# StartLimitIntervalSec is a [Unit] key: in [Service] systemd silently
+# ignores it (the journals carried "Unknown key name" on every daemon-reload).
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
@@ -66,9 +71,6 @@ Environment=PATH=$UNIT_PATH_ENV
 ExecStart=$EXEC_START
 Restart=always
 RestartSec=5
-# The session secret gate (phase 1) throws when SESSION_SECRET is missing —
-# a restart loop would be loud, which is exactly what we want.
-StartLimitIntervalSec=0
 
 [Install]
 WantedBy=default.target
