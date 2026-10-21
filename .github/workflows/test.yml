@@ -126,7 +126,7 @@ jobs:
         #   node scripts/coverage-ratchet.mjs --update-baseline
         # and review that floors only went UP.
         env:
-          DATABASE_URL: postgresql://csld:***@localhost:5432/csld
+          DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
           NODE_OPTIONS: --experimental-vm-modules
           TZ: Europe/Prague
         run: node scripts/coverage-ratchet.mjs
