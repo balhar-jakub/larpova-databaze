@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import type { ExpressContextFunctionArgument } from '@apollo/server/express4';
+import type { ExpressContextFunctionArgument } from '@as-integrations/express4';
 import { config } from 'dotenv';
 import type { AuthUser } from './auth/appUsers.js';
 import { getFileService } from './files/index.js';
