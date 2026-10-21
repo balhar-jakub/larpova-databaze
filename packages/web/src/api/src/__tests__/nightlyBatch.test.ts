@@ -81,9 +81,17 @@ beforeAll(async () => {
   // schema: prisma db push against the new database (same schema as the app).
   // Prisma 6.19 ignores --url for db push, so the URL goes in via the child
   // env (DATABASE_URL of THIS process is untouched — it's a subprocess).
-  const webDir = '/root/projects/larpdb/packages/web';
+  // Paths resolve from cwd (CI and local both run jest from packages/web);
+  // the prisma CLI lives in the hoisted root node_modules or the local one.
+  const webDir = process.cwd();
   const schema = `${webDir}/prisma/schema.prisma`;
-  const prismaCli = '/root/projects/larpdb/node_modules/prisma/build/index.js';
+  const candidates = [
+    `${webDir}/../../node_modules/prisma/build/index.js`, // monorepo root (hoisted)
+    `${webDir}/node_modules/prisma/build/index.js`, // local install
+  ];
+  const fs = await import('node:fs');
+  const prismaCli = candidates.find((p) => fs.existsSync(p));
+  if (!prismaCli) throw new Error(`prisma CLI not found in ${candidates.join(', ')}`);
   const env = { ...process.env, DATABASE_URL: SANDBOX_URL };
   execFileSync(
     process.execPath,
