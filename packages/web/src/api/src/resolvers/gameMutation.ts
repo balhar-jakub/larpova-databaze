@@ -45,6 +45,21 @@ export async function rateGameResolver(
   const gameId = parseInt(args.gameId, 10);
   if (isNaN(gameId)) throw new GraphQLError('Invalid gameId');
 
+  // A game with ratings disabled is not rateable through the API — the UI
+  // hides the rating widget, the API must not rely on that.
+  if (args.rating != null) {
+    const gameRow = await ctx.db.csld_game.findUnique({
+      where: { id: gameId },
+      select: { ratingsdisabled: true },
+    });
+    if (gameRow?.ratingsdisabled) {
+      throw new GraphQLError('Ratings are disabled for this game', {
+        extensions: { code: 'RATINGS_DISABLED' },
+      });
+    }
+  }
+  // Removing a rating (rating == null) stays allowed: it is not new activity.
+
   if (args.rating == null) {
     // Remove rating (un-rate)
     await ctx.db.csld_rating.deleteMany({
@@ -232,6 +247,21 @@ export async function createOrUpdateCommentResolver(
   const existing = await ctx.db.csld_comment.findFirst({
     where: { game_id: gameId, user_id: ctx.user!.id },
   });
+
+  // A game with comments disabled accepts no NEW comments through the API —
+  // the UI hides the add button but keeps the edit button for an existing
+  // comment, and the API mirrors exactly that.
+  if (!existing) {
+    const gameRow = await ctx.db.csld_game.findUnique({
+      where: { id: gameId },
+      select: { commentsdisabled: true },
+    });
+    if (gameRow?.commentsdisabled) {
+      throw new GraphQLError('Comments are disabled for this game', {
+        extensions: { code: 'COMMENTS_DISABLED' },
+      });
+    }
+  }
 
   if (existing) {
     await ctx.db.csld_comment.update({
