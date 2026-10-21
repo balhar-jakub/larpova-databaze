@@ -94,6 +94,14 @@ jobs:
             else
               printf "SESSION_SECRET=%s\n" "${{ secrets.SESSION_SECRET }}" >> .env
             fi
+            # Remember-me signing key (auth-bypass fix): same fail-fast gate as
+            # SESSION_SECRET now throws in production without it, so every
+            # deploy must keep it in the .env. rsync never touches .env.
+            if grep -q "^REMEMBER_ME_KEY=" .env 2>/dev/null; then
+              sed -i "s/^REMEMBER_ME_KEY=.*/REMEMBER_ME_KEY=${{ secrets.REMEMBER_ME_KEY }}/" .env
+            else
+              printf "REMEMBER_ME_KEY=%s\n" "${{ secrets.REMEMBER_ME_KEY }}" >> .env
+            fi
             # Google sign-in: written only when the repo secret exists, so a deploy
             # without credentials leaves the feature inert (the button hides itself)
             # instead of shipping an empty client id. The redirect URI is not a
