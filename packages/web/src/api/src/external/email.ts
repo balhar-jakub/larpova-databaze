@@ -3,6 +3,15 @@ import type { Transporter } from 'nodemailer';
 
 let transporter: Transporter | null = null;
 
+/**
+ * Test seam (same spirit as setFileService / setCalendarClientForTesting):
+ * inject a transporter so the email senders can be tested without SMTP.
+ * `null` restores the lazily-built real one.
+ */
+export function setTransporterForTesting(t: Transporter | null): void {
+  transporter = t;
+}
+
 function getTransporter(): Transporter {
   if (transporter) return transporter;
 
