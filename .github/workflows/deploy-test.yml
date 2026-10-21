@@ -4,9 +4,16 @@ on:
   push:
     branches: [main]
 
+# Both deploy workflows share one concurrency group: they mutate the same
+# box (~/.cache/yarn, two .env files, two app dirs) and racing them produced
+# the three red Deploy-to-Test runs on 2026-10-20. A queued deploy waits
+# for the running one instead. cancel-in-progress must stay false on BOTH:
+# with a shared group, a workflow's cancel-in-progress applies to whatever
+# is running in the group — true here would let a push cancel a production
+# deploy mid-flight.
 concurrency:
-  group: deploy-test
-  cancel-in-progress: true
+  group: csld-box-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
