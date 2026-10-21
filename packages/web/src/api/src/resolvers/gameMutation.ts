@@ -354,7 +354,13 @@ export async function deleteCommentResolver(
     });
   }
 
-  await ctx.db.csld_comment.delete({ where: { id: commentId } });
+  // A comment with upvotes cannot be deleted directly — csld_comment_upvote
+  // references it with NoAction (legacy schema). The upvotes must go first,
+  // atomically with the comment, or the delete fails on any liked comment.
+  await ctx.db.$transaction([
+    ctx.db.csld_comment_upvote.deleteMany({ where: { comment_id: commentId } }),
+    ctx.db.csld_comment.delete({ where: { id: commentId } }),
+  ]);
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: comment.game_id },
