@@ -29,6 +29,7 @@
     "form-data": "4.0.6",
     "**/draft-js/immutable": "3.8.4",
     "deepmerge-ts": "^8.0.0",
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "**/@fortawesome/fontawesome-common-types": "0.3.0"
   }
 }
