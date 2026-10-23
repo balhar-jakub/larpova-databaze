@@ -14,7 +14,7 @@ ENV_NAME="${1:?usage: install-systemd.sh <test|production>}"
 
 case "$ENV_NAME" in
   test)       APP_DIR=/home/balda/larpova-databaze/csld-test; PORT=8082 ;;
-  production)  APP_DIR=/home/balda/larpova-databaze/csld-new; PORT=8080 ;;
+  production)  APP_DIR=/home/balda/larpova-databaze/csld-new; PORT=8380 ;;
   *) echo "unknown environment: $ENV_NAME" >&2; exit 2 ;;
 esac
 

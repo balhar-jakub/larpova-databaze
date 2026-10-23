@@ -127,7 +127,7 @@ jobs:
               cwd=$(readlink -f /proc/$pid/cwd 2>/dev/null)
               if echo "$cwd" | grep -q "csld-new"; then kill "$pid" 2>/dev/null; fi
             done
-            PID=$(ss -tlnp 2>/dev/null | grep ':8080' | sed -n 's/.*pid=\([0-9]*\).*/\1/p')
+            PID=$(ss -tlnp 2>/dev/null | grep ':8380' | sed -n 's/.*pid=\([0-9]*\).*/\1/p')
             [ -n "$PID" ] && kill "$PID" 2>/dev/null
             sleep 2
           # The database is synced with `prisma migrate deploy` — the migrations
@@ -209,10 +209,10 @@ jobs:
               sleep 2
             else
               echo 'user systemd unavailable — falling back to nohup'
-              PORT=8080 NODE_ENV=production setsid nohup npx tsx server.ts > /tmp/csld-new.log 2>&1 < /dev/null &
+              PORT=8380 NODE_ENV=production setsid nohup npx tsx server.ts > /tmp/csld-new.log 2>&1 < /dev/null &
             fi
             for attempt in $(seq 1 30); do
-              if curl --fail --silent --show-error http://localhost:8080/health; then break; fi
+              if curl --fail --silent --show-error http://localhost:8380/health; then break; fi
               sleep 2
             done
             echo
@@ -245,7 +245,7 @@ jobs:
             set -a
             [ -f .env ] && . ./.env
             set +a
-            curl --fail --silent --show-error http://localhost:8080/health
+            curl --fail --silent --show-error http://localhost:8380/health
             echo
             # A synced database still prints the comment "-- This is an empty
             # migration.", so only non-comment lines count as drift.
