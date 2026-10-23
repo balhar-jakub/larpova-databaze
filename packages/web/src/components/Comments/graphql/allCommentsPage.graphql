@@ -1,0 +1,26 @@
+query AllCommentsPage($offset: Int, $limit: Int) {
+    allComments(offset: $offset, limit: $limit) {
+        totalAmount
+        comments {
+            id
+            added
+            amountOfUpvotes
+            comment
+            isHidden
+            user {
+                id
+                name
+                nickname
+                image {
+                    id
+                }
+            }
+            game {
+                id
+                name
+                averageRating
+                amountOfRatings
+            }
+        }
+    }
+}

@@ -165,7 +165,7 @@ test('the comment block is one row of three that leads to the catalog', () => {
     expect(screen.getByText('Komentář na Blackhillu .')).toBeTruthy()
     expect(screen.getByText('Druhý komentář')).toBeTruthy()
     expect(screen.getByText('Třetí komentář')).toBeTruthy()
-    expect(screen.getByText('všechny komentáře »').getAttribute('href')).toBe('/games?order=MostCommented')
+    expect(screen.getByText('všechny komentáře »').getAttribute('href')).toBe('/komentare')
     // The block no longer grows in place — "+ Více…" is what made it half the page.
     expect(screen.queryByText('+ Více...')).toBeNull()
 })

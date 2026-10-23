@@ -32,6 +32,8 @@ type Query {
     "Metadata of larp articles published in Czech (larpy.cz, larp.cz)."
     articles(source: ArticleSource, query: String, offset: Int, limit: Int): ArticlesPaged!
     articleById(articleId: ID!): Article
+    "Every visible comment in the database, newest first — the page the homepage's „všechny komentáře“ link opens. Hidden comments and comments under deleted games stay out."
+    allComments(offset: Int, limit: Int): CommentsPaged!
     config: Config!
 }
 

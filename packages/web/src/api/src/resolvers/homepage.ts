@@ -50,6 +50,13 @@ export const HOMEPAGE_OPEN_REGISTRATION = 6;
  */
 export const HOMEPAGE_COMMENTS = 3;
 
+/**
+ * Comments per page of the all-comments listing. The same page size the game
+ * detail and the profile use (`PagedCommentsPanel`), so the pager behaves the
+ * same everywhere.
+ */
+export const ALL_COMMENTS_PAGE = 10;
+
 /** Label tiles before the "and N more" link. */
 export const HOMEPAGE_LABELS = 12;
 
@@ -226,6 +233,44 @@ export async function lastCommentsPage(
     game: comment.csld_game ? normalizeGame(comment.csld_game) : null,
     amountOfUpvotes: comment.amount_of_upvotes ?? 0,
   }));
+}
+
+/**
+ * Every visible comment in the database, one page at a time — the listing the
+ * homepage's „všechny komentáře“ link opens, the comments' counterpart of the
+ * games catalog. The visibility rules are the homepage block's: a hidden
+ * comment is out, and so is a comment under a deleted game (its game link
+ * would lead nowhere).
+ */
+export async function allCommentsPage(
+  ctx: Context,
+  args: { offset?: number; limit?: number } = {},
+) {
+  const offset = Math.max(0, args.offset ?? 0);
+  const limit = Math.min(Math.max(1, args.limit ?? ALL_COMMENTS_PAGE), 50);
+  const visibility = { is_hidden: false, csld_game: { OR: [{ deleted: false }, { deleted: null }] } };
+
+  const [comments, total] = await Promise.all([
+    ctx.db.csld_comment.findMany({
+      where: visibility,
+      orderBy: { added: 'desc' },
+      skip: offset,
+      take: limit,
+      include: COMMENT_INCLUDE,
+    }),
+    ctx.db.csld_comment.count({ where: visibility }),
+  ]);
+
+  return {
+    comments: comments.map((comment: any) => ({
+      ...comment,
+      commentAsText: commentAsText(comment.comment),
+      user: normalizeUserRef(comment.csld_csld_user),
+      game: comment.csld_game ? normalizeGame(comment.csld_game) : null,
+      amountOfUpvotes: comment.amount_of_upvotes ?? 0,
+    })),
+    totalAmount: total,
+  };
 }
 
 /**

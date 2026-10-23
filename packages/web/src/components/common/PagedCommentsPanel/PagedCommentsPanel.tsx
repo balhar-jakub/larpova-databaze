@@ -18,9 +18,11 @@ interface Props {
     readonly pageSize: number
     readonly offset: number
     readonly onOffsetChanged: (newOffset: number) => void
+    /** Show `1.–25. z 121` next to the buttons — the catalog's pager does. */
+    readonly rangeLabel?: boolean
 }
 
-const PagedCommentsPanel = ({ offset, loading, page, pageSize, onOffsetChanged }: Props) => {
+const PagedCommentsPanel = ({ offset, loading, page, pageSize, onOffsetChanged, rangeLabel = false }: Props) => {
     const client = useApolloClient()
     const loggedInUser = useLoggedInUser()
 
@@ -50,6 +52,7 @@ const PagedCommentsPanel = ({ offset, loading, page, pageSize, onOffsetChanged }
                 totalAmount={page?.totalAmount || 0}
                 pageSize={pageSize}
                 onOffsetChanged={onOffsetChanged}
+                rangeLabel={rangeLabel}
             />
         </>
     )
