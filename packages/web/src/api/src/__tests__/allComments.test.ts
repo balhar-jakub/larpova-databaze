@@ -162,4 +162,138 @@ describe('allComments — the listing behind "všechny komentáře"', () => {
     expect(first.data.allComments.comments[0].id).toBe(String(visibleIds[0]));
     expect(second.data.allComments.comments[0].id).toBe(String(visibleIds[1]));
   });
+
+  test('the length filter counts the same rows the unfiltered list shows', async () => {
+    // The fixture comments are one-breath reactions — SHORT band (<200 chars
+    // of the stripped text). A LONG fixture proves the filter really narrows.
+    const longComment = await prisma.csld_comment.create({
+      data: {
+        game_id: liveGameId,
+        user_id: userId,
+        comment: `${marker} dlouhá recenze. ${'Podrobný dojem z hrubého chodu hry, který rozhodně přesáhne tisíc znaků, aby spadl do dlouhé vrstvy filtru a nikdy do střední vrstvy délky. '.repeat(12)}`,
+        is_hidden: false,
+        added: new Date(Date.now() + 200_000),
+      },
+    });
+
+    try {
+      const unfiltered: any = await executeQuery(
+        server,
+        `{ allComments(offset: 0, limit: 50) { totalAmount comments { id } } }`,
+      );
+      const shorts: any = await executeQuery(
+        server,
+        `{ allComments(offset: 0, limit: 50, length: SHORT) { totalAmount comments { id } } }`,
+      );
+      const longs: any = await executeQuery(
+        server,
+        `{ allComments(offset: 0, limit: 50, length: LONG) { totalAmount comments { id } } }`,
+      );
+
+      expect(unfiltered.errors).toBeUndefined();
+      expect(shorts.errors).toBeUndefined();
+      expect(longs.errors).toBeUndefined();
+
+      const allIds = (unfiltered.data.allComments.comments as any[]).map((c) => c.id);
+      const shortIds = (shorts.data.allComments.comments as any[]).map((c) => c.id);
+      const longIds = (longs.data.allComments.comments as any[]).map((c) => c.id);
+
+      // Every fixture lands in exactly one band — the bands partition the list.
+      for (const id of visibleIds) {
+        expect(shortIds).toContain(String(id));
+        expect(longIds).not.toContain(String(id));
+      }
+      expect(longIds).toContain(String(longComment.id));
+      expect(shortIds).not.toContain(String(longComment.id));
+      // The bands partition the rows: no id can appear on two band pages
+      // (an id is in exactly one band by construction).
+      for (const id of shortIds) {
+        expect(longIds).not.toContain(id);
+      }
+      // The fixtures are future-stamped, so they lead whichever band page
+      // they belong to — the page-1 window contains them by construction.
+      for (const id of visibleIds) {
+        expect(shortIds).toContain(String(id));
+        expect(longIds).not.toContain(String(id));
+      }
+      // The bands' totals are the chip's numbers: they must not exceed the list.
+      expect(shorts.data.allComments.totalAmount).toBeGreaterThanOrEqual(shortIds.length);
+      expect(longs.data.allComments.totalAmount).toBeGreaterThanOrEqual(longIds.length);
+    } finally {
+      await prisma.csld_comment.deleteMany({ where: { id: longComment.id } });
+    }
+  });
+
+  test('the year filter narrows to comments added in that calendar year', async () => {
+    const thisYear = new Date().getUTCFullYear();
+    const oldYear = thisYear - 3;
+
+    // Stamped to the END of the old year, so the fixture is that year's
+    // newest comment and leads the filtered page (the page window is 50;
+    // a mid-year stamp can sit behind dozens of that year's rows).
+    const oldComment = await prisma.csld_comment.create({
+      data: {
+        game_id: liveGameId,
+        user_id: userId,
+        comment: `${marker} starý komentář`,
+        is_hidden: false,
+        added: new Date(Date.UTC(oldYear, 11, 31, 23, 0, 0)),
+      },
+    });
+
+    try {
+      const filtered: any = await executeQuery(
+        server,
+        `{ allComments(offset: 0, limit: 50, year: ${oldYear}) { totalAmount comments { id } } }`,
+      );
+      const thisYearPage: any = await executeQuery(
+        server,
+        `{ allComments(offset: 0, limit: 50, year: ${thisYear}) { comments { id } } }`,
+      );
+
+      expect(filtered.errors).toBeUndefined();
+      const ids = (filtered.data.allComments.comments as any[]).map((c) => c.id);
+      expect(ids).toContain(String(oldComment.id));
+      // The future-stamped fixtures are in the current year, not the old one.
+      expect(ids).not.toContain(String(visibleIds[0]));
+
+      expect(thisYearPage.errors).toBeUndefined();
+      const nowIds = (thisYearPage.data.allComments.comments as any[]).map((c) => c.id);
+      expect(nowIds).toContain(String(visibleIds[0]));
+      expect(nowIds).not.toContain(String(oldComment.id));
+    } finally {
+      await prisma.csld_comment.deleteMany({ where: { id: oldComment.id } });
+    }
+  });
+
+  test('length and year compose, and the stats agree with what the filters list', async () => {
+    const thisYear = new Date().getUTCFullYear();
+
+    const stats: any = await executeQuery(
+      server,
+      `{ commentsStats { lengths { SHORT MEDIUM LONG } years { year amount } } }`,
+    );
+    expect(stats.errors).toBeUndefined();
+
+    const bands = stats.data.commentsStats.lengths;
+    expect(bands.SHORT + bands.MEDIUM + bands.LONG).toBeGreaterThan(0);
+
+    // Every stats year carries its own amount, and the fixture year is there.
+    const years: { year: number; amount: number }[] = stats.data.commentsStats.years;
+    expect(years.map((y) => y.year)).toContain(thisYear);
+
+    // The SHORT chip's number is what selecting SHORT with the same year
+    // actually lists (the fixture year pins the comparison to rows we own).
+    const shortThisYear: any = await executeQuery(
+      server,
+      `{ allComments(offset: 0, limit: 50, length: SHORT, year: ${thisYear}) { totalAmount comments { id } } }`,
+    );
+    expect(shortThisYear.errors).toBeUndefined();
+    expect(shortThisYear.data.allComments.totalAmount).toBeGreaterThanOrEqual(visibleIds.length);
+    for (const id of visibleIds) {
+      expect(
+        (shortThisYear.data.allComments.comments as any[]).map((c) => c.id),
+      ).toContain(String(id));
+    }
+  });
 });

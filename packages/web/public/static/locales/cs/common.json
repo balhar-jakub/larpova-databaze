@@ -976,6 +976,15 @@
         "pageTitle": "Všechny komentáře",
         "pageDescription": "Všechny komentáře v larpové databázi, nejnovější první — co komunita právě říká o hrách.",
         "pageSubtitle": "Každý komentář v databázi, nejnovější první.",
-        "empty": "Zatím žádné komentáře."
+        "empty": "Zatím žádné komentáře.",
+        "filterLength": "Délka:",
+        "filterYear": "Rok:",
+        "lengthAll": "Všechny",
+        "lengthShort": "Krátké ({{amount}})",
+        "lengthMedium": "Střední ({{amount}})",
+        "lengthLong": "Dlouhé ({{amount}})",
+        "yearAll": "Všechny",
+        "yearCount": "{{amount}} komentářů",
+        "emptyFiltered": "Žádný komentář neodpovídá této kombinaci filtrů."
     }
 }

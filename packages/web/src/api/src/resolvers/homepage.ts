@@ -241,24 +241,107 @@ export async function lastCommentsPage(
  * games catalog. The visibility rules are the homepage block's: a hidden
  * comment is out, and so is a comment under a deleted game (its game link
  * would lead nowhere).
+ *
+ * `length` and `year` are the page's two filter chips. They must count from
+ * the same visibility rules as the unfiltered list — the chip's number comes
+ * from `commentsStats`, and a chip that promises 1 336 long comments must list
+ * 1 336 rows when selected. The length bands measure `commentAsText` (the
+ * text the visitor reads), not the raw HTML, so the boundaries are the same
+ * ones the UI labels quote.
  */
+export const SHORT_LENGTH_LIMIT = 200;
+export const LONG_LENGTH_LIMIT = 1000;
+
+export type CommentLengthBand = 'SHORT' | 'MEDIUM' | 'LONG';
+
+/**
+ * The band of a comment's reading weight — the single place both the filter
+ * and the chip counts decide it from, so the two can never disagree. The
+ * lengths measure `commentAsText` (the text the visitor reads), not the raw
+ * HTML.
+ */
+export const bandOf = (text: string | null | undefined): CommentLengthBand => {
+  const length = (text ?? '').length;
+  if (length < SHORT_LENGTH_LIMIT) return 'SHORT';
+  if (length < LONG_LENGTH_LIMIT) return 'MEDIUM';
+  return 'LONG';
+};
+
+/**
+ * The ids of every visible comment per band, newest first. Loading the whole
+ * visible set is what the chips' own numbers need anyway (`commentsStats`
+ * counts from the same rows), so the length filter reuses the pass instead
+ * of duplicating the band math in SQL it cannot express.
+ */
+async function visibleCommentBands(ctx: Context) {
+  const visibility = { is_hidden: false, csld_game: { OR: [{ deleted: false }, { deleted: null }] } };
+  const comments = await ctx.db.csld_comment.findMany({
+    where: visibility,
+    select: { id: true, comment: true },
+    orderBy: [{ added: 'desc' }, { id: 'desc' }],
+  });
+
+  const bands: Record<CommentLengthBand, { ids: number[] }> = {
+    SHORT: { ids: [] },
+    MEDIUM: { ids: [] },
+    LONG: { ids: [] },
+  };
+  for (const row of comments) {
+    bands[bandOf(commentAsText(row.comment))].ids.push(row.id);
+  }
+  return bands;
+}
+
 export async function allCommentsPage(
   ctx: Context,
-  args: { offset?: number; limit?: number } = {},
+  args: {
+    offset?: number;
+    limit?: number;
+    length?: CommentLengthBand;
+    year?: number;
+  } = {},
 ) {
   const offset = Math.max(0, args.offset ?? 0);
   const limit = Math.min(Math.max(1, args.limit ?? ALL_COMMENTS_PAGE), 50);
   const visibility = { is_hidden: false, csld_game: { OR: [{ deleted: false }, { deleted: null }] } };
 
+  // The length bands measure the STRIPPED text (`commentAsText`), which SQL
+  // cannot compute — the tag stripping and entity decoding live in JS. The
+  // filter therefore narrows by id through the same band helper the chips'
+  // counts come from (`visibleCommentBands`), so a chip's number is exactly
+  // what selecting it lists; the page then loads those ids through the same
+  // `findMany` the unfiltered list uses.
+  let lengthFilteredIds: number[] | undefined;
+  if (args.length) {
+    const bands = await visibleCommentBands(ctx);
+    lengthFilteredIds = bands[args.length].ids;
+  }
+
+  const where = {
+    ...visibility,
+    ...(lengthFilteredIds ? { id: { in: lengthFilteredIds } } : {}),
+    ...(args.year
+      ? {
+          added: {
+            gte: new Date(Date.UTC(args.year, 0, 1)),
+            lt: new Date(Date.UTC(args.year + 1, 0, 1)),
+          },
+        }
+      : {}),
+  };
+
   const [comments, total] = await Promise.all([
     ctx.db.csld_comment.findMany({
-      where: visibility,
-      orderBy: { added: 'desc' },
+      where,
+      // The tie-break matters: the 2013–2014 import carries thousands of
+      // comments with the same `added`, and without a second key the pager
+      // swaps rows between pages (observed on the live test instance).
+      orderBy: [{ added: 'desc' }, { id: 'desc' }],
       skip: offset,
       take: limit,
       include: COMMENT_INCLUDE,
     }),
-    ctx.db.csld_comment.count({ where: visibility }),
+    ctx.db.csld_comment.count({ where }),
   ]);
 
   return {
@@ -270,6 +353,38 @@ export async function allCommentsPage(
       amountOfUpvotes: comment.amount_of_upvotes ?? 0,
     })),
     totalAmount: total,
+  };
+}
+
+/**
+ * The counts the /komentare filter chips render. `allCommentsPage` cannot
+ * filter on `commentAsText` directly (it is computed per row in JS, not in
+ * SQL), so this aggregates the whole visible set once per page load and the
+ * page filter then narrows the same rows through the shared band limits.
+ */
+export async function commentsStats(ctx: Context) {
+  const visibility = { is_hidden: false, csld_game: { OR: [{ deleted: false }, { deleted: null }] } };
+  const comments = await ctx.db.csld_comment.findMany({
+    where: visibility,
+    select: { comment: true, added: true },
+  });
+
+  const lengths = { SHORT: 0, MEDIUM: 0, LONG: 0 };
+  const years = new Map<number, number>();
+  for (const row of comments) {
+    lengths[bandOf(commentAsText(row.comment))] += 1;
+
+    if (row.added) {
+      const year = row.added.getUTCFullYear();
+      years.set(year, (years.get(year) ?? 0) + 1);
+    }
+  }
+
+  return {
+    lengths,
+    years: [...years.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([year, amount]) => ({ year, amount })),
   };
 }
 
