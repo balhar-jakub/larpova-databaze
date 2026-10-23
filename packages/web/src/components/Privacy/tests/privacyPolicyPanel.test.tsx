@@ -36,7 +36,7 @@ describe('PrivacyPolicyPanel', () => {
 
         expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Ochrana osobních údajů')
         expect(screen.getAllByText('larpovadatabaze@gmail.com').length).toBeGreaterThan(0)
-        expect(screen.getByText(/provozuje její tým/i)).toBeTruthy()
+        expect(screen.getByText(/provozuje tým dobrovolníků/i)).toBeTruthy()
     })
 
     it('lists what is public and what stays private', () => {
@@ -76,6 +76,7 @@ describe('PrivacyPolicyPanel', () => {
     it('mentions that backups live outside the delete button', () => {
         render(<PrivacyPolicyPanel />)
 
-        expect(screen.getByText(/Historie záloh se automaticky nezkracuje/i)).toBeTruthy()
+        expect(screen.getByText(/historii záloh 180/i)).toBeTruthy()
+        expect(screen.getByText(/nejpozději do půl roku od výmazu/i)).toBeTruthy()
     })
 })
