@@ -15,12 +15,18 @@ const useStyles = createUseStyles({
         padding: '10px 16px',
         textAlign: 'center',
         borderRadius: 4,
-        border: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
-        color: darkTheme.textLight,
+        // Same look as the panel's own submit button (react-bootstrap "dark":
+        // near-black background, white text) — the first version used
+        // darkTheme.textLight on a transparent background, which is white text
+        // on the light sign-in panel: unreadable.
+        background: '#212529',
+        color: '#ffffff',
+        border: '1px solid #212529',
         textDecoration: 'none',
         fontSize: '0.95rem',
         '&:hover': {
-            background: darkTheme.backgroundHover,
+            background: '#1a1e21',
+            color: '#ffffff',
         },
     },
     error: {
