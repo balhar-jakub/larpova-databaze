@@ -3,23 +3,6 @@ import { useRouter } from 'next/router';
 import { translate } from './translationLookup';
 
 type NestedRecord = Record<string, unknown>;
-type Translations = Record<string, unknown>;
-
-// Deep merge two nested objects
-function deepMerge(target: NestedRecord, source: NestedRecord): NestedRecord {
-  const result = { ...target };
-  for (const key of Object.keys(source)) {
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      result[key] = deepMerge(
-        (target[key] as NestedRecord) || {},
-        source[key] as NestedRecord,
-      );
-    } else {
-      result[key] = source[key];
-    }
-  }
-  return result;
-}
 
 /**
  * The app's translation function (the i18next TFunction shape is legacy —
