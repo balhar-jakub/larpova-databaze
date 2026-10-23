@@ -6,6 +6,7 @@ import type { DocumentNode } from 'graphql'
 import {
     AllCommentsPageQuery,
     AllCommentsPageQueryVariables,
+    CommentsPaged,
 } from '../../graphql/__generated__/typescript-operations'
 import { darkTheme } from '../../theme/darkTheme'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
@@ -70,7 +71,10 @@ export const AllCommentsPanel = (_props: Props) => {
         fetchPolicy: 'cache-and-network',
     })
 
-    const page = query.data?.allComments
+    // The query selects a subset of Comment (what GameCommentPanel reads); the
+    // panel's prop is the schema-wide CommentsPaged — the same cast the profile
+    // and the game detail use for their pages.
+    const page = query.data?.allComments as CommentsPaged | undefined
 
     // A pager click scrolls the next page's rows into the visitor's view —
     // without it the list swaps but the screen stays where it was.
