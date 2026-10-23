@@ -369,7 +369,9 @@ export const buildMonthGrid = (
 // ── Links ─────────────────────────────────────────────────
 
 /** Google Calendar template link, so one event can be added without subscribing. */
-export const googleCalendarUrl = (event: CalendarEventDataFragment): string | undefined => {
+// Structural: everything needed is from/to/name/loc/web, so search rows
+// (EventRowData) can be passed without a full CalendarEventDataFragment.
+export const googleCalendarUrl = (event: Pick<CalendarEventDataFragment, 'from' | 'to' | 'name' | 'loc' | 'web'>): string | undefined => {
     const span = eventSpan(event)
     if (!span) return undefined
 

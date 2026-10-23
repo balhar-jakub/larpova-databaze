@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { createUseStyles } from 'react-jss'
 import { Game, User, Group, Label } from 'src/graphql/__generated__/typescript-operations'
 import { useTranslation } from 'src/lib/i18n'
-import { i18n as Ti18n, TFunction } from 'i18next'
+import { type Translator } from 'src/lib/i18n'
 import { Row, Col } from 'react-bootstrap'
 import { darkTheme } from '../../theme/darkTheme'
 import UserLink from '../common/UserLink/UserLink'
@@ -91,7 +91,7 @@ const useStyles = createUseStyles({
     },
 })
 
-const buildFacts = (t: TFunction, i18n: Ti18n, facts: Array<{ count?: number | null; key: string }>) =>
+const buildFacts = (t: Translator, facts: Array<{ count?: number | null; key: string }>) =>
     facts.reduce((str, fact) => {
         if (fact.count != null) {
             return `${str}${str.length > 0 ? ', ' : ''}${t(fact.key, {
@@ -104,7 +104,7 @@ const buildFacts = (t: TFunction, i18n: Ti18n, facts: Array<{ count?: number | n
 
 export const GameHeaderPanel = ({ game }: Props) => {
     const classes = useStyles()
-    const { t, i18n } = useTranslation('common')
+    const { t } = useTranslation('common')
     const { description } = game
     const haveData = !!description
     const [sanitizedDescription, setSanitizedDescription] = useState('')
@@ -113,7 +113,7 @@ export const GameHeaderPanel = ({ game }: Props) => {
         setSanitizedDescription(sanitizeHtml(description))
     }, [description])
 
-    const playersFacts = buildFacts(t, i18n, [
+    const playersFacts = buildFacts(t, [
         {
             key: 'Game.players',
             count: game.players,
@@ -132,7 +132,7 @@ export const GameHeaderPanel = ({ game }: Props) => {
         },
     ])
 
-    const timeFacts = buildFacts(t, i18n, [
+    const timeFacts = buildFacts(t, [
         {
             key: 'Game.hours',
             count: game.hours,

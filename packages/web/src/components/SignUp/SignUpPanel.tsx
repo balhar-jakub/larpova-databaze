@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useApolloClient, useMutation } from '@apollo/client'
 import { Form as FinalForm } from 'react-final-form'
-import { TFunction } from 'i18next'
+import { type Translator } from 'src/lib/i18n'
 import { Row, Col, Form } from 'react-bootstrap'
 import { useTranslation } from 'src/lib/i18n'
 import { useRoutes } from 'src/hooks/useRoutes'
@@ -37,13 +37,13 @@ type TState = 'idle' | 'loading'
 
 type TMode = 'link' | 'password'
 
-const validate = (t: TFunction) => (data: FormData) => {
+const validate = (t: Translator) => (data: FormData) => {
     return {
         passwordAgain: data.password !== data.passwordAgain ? t('SignUp.passwordAgainError') : undefined,
     }
 }
 
-const EmailUsedErrorHint = ({ name, href, as }: { name: string; href: UrlObject; as: string }) => {
+const EmailUsedErrorHint = ({ name, href, as }: { name: string; href: string; as: string }) => {
     const { t } = useTranslation('common')
     return (
         <Form.Text>

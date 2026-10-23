@@ -33,5 +33,5 @@ export const Single = () => <Tabs tabs={tabSingle} selectedTab="recent" />
 
 export const Three = () => {
     const [tab, setTab] = useState<TabKeys>('one')
-    return <Tabs tabs={tabThree} selectedTab={tab} onSelectTab={setTab} />
+    return <Tabs<TabKeys> tabs={tabThree} selectedTab={tab} onSelectTab={setTab} />
 }

@@ -1,7 +1,7 @@
 import React from 'react'
 import { createUseStyles } from 'react-jss'
 import Link from 'next/link'
-import { Label, LadderType } from '../../../graphql/__generated__/typescript-operations'
+import { Label } from '../../../graphql/__generated__/typescript-operations'
 import { darkTheme } from '../../../theme/darkTheme'
 import { useRoutes } from '../../../hooks/useRoutes'
 
@@ -42,19 +42,17 @@ const DetailLabelList = ({ labels, linkType }: Props) => {
     return (
         <div className={classes.wrapper}>
             {labels.map(label => {
-                const route =
-                    linkType === 'games'
-                        ? routes.games(
-                              LadderType.RecentAndMostPlayed,
-                              label.isRequired ? [label.id] : undefined,
-                              !label.isRequired ? [label.id] : undefined,
-                          )
-                        : routes.calendar(
-                              label.isRequired ? [label.id] : undefined,
-                              !label.isRequired ? [label.id] : undefined,
-                          )
+                // The catalog link: the label's id encoded as the ?labels=
+                // filter (required labels) or via any-label mode. The old
+                // routes.games()/routes.calendar() label args no longer exist
+                // on those routes — the query carries the filter now.
+                const labelQuery = label.isRequired
+                    ? `?labels=${label.id}`
+                    : `?labels=${label.id}&mode=any`
+                const route = linkType === 'games' ? routes.games() : routes.calendar()
+                const href = linkType === 'games' ? `${route.href}${labelQuery}` : route.href
                 return (
-                    <Link href={route.as} legacyBehavior passHref key={label.id}>
+                    <Link href={href} legacyBehavior passHref key={label.id}>
                         <a href="/" className={classes.label} title={label.description ?? undefined}>
                             {label.name}
                         </a>

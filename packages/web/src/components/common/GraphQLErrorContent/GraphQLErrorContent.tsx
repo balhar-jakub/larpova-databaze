@@ -4,12 +4,20 @@ import { GraphQLError } from 'graphql'
 
 interface Props {
     readonly errorClass: string
+    // GraphQLError extensions carry path as an array of segments — renderers
+    // join it for display.
     readonly valuePath?: string
 }
 
-export const PropsFromGraphQLError = (error?: GraphQLError): Props => ({
-    errorClass: error?.extensions?.code || 'UNKNOWN',
-    valuePath: error?.extensions?.path,
+// GraphQLErrorExtensions is an index of unknown — the API contract is
+// code: string and path: string[] (see GraphQLServerError errors).
+// Accepts both GraphQLError (resolvers/links) and Apollo's flattened
+// GraphQLFormattedError (error-link callbacks). Their extensions types
+// differ only in readonly-ness, so the param takes the structural
+// minimum: a possibly-absent record of extension values.
+export const PropsFromGraphQLError = (error?: { extensions?: Record<string, unknown> }): Props => ({
+    errorClass: (error?.extensions?.code as string | undefined) || 'UNKNOWN',
+    valuePath: (error?.extensions?.path as string[] | undefined)?.join('.'),
 })
 
 const resolveSubKey = (errorClass: string) => {
@@ -30,7 +38,7 @@ const GraphQLErrorContent = ({ errorClass, valuePath }: Props): React.ReactEleme
     const key = `GraphQLError.${resolveSubKey(errorClass)}`
     const { t } = useTranslation('common')
 
-    return t(key, { valuePath })
+    return <span>{t(key, { valuePath: valuePath ?? '' })}</span>
 }
 
 export default GraphQLErrorContent

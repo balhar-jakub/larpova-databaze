@@ -56,7 +56,7 @@ export class Base64UploadedFile implements UploadedFile {
 
 export interface FileService {
   getFileStream(relativePath: string): Promise<Readable>;
-  streamToResponse(relativePath: string, res: import('node:http').ServerResponse): Promise<boolean>;
+  streamToResponse(relativePath: string, res: import('express').Response): Promise<boolean>;
   saveImageAndReturnPath(upload: UploadedFile, strategy: ResizeStrategy): Promise<SaveResult>;
   saveImageWithPreviewAndReturnPath(upload: UploadedFile, fullStrategy: ResizeStrategy, previewStrategy: ResizeStrategy | null): Promise<SaveResult>;
   saveFileAndReturnPath(upload: UploadedFile): Promise<string>;
@@ -109,7 +109,7 @@ export class LocalFiles implements FileService {
    *
    * Returns true if the stream was piped, false if a 404 was sent.
    */
-  async streamToResponse(relativePath: string, res: import('node:http').ServerResponse): Promise<boolean> {
+  async streamToResponse(relativePath: string, res: import('express').Response): Promise<boolean> {
     if (!(await this.exists(relativePath))) {
       if (!res.headersSent) res.status(404).end();
       return false;
