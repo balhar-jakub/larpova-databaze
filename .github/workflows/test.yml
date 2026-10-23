@@ -80,6 +80,14 @@ jobs:
         working-directory: packages/web
         run: yarn codegen
 
+      - name: Type check (hard gate — tsc --noEmit must be zero)
+        # Phase 4: the count ratchet is retired at zero (PR #111, 201 → 0);
+        # from here a NEW tsc error is a red build, exactly like a red test.
+        # Note: `next build` ignores type errors, so this gate is the only
+        # thing that keeps them out of main.
+        working-directory: packages/web
+        run: npx tsc --noEmit -p tsconfig.json
+
       - name: Apply DB migrations (web)
         # Migrations are the reviewable DB change record (prisma/migrations);
         # applying them on a clean container also proves a fresh database
