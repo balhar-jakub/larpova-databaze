@@ -200,6 +200,11 @@ jobs:
             PUSH_STATUS=0
             npx prisma migrate deploy --schema prisma/schema.prisma || PUSH_STATUS=$?
 
+            # PORT in .env would override the unit's Environment= line
+            # (systemd applies EnvironmentFile LAST), so pin the deploy's
+            # port into .env as well — one source of truth for both paths.
+            sed -i "s/^PORT=.*/PORT=8380/" .env 2>/dev/null || printf "PORT=8380\n" >> .env
+
             # ── Phase 6: systemd supervision with Restart=always ──
             SYSTEMD_OK=yes
             systemctl --user daemon-reload 2>/dev/null || SYSTEMD_OK=no
