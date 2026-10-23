@@ -118,8 +118,9 @@ export const PrivacyPolicyPanel = () => {
                 <div className={classes.section}>
                     <h2 className={classes.h2}>1. Kdo vaše údaje zpracovává</h2>
                     <p className={classes.p}>
-                        Larpovou databázi (larpovadatabaze.cz) provozuje její tým, tedy sdružení dobrovolníků, kteří
-                        databázi vyvíjejí a spravují. Ve smyslu nařízení GDPR jsme správcem vašich údajů my.
+                        Larpovou databázi (larpovadatabaze.cz) provozuje tým dobrovolníků, kteří ji vyvíjejí a
+                        spravují. Nejde o firmu ani registrovaný spolek — ve smyslu nařízení GDPR jsou vaše údaje
+                        správcem fyzické osoby, které se týmem databázi provozují.
                     </p>
                     <p className={classes.p}>
                         Ve všech věcech kolem osobních údajů nám napište na{' '}
@@ -220,8 +221,8 @@ export const PrivacyPolicyPanel = () => {
                             nahraných souborů.
                         </li>
                         <li>
-                            <strong>GitHub</strong> — do soukromého repozitáře ukládáme denní zálohy databáze a
-                            nahraných souborů.
+                            <strong>GitHub</strong> — do soukromého repozitáře ukládáme zálohy databáze a
+                            nahraných souborů (retenci viz bod 7).
                         </li>
                     </ul>
                     <p className={classes.p}>
@@ -291,11 +292,13 @@ export const PrivacyPolicyPanel = () => {
                         <li>Relace a „zůstaň přihlášený“ — 30 dní.</li>
                         <li>Přístupové logy serveru — 14 dní.</li>
                         <li>Měření návštěvnosti — podle nastavení Google Analytics, nejdéle 14 měsíců.</li>
+                        <li>Zálohy — denní kopie 30 dní, kompletní historie 180 dní.</li>
                     </ul>
                     <p className={classes.p}>
-                        Denně také vytváříme záložní kopii databáze a nahraných souborů do soukromého úložiště na
-                        GitHubu. Historie záloh se automaticky nezkracuje, takže smazaná data v nich mohou zůstat.
-                        Když chcete výmaz i ze záloh, napište nám — uděláme ho ručně.
+                        Denně vytváříme záložní kopii databáze a nahraných souborů do soukromého úložiště. Zálohy
+                        mají pevně danou retenci: denní kopie držíme 30 dnů, kompletní historii záloh 180 dnů.
+                        Smazaná data tedy ze záloh zmizí nejpozději do půl roku od výmazu — a starší zálohy se
+                        po uplynutí retence nedaří nijak obnovit.
                     </p>
                 </div>
 
