@@ -3,7 +3,7 @@ import { createUseStyles } from 'react-jss'
 import { useTranslation } from 'src/lib/i18n'
 import { Form as FinalForm } from 'react-final-form'
 import { useApolloClient } from '@apollo/client'
-import { TFunction } from 'i18next'
+import { type Translator } from 'src/lib/i18n'
 import { useRoutes } from 'src/hooks/useRoutes'
 import FormPageRow from '../common/FormPageRow/FormPageRow'
 import { darkTheme } from '../../theme/darkTheme'
@@ -37,7 +37,7 @@ interface FormData {
     readonly passwordConfirmation: string
 }
 
-const validate = (t: TFunction) => (data: FormData) => {
+const validate = (t: Translator) => (data: FormData) => {
     const res = validateWithValidators(
         data,
         {

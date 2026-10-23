@@ -1,5 +1,5 @@
 import { EditorState } from 'draft-js'
-import { TFunction } from 'i18next'
+import { type Translator } from 'src/lib/i18n'
 import { CreateEventInput, Event, Game, Label, Maybe } from '../../graphql/__generated__/typescript-operations'
 import { editorStateToHtml } from '../common/form/richTextInputUtils'
 import { createGameLabel, LinkedGame } from './GamesAutoCompleteField'
@@ -43,7 +43,7 @@ const parseMinutes = (value: string): number => {
     return parseInt(match[1], 10) * 60 + parseInt(match[2], 10)
 }
 
-export const validate = (t: TFunction) => (data: FormValues) => {
+export const validate = (t: Translator) => (data: FormValues) => {
     const res = {} as { [key in keyof FormValues]: string | undefined }
     res.fromDate = fieldValidator(t, validateRequired)(data.fromDate)
     res.toDate = fieldValidator(t, validateRequired)(data.toDate)
