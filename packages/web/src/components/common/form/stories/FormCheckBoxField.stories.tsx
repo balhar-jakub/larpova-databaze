@@ -16,7 +16,7 @@ const validate = (data: FormData) => {
     return {}
 }
 
-const Wrapper: React.FC<{}> = ({ children }) => (
+const Wrapper: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
     <FinalForm<FormData> onSubmit={() => {}} validate={validate} render={() => <Form>{children}</Form>} />
 )
 

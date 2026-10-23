@@ -10,6 +10,7 @@ interface Props {
     readonly as: string
     readonly className?: string
     readonly onClick?: () => void
+    readonly children?: React.ReactNode
 }
 
 const useStyles = createUseStyles({

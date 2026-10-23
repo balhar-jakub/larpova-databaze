@@ -2,7 +2,9 @@ import React from 'react'
 import { createUseStyles } from 'react-jss'
 import { darkTheme } from '../../theme/darkTheme'
 
-interface Props {}
+interface Props {
+    readonly children?: React.ReactNode
+}
 
 const useStyles = createUseStyles({
     gridHeader: {

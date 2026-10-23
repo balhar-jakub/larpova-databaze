@@ -9,7 +9,7 @@ interface FormData {
     readonly profilePicture?: string
 }
 
-const Wrapper: React.FC<{}> = ({ children }) => (
+const Wrapper: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
     <FinalForm<FormData>
         onSubmit={() => {}}
         render={({ values }) => (

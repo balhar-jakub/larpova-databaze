@@ -21,6 +21,13 @@ function deepMerge(target: NestedRecord, source: NestedRecord): NestedRecord {
   return result;
 }
 
+/**
+ * The app's translation function (the i18next TFunction shape is legacy —
+ * the shim answers this signature). Shared so panels and validators that
+ * take `t` as a parameter type it as what the hook actually returns.
+ */
+export type Translator = (key: string, options?: Record<string, unknown>) => string;
+
 // ── Context ─────────────────────────────────────────────
 
 interface I18nContextType {

@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals'
-import { TFunction } from 'i18next'
+import { type Translator } from 'src/lib/i18n'
 import { RegistrationStatus } from '../../graphql/__generated__/typescript-operations'
 
 jest.unstable_mockModule('../common/form/richTextInputUtils', () => ({
@@ -17,7 +17,7 @@ beforeAll(async () => {
     formUtils = await import('./formUtils')
 })
 
-const t = ((key: string) => key) as TFunction
+const t = ((key: string) => key) as Translator
 
 describe('event registration form values', () => {
     it('includes the registration state in mutation input', () => {

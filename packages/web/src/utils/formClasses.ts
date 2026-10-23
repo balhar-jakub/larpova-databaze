@@ -28,9 +28,29 @@ export const formSectionHeaderStylesMd: Styles<'header' | 'headerRight'> = {
 }
 
 /**
- * Common classes to be used in game / event edit form
+ * Common classes to be used in game / event edit form.
+ *
+ * The key union must be spelled out: with Styles<string>, spreading
+ * formClasses into createUseStyles collapses the type to the literal keys of
+ * the spread target and drops every shared class (subHeader, helpText, …)
+ * from the generated Classes<> type — which is exactly what the ~25 tsc
+ * errors in GameEditForm/EventEditForm were.
  */
-export const formClasses: Styles<string> = {
+export type FormClass =
+    | 'row'
+    | 'form'
+    | 'helpText'
+    | 'header'
+    | 'headerRight'
+    | 'subHeader'
+    | 'subHeaderNext'
+    | 'formError'
+    | 'cancelButton'
+    | 'labelsCol'
+    | 'expandButton'
+    | 'expandArrow'
+
+export const formClasses: Styles<FormClass> = {
     row: {
         backgroundColor: darkTheme.backgroundNearWhite,
         padding: '16px 0',

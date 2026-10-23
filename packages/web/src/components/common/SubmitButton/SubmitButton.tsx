@@ -6,6 +6,7 @@ interface Props {
     readonly submitting: boolean
     readonly disabled?: boolean
     readonly className?: string
+    readonly children?: React.ReactNode
 }
 
 const SubmitButton: React.FC<Props> = ({ submitting, disabled, className, children }) => (

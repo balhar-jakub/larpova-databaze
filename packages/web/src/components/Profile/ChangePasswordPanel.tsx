@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useApolloClient, useQuery } from '@apollo/client'
 import { Form as FinalForm } from 'react-final-form'
 import { useTranslation } from 'src/lib/i18n'
-import { TFunction } from 'i18next'
+import { type Translator } from 'src/lib/i18n'
 import { useRoutes } from 'src/hooks/useRoutes'
 import isInBrowser from 'is-in-browser'
 import FormPageRow from '../common/FormPageRow/FormPageRow'
@@ -30,7 +30,7 @@ interface FormData {
 
 type TState = 'idle' | 'loading' | 'oldPasswordError'
 
-const validate = (t: TFunction, hasOldPasswordError: boolean) => (data: FormData) => {
+const validate = (t: Translator, hasOldPasswordError: boolean) => (data: FormData) => {
     return {
         oldPassword: hasOldPasswordError ? t('ChangePassword.oldPasswordError') : undefined,
         newPasswordAgain:

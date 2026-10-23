@@ -5,7 +5,7 @@ import { LoggingService } from 'src/api/services/LoggingService'
 /**
  * Catches all unhandled errors in the application and logs them to the server
  */
-export class ErrorBoundary extends React.PureComponent<{}> {
+export class ErrorBoundary extends React.PureComponent<{ children?: React.ReactNode }> {
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
         LoggingService.logError(error.toString(), { stack: error.stack, errorInfo })
     }

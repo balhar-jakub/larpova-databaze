@@ -4,6 +4,7 @@ import Link from 'next/link'
 interface Props {
     readonly groupId: string
     readonly className?: string
+    readonly children?: React.ReactNode
 }
 
 /**

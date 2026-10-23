@@ -5,6 +5,7 @@ import { useRoutes } from '../../../hooks/useRoutes'
 interface Props {
     readonly userId: string
     readonly className?: string
+    readonly children?: React.ReactNode
 }
 
 /**

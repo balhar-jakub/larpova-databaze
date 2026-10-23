@@ -3,7 +3,7 @@ import { createUseStyles } from 'react-jss'
 import { useTranslation } from 'src/lib/i18n'
 import { useApolloClient } from '@apollo/client'
 import { Form as FinalForm } from 'react-final-form'
-import { TFunction } from 'i18next'
+import { type Translator } from 'src/lib/i18n'
 import { darkTheme } from '../../theme/darkTheme'
 import FormTextInputField from '../common/form/FormTextInputField'
 import { validateEmail, validateRequired, validateWithValidators } from '../../utils/validationUtils'
@@ -32,7 +32,7 @@ interface FormData {
     email: string
 }
 
-const validate = (t: TFunction) => (data: FormData) =>
+const validate = (t: Translator) => (data: FormData) =>
     validateWithValidators(
         data,
         {

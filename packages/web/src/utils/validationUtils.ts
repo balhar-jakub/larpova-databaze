@@ -1,4 +1,4 @@
-import { TFunction } from 'i18next'
+import { type Translator } from 'src/lib/i18n'
 import type { EditorState } from 'draft-js'
 
 const emailRe = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
@@ -105,7 +105,7 @@ export const validateTime = (value?: string) => {
     return undefined
 }
 
-export const fieldValidator = <T>(t: TFunction, validators: Validator<T> | Validator<T>[]) => (input?: T) => {
+export const fieldValidator = <T>(t: Translator, validators: Validator<T> | Validator<T>[]) => (input?: T) => {
     const result = Array.isArray(validators)
         ? validators.reduce<string | undefined>((error, validator) => error || validator(input), undefined)
         : validators(input)
@@ -116,7 +116,7 @@ export const fieldValidator = <T>(t: TFunction, validators: Validator<T> | Valid
 export const validateWithValidators = <T extends object, K extends keyof T>(
     data: T,
     validators: ValidatorMap<T, K>,
-    t: TFunction,
+    t: Translator,
 ): ResultMap => {
     return Object.keys(validators).reduce((map, key) => {
         const input = data[key as K]

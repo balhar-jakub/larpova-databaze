@@ -99,6 +99,7 @@ const tabVideo: TabDefinition<TabTabs> = {
 const emptyGame = {
     name: '',
     description: '',
+    deleted: false,
     labels: [],
     authors: [],
     groupAuthor: [],
@@ -259,7 +260,7 @@ export const GameDetailPanel = ({ gameId }: Props) => {
                     </Col>
                 </Row>
             </WidthFixer>
-            <Tabs tabs={tabs} selectedTab={selectedTab} onSelectTab={setSelectedTab} />
+            <Tabs<TabTabs> tabs={tabs} selectedTab={selectedTab} onSelectTab={setSelectedTab} />
             <div className={classes.extras}>
                 <WidthFixer>
                     <Row>

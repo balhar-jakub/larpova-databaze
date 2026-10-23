@@ -1,6 +1,6 @@
 import React from 'react'
 import { Form, OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { Placement } from 'react-bootstrap/Overlay'
+import type { Placement } from 'react-bootstrap/esm/types'
 
 interface Props {
     readonly label: React.ReactNode

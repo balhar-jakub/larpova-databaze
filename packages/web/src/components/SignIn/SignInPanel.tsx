@@ -2,7 +2,7 @@ import React from 'react'
 import { Form as FinalForm } from 'react-final-form'
 import { useTranslation } from 'src/lib/i18n'
 import { createUseStyles } from 'react-jss'
-import { TFunction } from 'i18next'
+import { type Translator } from 'src/lib/i18n'
 import { useApolloClient, useMutation } from '@apollo/client'
 import { useRouter } from 'next/router'
 import FormTextInputField from '../common/form/FormTextInputField'
@@ -37,7 +37,7 @@ const useStyles = createUseStyles({
     },
 })
 
-const validate = (t: TFunction) => (data: FormData) =>
+const validate = (t: Translator) => (data: FormData) =>
     validateWithValidators(
         data,
         {
@@ -84,9 +84,11 @@ const SignInPanel = ({ infoMessage, stayOnPage, onSuccess }: Props) => {
             onSuccess?.()
 
             // Do not stay on sign up / recover password spage, because it does not make sense
+            // Route.href is a plain string ('/signUp'), not a UrlObject.
+            const route = router.pathname || router.route
             const forceHP =
-                router.route === routes.signUp().href.pathname ||
-                router.route.startsWith(routes.recoverPasswordStart().href.pathname!)
+                route === routes.signUp().href ||
+                route.startsWith(routes.recoverPasswordStart().href)
             if (!stayOnPage || forceHP) {
                 // Ho to homepage
                 routes.push(routes.homepage())
