@@ -2,7 +2,17 @@ import React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { jest } from '@jest/globals'
 
-const queryMock = jest.fn()
+// The shape the panel passes to client.query (useApolloClient is mocked
+// below): a catalog page. Typing the implementation keeps tsc from degrading
+// mockResolvedValue to `never` and .mock.calls[i][0] to `unknown`.
+type CatalogQueryArgs = { variables: { order: string; offset: number; limit: number; filter: Record<string, unknown> } }
+type CatalogQueryResult = {
+    data: { games: { catalog: { __typename: 'GameCatalogPaged'; totalAmount: number; games: unknown[]; facets: typeof facets } } }
+}
+
+const queryMock = jest.fn((_args: CatalogQueryArgs): Promise<CatalogQueryResult> =>
+    Promise.resolve({} as CatalogQueryResult),
+)
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
     useTranslation: () => ({
@@ -15,7 +25,15 @@ jest.unstable_mockModule('@apollo/client', () => ({
     useApolloClient: () => ({ query: queryMock }),
 }))
 
-const replaceMock = jest.fn()
+// Next's router.replace(url, as, options) — the panel calls it with an
+// object URL (pathname+query), undefined `as`, and shallow-routing options.
+const replaceMock = jest.fn(
+    (
+        _url: { pathname: string; query: Record<string, string> },
+        _as: unknown,
+        _options: { shallow: boolean },
+    ): Promise<boolean> => Promise.resolve(true),
+)
 
 // The panel adopts whatever the URL says, so the router mock has to answer with
 // the same query the panel was rendered with.

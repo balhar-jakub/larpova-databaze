@@ -6,8 +6,17 @@ import { act, renderHook } from '@testing-library/react'
 import { useBreakpoint } from '../useBreakpoint'
 
 describe('useBreakpoint', () => {
-    const matchMediaMock = jest.fn()
-    window.matchMedia = matchMediaMock
+    const matchMediaMock = jest.fn((query: string): MediaQueryList => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: addEventListener as never,
+        removeEventListener: removeEventListener as never,
+        dispatchEvent: () => false,
+    }))
+    window.matchMedia = matchMediaMock as typeof window.matchMedia
     let eventListener: ((event: MediaQueryListEvent) => void) | null = null
     const addEventListener = (event: string, listener: (event: MediaQueryListEvent) => void) => {
         if (event === 'change') {
