@@ -1,5 +1,7 @@
 #!/bin/bash
-# CSLD PRODUCTION restart script — port 8080
+# CSLD PRODUCTION restart script — port 8380 (moved off 8080: that port is
+# grabbed by an SSH remote-forward from the operator's home connection, which
+# crash-looped the systemd service with EADDRINUSE)
 set -e
 cd /home/balda/larpova-databaze/csld-new
 export PATH=/usr/local/lib/heroku/bin:/usr/local/lib/heroku/node_modules/.bin:$PATH
@@ -14,5 +16,5 @@ sleep 2
 nohup npx tsx server.ts > /tmp/csld-new.log 2>&1 &
 echo "Production restarted (PID: $!)"
 sleep 4
-curl -s http://localhost:8080/health
+curl -s http://localhost:8380/health
 echo ""
