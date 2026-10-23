@@ -272,8 +272,23 @@ export const bandOf = (text: string | null | undefined): CommentLengthBand => {
  * visible set is what the chips' own numbers need anyway (`commentsStats`
  * counts from the same rows), so the length filter reuses the pass instead
  * of duplicating the band math in SQL it cannot express.
+ *
+ * The pass costs one full-table read (~200 ms on the live data), and a page
+ * load asks for it up to twice (the chips' counts plus a filtered list), so
+ * the result is cached per process for a minute. The bands therefore lag a
+ * freshly posted comment by at most the TTL — the same freshness the chips'
+ * numbers have always had, and a brand-new comment is `MEDIUM`-adjacent in
+ * the pager long before anyone filters by its band.
  */
+const BANDS_TTL_MS = 60_000;
+
+let bandsCache: { at: number; bands: Record<CommentLengthBand, { ids: number[] }> } | null = null;
+
 async function visibleCommentBands(ctx: Context) {
+  if (bandsCache && Date.now() - bandsCache.at < BANDS_TTL_MS) {
+    return bandsCache.bands;
+  }
+
   const visibility = { is_hidden: false, csld_game: { OR: [{ deleted: false }, { deleted: null }] } };
   const comments = await ctx.db.csld_comment.findMany({
     where: visibility,
@@ -289,6 +304,8 @@ async function visibleCommentBands(ctx: Context) {
   for (const row of comments) {
     bands[bandOf(commentAsText(row.comment))].ids.push(row.id);
   }
+
+  bandsCache = { at: Date.now(), bands };
   return bands;
 }
 
