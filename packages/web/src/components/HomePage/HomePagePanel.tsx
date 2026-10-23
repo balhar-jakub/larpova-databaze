@@ -41,7 +41,8 @@ const getHomePageUserQuery = documentOf(getHomePageUserDocument)
 /** The catalog's own deep links: the homepage shows a slice, the catalog the list. */
 const CATALOG_BEST_RATED = '/games?order=Best&minr=5'
 const CATALOG_NEWEST = '/games?order=Newest'
-const CATALOG_MOST_COMMENTED = '/games?order=MostCommented'
+/** The all-comments listing — the comments' counterpart of the catalog. */
+const COMMENTS_PAGE = '/komentare'
 /** The calendar with only the open registrations showing. */
 const CALENDAR_OPEN_REGISTRATION = '/kalendar?reg=1'
 
@@ -169,7 +170,7 @@ export const HomePagePanel = () => {
                     </div>
                     {anonymous && hasComments && (
                         <div className={classes.comments}>
-                            <HomePageCommentsPanel comments={homepage?.lastComments ?? []} href={CATALOG_MOST_COMMENTED} />
+                            <HomePageCommentsPanel comments={homepage?.lastComments ?? []} href={COMMENTS_PAGE} />
                         </div>
                     )}
                 </>

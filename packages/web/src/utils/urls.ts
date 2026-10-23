@@ -35,6 +35,7 @@ export const staticPages = [
     '/games/Best',
     '/games/Recent',
     '/games/MostCommented',
+    '/komentare',
 ]
 
 /**
@@ -42,6 +43,6 @@ export const staticPages = [
  * through the query form (`/gameDetail?id=…`) are deliberately excluded: their
  * pretty URL is the one to index, so they get no canonical tag at all.
  */
-const CANONICAL_PATH = /^\/($|kalendar$|games\/[A-Za-z]+$|larp\/|event\/|group\/\d+$|profile\/\d+$)/
+const CANONICAL_PATH = /^\/($|kalendar$|komentare$|games\/[A-Za-z]+$|larp\/|event\/|group\/\d+$|profile\/\d+$)/
 
 export const isCanonicalPath = (path: string) => CANONICAL_PATH.test(path.split('?')[0])

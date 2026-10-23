@@ -404,5 +404,11 @@
   "LabelsEditColumn": {
     "requiredLabelsSection": "Required labels",
     "optionalLabelsSection": "Optional labels"
+  },
+  "Comments": {
+    "pageTitle": "All comments",
+    "pageDescription": "Every comment in the larp database, newest first \u2014 what the community is saying about games.",
+    "pageSubtitle": "Every comment in the database, newest first.",
+    "empty": "No comments yet."
   }
 }

@@ -8,7 +8,7 @@ import {
   commentsPagedResolver,
 } from './game.js';
 import { catalogResolver } from './gameCatalog.js';
-import { homepageResolver, lastCommentsPage } from './homepage.js';
+import { homepageResolver, lastCommentsPage, allCommentsPage } from './homepage.js';
 import { commentAsText } from './textUtils.js';
 import { configResolver } from './config.js';
 import {
@@ -123,6 +123,13 @@ export const resolvers: any = {
     donations: donationsResolver,
     articles: articlesResolver,
     articleById: articleByIdResolver,
+    // The all-comments listing — the page the homepage's „všechny komentáře“
+    // link opens. Takes the raw offset/limit args, so the pager drives it.
+    allComments: (
+      _parent: unknown,
+      args: { offset?: number; limit?: number },
+      ctx: Context,
+    ) => allCommentsPage(ctx, args),
   },
 
   GamesQuery: {

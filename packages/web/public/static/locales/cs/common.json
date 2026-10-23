@@ -971,5 +971,11 @@
             "live": "Počítáme jen živé záznamy: smazané hry a akce se v číslech neobjevují.",
             "since": "Grafy zobrazují roky 2015 a novější. Starší data přibylo jednorázovým importem z roku 2014 a říkalo by o nich spíš historii databáze než komunitu."
         }
+    },
+    "Comments": {
+        "pageTitle": "Všechny komentáře",
+        "pageDescription": "Všechny komentáře v larpové databázi, nejnovější první — co komunita právě říká o hrách.",
+        "pageSubtitle": "Každý komentář v databázi, nejnovější první.",
+        "empty": "Zatím žádné komentáře."
     }
 }
