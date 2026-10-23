@@ -296,6 +296,13 @@ soukromého GitHub repozitáře) a testy hlídají jednotlivá tvrzení. Dvě v�
 retenci do `csld-backup-git.sh`; (2) `birth_date` a `address` (zobrazovaný jako „město“) jsou
 nepovinné, ale u 1 157 resp. 1 799 účtů vyplněné — stojí za revizi, jestli je ještě potřebujeme.
 
+**Stav (23. 10. 2026):** OAuth klient vytvořen, sekret `GOOGLE_CLIENT_ID` a
+`GOOGLE_CLIENT_SECRET` jsou v repozitáři (23. 10. 13:06 UTC). Nasazení čeká na další deploy:
+test nasazuje každý merge do `main` a produkční workflow je manuální (`workflow_dispatch`).
+Consent screen: External, publikovaná, scopes `openid email profile`; redirect URI
+`https://larpovadatabaze.cz/auth/google/callback`, `https://csld.vezlute.cz/auth/google/callback`,
+`http://localhost:8080/auth/google/callback`.
+
 **Co zůstává na fázi 2:** propojení/odpojení Google účtu v profilu (GraphQL — dvě kopie schématu +
 codegen) a nastavení hesla bez starého hesla (jinak se uživatel s prázdným heslem k heslu dostane jen
 přes „Zapomenuté heslo“).
