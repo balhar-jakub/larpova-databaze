@@ -44,7 +44,7 @@ const useStyles = createUseStyles({
     },
 })
 
-const ToastContextProvider: React.FC = ({ children }) => {
+const ToastContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [value, setValue] = useState<State>({})
     const [toastShown, setToastShown] = useState(false)
     const classes = useStyles()

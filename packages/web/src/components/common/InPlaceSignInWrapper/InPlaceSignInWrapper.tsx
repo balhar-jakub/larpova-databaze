@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { InPlaceSignInContext } from '../../../context/InPlaceSignInContext/InPlaceSignInContext'
 import SignInPanel from '../../SignIn/SignInPanel'
 
-const InPlaceSignInWrapper: React.FC = ({ children }) => {
+const InPlaceSignInWrapper: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     const context = useContext(InPlaceSignInContext)
 
     if (context.value) {

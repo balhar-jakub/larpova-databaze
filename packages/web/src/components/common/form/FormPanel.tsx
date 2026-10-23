@@ -8,7 +8,7 @@ const useStyles = createUseStyles({
     },
 })
 
-const FormPanel: React.FC<{}> = ({ children }) => {
+const FormPanel: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     const classes = useStyles()
 
     return <div className={classes.panel}>{children}</div>

@@ -14,7 +14,7 @@ const useStyles = createUseStyles({
     },
 })
 
-export const DetailListHeader: React.FC<{}> = ({ children }) => {
+export const DetailListHeader: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     const classes = useStyles()
 
     return <h2 className={classes.wrapper}>{children}</h2>

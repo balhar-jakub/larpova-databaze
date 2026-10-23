@@ -16,6 +16,7 @@ type RequiredRole = 'ANONYMOUS' | 'USER' | 'EDITOR' | 'ADMIN'
 
 interface Props {
     readonly requiredRole?: RequiredRole
+    readonly children?: React.ReactNode
 }
 
 const useStyles = createUseStyles({

@@ -9,6 +9,7 @@ import { breakPoints } from '../../../theme/breakPoints'
 interface Props {
     readonly route: string | Route
     readonly target?: string
+    readonly children?: React.ReactNode
 }
 
 export const headerLinkStyle = {

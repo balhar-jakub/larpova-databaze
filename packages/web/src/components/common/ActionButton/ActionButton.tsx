@@ -4,6 +4,7 @@ import { darkTheme } from '../../../theme/darkTheme'
 
 interface Props {
     readonly onClick: () => void
+    readonly children?: React.ReactNode
 }
 
 const useStyles = createUseStyles({

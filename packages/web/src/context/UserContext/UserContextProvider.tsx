@@ -10,7 +10,7 @@ import {
 
 const loggedInUserGql = require('./graphql/loggedInUserQuery.graphql')
 
-const UserContextProvider: React.FC = ({ children }) => {
+const UserContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [value, setValue] = useState<UserContextValue | undefined>(undefined)
 
     const query = useQuery<LoggedInUserQuery, LoggedInUserQueryVariables>(loggedInUserGql, {
