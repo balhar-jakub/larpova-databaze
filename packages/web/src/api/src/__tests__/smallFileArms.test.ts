@@ -89,7 +89,7 @@ describe('gamePermissions matrix arms', () => {
   });
 
   it('a game that is not the author answers nothing', async () => {
-    const stranger = { ...ctx(1), user: { id: userId + 999999, role: 1 } } as never;
+    const stranger = { ...(ctx(1) as object), user: { id: userId + 999999, role: 1 } } as never;
     expect(await gameAllowedActions({ id: gameId, deleted: false, csld_game_has_author: [] } as never, stranger)).toEqual([]);
   });
 });

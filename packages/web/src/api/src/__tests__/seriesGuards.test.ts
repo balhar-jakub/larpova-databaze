@@ -92,7 +92,7 @@ describe('seriesByQuery fallbacks (the picker)', () => {
 
 
   it('an undefined query lists series too (the optional-chain arm)', async () => {
-    const rows = await seriesByQueryResolver({}, {}, anonymousCtx());
+    const rows = await seriesByQueryResolver({}, {} as never, anonymousCtx());
     const names = rows.map((r: any) => r.name);
     expect(names).toContain(`${marker} živá`);
   });

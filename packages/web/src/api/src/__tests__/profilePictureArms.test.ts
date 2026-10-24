@@ -28,7 +28,11 @@ let dataDir: string;
 let files: LocalFiles;
 let ownerId: number;
 
-const ctx = (user?: { id: number }) => ({ db: prisma, files, user: user ?? null } as never);
+const ctx = (user?: { id: number } | number) => ({
+  db: prisma,
+  files,
+  user: user === undefined ? null : typeof user === 'number' ? { id: user } : user,
+} as never);
 
 async function pngB64(): Promise<string> {
   const buffer = await sharp({
