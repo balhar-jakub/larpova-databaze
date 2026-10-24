@@ -380,6 +380,58 @@ describe('the callback completes a real sign-in', () => {
     await prisma.csld_oauth_account.deleteMany({ where: { provider_account_id: `vanished-${stamp}` } });
   });
 
+
+  it('rejects a callback whose code is missing or empty', async () => {
+    // Two separate flows: the callback consumes the session state, so the
+    // second case needs its own.
+    const app = buildApp(CONFIGURED);
+    const first = request.agent(app);
+    const firstStart = await first.get('/auth/google');
+    const missing = await first.get(
+      `/auth/google/callback?state=${encodeURIComponent(stateFrom(firstStart.headers.location))}`,
+    );
+    expect(missing.headers.location).toBe('/signIn?error=google_failed');
+    const second = request.agent(app);
+    const secondStart = await second.get('/auth/google');
+    const empty = await second.get(
+      `/auth/google/callback?code=&state=${encodeURIComponent(stateFrom(secondStart.headers.location))}`,
+    );
+    expect(empty.headers.location).toBe('/signIn?error=google_failed');
+  });
+
+  it('rejects a callback when the client was switched off after the flow started', async () => {
+    const app = buildApp(CONFIGURED);
+    const agent = request.agent(app);
+    const started = await agent.get('/auth/google');
+    const state = stateFrom(started.headers.location);
+    // Swap the router for an unconfigured one mid-flow (the env moved under us).
+    const off = buildApp({} as GoogleEnv);
+    const offAgent = request.agent(off);
+    const fresh = await offAgent.get('/auth/google');
+    expect(fresh.headers.location).toBe('/signIn?error=google_unavailable');
+  });
+
+  it('derives the redirect URI from x-forwarded-proto when GOOGLE_REDIRECT_URI is absent', async () => {
+    const env: GoogleEnv = { GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret' };
+    const app = buildApp(env);
+    const agent = request.agent(app);
+    const started = await agent.get('/auth/google');
+    const url = new URL(started.headers.location);
+    expect(url.searchParams.get('redirect_uri')).toMatch(/https?:\/\/.*\/auth\/google\/callback$/);
+  });
+
+  it('fails loudly when the session middleware is not mounted', async () => {
+    const app = express(); // no express-session
+    app.use('/auth/google', createGoogleRouter({
+      prisma,
+      loadUser: async () => null,
+      login: async () => undefined,
+      env: CONFIGURED,
+    }));
+    const result = await request(app).get('/auth/google');
+    expect(result.status).toBe(500);
+  });
+
   it('reports a token exchange failure as google_failed', async () => {
     const proto = Object.getPrototypeOf(new google.auth.OAuth2('id', 'secret')) as Record<
       string,
