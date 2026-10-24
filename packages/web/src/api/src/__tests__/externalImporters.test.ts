@@ -492,6 +492,48 @@ describe('larpCzImport.importLarpCzEvents', () => {
 // ---------------------------------------------------------------------------
 
 describe('larpCzImport on a database with users (the FK owner exists)', () => {
+
+  it('answers 0 for a page with no event rows (structure changed)', async () => {
+    const restore = global.fetch;
+    routeFetch([{ match: 'larp.cz/kalendar', response: () => res({ text: '<html><body><p>nic</p></body></html>' }) }]);
+    try {
+      const imported = await importLarpCzEvents(db);
+      expect(imported).toBe(0);
+    } finally {
+      global.fetch = restore;
+    }
+  });
+
+  it('skips a row without a name, keeps one without a link href, and clears location when absent', async () => {
+    const restore = global.fetch;
+    const html = `
+      <html><body>
+      <div class="kalendar-akce">
+        <div class="akce-nazev"><span>${MARK}bezejmena</span></div>
+        <div class="akce-datum">5. 8. 2026</div>
+        <div class="akce-misto">Praha</div>
+      </div><div class="kalendar-akce">
+        <div class="akce-nazev"><a>${MARK}bez-odkazu</a></div>
+        <div class="akce-datum">7. 8. 2026</div>
+        <div class="akce-misto"></div>
+      </div></body></html>`;
+    routeFetch([{ match: 'larp.cz/kalendar', response: () => res({ text: html }) }]);
+    try {
+      const imported = await importLarpCzEvents(db);
+      expect(imported).toBe(1);
+      const event = await db.event.findFirst({ where: { name: `${MARK}bez-odkazu` } });
+      expect(event).not.toBeNull();
+      expect(event!.web).toBeNull();   // no href → null
+      expect(event!.loc).toBeNull();   // empty location → null
+      const nameless = await db.event.findFirst({ where: { name: `${MARK}bezejmena` } });
+      expect(nameless).toBeNull();     // a row without a name is skipped
+    } finally {
+      await db.event_has_labels.deleteMany({ where: { event: { name: `${MARK}bez-odkazu` } } });
+      await db.event.deleteMany({ where: { name: { startsWith: `${MARK}bez` } } });
+      global.fetch = restore;
+    }
+  });
+
   it('attributes imported events to the lowest existing user id', async () => {
     const anyUser = await db.csld_csld_user.findFirst({ orderBy: { id: 'asc' }, select: { id: true } });
     if (!anyUser) return; // covered by the CI's empty-database run
@@ -512,6 +554,165 @@ describe('larpCzImport on a database with users (the FK owner exists)', () => {
       global.fetch = originalFetch;
       await db.event_has_labels.deleteMany({ where: { event: { name: `${MARK}boot-user` } } });
       await db.event.deleteMany({ where: { name: `${MARK}boot-user` } });
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// larpy.cz articles (WP REST) — the cold arm set
+// ---------------------------------------------------------------------------
+
+describe('larpyCzArticlesImport.importLarpyCzArticles cold arms', () => {
+  const originalFetch = global.fetch;
+
+  beforeAll(() => setLarpyCzSpacing(0));
+
+  afterAll(() => {
+    global.fetch = originalFetch;
+  });
+
+  const cleanup = (ids: number[]) =>
+    db.csld_article.deleteMany({
+      where: { source: 'LARPY_CZ', source_id: { in: ids.map(String) } },
+    });
+
+  it('retries a 429 and succeeds on the second attempt', async () => {
+    let postsCall = 0;
+    const posts = [
+      wpPost(900011, { title: 'Po omezení' }),
+    ];
+    routeFetch([
+      { match: '/categories', response: () => res({ json: [], headers: { 'x-wp-totalpages': '1' } }) },
+      { match: '/tags', response: () => res({ json: [], headers: { 'x-wp-totalpages': '1' } }) },
+      {
+        match: '/posts',
+        response: () => {
+          postsCall += 1;
+          if (postsCall === 1) return res({ ok: false, status: 429 });
+          return res({ json: posts, headers: { 'x-wp-totalpages': '1' } });
+        },
+      },
+    ]);
+    try {
+      const imported = await importLarpyCzArticles(db);
+      expect(imported).toBe(1);
+      expect(postsCall).toBe(2);
+    } finally {
+      await cleanup([900011]);
+      global.fetch = originalFetch;
+    }
+  });
+
+  it('keeps the number after three 429s and returns what it got', async () => {
+    routeFetch([
+      { match: '/categories', response: () => res({ json: [], headers: { 'x-wp-totalpages': '1' } }) },
+      { match: '/tags', response: () => res({ json: [], headers: { 'x-wp-totalpages': '1' } }) },
+      { match: '/posts', response: () => res({ ok: false, status: 429 }) },
+    ]);
+    try {
+      const imported = await importLarpyCzArticles(db);
+      expect(imported).toBe(0);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  it('reads every page of a paged endpoint (x-wp-totalpages: 2)', async () => {
+    const seen: number[] = [];
+    routeFetch([
+      {
+        match: '/categories',
+        response: (url: string) => {
+          if (url.includes('page=2')) {
+            return res({ json: [{ id: 6, name: 'Druhá rubrika' }], headers: { 'x-wp-totalpages': '2' } });
+          }
+          return res({ json: [{ id: 5, name: 'První rubrika' }], headers: { 'x-wp-totalpages': '2' } });
+        },
+      },
+      { match: '/tags', response: () => res({ json: [], headers: { 'x-wp-totalpages': '1' } }) },
+      {
+        match: '/posts',
+        response: (url: string) => {
+          if (url.includes('page=2')) {
+            seen.push(900022);
+            return res({ json: [wpPost(900022, { title: 'Z druhé strany', categories: [6] })], headers: { 'x-wp-totalpages': '2' } });
+          }
+          seen.push(900021);
+          return res({ json: [wpPost(900021, { title: 'Z první strany', categories: [5] })], headers: { 'x-wp-totalpages': '2' } });
+        },
+      },
+    ]);
+    try {
+      const imported = await importLarpyCzArticles(db);
+      expect(imported).toBe(2);
+      expect(seen).toEqual([900021, 900022]);
+      const page2 = await db.csld_article.findUnique({
+        where: { source_source_id: { source: 'LARPY_CZ', source_id: '900022' } },
+      });
+      expect(page2!.categories).toEqual(['Druhá rubrika']); // name resolved from page 2
+    } finally {
+      await cleanup([900021, 900022]);
+      global.fetch = originalFetch;
+    }
+  });
+
+  it('imports a bare post: no excerpt, no date, no embedded author, false media, unknown tag', async () => {
+    const bare = {
+      ...wpPost(900031, { title: 'Nahý post' }),
+      excerpt: { rendered: '' },
+      date_gmt: '',
+      tags: [999],
+      _embedded: {
+        author: [],
+        'wp:featuredmedia': [false],
+      },
+    };
+    routeFetch([
+      { match: '/categories', response: () => res({ json: [{ id: 5, name: 'Rubrika' }], headers: { 'x-wp-totalpages': '1' } }) },
+      { match: '/tags', response: () => res({ json: [{ id: 7, name: 'známý tag' }], headers: { 'x-wp-totalpages': '1' } }) },
+      { match: '/posts', response: () => res({ json: [bare], headers: { 'x-wp-totalpages': '1' } }) },
+    ]);
+    try {
+      const imported = await importLarpyCzArticles(db);
+      expect(imported).toBe(1);
+      const row = await db.csld_article.findUnique({
+        where: { source_source_id: { source: 'LARPY_CZ', source_id: '900031' } },
+      });
+      expect(row!.perex).toBeNull(); // empty rendered excerpt → null
+      expect(row!.published_at).toBeNull(); // empty date_gmt → null
+      expect(row!.authors).toBeNull(); // no embedded author
+      expect(row!.image_url).toBeNull(); // media false → null
+      expect(row!.tags).toEqual(['999']); // unknown tag id falls back to the number
+    } finally {
+      await cleanup([900031]);
+      global.fetch = originalFetch;
+    }
+  });
+
+  it('skips a post that is already stored (the dedup continue)', async () => {
+    await db.csld_article.create({
+      data: {
+        source: 'LARPY_CZ',
+        source_id: '900041',
+        url: 'https://example.com/wp-dedup',
+        title: 'Uložený duplikát',
+        language: 'cs',
+        categories: [],
+        tags: [],
+      },
+    });
+    const posts = [wpPost(900041, { title: 'Uložený duplikát' }), wpPost(900042, { title: 'Nový' })];
+    routeFetch([
+      { match: '/categories', response: () => res({ json: [], headers: { 'x-wp-totalpages': '1' } }) },
+      { match: '/tags', response: () => res({ json: [], headers: { 'x-wp-totalpages': '1' } }) },
+      { match: '/posts', response: () => res({ json: posts, headers: { 'x-wp-totalpages': '1' } }) },
+    ]);
+    try {
+      const imported = await importLarpyCzArticles(db);
+      expect(imported).toBe(1); // only 900042
+    } finally {
+      await cleanup([900041, 900042]);
+      global.fetch = originalFetch;
     }
   });
 });

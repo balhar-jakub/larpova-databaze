@@ -64,6 +64,12 @@ function collectCoverage(jestArgs, label) {
     process.execPath,
     [
       '--experimental-vm-modules',
+      // The API suite under coverage grows past node's default heap on both
+      // the 2-core CI runner and a dev box (observed: Ineffective
+      // mark-compacts near heap limit mid-suite). 8 GB is what the suite
+      // needs at 73 suites / 712 tests; the runner has 7 GB RAM total, and
+      // --runInBand keeps the rest of the tree small.
+      '--max-old-space-size=8192',
       join(ROOT, 'node_modules', 'jest', 'bin', 'jest.js'),
       ...jestArgs,
       // One worker: the suite-heavy API run under coverage spawns several
@@ -126,7 +132,18 @@ function collectCoverage(jestArgs, label) {
 function main() {
   // The same invocation CI uses, so the floors are what a PR actually sees.
   const api = collectCoverage(
-    ['--config', 'jest.api.config.json', '--collectCoverageFrom=src/api/src/**/*.ts', '--collectCoverageFrom=!src/api/src/**/*.d.ts', 'src/api/src/__tests__'],
+    [
+      '--config', 'jest.api.config.json',
+      '--collectCoverageFrom=src/api/src/**/*.ts',
+      '--collectCoverageFrom=!src/api/src/**/*.d.ts',
+      // The bootstrap: main() starts the real server (app.listen, cron
+      // registration, passport wiring). It can only run once at boot — an
+      // in-process import would bind the port and schedule jobs — so its
+      // branches are no more testable than packages/web/server.ts, which the
+      // web scope excludes the same way by never importing it.
+      '--collectCoverageFrom=!src/api/src/index.ts',
+      'src/api/src/__tests__',
+    ],
     'API',
   );
   // The whole web tree minus the API server tree and the agreed exclusions

@@ -80,6 +80,9 @@ describe('group resolvers', () => {
 });
 
 describe('runNightlyBatch: importer flag branches', () => {
+    // 120 s, not the default 5: the batch also runs the similarity engine,
+    // which walks EVERY game in the database — on the seeded dev database
+    // that is 1,500+ games and the default timeout kills a healthy run.
     it('runs the calendar+article importers when INTEGRATE_* is set (failures swallowed)', async () => {
         const tasks = await import('../scheduled/tasks.js');
         const prevCalendar = process.env.INTEGRATE_CALENDAR;
@@ -104,5 +107,5 @@ describe('runNightlyBatch: importer flag branches', () => {
             if (prevArticles === undefined) delete process.env.INTEGRATE_ARTICLES;
             else process.env.INTEGRATE_ARTICLES = prevArticles;
         }
-    });
+    }, 120_000);
 });

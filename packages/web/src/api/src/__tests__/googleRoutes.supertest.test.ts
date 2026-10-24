@@ -256,6 +256,182 @@ describe('the callback completes a real sign-in', () => {
     spies.verifySpy.mockRestore();
   });
 
+
+  it('reports an ambiguous e-mail (two accounts share one address)', async () => {
+    // The address differs in CASE (unique to the column, one mailbox to the
+    // lookup) — linkGoogleIdentity refuses to choose between the two.
+    const second = await prisma.csld_csld_user.create({
+      data: { email: email.toUpperCase(), password: 'x', role: 1, name: 'google-routes-duplicate' },
+    });
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const spies = stubOAuth2({ sub: `ambiguous-${stamp}`, email, email_verified: true });
+    const { app } = buildHappyPathApp();
+    const agent = request.agent(app);
+    const started = await agent.get('/auth/google');
+    const state = stateFrom(started.headers.location);
+    const response = await agent.get(`/auth/google/callback?code=abc&state=${encodeURIComponent(state)}`);
+    expect(response.headers.location).toBe('/signIn?error=google_ambiguous');
+    spies.tokenSpy.mockRestore();
+    spies.verifySpy.mockRestore();
+    warnSpy.mockRestore();
+    await prisma.csld_csld_user.deleteMany({ where: { id: second.id } });
+  });
+
+  it('reports a conflict (the account already has another Google identity)', async () => {
+    // (user_id, provider) is unique: at most one Google link per user. Clear
+    // any link the earlier tests left on the fixture user, then bind it to a
+    // DIFFERENT sub — the incoming sub is then refused.
+    await prisma.csld_oauth_account.deleteMany({ where: { user_id: userId, provider: 'google' } });
+    await prisma.csld_oauth_account.create({
+      data: { provider: 'google', provider_account_id: `existing-${stamp}`, user_id: userId },
+    });
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const spies = stubOAuth2({ sub: `conflict-${stamp}`, email, email_verified: true });
+    const { app } = buildHappyPathApp();
+    const agent = request.agent(app);
+    const started = await agent.get('/auth/google');
+    const state = stateFrom(started.headers.location);
+    const response = await agent.get(`/auth/google/callback?code=abc&state=${encodeURIComponent(state)}`);
+    expect(response.headers.location).toBe('/signIn?error=google_conflict');
+    spies.tokenSpy.mockRestore();
+    spies.verifySpy.mockRestore();
+    warnSpy.mockRestore();
+    await prisma.csld_oauth_account.deleteMany({ where: { provider_account_id: `existing-${stamp}` } });
+  });
+
+  it('registers a brand-new account when the e-mail is unknown', async () => {
+    const freshEmail = `google-routes-new-${stamp}@integration.test`;
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const spies = stubOAuth2({ sub: `register-${stamp}`, email: freshEmail, email_verified: true, name: 'Nový účet' });
+    const { app, wasCalled } = buildHappyPathApp();
+    const agent = request.agent(app);
+    const started = await agent.get('/auth/google');
+    const state = stateFrom(started.headers.location);
+    const response = await agent.get(`/auth/google/callback?code=abc&state=${encodeURIComponent(state)}`);
+    expect(response.headers.location).toBe('/');
+    expect(wasCalled()).toBe(true);
+    const created = await prisma.csld_csld_user.findUnique({ where: { email: freshEmail } });
+    expect(created).not.toBeNull();
+    const link = await prisma.csld_oauth_account.findUnique({
+      where: { provider_provider_account_id: { provider: 'google', provider_account_id: `register-${stamp}` } },
+    });
+    expect(link!.user_id).toBe(created!.id);
+    spies.tokenSpy.mockRestore();
+    spies.verifySpy.mockRestore();
+    warnSpy.mockRestore();
+    await prisma.csld_oauth_account.deleteMany({ where: { provider_account_id: `register-${stamp}` } });
+    await prisma.csld_csld_user.deleteMany({ where: { email: freshEmail } });
+  });
+
+  it('fails when the token response carries no id_token', async () => {
+    const proto = Object.getPrototypeOf(new google.auth.OAuth2('id', 'secret')) as Record<string, any>;
+    const tokenSpy = jest.spyOn(proto, 'getToken').mockResolvedValue({ tokens: {} });
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { app } = buildHappyPathApp();
+    const agent = request.agent(app);
+    const started = await agent.get('/auth/google');
+    const state = stateFrom(started.headers.location);
+    const response = await agent.get(`/auth/google/callback?code=abc&state=${encodeURIComponent(state)}`);
+    expect(response.headers.location).toBe('/signIn?error=google_failed');
+    tokenSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('fails when the id_token has no subject', async () => {
+    const proto = Object.getPrototypeOf(new google.auth.OAuth2('id', 'secret')) as Record<string, any>;
+    jest.spyOn(proto, 'getToken').mockResolvedValue({ tokens: { id_token: 'stub-id-token' } });
+    jest.spyOn(proto, 'verifyIdToken').mockResolvedValue({ getPayload: () => ({ email, email_verified: true }) });
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { app } = buildHappyPathApp();
+    const agent = request.agent(app);
+    const started = await agent.get('/auth/google');
+    const state = stateFrom(started.headers.location);
+    const response = await agent.get(`/auth/google/callback?code=abc&state=${encodeURIComponent(state)}`);
+    expect(response.headers.location).toBe('/signIn?error=google_failed');
+    (proto.getToken as any).mockRestore?.();
+    (proto.verifyIdToken as any).mockRestore?.();
+    errorSpy.mockRestore();
+  });
+
+  it('fails when the linked user disappears before the session can be minted', async () => {
+    const vanishedEmail = `google-routes-vanished-${stamp}@integration.test`;
+    const spies = stubOAuth2({ sub: `vanished-${stamp}`, email: vanishedEmail, email_verified: true });
+    const app = express();
+    app.use(cookieParser());
+    app.use(session({ secret: SECRET, resave: false, saveUninitialized: false, name: 'csld.sid' }));
+    app.use(
+      '/auth/google',
+      createGoogleRouter({
+        prisma,
+        loadUser: async () => null, // the user vanished between link and load
+        login: async () => {},
+        env: CONFIGURED,
+      }),
+    );
+    const agent = request.agent(app);
+    const started = await agent.get('/auth/google');
+    const state = stateFrom(started.headers.location);
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const response = await agent.get(`/auth/google/callback?code=abc&state=${encodeURIComponent(state)}`);
+    expect(response.headers.location).toBe('/signIn?error=google_failed');
+    spies.tokenSpy.mockRestore();
+    spies.verifySpy.mockRestore();
+    errorSpy.mockRestore();
+    await prisma.csld_oauth_account.deleteMany({ where: { provider_account_id: `vanished-${stamp}` } });
+  });
+
+
+  it('rejects a callback whose code is missing or empty', async () => {
+    // Two separate flows: the callback consumes the session state, so the
+    // second case needs its own.
+    const app = buildApp(CONFIGURED);
+    const first = request.agent(app);
+    const firstStart = await first.get('/auth/google');
+    const missing = await first.get(
+      `/auth/google/callback?state=${encodeURIComponent(stateFrom(firstStart.headers.location))}`,
+    );
+    expect(missing.headers.location).toBe('/signIn?error=google_failed');
+    const second = request.agent(app);
+    const secondStart = await second.get('/auth/google');
+    const empty = await second.get(
+      `/auth/google/callback?code=&state=${encodeURIComponent(stateFrom(secondStart.headers.location))}`,
+    );
+    expect(empty.headers.location).toBe('/signIn?error=google_failed');
+  });
+
+  it('rejects a callback when the client was switched off after the flow started', async () => {
+    const app = buildApp(CONFIGURED);
+    const agent = request.agent(app);
+    const started = await agent.get('/auth/google');
+    const state = stateFrom(started.headers.location);
+    // Swap the router for an unconfigured one mid-flow (the env moved under us).
+    const off = buildApp({} as GoogleEnv);
+    const offAgent = request.agent(off);
+    const fresh = await offAgent.get('/auth/google');
+    expect(fresh.headers.location).toBe('/signIn?error=google_unavailable');
+  });
+
+  it('derives the redirect URI from x-forwarded-proto when GOOGLE_REDIRECT_URI is absent', async () => {
+    const env: GoogleEnv = { GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret' };
+    const app = buildApp(env);
+    const agent = request.agent(app);
+    const started = await agent.get('/auth/google');
+    const url = new URL(started.headers.location);
+    expect(url.searchParams.get('redirect_uri')).toMatch(/https?:\/\/.*\/auth\/google\/callback$/);
+  });
+
+  it('fails loudly when the session middleware is not mounted', async () => {
+    const app = express(); // no express-session
+    app.use('/auth/google', createGoogleRouter({
+      prisma,
+      loadUser: async () => null,
+      login: async () => undefined,
+      env: CONFIGURED,
+    }));
+    const result = await request(app).get('/auth/google');
+    expect(result.status).toBe(500);
+  });
+
   it('reports a token exchange failure as google_failed', async () => {
     const proto = Object.getPrototypeOf(new google.auth.OAuth2('id', 'secret')) as Record<
       string,

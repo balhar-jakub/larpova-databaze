@@ -110,6 +110,54 @@ describe('createCalendarEvent', () => {
     expect(call.body.end).toEqual({ dateTime: to.toISOString(), timeZone: 'Europe/Prague' });
   });
 
+
+  it('syncs an event with to: null and name null (the to ?? from and name fallback arms)', async () => {
+    const mod = await import('../external/googleCalendar.js');
+    const { client, calls } = fakeCalendar({ insertId: 'gcal-fallback-end' });
+    mod.setCalendarClientForTesting(client);
+
+    // An event whose end is NULL and whose name is NULL: sync falls back
+    // to the start date for `to` and '' for the summary, and persists the id.
+    const undated = await prisma.event.create({
+      data: {
+        name: null, description: null, loc: null, added_by: null, lang: 'cs',
+        from: new Date('2026-11-01T10:00:00Z'), to: null,
+      },
+    });
+    try {
+      await mod.syncEventToCalendar(prisma, undated.id);
+      expect(calls).toHaveLength(1);
+      expect(calls[0].op).toBe('insert');
+      expect(calls[0].body.summary).toBe('');          // name ?? ''
+      expect(calls[0].body.end.dateTime).toBe(new Date('2026-11-01T10:00:00Z').toISOString()); // to ?? from
+      const row = await prisma.event.findUnique({ where: { id: undated.id } });
+      expect(row?.gcaleventid).toBe('gcal-fallback-end');
+    } finally {
+      await prisma.event.deleteMany({ where: { id: undated.id } }).catch(() => {});
+    }
+  });
+
+  it('returns null when the insert response carries no id', async () => {
+    const mod = await import('../external/googleCalendar.js');
+    // A client whose insert answers with an EMPTY data object.
+    const calls: { op: string }[] = [];
+    const client = {
+      events: {
+        insert: async () => {
+          calls.push({ op: 'insert' });
+          return { data: {} };
+        },
+        update: async () => ({ data: {} }),
+        delete: async () => ({ data: {} }),
+      },
+    } as unknown as calendar_v3.Calendar;
+    mod.setCalendarClientForTesting(client);
+    const id = await mod.createCalendarEvent({
+      id: 1, name: 'x', from: new Date(), to: new Date(),
+    });
+    expect(id).toBeNull();
+  });
+
   it('nulls description/loc when missing and returns null on API failure', async () => {
     const mod = await import('../external/googleCalendar.js');
     const { client, calls } = fakeCalendar({ failInsert: true });

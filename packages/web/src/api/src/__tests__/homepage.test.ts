@@ -237,8 +237,11 @@ describe('homepage — the anonymous blocks', () => {
       data: {
         name: `${marker} běh s přihláškami`,
         deleted: false,
-        from: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-        to: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000),
+        // Within the hour: on a seeded database the six-row block would
+        // otherwise be full of real events that start sooner than a fixture
+        // two weeks out, and the fixtures would never appear on the page.
+        from: new Date(Date.now() + 1 * 60 * 60 * 1000),
+        to: new Date(Date.now() + 2 * 60 * 60 * 1000),
         registration_url: 'https://example.test/form',
         registration_status: 'OPEN',
       },
@@ -249,8 +252,8 @@ describe('homepage — the anonymous blocks', () => {
       data: {
         name: `${marker} běh později`,
         deleted: false,
-        from: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        to: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000),
+        from: new Date(Date.now() + 3 * 60 * 60 * 1000),
+        to: new Date(Date.now() + 4 * 60 * 60 * 1000),
         registration_url: 'https://example.test/form-later',
         registration_status: 'OPEN',
       },
