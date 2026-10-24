@@ -57,7 +57,13 @@ jest.unstable_mockModule('src/hooks/useRoutes', () => ({
             homepage: () => '/',
             signIn: () => '/prihlaseni',
             signUp: () => '/registrace',
-            search: () => ({ href: '/hledani', as: '/hledani' }),
+            search: (query?: string, type?: string) => {
+                const params: string[] = []
+                if (query) params.push(`q=${encodeURIComponent(query)}`)
+                if (type) params.push(`typ=${type}`)
+                const suffix = params.length ? `?${params.join('&')}` : ''
+                return { href: `/search${suffix}`, as: `/search${suffix}` }
+            },
         }
         return {
             ...routes,
@@ -235,6 +241,42 @@ describe('HeaderSearchForm', () => {
         // results render, and the box must stay focused.
         expect(await screen.findByText('Dračí doupě', {}, { timeout: 2000 })).toBeTruthy()
         expect(screen.getByText('Hráč')).toBeTruthy()
+    })
+
+    it('submits the typed query to the search page and clears the box', async () => {
+        render(<HeaderSearchForm />)
+        const input = screen.getByRole('textbox')
+        fireEvent.change(input, { target: { value: 'dungeon' } })
+
+        fireEvent.submit(document.querySelector('form')!)
+
+        expect((pushedRoute as unknown as { href: string }).href).toBe('/search?q=dungeon')
+        // The input is cleared after the redirect.
+        expect((input as HTMLInputElement).value).toBe('')
+    })
+
+    it('carries the "show all" link for the result kinds', async () => {
+        searchResult = {
+            search: {
+                __typename: 'SearchResult',
+                games: [{ __typename: 'Game', id: '1', name: 'Dračí doupě', year: 2014, averageRating: 4, totalRating: 5, amountOfComments: 2, amountOfRatings: 5, labels: [], authors: null, groupAuthor: null }],
+                users: [],
+                events: [],
+                groups: [],
+                totalGames: 1,
+                totalUsers: 0,
+                totalEvents: 0,
+                totalGroups: 0,
+            },
+        }
+        render(<HeaderSearchForm />)
+        const input = screen.getByRole('textbox')
+        fireEvent.focus(input)
+        fireEvent.change(input, { target: { value: 'drac' } })
+
+        expect(await screen.findByText('Dračí doupě', {}, { timeout: 2000 })).toBeTruthy()
+        // All of the result kinds keep their "show all" link.
+        expect(screen.getAllByText(translate(cs, 'PageHeader.search.showMore')).length).toBeGreaterThan(0)
     })
 })
 
