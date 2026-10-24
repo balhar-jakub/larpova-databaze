@@ -171,6 +171,52 @@ test('the toolbar renders the length and year chips with their stats numbers', (
     expect(screen.getByText('2025')).toBeTruthy()
 })
 
+test('clicking the active length chip clears the filter from the URL', () => {
+    queryResult = {
+        loading: false,
+        data: withStats({
+            allComments: { totalAmount: 10, comments: [commentRow('1', 'Dlouhá recenze')] },
+        }),
+    }
+    routerQuery = { delka: 'long' }
+    pushedQueries.length = 0
+    render(<Panel />)
+
+    // The active chip clears the filter again.
+    fireEvent.click(screen.getByText('Dlouhé (1336)'))
+    expect(pushedQueries.length).toBe(1)
+    expect(pushedQueries[0].query).not.toHaveProperty('delka')
+
+    // And the "Všechny" chip does the same in one click.
+    pushedQueries.length = 0
+    fireEvent.click(screen.getAllByText('Všechny')[0])
+    expect(pushedQueries[0].query).not.toHaveProperty('delka')
+})
+
+test('the year filter clears through its chip', () => {
+    queryResult = {
+        loading: false,
+        data: withStats({
+            allComments: { totalAmount: 10, comments: [commentRow('1', 'Recenze 2025')] },
+            commentsStats: {
+                commentsTotal: 10,
+                byLength: [],
+                byYear: [
+                    { year: 2025, amountOfComments: 10 },
+                    { year: 2024, amountOfComments: 5 },
+                ],
+            },
+        }),
+    }
+    routerQuery = { rok: '2025' }
+    pushedQueries.length = 0
+    render(<Panel />)
+
+    fireEvent.click(screen.getByText('2025'))
+    expect(pushedQueries.length).toBe(1)
+    expect(pushedQueries[0].query).not.toHaveProperty('rok')
+})
+
 test('a length chip click filters the query and lands in the URL', () => {
     queryResult = {
         loading: false,

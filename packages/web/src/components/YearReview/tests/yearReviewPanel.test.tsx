@@ -138,6 +138,42 @@ describe('YearReviewPanel', () => {
         expect(screen.getByText('Reportáž z konventu')).toBeTruthy()
     })
 
+    it('covers a featured game with its image and ellipsizes long quotes', async () => {
+        const longText = `${'Nejlepší hra roku. '.repeat(20)}a ještě něco za limitem`
+        queryResult = Promise.resolve({
+            data: {
+                yearReview: reviewData({
+                    featuredGames: [
+                        {
+                            __typename: 'FeaturedGameRow',
+                            game: game('1', 'Nejlepší hra', { coverImage: { __typename: 'Image', id: 'img1' } }),
+                            votesInYear: 12,
+                        },
+                    ],
+                    quotes: [
+                        {
+                            __typename: 'QuoteRow',
+                            id: 'q1',
+                            text: longText,
+                            user: { __typename: 'User', id: 'u1', name: 'Komentátor', image: null },
+                            game: game('1', 'Nejlepší hra'),
+                            added: '2026-05-01',
+                        },
+                    ],
+                }),
+            },
+        })
+        render(<YearReviewPanel year={2026} />)
+
+        // The cover image URL is built the catalog way.
+        const img = (await screen.findAllByText('Nejlepší hra')) && document.querySelector('img[src*="game-image"]')
+        expect(img?.getAttribute('src')).toBe('/game-image/?id=1&imageId=img1')
+
+        // The long quote is cut at a word boundary with an ellipsis.
+        const excerpt = document.body.textContent ?? ''
+        expect(excerpt).toContain('…')
+    })
+
     it('hides the quotes and articles sections when the data has none', async () => {
         queryResult = Promise.resolve({
             data: { yearReview: reviewData({ quotes: [], articles: [] }) },

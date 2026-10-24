@@ -146,6 +146,21 @@ describe('SignUpPanel', () => {
         expect(screen.getByTestId('recaptcha-recaptcha')).toBeTruthy()
     })
 
+    it('stays on the form when the account creation fails', async () => {
+        mutationResult = Promise.resolve({ data: { user: { createUser: null } } })
+        render(<SignUpPanel />)
+        fireEvent.change(screen.getByRole('textbox'), { target: { value: 'novy@example.test' } })
+        fireEvent.click(screen.getByText(translate(cs, 'SignUp.setPasswordToggle')))
+        await screen.findByPlaceholderText(translate(cs, 'UserFields.password'))
+        fireEvent.change(screen.getByPlaceholderText(translate(cs, 'UserFields.password')), { target: { value: 'heslo123' } })
+        fireEvent.change(screen.getByPlaceholderText(translate(cs, 'UserFields.passwordAgain')), { target: { value: 'heslo123' } })
+        fireEvent.submit(document.querySelector('form')!)
+
+        // The form is back (idle), no homepage redirect.
+        await screen.findByPlaceholderText(translate(cs, 'UserFields.password'))
+        expect(pushedRoute).toBe('')
+    })
+
     it('refuses an already-used email in password mode and hints at recovery', async () => {
         emailAvailable = false
         // The (mocked) availability hook reports the existing user — the
