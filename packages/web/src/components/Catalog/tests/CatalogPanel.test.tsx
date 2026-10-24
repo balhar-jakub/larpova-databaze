@@ -218,6 +218,42 @@ describe('CatalogPanel', () => {
         expect(screen.queryByText('Catalog.presets.drevarny')).toBeNull()
     })
 
+    it('switches the order and the page size through the toolbar selects', async () => {
+        queryMock.mockResolvedValue(page([game('1', 'Legie')], 1))
+        renderPanel()
+        await screen.findByText('Legie')
+
+        // The order select (label span + select sibling).
+        const selects = document.querySelectorAll('select')
+        const orderSelect = Array.from(selects).find(
+            (el) => (el as HTMLSelectElement).value === 'Recommended',
+        ) as HTMLSelectElement
+        expect(orderSelect).toBeTruthy()
+        fireEvent.change(orderSelect, { target: { value: 'NameAsc' } })
+        let lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[]
+        expect((lastCall[0] as { query: Record<string, string> }).query.order).toBe('NameAsc')
+
+        // The size select.
+        const sizeSelect = Array.from(selects).find((el) => el !== orderSelect) as HTMLSelectElement
+        fireEvent.change(sizeSelect, { target: { value: '48' } })
+        lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[]
+        expect((lastCall[0] as { query: Record<string, string> }).query.size).toBe('48')
+    })
+
+    it('removes a single filter through its chip', async () => {
+        queryMock.mockResolvedValue(page([game('1', 'Legie')], 1))
+        renderPanel({ labels: 'l1' })
+        await screen.findByText('Legie')
+
+        const chips = screen.getByTestId('catalog.activeFilters')
+        const chipButton = chips.querySelector('button')
+        expect(chipButton).toBeTruthy()
+        fireEvent.click(chipButton!)
+
+        const lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[]
+        expect((lastCall[0] as { query: Record<string, string> }).query.labels).toBeUndefined()
+    })
+
     it('clears every filter at once', async () => {
         queryMock.mockResolvedValue(page([game('1', 'Legie')], 1))
 

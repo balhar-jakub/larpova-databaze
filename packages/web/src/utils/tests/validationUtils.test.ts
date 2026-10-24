@@ -1,4 +1,4 @@
-import { validateDate, validateTime } from '../validationUtils'
+import { validateDate, validateTime , validateRequiredArray, validateRequired, validateEmail, validatePositiveInteger, fieldValidator, validateWithValidators } from '../validationUtils'
 
 describe('validateDate', () => {
     it('should pass undefined date as valid', () => {
@@ -69,5 +69,65 @@ describe('validateTime', () => {
 
     it('should return undefined when time is 00:00', () => {
         expect(validateTime('00:00')).toBeUndefined()
+    })
+})
+
+describe('validateRequiredArray', () => {
+    it('requires a non-empty array', () => {
+        expect(validateRequiredArray(['a'])).toBeUndefined()
+        expect(validateRequiredArray(undefined)).toBe('Errors.required')
+        expect(validateRequiredArray([])).toBe('Errors.required')
+    })
+})
+
+describe('validateEmail', () => {
+    it('accepts valid emails and empty input', () => {
+        expect(validateEmail('jakub@balhar.net')).toBeUndefined()
+        expect(validateEmail(undefined)).toBeUndefined()
+        expect(validateEmail('not-an-email')).toBe('Errors.emailRequired')
+    })
+})
+
+describe('validatePositiveInteger', () => {
+    it('accepts positive integers and rejects the rest', () => {
+        expect(validatePositiveInteger('42')).toBeUndefined()
+        expect(validatePositiveInteger(undefined)).toBeUndefined()
+        // The regex is non-negative integers: no sign, no decimals.
+        expect(validatePositiveInteger('0')).toBeUndefined()
+        expect(validatePositiveInteger('-3')).toBe('Errors.integerRequired')
+        expect(validatePositiveInteger('4.5')).toBe('Errors.integerRequired')
+    })
+})
+
+describe('fieldValidator', () => {
+    const t = (key: string) => `translated:${key}`
+
+    it('runs a single validator and translates its error', () => {
+        expect(fieldValidator(t, validateRequired)('')).toBe('translated:Errors.required')
+        expect(fieldValidator(t, validateRequired)('x')).toBeUndefined()
+    })
+
+    it('runs a list of validators until one fails', () => {
+        const list = [validateRequired, validateEmail]
+        expect(fieldValidator(t, list)('')).toBe('translated:Errors.required')
+        expect(fieldValidator(t, list)('bad')).toBe('translated:Errors.emailRequired')
+        expect(fieldValidator(t, list)('jakub@balhar.net')).toBeUndefined()
+    })
+})
+
+describe('validateWithValidators', () => {
+    const t = (key: string) => `translated:${key}`
+
+    it('collects the errors of the mapped validators', () => {
+        const result = validateWithValidators(
+            { name: '', email: 'nope', note: 7 },
+            {
+                name: validateRequired,
+                email: validateEmail,
+            },
+            t,
+        )
+        expect(result.name).toBe('translated:Errors.required')
+        expect(result.email).toBe('translated:Errors.emailRequired')
     })
 })

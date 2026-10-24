@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -30,8 +30,14 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
     }),
 }))
 
+const mutateCalls: Array<Record<string, unknown>> = []
 jest.unstable_mockModule('@apollo/client', () => ({
-    useApolloClient: () => ({ mutate: jest.fn() }),
+    useApolloClient: () => ({
+        mutate: (opts: Record<string, unknown>) => {
+            mutateCalls.push(opts)
+            return Promise.resolve({})
+        },
+    }),
 }))
 
 // The component pulls its GraphQL document in with require(); ESM jest has no
@@ -77,5 +83,16 @@ describe('the play-state buttons speak in the gender of the signed-in user', () 
         renderAs(undefined)
 
         expect(wording()).toEqual(['Nehrál/a jsem', 'Hrál/a jsem', 'Chci hrát'])
+    })
+
+    test('clicking a state button sends the update mutation', () => {
+        cleanup()
+        render(<RatingStateButtons gameId="g1" state={0} />)
+        mutateCalls.length = 0
+
+        fireEvent.click(screen.getByText('Chci hrát'))
+
+        expect(mutateCalls.length).toBe(1)
+        expect(mutateCalls[0].variables).toEqual({ gameId: 'g1', state: 1 })
     })
 })

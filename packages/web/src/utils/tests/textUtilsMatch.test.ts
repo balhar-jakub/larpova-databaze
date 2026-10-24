@@ -4,6 +4,7 @@ import {
     highlightSegments,
     matchTextQuery,
     tokenizeMatchQuery,
+    htmlToText,
 } from '../textUtils'
 
 /**
@@ -93,5 +94,21 @@ describe('highlightSegments', () => {
     test('a query too short to search lights nothing', () => {
         expect(matched('Novák', 'n')).toEqual([])
         expect(highlightSegments('Novák', 'a')[0]).toEqual({ value: 'Novák', matched: false })
+    })
+})
+
+describe('htmlToText', () => {
+    it('strips tags and resolves entities', () => {
+        expect(htmlToText('<p>Ahoj &amp; sv&#283;te</p>')).toBe('Ahoj & světe')
+    })
+
+    it('keeps newlines collapsed and unknown entities as their first letter', () => {
+        expect(htmlToText('a\nb')).toBe('a b')
+        expect(htmlToText('&xyz;')).toBe('x')
+    })
+
+    it('returns an empty string for empty input', () => {
+        expect(htmlToText(undefined)).toBe('')
+        expect(htmlToText(null)).toBe('')
     })
 })

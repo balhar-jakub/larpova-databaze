@@ -1,5 +1,5 @@
 import { AllowedAction } from 'src/graphql/__generated__/typescript-operations'
-import { canDelete, canEdit, isGameMissing } from '../graphqlUtils'
+import { canDelete, canEdit, convertDateFromGraphql, convertDateInput, convertFileInput, isGameMissing } from '../graphqlUtils'
 
 /**
  * The two decisions the game detail page makes about a game it just read, kept
@@ -29,6 +29,43 @@ describe('game detail actions', () => {
         expect(canDelete([])).toBe(false)
         expect(canEdit(undefined)).toBeFalsy()
         expect(canDelete(undefined)).toBeFalsy()
+    })
+})
+
+describe('convertFileInput', () => {
+    test('splits the tab-separated fileName and contents', () => {
+        expect(convertFileInput('cover.png\tbase64data')).toEqual({
+            fileName: 'cover.png',
+            contents: 'base64data',
+        })
+    })
+
+    test('an empty input is undefined', () => {
+        expect(convertFileInput(undefined)).toBeUndefined()
+        expect(convertFileInput('')).toBeUndefined()
+    })
+})
+
+describe('convertDateInput', () => {
+    test('converts DD.MM.YYYY to ISO', () => {
+        expect(convertDateInput('1.5.2026')).toBe('2026-05-01')
+        expect(convertDateInput('24.12.2027')).toBe('2027-12-24')
+    })
+
+    test('an empty input is undefined', () => {
+        expect(convertDateInput(undefined)).toBeUndefined()
+        expect(convertDateInput('')).toBeUndefined()
+    })
+})
+
+describe('convertDateFromGraphql', () => {
+    test('converts an ISO date to DD.MM.YYYY', () => {
+        expect(convertDateFromGraphql('2026-05-01')).toBe('01.05.2026')
+    })
+
+    test('an empty input is undefined', () => {
+        expect(convertDateFromGraphql(undefined)).toBeUndefined()
+        expect(convertDateFromGraphql(null)).toBeUndefined()
     })
 })
 

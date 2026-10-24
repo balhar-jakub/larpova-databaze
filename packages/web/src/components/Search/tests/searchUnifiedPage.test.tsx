@@ -51,11 +51,22 @@ jest.unstable_mockModule('src/hooks/useFocusInput', () => ({
     useFocusInput: () => formRef,
 }))
 jest.unstable_mockModule('../../common/BigLoading/BigLoading', () => ({ default: () => <div /> }))
-jest.unstable_mockModule('../SearchSuggestion', () => ({ default: () => <div /> }))
+jest.unstable_mockModule('../SearchSuggestion', () => ({
+    default: ({ suggestion, onUse }: { suggestion?: string | null; onUse: (value: string) => void }) =>
+        suggestion ? <button type="button" onClick={() => onUse(suggestion)}>{suggestion}</button> : null,
+}))
 
 // The four lists themselves are not under test here — only that the page picks
 // the right one, so each stub shouts which panel got rendered.
-jest.unstable_mockModule('../GamesSearchPanel', () => ({ default: () => <div data-testid="panel-games" /> }))
+jest.unstable_mockModule('../GamesSearchPanel', () => ({
+    default: ({ onStateChange, onReset }: { onStateChange: (patch: Record<string, unknown>) => void; onReset: () => void }) => (
+        <div data-testid="panel-games">
+            <button type="button" data-testid="panel-games-change" onClick={() => onStateChange({ labels: ['1'], yearFrom: 2015 })} />
+            <button type="button" data-testid="panel-games-query" onClick={() => onStateChange({ query: 'novy-dotaz' })} />
+            <button type="button" data-testid="panel-games-reset" onClick={onReset} />
+        </div>
+    ),
+}))
 jest.unstable_mockModule('../UserSearchPanel', () => ({ default: () => <div data-testid="panel-users" /> }))
 jest.unstable_mockModule('../EventsSearchPanel', () => ({ default: () => <div data-testid="panel-events" /> }))
 jest.unstable_mockModule('../GroupsSearchPanel', () => ({ default: () => <div data-testid="panel-groups" /> }))
@@ -236,6 +247,42 @@ describe('the page says what it was asked', () => {
         expect(replaceSpy).toHaveBeenCalledWith({ pathname: '/search', query: {} }, undefined, { shallow: true })
     })
 
+    test('submitting the form updates the query in the URL', () => {
+        renderPanel()
+
+        const input = screen.getByPlaceholderText(translate(cs, 'Search.query'))
+        fireEvent.change(input, { target: { value: '  legie  ' } })
+        fireEvent.submit(input.closest('form')!)
+
+        // The query is trimmed before it lands in the URL.
+        expect(replaceSpy).toHaveBeenCalledWith(
+            { pathname: '/search', query: { q: 'legie' } },
+            undefined,
+            { shallow: true },
+        )
+    })
+
+    test('the did-you-mean suggestion becomes the query', async () => {
+        queryAnswer = {
+            loading: false,
+            data: overviewAnswer({
+                suggestion: 'legii',
+                totalGames: 0, totalUsers: 0, totalEvents: 0, totalGroups: 0,
+                games: [], users: [], events: [], groups: [],
+            }),
+        }
+
+        renderPanel()
+
+        const suggestion = await screen.findByText('legii', { selector: 'button' })
+        fireEvent.click(suggestion)
+        expect(replaceSpy).toHaveBeenCalledWith(
+            { pathname: '/search', query: { q: 'legii' } },
+            undefined,
+            { shallow: true },
+        )
+    })
+
     test('nothing was found at all', () => {
         queryAnswer = {
             loading: false,
@@ -252,5 +299,43 @@ describe('the page says what it was asked', () => {
 
         expect(screen.getByTestId('search.tooShort')).toBeTruthy()
         expect(screen.queryByTestId('search.typeChip.all')).toBeNull()
+    })
+})
+
+// The games tab's filter panel is wired to the page: filter changes and
+// the reset land in the URL together with the query, and a query change
+// coming from the panel rewrites the page's own query.
+describe('the games panel is wired to the page state', () => {
+    test('a filter change lands in the URL with the query', () => {
+        renderPanel({ initialQuery: 'dotaz', initialType: 'hry' })
+
+        fireEvent.click(screen.getByTestId('panel-games-change'))
+
+        expect(replaceSpy).toHaveBeenCalled()
+        const last = ((replaceSpy.mock.calls.at(-1)?.[0] as { query?: Record<string, string> })?.query) ?? {}
+        expect(last.q).toBe('dotaz')
+        expect(last.yf).toBe('2015')
+        expect(last.labels).toBe('1')
+    })
+
+    test('a query change from the panel rewrites the page query', () => {
+        renderPanel({ initialQuery: 'dotaz', initialType: 'hry' })
+
+        fireEvent.click(screen.getByTestId('panel-games-query'))
+
+        expect(screen.getByTestId('search.panel').textContent).toContain('novy-dotaz')
+        const last = ((replaceSpy.mock.calls.at(-1)?.[0] as { query?: Record<string, string> })?.query) ?? {}
+        expect(last.q).toBe('novy-dotaz')
+    })
+
+    test('the reset clears the catalog filters but keeps the query', () => {
+        renderPanel({ initialQuery: 'dotaz', initialType: 'hry' })
+
+        fireEvent.click(screen.getByTestId('panel-games-reset'))
+
+        const last = ((replaceSpy.mock.calls.at(-1)?.[0] as { query?: Record<string, string> })?.query) ?? {}
+        expect(last.q).toBe('dotaz')
+        expect(last.labels).toBeUndefined()
+        expect(last.yf).toBeUndefined()
     })
 })
