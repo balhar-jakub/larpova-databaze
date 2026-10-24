@@ -43,17 +43,26 @@ const UPDATE = process.argv.includes('--update-baseline');
  * Returns { [absPath]: pct }.
  */
 function collectCoverage(jestArgs, label) {
-  const out = execFileSync(
-    process.execPath,
-    [
-      '--experimental-vm-modules',
-      join(ROOT, 'node_modules', 'jest', 'bin', 'jest.js'),
-      ...jestArgs,
-      '--coverage',
-      '--coverageReporters=json-summary',
-    ],
-    { cwd: join(ROOT, 'packages', 'web'), encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 },
-  );
+  let out;
+  try {
+    out = execFileSync(
+      process.execPath,
+      [
+        '--experimental-vm-modules',
+        join(ROOT, 'node_modules', 'jest', 'bin', 'jest.js'),
+        ...jestArgs,
+        '--coverage',
+        '--coverageReporters=json-summary',
+      ],
+      { cwd: join(ROOT, 'packages', 'web'), encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 },
+    );
+  } catch (err) {
+    // execFileSync throws on a non-zero exit — and jest's failure summary lives
+    // in the swallowed stdout. Surface it or the step fails with no diagnosis.
+    console.error(`coverage ratchet: the ${label} jest run failed. Its output:`);
+    console.error(err.stdout ?? err.message);
+    throw err;
+  }
 
   const summaryPath = join(ROOT, 'packages', 'web', 'coverage', 'coverage-summary.json');
   if (!existsSync(summaryPath)) {
