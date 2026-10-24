@@ -64,6 +64,12 @@ function collectCoverage(jestArgs, label) {
     process.execPath,
     [
       '--experimental-vm-modules',
+      // The API suite under coverage grows past node's default heap on both
+      // the 2-core CI runner and a dev box (observed: Ineffective
+      // mark-compacts near heap limit mid-suite). 8 GB is what the suite
+      // needs at 73 suites / 712 tests; the runner has 7 GB RAM total, and
+      // --runInBand keeps the rest of the tree small.
+      '--max-old-space-size=8192',
       join(ROOT, 'node_modules', 'jest', 'bin', 'jest.js'),
       ...jestArgs,
       // One worker: the suite-heavy API run under coverage spawns several

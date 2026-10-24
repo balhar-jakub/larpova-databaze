@@ -229,8 +229,12 @@ describe('event registration GraphQL field mapping', () => {
     })).toBeNull();
   });
 
-  it('honors the legacy registration_open column for non-migrated rows', () => {
-    expect(resolvers.Event.registrationOpen({ registration_open: true })).toBe(true);
+  it('ignores the dropped legacy registration_open column', () => {
+    // The column went away with the tri-status migration set; the resolver
+    // reads only registration_status (see the arm-triage note on
+    // registrationOpenResolver). A row still carrying the old boolean must
+    // not flip the field — it would fight the authoritative status.
+    expect(resolvers.Event.registrationOpen({ registration_open: true })).toBe(false);
     expect(resolvers.Event.registrationOpen({ registration_open: false })).toBe(false);
   });
 
