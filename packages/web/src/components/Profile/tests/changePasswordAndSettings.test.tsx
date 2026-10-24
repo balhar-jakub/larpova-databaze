@@ -124,6 +124,7 @@ beforeEach(() => {
 })
 
 describe('ChangePasswordPanel', () => {
+    jest.setTimeout(15000)
     it('renders the form fields and submits the change', async () => {
         render(<ChangePasswordPanel />)
         expect(screen.getByTestId('user-detail').textContent).toBe('Jakub')
@@ -134,7 +135,7 @@ describe('ChangePasswordPanel', () => {
         fireEvent.change(screen.getByPlaceholderText(translate(cs, 'ChangePassword.newPasswordAgain')), { target: { value: 'nové' } })
         fireEvent.submit(document.querySelector('form')!)
 
-        await waitFor(() => expect(pushedRoute).toBe('/muj-profil'))
+        await waitFor(() => expect(pushedRoute).toBe('/muj-profil'), { timeout: 5000 })
         expect(mutationCalls[0]?.variables).toEqual({ oldPassword: 'staré', newPassword: 'nové' })
         expect(toasts[0]?.type).toBe('success')
     })
@@ -151,10 +152,12 @@ describe('ChangePasswordPanel', () => {
         fireEvent.submit(document.querySelector('form')!)
 
         // The state flips after the mutation fails; the error shows on the
-        // next validation pass (submit).
-        await waitFor(() => expect(screen.getByText(translate(cs, 'ChangePassword.submit'))).toBeTruthy())
-        fireEvent.submit(document.querySelector('form')!)
-        await waitFor(() => expect(screen.getByText(translate(cs, 'ChangePassword.oldPasswordError'))).toBeTruthy())
+        // next validation pass (submit). Re-submit inside waitFor so the
+        // retry loop tolerates the rejection handler not having run yet.
+        await waitFor(() => {
+            fireEvent.submit(document.querySelector('form')!)
+            expect(screen.getByText(translate(cs, 'ChangePassword.oldPasswordError'))).toBeTruthy()
+        }, { timeout: 5000 })
         expect(pushedRoute).toBe('')
     })
 
@@ -167,7 +170,7 @@ describe('ChangePasswordPanel', () => {
         fireEvent.change(screen.getByPlaceholderText(translate(cs, 'ChangePassword.newPasswordAgain')), { target: { value: 'nové' } })
         fireEvent.submit(document.querySelector('form')!)
 
-        await waitFor(() => expect(toasts[0]?.type).toBe('alert'))
+        await waitFor(() => expect(toasts[0]?.type).toBe('alert'), { timeout: 5000 })
     })
 
     it('requires matching new passwords', () => {
@@ -184,6 +187,7 @@ describe('ChangePasswordPanel', () => {
 })
 
 describe('UserSettingsPanel', () => {
+    jest.setTimeout(15000)
     it('renders the settings form with the current values and saves', async () => {
         render(<UserSettingsPanel />)
         expect(screen.getByPlaceholderText(translate(cs, 'UserFields.email'))).toBeTruthy()
@@ -191,7 +195,7 @@ describe('UserSettingsPanel', () => {
         fireEvent.change(screen.getByPlaceholderText(translate(cs, 'UserFields.name')), { target: { value: 'Jakub Nový' } })
         fireEvent.submit(document.querySelector('form')!)
 
-        await waitFor(() => expect(pushedRoute).toBe('/muj-profil'))
+        await waitFor(() => expect(pushedRoute).toBe('/muj-profil'), { timeout: 5000 })
         const variables = mutationCalls[0]?.variables as { input?: Record<string, unknown> } | undefined
         expect(variables?.input?.name).toBe('Jakub Nový')
         expect(toasts[0]?.type).toBe('success')

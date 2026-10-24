@@ -24,6 +24,7 @@ const cs = JSON.parse(
 
 let queryResult: Record<string, unknown> = {}
 let mutateResult: Promise<{ data?: unknown }> = Promise.resolve({ data: {} })
+const mutationVariables: Array<Record<string, unknown>> = []
 let currentUserRole: string | undefined = 'ADMIN'
 let pushedRoute = ''
 let useQueryResult: { data?: unknown; loading: boolean; refetch: () => void } = {
@@ -41,7 +42,10 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
 }))
 jest.unstable_mockModule('@apollo/client', () => ({
     useQuery: () => ({ data: queryResult, loading: false, refetch: () => undefined }),
-    useMutation: () => [() => mutateResult, { loading: false }],
+    useMutation: () => [(opts: { variables?: Record<string, unknown> }) => {
+        mutationVariables.push(opts.variables ?? {})
+        return mutateResult
+    }, { loading: false }],
 }))
 jest.unstable_mockModule('is-in-browser', () => ({ __esModule: true, default: true }))
 jest.unstable_mockModule('src/hooks/useLoggedInUser', () => ({
@@ -82,7 +86,12 @@ jest.unstable_mockModule('../../common/ConfirmationModal/ConfirmationModal', () 
         ) : null,
 }))
 jest.unstable_mockModule('../../common/LabelEditmodal/LabelEditModal', () => ({
-    default: () => <div data-testid="label-edit-modal" />,
+    default: ({ initialValues, onCreateLabel, onHide }: { initialValues?: { name?: string; description?: string }; onCreateLabel: (v: { name: string; description?: string }) => Promise<void> | void; onHide: () => void }) => (
+        <div data-testid="label-edit-modal">
+            <button type="button" onClick={() => onCreateLabel({ name: initialValues?.name ?? '', description: initialValues?.description })}>save-label</button>
+            <button type="button" onClick={onHide}>close-label</button>
+        </div>
+    ),
 }))
 
 let AdminTabs: typeof import('../AdminTabs').default
@@ -168,6 +177,7 @@ describe('AdminLabelsPanel', () => {
     beforeEach(() => {
         jest.clearAllMocks()
         currentUserRole = 'ADMIN'
+        mutationVariables.length = 0
         queryResult = {
             admin: {
                 allLabels: [label('1', { name: 'Alpha' }), label('2', { name: 'Beta', isRequired: true })],
@@ -211,6 +221,39 @@ describe('AdminLabelsPanel', () => {
 
         fireEvent.click(within(modal).getByText('confirm'))
         await waitFor(() => expect(screen.queryByTestId('confirm-modal')).toBeNull())
+    })
+
+    it('toggles the authorized flag through the mutation', () => {
+        render(<AdminLabelsPanel />)
+
+        // Sorted: Beta (required) first, Alpha second. Toggle Alpha's authorized.
+        fireEvent.click(screen.getAllByText(translate(cs, 'AdminLabels.authorized'))[1])
+
+        expect(mutationVariables.at(-1)).toEqual({ labelId: '1', authorized: false })
+    })
+
+    it('toggles the required flag through the mutation', () => {
+        render(<AdminLabelsPanel />)
+
+        // Beta has isRequired: true (sorted first) -> toggling sends required: false.
+        fireEvent.click(screen.getAllByText(translate(cs, 'AdminLabels.required'))[0])
+
+        expect(mutationVariables.at(-1)).toEqual({ labelId: '2', required: false })
+    })
+
+    it('saves the edited label with its id and refetches', async () => {
+        render(<AdminLabelsPanel />)
+
+        const row = screen.getByText('Alpha').parentElement!
+        const buttons = row.querySelectorAll('button')
+        fireEvent.click(buttons[0]) // the edit button opens the modal
+        await waitFor(() => expect(screen.getByTestId('label-edit-modal')).toBeTruthy())
+
+        fireEvent.click(screen.getByText('save-label'))
+        await waitFor(() => expect(mutationVariables.at(-1)).toEqual({
+            input: { id: '1', name: 'Alpha', description: 'popis' },
+        }))
+        await waitFor(() => expect(screen.queryByTestId('label-edit-modal')).toBeNull())
     })
 })
 
