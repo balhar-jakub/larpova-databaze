@@ -125,9 +125,17 @@ describe('eventCalendar optional-argument arms', () => {
     return page.events.filter((e: any) => e.name.startsWith(marker)) as Array<{ id: string; name: string }>;
   };
 
-  it('answers with the defaults (no args at all) and includes the fixture events', async () => {
-    const found = await findAll({});
-    expect(found.length).toBe(2);
+  it('answers with the defaults (no args at all): a page of at most 25', async () => {
+    // The default page holds the 25 soonest events of the whole database —
+    // on the seeded dev database that page is full of real events, so the
+    // fixtures are asserted through the from/to window below instead.
+    const res: any = await executeQuery(
+      server,
+      `{ eventCalendar { totalAmount events { id name } } }`,
+    );
+    expect(res.errors).toBeUndefined();
+    expect(res.data.eventCalendar.events.length).toBeLessThanOrEqual(25);
+    expect(res.data.eventCalendar.totalAmount).toBeGreaterThanOrEqual(0);
   });
 
   it('narrows by the from/to window', async () => {

@@ -237,7 +237,11 @@ describe('game catalog — against the database', () => {
     // One big page, so both fixtures are in it whatever else the database holds.
     const result = await executeQuery(
       server,
-      `{ games { ladder(ladderType: Best, offset: 0, limit: 1000) { games { id } } } }`,
+      // The page must hold the WHOLE table: the unrated fixture sorts last
+      // in the Best order, so a take-limit under the seeded database's size
+      // (1,662 games) would cut it off and the inclusion assert would fail
+      // for reasons that have nothing to do with the ranking.
+      `{ games { ladder(ladderType: Best, offset: 0, limit: 5000) { games { id } } } }`,
     );
 
     expect(result.errors).toBeUndefined();
@@ -377,10 +381,13 @@ describe('game catalog — against the database', () => {
   })
 
   test('relevance without a query falls back to the recommended order', async () => {
+    // The players range 31–32 is carried by exactly the two relevance
+    // fixtures and nothing else, so on a seeded database the page holds
+    // only them and the order asserts stay about ORDER, not page size.
     const idsOf = async (order: string) => {
       const result = await executeQuery(
         server,
-        `query ($order: GameCatalogOrder) { games { catalog(order: $order, limit: 100) { games { id } } } }`,
+        `query ($order: GameCatalogOrder) { games { catalog(order: $order, filter: { playersFrom: 31, playersTo: 32 }) { games { id } } } }`,
         { order },
       );
       expect(result.errors).toBeUndefined();

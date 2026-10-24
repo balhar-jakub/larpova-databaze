@@ -336,7 +336,9 @@ describe('yearReview edge arms', () => {
   });
 
   it('answers an empty year without ranked games', async () => {
-    const result = await executeQuery(server, REVIEW_QUERY, { year: 2007 }); // valid but empty
+    // 2099, not a merely "old" year: the seeded database ranks real games
+    // from 2007, so only a year nothing can carry stays empty everywhere.
+    const result = await executeQuery(server, REVIEW_QUERY, { year: 2099 }); // far future: empty
     expect(result.errors).toBeUndefined();
     const review = result.data?.yearReview;
     expect(review.featuredGames).toHaveLength(0);
