@@ -1,7 +1,7 @@
 {
   "targets": {
     "API": 90,
-    "web": 82
+    "web": 90
   },
   "files": {
     "packages/web/src/api/src/__tests__/cleanupFixtures.ts": 100,
