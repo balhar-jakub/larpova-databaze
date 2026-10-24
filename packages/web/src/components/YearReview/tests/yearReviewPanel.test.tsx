@@ -8,7 +8,7 @@
  * its rows from the query result.
  */
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, cleanup } from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -209,5 +209,152 @@ describe('YearReviewPanel', () => {
         const ids = screen.getAllByTestId(/^avatar-/).map((a) => a.getAttribute('data-testid'))
         expect(ids.filter((id) => /^avatar-\d$/.test(id ?? '')).length).toBe(5)
         expect(ids).toContain('avatar-u1')
+    })
+
+    it('renders a bare quote: no user, no game, no added date', async () => {
+        queryResult = Promise.resolve({
+            data: {
+                yearReview: reviewData({
+                    quotes: [
+                        {
+                            __typename: 'QuoteRow',
+                            id: 'q-bare',
+                            text: 'Krátce.',
+                            user: null,
+                            game: null,
+                            added: null,
+                        },
+                    ],
+                }),
+            },
+        })
+        render(<YearReviewPanel year={2026} />)
+
+        await screen.findAllByText('Nejlepší hra')
+        // The quote card renders without its author row; the date part stays empty.
+        expect(screen.getByText(/„Krátce.“/)).toBeTruthy()
+        expect(screen.queryByText(translate(cs, 'YearReview.quoteGame'))).toBeNull()
+        expect(screen.queryByText(/ \d\.\d\. /)).toBeNull()
+    })
+
+    it('drops a quote whose text is null and a date that does not parse', async () => {
+        queryResult = Promise.resolve({
+            data: {
+                yearReview: reviewData({
+                    quotes: [
+                        {
+                            __typename: 'QuoteRow',
+                            id: 'q-null',
+                            text: null,
+                            user: { __typename: 'User', id: 'u2', name: 'Mlčící', image: null },
+                            game: null,
+                            added: 'not-a-date',
+                        },
+                    ],
+                }),
+            },
+        })
+        render(<YearReviewPanel year={2026} />)
+
+        await screen.findAllByText('Nejlepší hra')
+        // quoteExcerpt answers null: the quote renders as an empty pair of
+        // quotation marks; fmtDate answers null for a non-parsing date, so no
+        // date segment appears.
+        expect(screen.getByText('„“')).toBeTruthy()
+        expect(screen.queryByText(/not-a-date/)).toBeNull()
+    })
+
+    it('renders the runner-up thumb from its cover image and hides the runner-up section when empty', async () => {
+        const withCover = reviewData({
+            runnerUpGames: [
+                {
+                    __typename: 'RunnerUpGameRow',
+                    game: game('2', 'Druhá hra', { coverImage: { __typename: 'Image', id: 'img-r' } }),
+                    votesInYear: 5,
+                },
+            ],
+        })
+        queryResult = Promise.resolve({ data: { yearReview: withCover } })
+        render(<YearReviewPanel year={2026} />)
+
+        await screen.findAllByText('Nejlepší hra')
+        const runnerImg = document.querySelector('img[src*="imageId=img-r"]')
+        expect(runnerImg?.getAttribute('alt')).toBe('Druhá hra')
+
+        // And the empty variant: no runner-up rows, no section at all.
+        queryResult = Promise.resolve({
+            data: { yearReview: reviewData({ runnerUpGames: [] }) },
+        })
+        cleanup()
+        render(<YearReviewPanel year={2026} />)
+        await screen.findAllByText('Nejlepší hra')
+        expect(screen.queryByText(translate(cs, 'YearReview.runnerUpTitle'))).toBeNull()
+    })
+
+    it('skips nameless labels on a featured game and renders authors without images', async () => {
+        queryResult = Promise.resolve({
+            data: {
+                yearReview: reviewData({
+                    featuredGames: [
+                        {
+                            __typename: 'FeaturedGameRow',
+                            game: game('1', 'Nejlepší hra', {
+                                labels: [{ __typename: 'Label', id: 'l1', name: 'komorní' }, { __typename: 'Label', id: 'l2', name: null }],
+                                authors: [{ __typename: 'User', id: 'a1', name: 'Autor 1', image: null }],
+                            }),
+                            votesInYear: 12,
+                        },
+                    ],
+                }),
+            },
+        })
+        render(<YearReviewPanel year={2026} />)
+
+        await screen.findAllByText('Nejlepší hra')
+        // Only the named label joins the meta line.
+        expect(document.body.textContent).toContain('komorní')
+        expect(screen.queryByText(/· ·/)).toBeNull()
+    })
+
+    it('marks a larpy.cz article and appends its categories; a larp.cz one renders bare', async () => {
+        queryResult = Promise.resolve({
+            data: {
+                yearReview: reviewData({
+                    articles: [
+                        {
+                            __typename: 'ArticleRow',
+                            id: 'a-larpy',
+                            title: 'Larpy report',
+                            url: 'https://larpy.example/',
+                            publishedAt: null,
+                            authors: null,
+                            source: 'LARPY_CZ',
+                            categories: ['Výroba'],
+                            perex: null,
+                        },
+                        {
+                            __typename: 'ArticleRow',
+                            id: 'a-larp',
+                            title: 'Larp report',
+                            url: 'https://larp.example/',
+                            publishedAt: '2026-03-01',
+                            authors: 'Redakce',
+                            source: 'LARP_CZ',
+                            categories: null,
+                            perex: null,
+                        },
+                    ],
+                }),
+            },
+        })
+        render(<YearReviewPanel year={2026} />)
+
+        await screen.findAllByText('Nejlepší hra')
+        expect(screen.getByText('larpy.cz')).toBeTruthy()
+        expect(screen.getByText('larp.cz')).toBeTruthy()
+        // The categories ride along in the meta line; the bare article's meta
+        // line carries only its author and date.
+        expect(document.body.textContent).toContain('Výroba')
+        expect(screen.getByText('Larpy report').getAttribute('href')).toBe('https://larpy.example/')
     })
 })

@@ -78,4 +78,27 @@ describe('BaseCommentPanel', () => {
         expect(screen.getByText('01.05.2026')).toBeTruthy()
         expect(screen.getByText(translate(cs, 'HomePage.commentMore'))).toBeTruthy()
     })
+
+    it('renders the sparse arms: no added date parse, no user image, no game ratings', () => {
+        render(
+            <BaseCommentPanel
+                comment={
+                    {
+                        __typename: 'Comment',
+                        id: 'c2',
+                        commentAsText: null,
+                        added: 'not-a-date',
+                        user: { id: 'u2', name: 'Bez obrázku' },
+                        game: { id: 'g2', name: 'Hra bez hodnocení' },
+                    } as never
+                }
+            />,
+        )
+
+        // The unparseable date falls back to the epoch; the rating falls back to 0;
+        // the user without an image renders as-is.
+        expect(screen.getByText('Bez obrázku')).toBeTruthy()
+        expect(screen.getByTestId('rating').textContent).toBe('')
+        expect(screen.getByText('01.01.1970')).toBeTruthy()
+    })
 })
