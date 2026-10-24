@@ -181,7 +181,7 @@ describe('larpCzArticlesImport.importLarpCzArticles', () => {
     // Self-healing: purge every article id this suite uses, so a rerun
     // (or a leftover row from an aborted run) cannot change the outcome.
     await db.csld_article.deleteMany({
-      where: { source: 'LARP_CZ', source_id: { in: ['97001', '97002', '98001', '98011', '98002', '98003', '98012', '98013'] } },
+      where: { source: 'LARP_CZ', source_id: { in: ['97001', '97002', '97003', '97004', '97005', '97006', '97007', '98001', '98002', '98003', '98011', '98012', '98013'] } },
     });
     // One full listing page (7 items stops pagination naturally), one new
     // article, one already-imported article.
@@ -200,7 +200,7 @@ describe('larpCzArticlesImport.importLarpCzArticles', () => {
 
   afterAll(async () => {
     await db.csld_article.deleteMany({
-      where: { source: 'LARP_CZ', source_id: { in: ['97001', '97002', '98001', '98011'] } },
+      where: { source: 'LARP_CZ', source_id: { in: ['97001', '97002', '97003', '97004', '97005', '97006', '97007', '98001', '98002', '98003', '98011', '98012', '98013'] } },
     });
     await db.csld_article.deleteMany({ where: { source_id: { startsWith: MARK } } });
   });
@@ -213,6 +213,10 @@ describe('larpCzArticlesImport.importLarpCzArticles', () => {
       { match: 'page=', response: () => res({ text: larpCzListing(['97001', '97002', '97003', '97004', '97005', '97006', '97007']) }) },
       { match: 'clanek/97001', response: () => res({ text: detailNew }) },
       { match: 'clanek/97002', response: () => res({ text: detailExisting }) },
+      // The rest of the full listing page: parseable generic details (they
+      // are new on a clean database, so they import too — the assertions
+      // below only pin the behaviour of 97001/97002).
+      { match: 'clanek/', response: (url) => genericDetail(url) },
     ]);
 
     const imported = await importLarpCzArticles(db);
@@ -306,7 +310,7 @@ describe('larpyCzArticlesImport.importLarpyCzArticles', () => {
 
   afterAll(async () => {
     await db.csld_article.deleteMany({
-      where: { source: 'LARP_CZ', source_id: { in: ['97001', '97002', '98001', '98011'] } },
+      where: { source: 'LARP_CZ', source_id: { in: ['97001', '97002', '97003', '97004', '97005', '97006', '97007', '98001', '98002', '98003', '98011', '98012', '98013'] } },
     });
     await db.csld_article.deleteMany({ where: { source_id: { startsWith: MARK } } });
   });
