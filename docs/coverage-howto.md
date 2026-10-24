@@ -92,7 +92,21 @@ are visible in the job log without downloading artifacts.
 
 ## Branch coverage
 
-Out of scope for the 95% goal (line coverage is the agreed target;
-branch coverage sits lower by design — error-path arms etc.). If a
-branch target is ever wanted, treat it as a separate plan with its own
-ratchet baseline; do not bolt branch floors onto the line baseline.
+The ≥90% branch goal has its own plan (`docs/coverage-branch-90-plan.md`) and
+its own baseline (`scripts/coverage-ratchet-branch-baseline.json`) — it is
+NOT bolted onto the line baseline. The same ratchet call enforces both:
+
+- **Per-file floors = lines** (unchanged, above).
+- **Suite-level branch gate**: the branch baseline's `targets` (API, web)
+  hold each suite's overall branch % floor. A suite below its target fails
+  the PR with `SUITE branch coverage DROPPED below its floor`. Targets start
+  at the measured state (API 77%, web 82%, calibrated on an empty migrated
+  DB — the same environment CI runs) and are raised with each coverage
+  batch of the branch plan until they reach 90.
+- **Per-file branch numbers** are recorded in the same file for progress
+  tracking and printed as `branch drift` warnings (informational, 1-point
+  wobble tolerance, never fail a PR) — per-file branch floors churn on
+  innocent refactors, suite totals do not.
+- Refresh: `node scripts/coverage-ratchet.mjs --update-baseline` writes
+  BOTH baselines; review the diff (line floors only up, suite targets only
+  up, per-file branch numbers informative).
