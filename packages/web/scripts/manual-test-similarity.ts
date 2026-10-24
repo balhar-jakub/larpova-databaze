@@ -5,7 +5,7 @@ config({ path: new URL('../.env', import.meta.url).pathname });
 const db = new PrismaClient();
 
 async function main() {
-  const { recalculateSimilarity } = await import('../scheduled/similarityEngine.js');
+  const { recalculateSimilarity } = await import('../src/api/src/scheduled/similarityEngine.js');
   await recalculateSimilarity(db);
   
   const results = await db.similar_games.findMany();

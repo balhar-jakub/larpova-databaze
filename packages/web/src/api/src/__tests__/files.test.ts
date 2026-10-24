@@ -241,7 +241,7 @@ describe('LocalFiles save paths', () => {
 
   it('saveImageAndReturnPath writes the processed image and returns its path and dimensions', async () => {
     const upload = new Base64UploadedFile('test.png', PNG.toString('base64'));
-    const strategy = getMaxWidthHeightStrategy(64);
+    const strategy = getMaxWidthHeightStrategy(64, 64);
     const result = await files.saveImageAndReturnPath(upload, strategy);
 
     expect(result.path).toMatch(/^[0-9a-f]\//);
@@ -253,8 +253,8 @@ describe('LocalFiles save paths', () => {
 
   it('saveImageWithPreviewAndReturnPath writes full and preview variants', async () => {
     const upload = new Base64UploadedFile('preview.png', PNG.toString('base64'));
-    const full = getMaxWidthHeightStrategy(64);
-    const preview = getMaxWidthHeightStrategy(32);
+    const full = getMaxWidthHeightStrategy(64, 64);
+    const preview = getMaxWidthHeightStrategy(32, 32);
     const result = await files.saveImageWithPreviewAndReturnPath(upload, full, preview);
 
     const { existsSync } = await import('node:fs');
