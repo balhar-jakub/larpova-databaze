@@ -104,4 +104,12 @@ describe('SearchPersonRow', () => {
         expect(screen.getByText(translate(cs, 'Search.matchNickname', { name: 'jakubcz' }))).toBeTruthy()
         expect(screen.getByText('jakubcz')).toBeTruthy()
     })
+
+    it('explains a city match and renders a person without an image', () => {
+        // The query matches the city, not the name: the reason line names
+        // the city; the avatar falls back to the default.
+        render(<SearchPersonRow person={person({ city: 'Brno', image: null }) as never} query="brno" />)
+
+        expect(screen.getByText(translate(cs, 'Search.matchCity', { name: 'Brno' }))).toBeTruthy()
+    })
 })

@@ -116,4 +116,11 @@ describe('SeriesListPanel', () => {
         expect(document.body.textContent).toContain(translate(cs, 'GameDetail.series'))
         expect(document.body.textContent).toContain('?')
     })
+
+    it('renders nothing when the series exists but has no games', () => {
+        const { container } = render(
+            <SeriesListPanel series={{ ...series, games: null } as never} currentGameId="g1" />,
+        )
+        expect(container.innerHTML).toBe('')
+    })
 })

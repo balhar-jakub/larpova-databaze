@@ -76,6 +76,7 @@ jest.unstable_mockModule('src/hooks/useRoutes', () => ({
 }))
 
 let CalendarPanel: typeof import('../CalendarPanel').default
+let SeasonStrip: typeof import('../SeasonStrip').default
 let CalendarEventCard: typeof import('../CalendarEventCard').default
 let MonthGrid: typeof import('../MonthGrid').default
 let WeekendAgenda: typeof import('../WeekendAgenda').default
@@ -86,6 +87,7 @@ beforeAll(async () => {
     CalendarEventCard = (await import('../CalendarEventCard')).default
     MonthGrid = (await import('../MonthGrid')).default
     WeekendAgenda = (await import('../WeekendAgenda')).default
+    SeasonStrip = (await import('../SeasonStrip')).default
     HistoryView = (await import('../HistoryView')).default
 })
 
@@ -599,3 +601,19 @@ describe('CalendarPanel: sidebar filters', () => {
         await waitFor(() => expect(screen.getByText('Událost 2')).toBeTruthy())
     })
 })
+
+describe('SeasonStrip', () => {
+    it('marks the selected month and keeps the empty months clickable', () => {
+        const months = [
+            { key: '2026-10', label: 'říj 26', count: 4 },
+            { key: '2026-11', label: 'lis 26', count: 0 },
+        ]
+        render(<SeasonStrip months={months} selectedMonth="2026-10" onSelect={() => undefined} />)
+
+        const buttons = screen.getAllByRole('button')
+        expect(buttons).toHaveLength(2)
+        // Both months render; the selected one carries its class.
+        expect(buttons[0].className).not.toBe(buttons[1].className)
+    })
+})
+

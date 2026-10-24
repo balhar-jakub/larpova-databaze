@@ -146,4 +146,9 @@ describe('SearchGameRow', () => {
         render(<SearchGameRow game={game() as never} query="drac" />)
         expect(screen.queryByTestId('search.matchReason.g1')).toBeNull()
     })
+
+    it('renders with no authors at all (the null-array arm)', () => {
+        render(<SearchGameRow game={game({ authors: null }) as never} query="drac" />)
+        expect(screen.queryByText(/od /)).toBeNull()
+    })
 })

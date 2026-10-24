@@ -98,4 +98,14 @@ describe('RatingsListPanel', () => {
         expect(toasts[0]).toEqual({ text: translate(cs, 'GameDetail.ratingDeleted'), type: 'success' })
         expect(deleteCallbacks).toEqual([true])
     })
+
+    it('sorts a list of null ratings without crashing (the ?? 0 comparator arm)', () => {
+        const allNull = [
+            { __typename: 'Rating', id: 'r4', rating: null, user: { __typename: 'User', id: 'u4', name: 'A' } },
+            { __typename: 'Rating', id: 'r5', rating: null, user: { __typename: 'User', id: 'u5', name: 'B' } },
+        ]
+        render(<RatingsListPanel gameId="g1" ratings={allNull as never} onRatingDeleted={() => undefined} />)
+
+        expect(document.body.textContent).not.toContain('NaN')
+    })
 })

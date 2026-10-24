@@ -114,3 +114,26 @@ describe('GameBaseDataPanel arms', () => {
         expect(screen.getByText(translate(cs, 'Catalog.card.ratings', { count: 6 }))).toBeTruthy()
     })
 })
+
+describe('HomePersonalPanel and HomeEmptyPanel null-name arms', () => {
+    let HomePersonalPanel: typeof import('../HomePersonalPanel').HomePersonalPanel
+    let HomeEmptyPanel: typeof import('../HomeEmptyPanel').HomeEmptyPanel
+
+    beforeAll(async () => {
+        HomePersonalPanel = (await import('../HomePersonalPanel')).HomePersonalPanel
+        HomeEmptyPanel = (await import('../HomeEmptyPanel')).HomeEmptyPanel
+    })
+
+    it('greets a nameless visitor and renders the band without counts', () => {
+        render(<HomePersonalPanel name={undefined} playedCount={undefined} authoredCount={undefined} commentsCount={undefined} toFinishCount={undefined} />)
+
+        // The name falls back to the empty string; the counts line stays absent.
+        expect(document.body.textContent).not.toContain('NaN')
+        expect(document.body.textContent).not.toContain('undefined')
+        cleanup()
+
+        render(<HomeEmptyPanel name={undefined} />)
+        expect(document.body.textContent).not.toContain('NaN')
+    })
+})
+

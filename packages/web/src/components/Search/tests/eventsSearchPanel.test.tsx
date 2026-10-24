@@ -102,4 +102,15 @@ describe('EventsSearchPanel', () => {
         fireEvent.click(screen.getByText('next'))
         await waitFor(() => expect(screen.getByTestId('pager').dataset.offset).toBe('20'))
     })
+
+    it('says the window is empty, not the query, when a time filter is on', async () => {
+        eventsPage = { events: [], totalAmount: 0, suggestion: null, duplicates: [] }
+        render(<EventsSearchPanel query="festival" onUseSuggestion={(s) => suggestionsUsed.push(s)} />)
+
+        // Switch to "nadcházející": the empty heading names the window.
+        fireEvent.click(await screen.findByText(translate(cs, 'Search.timeUpcoming')))
+        expect(await screen.findByText(translate(cs, 'Search.notFoundInWindow'))).toBeTruthy()
+        // And the query variables carry the window's `from`.
+        expect(queryVariables.at(-1)).toMatchObject({ from: expect.any(String) })
+    })
 })
