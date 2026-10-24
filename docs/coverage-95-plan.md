@@ -152,12 +152,12 @@ each area, areas ordered by gap size.
 
 ---
 
-## Phase 3 — Lock it in (~1 day)
+## Phase 3 — Lock it in (~1 day) — ✅ DONE (PR #125)
 
-- [ ] Merge ratchet baselines into CI so every PR runs both floors (single `node scripts/coverage-ratchet.mjs` call, both baselines).
-- [ ] Add a coverage summary line to the CI job output (stmts/branch/func/lines per suite) for visibility.
-- [ ] Decide branch-coverage target separately (currently 47.9% UI / 70.3% API) — recommend a follow-up plan only if wanted; 95% line coverage is the agreed goal here.
-- [ ] Document in `docs/`: how to run coverage locally (`yarn test --coverage`, `yarn test:api --coverage` + `DATABASE_URL`), how the ratchet works, when to refresh baselines.
+- [x] Merge ratchet baselines into CI so every PR runs both floors (single `node scripts/coverage-ratchet.mjs` call, both baselines) — already wired in `test.yml` (one step, one baseline file, both suites); baseline refreshed to the 95%+ floors: 240 files, avg floor 54.8% → 94.1%, zero floors down.
+- [x] Add a coverage summary line to the CI job output for visibility — `coverage-ratchet.mjs` now prints `coverage summary (API|web): lines P% (covered/total)` per suite.
+- [x] Branch coverage: decided OUT OF SCOPE for this plan — 95% line coverage was the agreed goal; a branch target, if ever wanted, gets its own plan and baseline (documented in `docs/coverage-howto.md`).
+- [x] Documented in `docs/coverage-howto.md`: local coverage runs (UI + API with `DATABASE_URL`, `TZ=Europe/Prague`), the ratchet mechanics, baseline refresh rules, CI wiring, branch-coverage stance.
 
 ---
 

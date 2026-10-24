@@ -81,6 +81,14 @@ function collectCoverage(jestArgs, label) {
     process.exit(1);
   }
   const summary = JSON.parse(readFileSync(summaryPath, 'utf-8'));
+  // Visibility line for CI: the per-suite totals, the same numbers the
+  // ratchet floors are built from (json-summary "total" entry).
+  const total = summary.total?.lines ?? summary.total;
+  if (total) {
+    console.log(
+      `coverage summary (${label}): lines ${total.pct}% (${total.covered}/${total.total})`,
+    );
+  }
   const files = {};
   for (const [path, data] of Object.entries(summary)) {
     if (path === 'total') continue;
