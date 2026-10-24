@@ -89,7 +89,7 @@ beforeAll(async () => {
     HistoryView = (await import('../HistoryView')).default
 })
 
-const event = (id: string, over: Record<string, unknown> = {}) => ({
+const event = (id: string, over: Record<string, unknown> = {}): any => ({
     __typename: 'Event',
     id,
     name: `Událost ${id}`,
@@ -108,11 +108,11 @@ const event = (id: string, over: Record<string, unknown> = {}) => ({
     ...over,
 })
 
-const eventsData = (events: ReturnType<typeof event>[], totalAmount = events.length) => ({
+const eventsData = (events: any[], totalAmount = events.length) => ({
     data: { eventCalendar: { __typename: 'EventCalendarPaged', events, totalAmount } },
 })
 
-const statsData = (byMonth: Array<{ year: number; month: number; count: number }> = []) => ({
+const statsData = (byMonth: any[] = []) => ({
     data: { eventCalendarStats: { __typename: 'EventCalendarStats', totalAmount: byMonth.reduce((s, m) => s + m.count, 0), byMonth } },
 })
 
@@ -146,14 +146,14 @@ describe('CalendarPanel', () => {
         const query = screen.getByTestId('calendar.query')
         fireEvent.change(query, { target: { value: 'Událost' } })
         expect(replaceMock).toHaveBeenCalled()
-        const lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1]
+        const lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as unknown as { query: Record<string, string> }
         expect(JSON.stringify(lastCall[0].query)).toContain('q')
         routerQuery = lastCall[0].query as Record<string, string>
 
         // Reset clears the checkbox filters but keeps the typed query (the
         // user is still searching for something).
         fireEvent.click(await screen.findByTestId('calendar.reset'))
-        const resetCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1]
+        const resetCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as unknown as { query: Record<string, string> }
         expect(resetCall[0].query).toEqual({ q: 'Událost' })
         routerQuery = resetCall[0].query
     })
@@ -256,8 +256,8 @@ describe('MonthGrid', () => {
 describe('HistoryView', () => {
     it('lists years with bars and selects the clicked year', () => {
         const byMonth = [
-            { __typename: 'EventCalendarStatsMonth', year: 2025, month: 3, count: 2 },
-            { __typename: 'EventCalendarStatsMonth', year: 2026, month: 5, count: 5 },
+            { year: 2025, month: 3, count: 2 },
+            { year: 2026, month: 5, count: 5 },
         ]
         const onSelectYear = jest.fn()
         render(
@@ -372,7 +372,7 @@ describe('CalendarPanel: sidebar filters', () => {
         // A duration checkbox writes dd= into the URL.
         const checkboxes = screen.getByTestId('calendar.filters').querySelectorAll('input[type="checkbox"]')
         fireEvent.click(checkboxes[3])
-        let last = replaceMock.mock.calls[replaceMock.mock.calls.length - 1]
+        let last = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as unknown as { query: Record<string, string> }
         expect(JSON.stringify(last[0].query)).toMatch(/dd|dk|web|reg/)
 
         // The chip appears and clicking it removes the filter again.
@@ -395,7 +395,7 @@ describe('CalendarPanel: sidebar filters', () => {
     it('loads the archive of the selected year and can load more of it', async () => {
         routerQuery = { v: 'historie' }
         statsAnswer = Promise.resolve(
-            statsData([{ __typename: 'EventCalendarStatsMonth', year: 2027, month: 6, count: 4 }]),
+            statsData([{ year: 2027, month: 6, count: 4 }]),
         )
         eventsAnswer = Promise.resolve(eventsData([event('1')], 4))
         render(<CalendarPanel initialQuery={{ v: 'historie' }} />)

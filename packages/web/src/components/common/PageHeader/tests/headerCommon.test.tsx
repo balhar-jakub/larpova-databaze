@@ -142,7 +142,7 @@ describe('HeaderUser', () => {
     it('renders the user menu for a signed-in user and navigates from it', async () => {
         const { UserContext } = await import('src/context/UserContext/UserContext')
         currentUser = { id: '42', name: 'Jakub', role: 'USER' }
-        render(<UserContext.Provider value={{ value: currentUser }}><HeaderUser /></UserContext.Provider>)
+        render(<UserContext.Provider value={{ value: currentUser } as never}><HeaderUser /></UserContext.Provider>)
 
         // react-bootstrap renders the menu only after the toggle opens it
         // (state update — needs act around the click).
@@ -157,7 +157,7 @@ describe('HeaderUser', () => {
     it('shows the admin entry to an editor', async () => {
         const { UserContext } = await import('src/context/UserContext/UserContext')
         currentUser = { id: '42', name: 'Jakub', role: 'EDITOR' }
-        render(<UserContext.Provider value={{ value: currentUser }}><HeaderUser /></UserContext.Provider>)
+        render(<UserContext.Provider value={{ value: currentUser } as never}><HeaderUser /></UserContext.Provider>)
         await act(async () => {
             fireEvent.click(screen.getByRole('button', { name: /Jakub/ }))
         })
@@ -167,7 +167,7 @@ describe('HeaderUser', () => {
     it('signs out via the mutation and lands on the homepage', async () => {
         const { UserContext } = await import('src/context/UserContext/UserContext')
         currentUser = { id: '42', name: 'Jakub', role: 'USER' }
-        render(<UserContext.Provider value={{ value: currentUser }}><HeaderUser /></UserContext.Provider>)
+        render(<UserContext.Provider value={{ value: currentUser } as never}><HeaderUser /></UserContext.Provider>)
         await act(async () => {
             fireEvent.click(screen.getByRole('button', { name: /Jakub/ }))
         })
@@ -181,7 +181,7 @@ describe('HeaderUser', () => {
     it('navigates to the profile and settings pages from the menu', async () => {
         const { UserContext } = await import('src/context/UserContext/UserContext')
         currentUser = { id: '42', name: 'Jakub', role: 'USER' }
-        render(<UserContext.Provider value={{ value: currentUser }}><HeaderUser /></UserContext.Provider>)
+        render(<UserContext.Provider value={{ value: currentUser } as never}><HeaderUser /></UserContext.Provider>)
         fireEvent.click(screen.getByRole('button', { name: /Jakub/ }))
         fireEvent.click(await screen.findByText(translate(cs, 'PageHeader.myPage')))
         expect(pushedRoute).toBe('/muj-profil')
@@ -190,7 +190,7 @@ describe('HeaderUser', () => {
     it('navigates to settings and change-password', async () => {
         const { UserContext } = await import('src/context/UserContext/UserContext')
         currentUser = { id: '42', name: 'Jakub', role: 'USER' }
-        render(<UserContext.Provider value={{ value: currentUser }}><HeaderUser /></UserContext.Provider>)
+        render(<UserContext.Provider value={{ value: currentUser } as never}><HeaderUser /></UserContext.Provider>)
         fireEvent.click(screen.getByRole('button', { name: /Jakub/ }))
         fireEvent.click(await screen.findByText(translate(cs, 'PageHeader.settings')))
         expect(pushedRoute).toBe('/nastaveni')
