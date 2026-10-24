@@ -339,3 +339,49 @@ describe('the games panel is wired to the page state', () => {
         expect(last.yf).toBeUndefined()
     })
 })
+
+describe('branch arms of the page', () => {
+    test('a query with no answer yet shows the loading block and no summary', () => {
+        // Asked but the data has not landed: overview undefined.
+        queryAnswer = { loading: true, data: undefined }
+        renderPanel()
+
+        // The loading arm rendered BigLoading (mocked as an empty div): the
+        // summary line with "Výsledky pro" must NOT be there.
+        expect(screen.getByTestId('search.panel').textContent).not.toContain('Výsledky pro')
+    })
+
+    test('a partial overview answers zero for its missing kinds', () => {
+        // The ?? 0 arms: the server answered only the game counts.
+        queryAnswer = {
+            loading: false,
+            data: {
+                search: {
+                    totalGames: 5,
+                    games: [game('1')],
+                    totalUsers: undefined,
+                    users: [],
+                    totalEvents: null,
+                    events: [],
+                    totalGroups: 0,
+                    groups: [],
+                    suggestion: null,
+                },
+            },
+        }
+        renderPanel()
+
+        expect(chip('games').textContent).toContain('5')
+        // Every missing count renders as 0, not NaN or a blank.
+        expect(chip('users').textContent).toContain('0')
+        expect(chip('events').textContent).toContain('0')
+        expect(chip('groups').textContent).toContain('0')
+    })
+
+    test('an empty initialQuery renders the enter-query notice, not results', () => {
+        renderPanel({ initialQuery: '' })
+
+        expect(screen.getByText(translate(cs, 'Search.enterQuery'))).toBeTruthy()
+        expect(screen.queryByTestId('search.clearQuery')).toBeNull()
+    })
+})

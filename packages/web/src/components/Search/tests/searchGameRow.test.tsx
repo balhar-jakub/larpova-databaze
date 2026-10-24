@@ -103,4 +103,47 @@ describe('SearchGameRow', () => {
 
         expect(screen.getByText('od Jakub, Petra')).toBeTruthy()
     })
+
+    it('collapses more than three authors behind a count and renders no author line when empty', () => {
+        render(
+            <SearchGameRow
+                game={game({ authors: [
+                    { __typename: 'User', name: 'A' },
+                    { __typename: 'User', name: 'B' },
+                    { __typename: 'User', name: 'C' },
+                    { __typename: 'User', name: 'D' },
+                ] }) as never}
+                query="drac"
+            />,
+        )
+        expect(screen.getByText('od A, B, C +1')).toBeTruthy()
+        cleanup()
+
+        // No authors at all: the author segment disappears (authors.length arm).
+        render(<SearchGameRow game={game({ authors: [] }) as never} query="drac" />)
+        expect(screen.queryByText(/od /)).toBeNull()
+    })
+
+    it('answers the missing year and the missing labels', () => {
+        render(<SearchGameRow game={game({ year: null, labels: [] }) as never} query="drac" />)
+
+        expect(screen.getByText(translate(cs, 'Search.yearUnknown'))).toBeTruthy()
+        expect(screen.getByText(translate(cs, 'Search.noLabels'))).toBeTruthy()
+    })
+
+    it('explains a match by author and a match by group, and stays silent on a name match', () => {
+        // The query matches the author, not the name.
+        render(<SearchGameRow game={game() as never} query="jakub" />)
+        expect(screen.getByText(translate(cs, 'Search.matchAuthor', { name: 'Jakub' }))).toBeTruthy()
+        cleanup()
+
+        // The query matches a group.
+        render(<SearchGameRow game={game({ groupAuthor: [{ name: 'Moravian LARP' }] }) as never} query="moravian" />)
+        expect(screen.getByText(translate(cs, 'Search.matchGroup', { name: 'Moravian LARP' }))).toBeTruthy()
+        cleanup()
+
+        // The query matches the name itself: no explanation line at all.
+        render(<SearchGameRow game={game() as never} query="drac" />)
+        expect(screen.queryByTestId('search.matchReason.g1')).toBeNull()
+    })
 })
