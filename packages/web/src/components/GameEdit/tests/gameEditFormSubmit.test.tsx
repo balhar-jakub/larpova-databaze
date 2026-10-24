@@ -138,6 +138,20 @@ describe('GameEditForm submit flow', () => {
         expect(savedGames).toEqual([{ id: 'g9', name: 'Nová hra', year: 2027 }])
     })
 
+    it('shows the big loading indicator while the game data loads', () => {
+        renderForm({ dataLoading: true })
+
+        // No form while the data is loading.
+        expect(document.querySelector('form')).toBeNull()
+    })
+
+    it('expands the labels help on click', () => {
+        renderForm()
+
+        fireEvent.click(screen.getByText(translate(cs, 'GameEdit.labelsHelp')))
+        expect(screen.getByText(translate(cs, 'GameEdit.help1'))).toBeTruthy()
+    })
+
     it('updates an existing game and skips the series call when nothing changed', async () => {
         currentResponse = { data: { game: { updateGame: { id: 'g1', name: 'Stará hra', year: 2026 } } } }
         renderForm({ gameId: 'g1', initialValues: { name: 'Stará hra', authors: [], groupAuthors: [], requiredLabels: [], optionalLabels: [], newLabels: [] } as never })
