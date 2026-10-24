@@ -184,6 +184,18 @@ describe('ChangePasswordPanel', () => {
         expect(mutationCalls.length).toBe(0)
         expect(screen.getByText(translate(cs, 'ChangePassword.passwordAgainError'))).toBeTruthy()
     })
+
+
+    it('renders the password form before the user answer lands', () => {
+        queryData = undefined
+        render(<ChangePasswordPanel />)
+
+        // The hidden username field falls back to the placeholder; the user
+        // detail panel receives undefined instead of crashing.
+        const username = document.querySelector('input[name=username]') as HTMLInputElement
+        expect(username.value).toBe('_')
+        expect(document.body.textContent).not.toContain('NaN')
+    })
 })
 
 describe('UserSettingsPanel', () => {

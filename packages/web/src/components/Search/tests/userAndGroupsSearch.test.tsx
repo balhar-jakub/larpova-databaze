@@ -116,6 +116,14 @@ describe('UserSearchPanel', () => {
         fireEvent.click(screen.getByText('next'))
         await waitFor(() => expect(screen.getByTestId('pager').dataset.offset).toBe('24'))
     })
+
+
+    it('shows the loading state while the user page has not answered', () => {
+        usersPage = undefined
+        render(<UserSearchPanel query="jakub" onUseSuggestion={() => undefined} />)
+
+        expect(screen.getByText('loading')).toBeTruthy()
+    })
 })
 
 describe('GroupsSearchPanel', () => {
@@ -144,5 +152,17 @@ describe('GroupsSearchPanel', () => {
         const more = screen.getByTestId('catalog.loadMore')
         fireEvent.click(more)
         await waitFor(() => expect(screen.getByTestId('group-row-gr2')).toBeTruthy())
+    })
+
+    it('names the load-more count when a next page remains', async () => {
+        // One row loaded of two total: the load-more button names one more.
+        groupsPage = { groups: [{ __typename: 'Group', id: 'gr1', name: 'První' }], totalAmount: 2 }
+        // A fresh query key so the mock fires its onCompleted for this render.
+        render(<GroupsSearchPanel query="larp-dalsi" totalAmount={2} />)
+
+        // The rows land asynchronously through the mock's onCompleted.
+        const more = await screen.findByTestId('catalog.loadMore')
+        expect(more.textContent).toContain(translate(cs, 'Search.loadMore', { count: 1 }))
+        expect((more as HTMLButtonElement).disabled).toBe(false)
     })
 })

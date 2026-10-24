@@ -101,4 +101,30 @@ describe('BaseCommentPanel', () => {
         expect(screen.getByTestId('rating').textContent).toBe('')
         expect(screen.getByText('01.01.1970')).toBeTruthy()
     })
+
+    it('renders nothing of the body when the comment itself is missing', () => {
+        // The fully-optional arm: no comment at all (a dropped cache row).
+        render(<BaseCommentPanel comment={undefined as never} />)
+
+        // The optional chains all take their null side: no user link, no
+        // game link, no read-more, no date crash.
+        expect(screen.queryByTestId('profile-image')).toBeTruthy()
+        expect(screen.queryByText(translate(cs, 'HomePage.commentMore'))).toBeNull()
+        expect(document.body.textContent).not.toContain('NaN')
+    })
+
+    it('a comment with no game ratings falls back to zero', () => {
+        render(
+            <BaseCommentPanel
+                comment={{
+                    ...comment,
+                    game: { id: 'g9', name: 'Hra bez hodnocení' },
+                } as never}
+            />,
+        )
+
+        // amountOfRatings undefined -> || 0 fires; the rating box shows 0.
+        expect(screen.getByTestId('rating').textContent).toBe('')
+        expect(screen.getByText('Hra bez hodnocení')).toBeTruthy()
+    })
 })
