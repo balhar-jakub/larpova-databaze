@@ -102,4 +102,69 @@ describe('GameEditPagePanel', () => {
         await act(async () => { await Promise.resolve() })
         expect(pushedRoute).toBe('/larp/g7-Uložená hra')
     })
+
+    it('maps a sparse game: null name, no nickname, nameless group and series', async () => {
+        queryData = {
+            gameById: {
+                __typename: 'Game',
+                id: 'g8',
+                name: null,
+                description: null,
+                authors: [{ __typename: 'User', id: 'u2', name: 'Autor bez nicku', nickname: null }],
+                groupAuthor: [{ __typename: 'Group', id: 'gr1', name: null }],
+                labels: [],
+                web: null,
+                photoAuthor: null,
+                galleryURL: null,
+                series: { __typename: 'Series', id: 's1', name: null, amountOfGames: 4 },
+                year: null,
+                players: null,
+                womenRole: null,
+                menRole: null,
+                bothRole: null,
+                hours: null,
+                days: null,
+                ratingsDisabled: null,
+                commentsDisabled: null,
+            },
+        }
+        render(<GameEditPagePanel gameId="g8" />)
+
+        // toInitialValues survives every null: the form receives initial values
+        // (not undefined), so the panel is ready for editing.
+        await waitFor(() => expect(screen.getByTestId('game-edit-form').dataset.hasInitials).toBe('true'))
+    })
+
+    it('maps a fully-populated game: nickname, group name, series name, links and numbers', async () => {
+        queryData = {
+            gameById: {
+                __typename: 'Game',
+                id: 'g9',
+                name: 'Plná hra',
+                description: 'Popis hry',
+                authors: [{ __typename: 'User', id: 'u1', name: 'Autor', nickname: 'Přezdívka' }],
+                groupAuthor: [{ __typename: 'Group', id: 'gr1', name: 'Klub' }],
+                labels: [
+                    { __typename: 'Label', id: 'l1', isRequired: true },
+                    { __typename: 'Label', id: 'l2', isRequired: false },
+                ],
+                web: 'https://web.example.test',
+                photoAuthor: 'Foto autor',
+                galleryURL: 'https://gallery.example.test',
+                series: { __typename: 'Series', id: 's1', name: 'Série', amountOfGames: 3 },
+                year: 2020,
+                players: 30,
+                womenRole: 10,
+                menRole: 15,
+                bothRole: 5,
+                hours: 48,
+                days: 2,
+                ratingsDisabled: true,
+                commentsDisabled: true,
+            },
+        }
+        render(<GameEditPagePanel gameId="g9" />)
+
+        await waitFor(() => expect(screen.getByTestId('game-edit-form').dataset.hasInitials).toBe('true'))
+    })
 })

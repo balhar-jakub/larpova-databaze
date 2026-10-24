@@ -309,3 +309,52 @@ describe('active filter text', () => {
         expect(playersTo).toBe('Catalog.active.playersTo:{"to":20}')
     })
 })
+
+describe('branch arms of the state', () => {
+    const t = (key: string, options?: Record<string, unknown>) =>
+        key + (options ? `:${JSON.stringify(options)}` : '')
+
+    test('the year and players ranges read all four shapes', () => {
+        // Full range, one-sided variants of each side, for both kinds.
+        const yearRange = catalogActiveFilterText({ key: 'y', kind: 'year', from: 2010, to: 2020, remove: {} }, t)
+        expect(yearRange).toBe('Catalog.active.yearRange:{"from":2010,"to":2020}')
+        const yearTo = catalogActiveFilterText({ key: 'y', kind: 'year', from: null, to: 2020, remove: {} }, t)
+        expect(yearTo).toBe('Catalog.active.yearTo:{"to":2020}')
+        const playersRange = catalogActiveFilterText({ key: 'p', kind: 'players', from: 10, to: 20, remove: {} }, t)
+        expect(playersRange).toBe('Catalog.active.playersRange:{"from":10,"to":20}')
+        const playersFrom = catalogActiveFilterText({ key: 'p', kind: 'players', from: 10, to: null, remove: {} }, t)
+        expect(playersFrom).toBe('Catalog.active.playersFrom:{"from":10}')
+    })
+
+    test('the remaining chip kinds render their texts', () => {
+        const rating = catalogActiveFilterText({ key: 'r', kind: 'rating', from: null, to: 80, remove: {} }, t)
+        expect(rating).toBe('Catalog.active.rating:{"value":80}')
+        const minRatings = catalogActiveFilterText({ key: 'mr', kind: 'minRatings', from: null, to: 5, remove: {} }, t)
+        expect(minRatings).toBe('Catalog.active.minRatings:{"count":5}')
+        const withComments = catalogActiveFilterText({ key: 'wc', kind: 'withComments', from: null, to: null, remove: {} }, t)
+        expect(withComments).toBe('Catalog.filters.withComments')
+        const withImage = catalogActiveFilterText({ key: 'wi', kind: 'withImage', from: null, to: null, remove: {} }, t)
+        expect(withImage).toBe('Catalog.filters.withImage')
+        const added = catalogActiveFilterText({ key: 'ad', kind: 'added', from: null, to: 30, remove: {} }, t)
+        expect(added).toBe('Catalog.active.added:{"count":30}')
+    })
+
+    test('an author filter prefers its name over the raw id', () => {
+        // authorName ?? String(author) — both sides.
+        const named = catalogActiveFilters(parseCatalogState({ autor: '42', autorn: 'Jan Novák' }), {})
+        expect(named.find((filter) => filter.kind === 'author')?.value).toBe('Jan Novák')
+        // An autorn that trims to nothing falls back to the id.
+        const blank = catalogActiveFilters(parseCatalogState({ autor: '42', autorn: '   ' }), {})
+        expect(blank.find((filter) => filter.kind === 'author')?.value).toBe('42')
+    })
+
+    test('players bounds round-trip through the query', () => {
+        const state = parseCatalogState({ pf: '10', pt: '50' })
+        const query = catalogStateToQuery(state)
+        expect(query.pf).toBe('10')
+        expect(query.pt).toBe('50')
+        // And back.
+        expect(parseCatalogState(query).playersFrom).toBe(10)
+        expect(parseCatalogState(query).playersTo).toBe(50)
+    })
+})

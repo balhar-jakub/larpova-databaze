@@ -208,4 +208,55 @@ describe('CatalogFilterPanel', () => {
         fireEvent.click(screen.getByText(/jen doporučované/))
         expect(patches.at(-1)).toEqual({ minRating: 70 })
     })
+
+    it('follows an external year-range change (chip removed elsewhere)', () => {
+        // First render with a range: the inputs hold it.
+        const { rerender } = renderPanel()
+        const yearFrom = screen.getByLabelText(`${translate(cs, 'Catalog.filters.yearShort')} ${translate(cs, 'Catalog.filters.from')}`)
+        fireEvent.change(yearFrom, { target: { value: '2010' } })
+        fireEvent.keyDown(yearFrom, { key: 'Enter' })
+        expect(patches[patches.length - 1]).toMatchObject({ yearFrom: 2010 })
+
+        // The parent accepts the patch (yearFrom lands in state), then a chip
+        // removal clears it: the input must follow the external value, not keep
+        // the stale draft.
+        rerender(
+            <CatalogFilterPanel
+                state={{ ...state, yearFrom: 2010 } as never}
+                facets={facets() as never}
+                onStateChange={(patch) => { patches.push(patch as Record<string, unknown>) }}
+                onReset={() => { resets += 1 }}
+            />,
+        )
+        expect((screen.getByLabelText(`${translate(cs, 'Catalog.filters.yearShort')} ${translate(cs, 'Catalog.filters.from')}`) as HTMLInputElement).value).toBe('2010')
+
+        // And the external clear: back to the empty input.
+        rerender(
+            <CatalogFilterPanel
+                state={{ ...state, yearFrom: undefined } as never}
+                facets={facets() as never}
+                onStateChange={(patch) => { patches.push(patch as Record<string, unknown>) }}
+                onReset={() => { resets += 1 }}
+            />,
+        )
+        expect((screen.getByLabelText(`${translate(cs, 'Catalog.filters.yearShort')} ${translate(cs, 'Catalog.filters.from')}`) as HTMLInputElement).value).toBe('')
+    })
+
+    it('follows an external query change and does not re-commit it', () => {
+        const { rerender } = renderPanel()
+        const before = patches.length
+
+        // The parent rewrites state.query (a suggestion picked elsewhere).
+        rerender(
+            <CatalogFilterPanel
+                state={{ ...state, query: 'legie' } as never}
+                facets={facets() as never}
+                onStateChange={(patch) => { patches.push(patch as Record<string, unknown>) }}
+                onReset={() => { resets += 1 }}
+            />,
+        )
+        expect((screen.getByTestId('catalog.query') as HTMLInputElement).value).toBe('legie')
+        // No patch was fired for following the external change.
+        expect(patches.length).toBe(before)
+    })
 })

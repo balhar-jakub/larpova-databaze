@@ -112,4 +112,34 @@ describe('GameHeaderPanel', () => {
         expect(screen.queryByTestId('label-list')).toBeNull()
         expect(screen.getByText('Dračí doupě')).toBeTruthy()
     })
+
+    it('renders a nameless game as the placeholder and separates two authors by comma', () => {
+        const { container } = renderPanel({ name: null })
+        // No name: the h1 is gone and the placeholder div renders.
+        expect(container.querySelector('h1')).toBeNull()
+        cleanup()
+
+        // Two authors: the second gets the comma; a nickname-less author
+        // renders just the name (the nickname && name arms).
+        renderPanel({
+            authors: [
+                { __typename: 'User', id: 'u1', name: 'Autor Jeden', nickname: null },
+                { __typename: 'User', id: 'u2', name: 'Autor Dva', nickname: 'Přezdívka' },
+            ],
+        })
+        expect(document.body.textContent).toContain('Autor Jeden, ')
+        // A nickname plus a name renders the space between them.
+        expect(document.body.textContent).toContain('Přezdívka Autor Dva')
+    })
+
+    it('separates two groups by comma (the group n > 0 arm)', () => {
+        renderPanel({
+            groupAuthor: [
+                { __typename: 'Group', id: 'gr1', name: 'Skupina XY' },
+                { __typename: 'Group', id: 'gr2', name: 'Skupina ZZ' },
+            ],
+        })
+        expect(document.body.textContent).toContain('Skupina XY, ')
+        expect(document.body.textContent).toContain('Skupina ZZ')
+    })
 })

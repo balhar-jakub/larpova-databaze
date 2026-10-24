@@ -19,6 +19,7 @@ const cs = JSON.parse(
 
 ;(globalThis as unknown as { require: (p: string) => unknown }).require = () => ({})
 
+let mutationLoading = false
 let queryData: Record<string, unknown> | undefined
 let mutationResult: Promise<{ data?: unknown }> = Promise.resolve({ data: {} })
 const mutationCalls: Array<{ variables?: Record<string, unknown> }> = []
@@ -37,9 +38,16 @@ jest.unstable_mockModule('@apollo/client', () => ({
     useMutation: () => [(opts: { variables?: Record<string, unknown> }) => {
         mutationCalls.push(opts)
         return mutationResult
-    }, { loading: false }],
+    }, { loading: mutationLoading }],
 }))
 jest.unstable_mockModule('is-in-browser', () => ({ __esModule: true, default: true }))
+jest.unstable_mockModule('../../common/Icons/Icons', () => ({
+    IconDisabled: () => <span>icon-disabled</span>,
+    IconEdit: () => <span>icon-edit</span>,
+    IconLoading: () => <span data-testid="icon-loading">icon-loading</span>,
+    IconPlus: () => <span data-testid="icon-plus">icon-plus</span>,
+    IconTrash: () => <span data-testid="icon-trash">icon-trash</span>,
+}))
 jest.unstable_mockModule('src/hooks/useLoggedInUser', () => ({
     useLoggedInUser: () => loggedInUser,
 }))
@@ -74,6 +82,7 @@ beforeEach(() => {
     modalCalls.length = 0
     loggedInUser = null
     mutationResult = Promise.resolve({ data: {} })
+    mutationLoading = false
     queryData = {
         gameById: {
             __typename: 'Game',
@@ -166,5 +175,58 @@ describe('GamePagedCommentsPanel', () => {
         rerender(<GamePagedCommentsPanel gameId="g2" commentsDisabled={false} />)
         // New game: the cache resets but the panel renders again.
         expect(screen.getByTestId('paged-comments')).toBeTruthy()
+    })
+
+    it('falls back to the cached page when the query answers without one', async () => {
+        loggedInUser = { id: 'u1' }
+        // First render: a real page lands in the cache.
+        const { rerender } = render(<GamePagedCommentsPanel gameId="g1" commentsDisabled={false} />)
+        await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+        // Second render: the answer carries NO commentsPaged (the dataPage ||
+        // cachedPage arm) — the cached page keeps the panel alive.
+        queryData = { gameById: { __typename: 'Game', id: 'g1', commentsPaged: undefined, currentUsersComment: null } }
+        rerender(<GamePagedCommentsPanel gameId="g1" commentsDisabled={false} />)
+        expect(screen.getByTestId('paged-comments')).toBeTruthy()
+    })
+
+    it('refuses the delete when the comment id is missing (the early return)', async () => {
+        loggedInUser = { id: 'u1' }
+        queryData = {
+            gameById: {
+                __typename: 'Game',
+                id: 'g1',
+                commentsPaged: { __typename: 'CommentsPaged', totalAmount: 1, list: [] },
+                // A comment object exists but carries no id.
+                currentUsersComment: { __typename: 'UsersComment', id: null, comment: { __typename: 'Comment', id: 'c9', text: 'Bez id', added: '2027-03-01' } },
+            },
+        }
+        render(<GamePagedCommentsPanel gameId="g1" commentsDisabled={false} />)
+        await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+        fireEvent.click(screen.getByRole('button', { name: (t) => t.includes(translate(cs, 'GameDetail.deleteComment')) }))
+        await act(async () => { await Promise.resolve() })
+        // The guard returned before the mutation: nothing was called.
+        expect(mutationCalls.length).toBe(0)
+    })
+
+    it('swaps the action icons to spinners while the mutations load', () => {
+        loggedInUser = { id: 'u1' }
+        queryData = {
+            gameById: {
+                __typename: 'Game',
+                id: 'g1',
+                commentsPaged: { __typename: 'CommentsPaged', totalAmount: 1, list: [] },
+                currentUsersComment: { __typename: 'UsersComment', id: 'c9', comment: { __typename: 'Comment', id: 'c9', text: 'Moje', added: '2027-03-01' } },
+            },
+        }
+        mutationLoading = true
+        render(<GamePagedCommentsPanel gameId="g1" commentsDisabled={false} />)
+
+        // The delete button carries the spinner instead of the trash icon
+        // while its mutation loads. (editModalLoading is the lazy-chunk
+        // state of the open modal, not a mutation flag.)
+        expect(screen.getAllByTestId('icon-loading').length).toBe(1)
+        expect(screen.queryByTestId('icon-trash')).toBeNull()
     })
 })

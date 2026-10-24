@@ -104,4 +104,18 @@ describe('GameCommentPanel', () => {
 
         expect(screen.getByText('Skvělá hra!')).toBeTruthy()
     })
+
+    it('answers the first word of the name when there is no nickname', () => {
+        render(
+            <GameCommentPanel
+                comment={{ ...comment, user: { ...comment.user, nickname: null, name: 'Jozef Novák' } } as never}
+                showVisibilityButton={false}
+                onChangeCommentVisibility={() => undefined}
+            />,
+        )
+
+        // The nickname slot shows the first word of the full name.
+        expect(screen.getByText('Jozef')).toBeTruthy()
+        expect(screen.getByText('Jozef Novák')).toBeTruthy()
+    })
 })

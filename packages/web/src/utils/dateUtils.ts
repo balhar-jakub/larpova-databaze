@@ -12,7 +12,11 @@ export const parseDateTime = (isoString?: string | null) => {
         return new Date(num);
     }
 
-    return new Date(isoString)
+    const parsed = new Date(isoString)
+    // A malformed string yields an Invalid Date (truthy!), which would slip
+    // through every `|| fallback` downstream and crash format() — answer
+    // undefined so the callers' fallbacks fire.
+    return isNaN(parsed.getTime()) ? undefined : parsed
 }
 
 export const hasTimePart = (date?: Date) => date && (date.getHours() !== 0 || date.getMinutes() !== 0)

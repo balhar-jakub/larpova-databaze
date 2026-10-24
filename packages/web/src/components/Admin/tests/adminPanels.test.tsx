@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react'
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { render, screen, fireEvent, act, cleanup, waitFor, within } from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -262,6 +262,49 @@ describe('AdminLabelsPanel', () => {
         expect(order).toEqual(['alfa', 'Beta', 'Beta', 'zeta'])
     })
 
+
+    it('orders authorized before unauthorized and required before optional', () => {
+        queryResult = {
+            admin: {
+                allLabels: [
+                    label('1', { name: 'Volný', isAuthorized: false, isRequired: false }),
+                    label('2', { name: 'Povinný', isAuthorized: true, isRequired: true }),
+                    label('3', { name: 'Neautorizovaný povinný', isAuthorized: false, isRequired: true }),
+                    label('4', { name: 'Autorizovaný volný', isAuthorized: true, isRequired: false }),
+                ],
+            },
+        }
+        render(<AdminLabelsPanel />)
+
+        // Authorized first; within them required first; the unauthorized tail
+        // again required-first.
+        const names = Array.from(document.body.querySelectorAll('*'))
+            .filter(el => ['Volný', 'Povinný', 'Neautorizovaný povinný', 'Autorizovaný volný'].includes(el.textContent ?? ''))
+            .map(el => el.textContent)
+        expect(names.slice(0, 4)).toEqual([
+            'Povinný',
+            'Autorizovaný volný',
+            'Neautorizovaný povinný',
+            'Volný',
+        ])
+    })
+
+    it('a null-named label sorts as the empty string', () => {
+        queryResult = {
+            admin: {
+                allLabels: [
+                    label('1', { name: null, isAuthorized: true }),
+                    label('2', { name: 'aaa', isAuthorized: true }),
+                ],
+            },
+        }
+        render(<AdminLabelsPanel />)
+
+        // The null name lowercases to '' and sorts before 'aaa'.
+        const cells = Array.from(document.body.querySelectorAll('*')).filter(el => ['aaa'].includes(el.textContent ?? ''))
+        expect(cells.length).toBeGreaterThan(0)
+        expect(document.body.textContent).toContain('aaa')
+    })
     it('shows the loading state when there are no labels yet', () => {
         queryResult = { admin: { allLabels: [] } }
         render(<AdminLabelsPanel />)
@@ -409,6 +452,26 @@ describe('AdminStatsPanel', () => {
         // Sorted newest first: October's row (12 ratings) comes before September's.
         expect(screen.getByText('12')).toBeTruthy()
         expect(screen.getByText('4.25')).toBeTruthy()
+    })
+
+    it('answers zero and empty cells for a sparse stats row and shows loading when empty', () => {
+        queryResult = {
+            admin: {
+                stats: [
+                    { __typename: 'AdminRatingStats', id: '1', year: 2026, month: 3, numRatings: null, numComments: null, averageRating: null },
+                ],
+            },
+        }
+        render(<AdminStatsPanel />)
+
+        // The nulls fall back: 0 ratings, no average text, 0 comments.
+        expect(document.body.textContent).toContain('0')
+        expect(document.body.textContent).not.toContain('null')
+
+        cleanup()
+        queryResult = {}
+        render(<AdminStatsPanel />)
+        expect(screen.getByText('loading')).toBeTruthy()
     })
 })
 

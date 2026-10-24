@@ -175,4 +175,39 @@ describe('EventDetailPanel', () => {
         // Single-day events show one date only (justOneDate branch).
         expect(screen.getByTestId('game-list')).toBeTruthy()
     })
+
+    it('renders a sparse event: no players, no games, no registration, no loc', () => {
+        eventData = {
+            ...eventData,
+            amountOfPlayers: null,
+            games: null,
+            labels: null,
+            registrationUrl: null,
+            loc: null,
+        }
+        render(<EventDetailPanel eventId="e1" />)
+
+        // No player-count line at all (the typeof guard), the games column
+        // collapses, and neither loc nor registration renders.
+        expect(document.body.textContent).not.toContain(translate(cs, 'EventDetail.players', { count: 0 }))
+        expect(screen.getByTestId('game-list').textContent).toBe('')
+        expect(screen.queryByTestId('registration-link')).toBeNull()
+    })
+
+    it('renders an event without a name (the OG-meta null arm)', () => {
+        eventData = { ...eventData, name: null, description: null }
+        render(<EventDetailPanel eventId="e1" />)
+
+        expect(screen.getByTestId('game-list')).toBeTruthy()
+    })
+
+    it('renders nothing of the body when the event is missing', () => {
+        eventData = undefined
+        render(<EventDetailPanel eventId="e404" />)
+
+        // The header h1 and the action buttons stay absent.
+        expect(screen.queryByText('Festival LARPu')).toBeNull()
+        expect(screen.queryByText(translate(cs, 'EventDetail.edit'))).toBeNull()
+        expect(screen.queryByText(translate(cs, 'EventDetail.delete'))).toBeNull()
+    })
 })

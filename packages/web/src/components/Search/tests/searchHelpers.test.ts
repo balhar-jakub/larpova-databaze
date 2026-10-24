@@ -4,6 +4,8 @@ import {
     eventDateLabel,
     eventTimeRange,
     gameMatchReason,
+    isEventTimeFilter,
+    isUpcoming,
     labelsToShow,
     pageRange,
     personMatchReason,
@@ -264,5 +266,54 @@ describe('the games carry the catalog facets, and the URL carries them too', () 
 
         expect(searchPageQuery('larp', 'events', state)).toEqual({ q: 'larp', typ: 'udalosti' })
         expect(searchPageQuery('larp', undefined, state)).toEqual({ q: 'larp' })
+    })
+})
+
+describe('branch arms of the helpers', () => {
+    test('bestMatches defaults to three ranks without a count', () => {
+        // Default-arg arm: no second argument.
+        const out = bestMatches({ games: ['g1', 'g2', 'g3', 'g4'] })
+        expect(out).toEqual([
+            { type: 'games', item: 'g1' },
+            { type: 'games', item: 'g2' },
+            { type: 'games', item: 'g3' },
+        ])
+    })
+
+    test('a group without a name explains the match with the empty string', () => {
+        const reason = gameMatchReason(
+            { id: '2', name: 'Ztraceni', authors: null, groupAuthor: [{ id: '6', name: null }] } as never,
+            'ztraceni-nejde',
+        )
+        // No author matches, the group carries no name: the ?? '' arm.
+        expect(reason).toBeUndefined()
+    })
+
+    test('isUpcoming falls back to from when to is null and answers false without dates', () => {
+        // The `to ?? from` arm.
+        expect(isUpcoming({ from: String(Date.now() + 86400000), to: null } as never)).toBe(true)
+        // No dates at all: the false arm.
+        expect(isUpcoming({ from: null, to: null } as never)).toBe(false)
+    })
+
+    test('isEventTimeFilter accepts the three slugs and rejects everything else', () => {
+        expect(isEventTimeFilter('all')).toBe(true)
+        expect(isEventTimeFilter('upcoming')).toBe(true)
+        expect(isEventTimeFilter('archive')).toBe(true)
+        expect(isEventTimeFilter('sometimes')).toBe(false)
+        expect(isEventTimeFilter(undefined)).toBe(false)
+    })
+
+    test('labelsToShow drops nameless labels and counts past the cap', () => {
+        const { shown, more } = labelsToShow([
+            { name: 'a' },
+            { name: null },
+            { name: '' },
+            { name: 'b' },
+            { name: 'c' },
+            { name: 'd' },
+        ])
+        expect(shown).toEqual(['a', 'b', 'c'])
+        expect(more).toBe(1)
     })
 })

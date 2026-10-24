@@ -32,11 +32,13 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
 // under test without the real one's calendar internals.
 let pickerChange: ((value: Date | [Date, Date] | null) => void) | undefined
 let pickerBlur: (() => void) | undefined
+let pickerSelect: (() => void) | undefined
 jest.unstable_mockModule('react-datepicker', () => ({
     registerLocale: () => undefined,
-    default: ({ onChange, onBlur, placeholderText, customInput }: { onChange: (v: Date | [Date, Date] | null) => void; onBlur: () => void; placeholderText?: string; customInput: React.ReactElement }) => {
+    default: ({ onChange, onBlur, onSelect, placeholderText, customInput }: { onChange: (v: Date | [Date, Date] | null) => void; onBlur: () => void; onSelect?: () => void; placeholderText?: string; customInput: React.ReactElement }) => {
         pickerChange = onChange
         pickerBlur = onBlur
+        pickerSelect = onSelect
         return React.cloneElement(customInput, { placeholder: placeholderText })
     },
 }))
@@ -217,6 +219,24 @@ describe('common/form fields', () => {
         it('marks the field blurred so errors show', () => {
             renderDate({ validate: (v?: Date) => (v ? undefined : 'Povinné') })
             act(() => pickerBlur?.())
+        })
+
+        it('forwards the picked date to a custom onChange prop too', () => {
+            const seenOuter: Array<Date | undefined> = []
+            renderDate({ onChange: (value?: Date) => { seenOuter.push(value) } })
+            act(() => pickerChange?.(new Date(2027, 11, 24)))
+            expect(seenOuter[seenOuter.length - 1]).toBeInstanceOf(Date)
+            // An explicit clear reaches the outer onChange as undefined.
+            act(() => pickerChange?.(null))
+            expect(seenOuter[seenOuter.length - 1]).toBeUndefined()
+        })
+
+        it('survives the select callback while the picker ref is still unset', () => {
+            // The mocked picker never runs the real setFocus path, so the
+            // field's inputRef.current is null: handleSelect must not throw.
+            renderDate()
+            act(() => pickerSelect?.())
+            expect(screen.getByPlaceholderText('dd.MM.yyyy')).toBeTruthy()
         })
     })
 

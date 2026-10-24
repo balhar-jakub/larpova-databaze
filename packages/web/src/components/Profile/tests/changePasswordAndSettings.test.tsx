@@ -184,6 +184,18 @@ describe('ChangePasswordPanel', () => {
         expect(mutationCalls.length).toBe(0)
         expect(screen.getByText(translate(cs, 'ChangePassword.passwordAgainError'))).toBeTruthy()
     })
+
+
+    it('renders the password form before the user answer lands', () => {
+        queryData = undefined
+        render(<ChangePasswordPanel />)
+
+        // The hidden username field falls back to the placeholder; the user
+        // detail panel receives undefined instead of crashing.
+        const username = document.querySelector('input[name=username]') as HTMLInputElement
+        expect(username.value).toBe('_')
+        expect(document.body.textContent).not.toContain('NaN')
+    })
 })
 
 describe('UserSettingsPanel', () => {
@@ -205,5 +217,37 @@ describe('UserSettingsPanel', () => {
         queryData = undefined
         render(<UserSettingsPanel />)
         expect(screen.getByText('loading')).toBeTruthy()
+    })
+
+    it('refuses the save and shows the owner when the email is taken', async () => {
+        usedByUser = { id: '9', name: 'Jiný Jakub' }
+        render(<UserSettingsPanel />)
+
+        fireEvent.submit(document.querySelector('form')!)
+
+        // The save is refused before the mutation; the taken-email hint
+        // names the owner of the address.
+        await waitFor(() => expect(screen.getByText(translate(cs, 'UserSettings.emailAlreadyUsed', { name: 'Jiný Jakub' }))).toBeTruthy(), { timeout: 5000 })
+        expect(mutationCalls.length).toBe(0)
+    })
+
+    it('saves with an empty city and a null gender (the fallback arms)', async () => {
+        const current = queryData.loggedInUser as Record<string, unknown>
+        queryData = {
+            loggedInUser: {
+                ...current,
+                city: '',
+                gender: null,
+            } as never,
+        }
+        render(<UserSettingsPanel />)
+
+        fireEvent.submit(document.querySelector('form')!)
+
+        await waitFor(() => expect(pushedRoute).toBe('/muj-profil'), { timeout: 5000 })
+        const variables = mutationCalls[0]?.variables as { input?: Record<string, unknown> } | undefined
+        // city || undefined -> undefined; gender ?? Unspecified -> the enum default.
+        expect(variables?.input?.city).toBeUndefined()
+        expect(variables?.input?.gender).toBe('UNSPECIFIED')
     })
 })

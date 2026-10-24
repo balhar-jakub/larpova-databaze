@@ -76,4 +76,11 @@ describe('ArticleListPanel', () => {
         expect(screen.queryByRole('link')).toBeNull()
         cleanup()
     })
+
+    it('renders no date prefix for an article missing its date parts', () => {
+        render(<ArticleListPanel articles={[{ __typename: 'Article', id: 'a2', url: 'https://example.test', publishedAt: null, source: null, authors: null, perex: null, title: 'Bez data' } as never] as never} />)
+        // The missing date arm: the row renders without a date segment.
+        expect(screen.getByText('Bez data')).toBeTruthy()
+        expect(document.body.textContent).not.toContain('NaN')
+    })
 })

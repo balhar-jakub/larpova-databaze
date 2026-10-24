@@ -99,4 +99,39 @@ describe('SearchEventRow', () => {
         expect(screen.getByText('registration').closest('a')?.getAttribute('href')).toBe('https://registrace.example.test')
         expect(screen.getAllByText((_, el) => el?.textContent === 'Hra na festivalu').length).toBeGreaterThan(0)
     })
+
+    it('renders the bare row: no place, no players, no labels, nameless game, no web', () => {
+        render(
+            <SearchEventRow
+                event={{ ...event, id: 'e2', loc: null, amountOfPlayers: null, labels: [], web: null, games: [{ __typename: 'Game', id: 'g2', name: null }] } as never}
+                query="festival"
+            />,
+        )
+
+        expect(screen.getByText(translate(cs, 'Calendar.noPlace'))).toBeTruthy()
+        // A nameless game link renders as an empty text (the ?? '' arm).
+        expect(screen.queryByText('Calendar.web')).toBeNull()
+    })
+
+    it('separates two linked games with a comma and shows the web action when present', () => {
+        render(
+            <SearchEventRow
+                event={{ ...event, web: 'https://web.example.test', games: [
+                    { __typename: 'Game', id: 'g1', name: 'První' },
+                    { __typename: 'Game', id: 'g2', name: 'Druhá' },
+                ] } as never}
+                query="festival"
+            />,
+        )
+
+        expect(screen.getByText('První')).toBeTruthy()
+        expect(screen.getByText('Druhá')).toBeTruthy()
+        expect(screen.getByText(translate(cs, 'Calendar.web')).closest('a')?.getAttribute('href')).toBe('https://web.example.test')
+    })
+
+    it('marks a foreign and international event', () => {
+        render(<SearchEventRow event={{ ...event, loc: 'Berlín, Německo', name: 'Mezinárodní festival' } as never} query="festival" />)
+        expect(screen.getByText(translate(cs, 'Calendar.foreign'))).toBeTruthy()
+        expect(screen.getByText(translate(cs, 'Calendar.international'))).toBeTruthy()
+    })
 })

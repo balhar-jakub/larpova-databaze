@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react'
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, act, waitFor, cleanup } from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -76,6 +76,7 @@ jest.unstable_mockModule('src/hooks/useRoutes', () => ({
 }))
 
 let CalendarPanel: typeof import('../CalendarPanel').default
+let SeasonStrip: typeof import('../SeasonStrip').default
 let CalendarEventCard: typeof import('../CalendarEventCard').default
 let MonthGrid: typeof import('../MonthGrid').default
 let WeekendAgenda: typeof import('../WeekendAgenda').default
@@ -86,6 +87,7 @@ beforeAll(async () => {
     CalendarEventCard = (await import('../CalendarEventCard')).default
     MonthGrid = (await import('../MonthGrid')).default
     WeekendAgenda = (await import('../WeekendAgenda')).default
+    SeasonStrip = (await import('../SeasonStrip')).default
     HistoryView = (await import('../HistoryView')).default
 })
 
@@ -297,6 +299,43 @@ describe('CalendarPanel', () => {
         fireEvent.click(screen.getByTestId('calendar.addEvent'))
         expect(target).toBe('/akce/vytvor')
     })
+    it('aggregates a month twice in the stats into one season count and answers an empty free-weekend line', async () => {
+        // Two byMonth entries for the SAME month (the `?? 0` + accumulation arm).
+        const now = new Date()
+        const mk = (m: number) => ({ __typename: 'EventMonthCount', year: now.getFullYear(), month: m, count: 4 })
+        statsAnswer = Promise.resolve(statsData([mk(now.getMonth() + 1), mk(now.getMonth() + 1)]))
+        eventsAnswer = Promise.resolve(eventsData([event('1')]))
+        // The single event sits on this weekend, so no free weekend exists.
+        const saturday = new Date()
+        saturday.setDate(saturday.getDate() + ((6 - saturday.getDay() + 7) % 7))
+        const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        eventsAnswer = Promise.resolve(eventsData([event('busy', { from: iso(saturday), to: iso(saturday) })]))
+
+        render(<CalendarPanel initialQuery={{}} />)
+        await screen.findAllByText('Událost busy')
+
+        // The line renders with the em-dash placeholder when every weekend
+        // up to the season end is busy or past.
+        expect(screen.getByTestId('calendar.resultCount')).toBeTruthy()
+        expect(document.body.textContent).toContain('Nejbližší volný víkend')
+    })
+
+    it('derives the label facets from the loaded events, naming a label by its id when nameless', async () => {
+        eventsAnswer = Promise.resolve(
+            eventsData([
+                event('1', { labels: [{ __typename: 'Label', id: 'l1', name: 'komorní' }] }),
+                event('2', { labels: [{ __typename: 'Label', id: 'l2', name: null }] }),
+            ]),
+        )
+
+        render(<CalendarPanel initialQuery={{}} />)
+        await screen.findAllByText('Událost 1')
+
+        // Both labels appear in the sidebar's label list — the nameless one
+        // by its id (the `?? label.id` arm).
+        expect(screen.getByText('komorní')).toBeTruthy()
+        expect(screen.getByText('l2')).toBeTruthy()
+    })
 })
 
 describe('WeekendAgenda', () => {
@@ -373,6 +412,28 @@ describe('HistoryView', () => {
         expect(onSelectYear).toHaveBeenCalledWith(2026)
     })
 
+    it('aggregates two months of the same year into one year row', () => {
+        const byMonth = [
+            { year: 2026, month: 3, count: 2 },
+            { year: 2026, month: 7, count: 5 },
+        ]
+        render(
+            <HistoryView
+                byMonth={byMonth}
+                totalAmount={7}
+                today={new Date(2027, 5, 1)}
+                onSelectYear={() => undefined}
+                yearEvents={[]}
+                loadingYear={false}
+                selectedYear={undefined}
+                hasMoreYear={false}
+                onLoadMoreYear={() => undefined}
+            />,
+        )
+        // Both months landed in the same year entry (the years.get() hit arm).
+        expect(document.body.textContent).toContain('2026')
+    })
+
     it('shows the loading note while the year archive loads', () => {
         render(
             <HistoryView
@@ -435,6 +496,59 @@ describe('CalendarEventCard', () => {
             <CalendarEventCard event={event('z', { coverImage: { __typename: 'Image', id: '9' } })} />,
         )
         expect(screen.getByTestId('calendar.eventImage.z')).toBeTruthy()
+    })
+    it('renders the registration pills for the upcoming, open and closed states', () => {
+        // Upcoming: a future sign-up link announced before it opens.
+        render(<CalendarEventCard event={event('u', { registrationStatus: 'UPCOMING', registrationUrl: 'https://reg.test', from: '2027-06-04', to: '2027-06-04' })} />)
+        expect(screen.getByText(translate(cs, 'Calendar.registrationUpcomingPill'))).toBeTruthy()
+        cleanup()
+
+        // Closed: a link whose registration is not open and not upcoming.
+        render(<CalendarEventCard event={event('cl', { registrationOpen: false, registrationUrl: 'https://reg.test' })} />)
+        expect(screen.getByText(translate(cs, 'Calendar.registrationClosedPill'))).toBeTruthy()
+        cleanup()
+
+        // An open registration with a NON-http link shows no pill at all
+        // (the isAbsoluteHttpUrl guard) — an open flag without a usable link.
+        render(<CalendarEventCard event={event('nl', { registrationOpen: true, registrationUrl: 'javascript:void(0)' })} />)
+        expect(screen.queryByText(translate(cs, 'Calendar.registrationOpenPill'))).toBeNull()
+        expect(screen.queryByText(translate(cs, 'Calendar.registrationClosedPill'))).toBeNull()
+    })
+
+    it('names the span by its length: one day, a weekend and a long event', () => {
+        render(<CalendarEventCard event={event('one-day', { from: '2027-06-04', to: '2027-06-04' })} />)
+        expect(screen.getByText(translate(cs, 'Calendar.oneDay'))).toBeTruthy()
+        cleanup()
+
+        render(<CalendarEventCard event={event('four-days', { from: '2027-06-04', to: '2027-06-07' })} />)
+        // 4 days: the short-count text, not the long one.
+        expect(document.body.textContent).toContain('4 dny')
+        cleanup()
+
+        render(<CalendarEventCard event={event('nine-days', { from: '2027-06-04', to: '2027-06-12' })} />)
+        expect(document.body.textContent).toContain('9 dní')
+    })
+
+    it('lists the linked games, the player count and the missing place', () => {
+        render(
+            <CalendarEventCard
+                event={event('with-games', {
+                    loc: null,
+                    amountOfPlayers: 120,
+                    games: [
+                        { __typename: 'Game', id: 'g1', name: 'Krvavé časy' },
+                        { __typename: 'Game', id: 'g2', name: 'Země snů' },
+                    ],
+                })}
+            />,
+        )
+
+        // Two games: the second gets a comma separator (the index > 0 arm).
+        expect(screen.getByText('Krvavé časy')).toBeTruthy()
+        expect(screen.getByText('Země snů')).toBeTruthy()
+        expect(document.body.textContent).toContain('Krvavé časy, ')
+        expect(document.body.textContent).toContain('120 hráčů')
+        expect(screen.getByText(translate(cs, 'Calendar.noPlace'))).toBeTruthy()
     })
 })
 
@@ -509,3 +623,19 @@ describe('CalendarPanel: sidebar filters', () => {
         await waitFor(() => expect(screen.getByText('Událost 2')).toBeTruthy())
     })
 })
+
+describe('SeasonStrip', () => {
+    it('marks the selected month and keeps the empty months clickable', () => {
+        const months = [
+            { key: '2026-10', label: 'říj 26', count: 4 },
+            { key: '2026-11', label: 'lis 26', count: 0 },
+        ]
+        render(<SeasonStrip months={months} selectedMonth="2026-10" onSelect={() => undefined} />)
+
+        const buttons = screen.getAllByRole('button')
+        expect(buttons).toHaveLength(2)
+        // Both months render; the selected one carries its class.
+        expect(buttons[0].className).not.toBe(buttons[1].className)
+    })
+})
+

@@ -3,6 +3,7 @@ import { parseCalendarState } from '../calendarState'
 import {
     buildMonthGrid,
     durationBucket,
+    eventLabelNames,
     eventPlace,
     eventSpan,
     filterCalendarEvents,
@@ -243,5 +244,66 @@ describe('links and hints', () => {
         expect(nextEventId([camlann, the3rd, the8th], today)).toBe('a')
         expect(nextEventId([the3rd], new Date(2026, 9, 30))).toBeUndefined()
         expect(nextEventId([camlann], new Date(2026, 9, 16))).toBe('c')
+    })
+})
+
+describe('branch arms: span, place, labels', () => {
+    test('an event with a start but no end is one day long', () => {
+        // The `to ?? start` arm: an open-ended event counts as its start day.
+        const openEnded = event('open', 'Otevřený', at(2026, 10, 20), null)
+        expect(eventSpan(openEnded)?.days).toBe(1)
+        expect(eventSpan(openEnded)?.end.getDate()).toBe(20)
+    })
+
+    test('a nameless label is named by its id and a null name is no hint', () => {
+        const nameless = event('n', null as unknown as string, at(2026, 10, 3), at(2026, 10, 3), {
+            labels: [{ __typename: 'Label', id: 'l9', name: null } as never],
+        })
+        // Neither the null name nor the null label name crash the hints.
+        expect(eventPlace(nameless)).toBe('noloc')
+        // A label without a name falls back to its id (the `?? label.id` arm).
+        expect(eventLabelNames(nameless)).toEqual(['l9'])
+    })
+})
+
+describe('branch arms: grouping and lanes', () => {
+    test('an undated event is skipped by the week grouping', () => {
+        const undated = event('u', 'Bez data', null, null)
+        expect(groupEventsByWeek([undated, the3rd]).map((block) => block.events.map((e) => e.id))).toEqual([['a']])
+    })
+
+    test('a same-week event with an earlier start widens the block backwards', () => {
+        const early = event('early', 'Časná', at(2026, 10, 2), at(2026, 10, 2))
+        const blocks = groupEventsByWeek([the3rd, early])
+        expect(blocks).toHaveLength(1)
+        expect(blocks[0].from.getDate()).toBe(2)
+        expect(blocks[0].to.getDate()).toBe(3)
+    })
+
+    test('overlapping bars claim a new lane when no earlier lane is free (lane -1)', () => {
+        // Three events all overlapping: the third must open lane 2.
+        const one = event('o1', 'Jedna', at(2026, 10, 12), at(2026, 10, 16))
+        const two = event('o2', 'Dva', at(2026, 10, 13), at(2026, 10, 17))
+        const three = event('o3', 'Tři', at(2026, 10, 14), at(2026, 10, 18))
+        const grid = buildMonthGrid(2026, 9, [one, two, three])
+        const week = grid.weeks.find((item) => item.days[0].getDate() === 12)
+        expect(week?.lanes).toBe(3)
+        expect(new Set(week?.bars.map((bar) => bar.lane)).size).toBe(3)
+    })
+
+    test('an undated event produces no Google Calendar link and no name param', () => {
+        const undated = event('u2', 'Bez data', null, null)
+        expect(googleCalendarUrl(undated)).toBeUndefined()
+        // A named event without loc/web still gets a link (the null-name arm).
+        const bare = event('b2', null as unknown as string, at(2026, 10, 3), at(2026, 10, 3))
+        expect(googleCalendarUrl(bare)).toContain('text=')
+    })
+
+    test('a past Saturday rolls to the next week for the weekend window', () => {
+        // 2026-10-03 is a Saturday; asked on the Monday after it (the 5th),
+        // the upcoming Saturday is the 10th, not the one already gone.
+        const state = parseCalendarState({ kdy: 'weekend' })
+        const kept = filterCalendarEvents([the3rd, the8th], state, new Date(2026, 9, 5)).map((e) => e.id)
+        expect(kept).toEqual(['b'])
     })
 })

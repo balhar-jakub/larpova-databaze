@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -215,5 +215,26 @@ describe('StatisticsPanel', () => {
         const labelRight = Math.max(...avgAnchors.map((t) => parseFloat(t.getAttribute('x') ?? '0')))
         const points = [...avg.querySelectorAll('circle')].map((c) => parseFloat(c.getAttribute('cx') ?? '0') - 3.5)
         expect(Math.min(...points)).toBeGreaterThanOrEqual(labelRight)
+    })
+
+    it('shows the load-error line when the query fails', async () => {
+        queryAnswer = Promise.reject(new Error('síť spadla'))
+        render(<StatisticsPanel />)
+
+        await waitFor(() => expect(screen.getByText(translate(cs, 'loadError'))).toBeTruthy())
+        // The loading indicator is gone.
+        expect(screen.queryByText('loading')).toBeNull()
+    })
+
+    it('renders the imported-votes overlay bar for a year that carries them', async () => {
+        queryAnswer = Promise.resolve({
+            data: { statistics: statisticsData([year({ importedRatings: 120 })]) },
+        })
+        const { container } = render(<StatisticsPanel />)
+
+        await waitFor(() => expect(container.querySelector('rect')).toBeTruthy())
+        // Two rects per rated year with imports: the live bar plus the overlay.
+        const rects = container.querySelectorAll('rect')
+        expect(rects.length).toBeGreaterThanOrEqual(2)
     })
 })

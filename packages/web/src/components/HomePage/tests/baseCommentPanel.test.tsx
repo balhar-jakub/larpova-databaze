@@ -78,4 +78,53 @@ describe('BaseCommentPanel', () => {
         expect(screen.getByText('01.05.2026')).toBeTruthy()
         expect(screen.getByText(translate(cs, 'HomePage.commentMore'))).toBeTruthy()
     })
+
+    it('renders the sparse arms: no added date parse, no user image, no game ratings', () => {
+        render(
+            <BaseCommentPanel
+                comment={
+                    {
+                        __typename: 'Comment',
+                        id: 'c2',
+                        commentAsText: null,
+                        added: 'not-a-date',
+                        user: { id: 'u2', name: 'Bez obrázku' },
+                        game: { id: 'g2', name: 'Hra bez hodnocení' },
+                    } as never
+                }
+            />,
+        )
+
+        // The unparseable date falls back to the epoch; the rating falls back to 0;
+        // the user without an image renders as-is.
+        expect(screen.getByText('Bez obrázku')).toBeTruthy()
+        expect(screen.getByTestId('rating').textContent).toBe('')
+        expect(screen.getByText('01.01.1970')).toBeTruthy()
+    })
+
+    it('renders nothing of the body when the comment itself is missing', () => {
+        // The fully-optional arm: no comment at all (a dropped cache row).
+        render(<BaseCommentPanel comment={undefined as never} />)
+
+        // The optional chains all take their null side: no user link, no
+        // game link, no read-more, no date crash.
+        expect(screen.queryByTestId('profile-image')).toBeTruthy()
+        expect(screen.queryByText(translate(cs, 'HomePage.commentMore'))).toBeNull()
+        expect(document.body.textContent).not.toContain('NaN')
+    })
+
+    it('a comment with no game ratings falls back to zero', () => {
+        render(
+            <BaseCommentPanel
+                comment={{
+                    ...comment,
+                    game: { id: 'g9', name: 'Hra bez hodnocení' },
+                } as never}
+            />,
+        )
+
+        // amountOfRatings undefined -> || 0 fires; the rating box shows 0.
+        expect(screen.getByTestId('rating').textContent).toBe('')
+        expect(screen.getByText('Hra bez hodnocení')).toBeTruthy()
+    })
 })

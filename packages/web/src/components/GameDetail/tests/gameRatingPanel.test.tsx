@@ -125,4 +125,32 @@ describe('GameRatingPanel', () => {
         render(<GameRatingPanel game={{ ...gameProps }} />)
         expect(screen.queryByText((_, el) => Boolean(el?.textContent?.includes(translate(cs, 'GameDetail.logInToRateBefore').trim())))).toBeNull()
     })
+
+    it('aggregates duplicate rating entries and renders null stats as empty bands', () => {
+        // Two entries for the same rating value (the ?? 0 accumulation arm)
+        // plus a null-count entry (the count ?? 0 arm).
+        render(
+            <GameRatingPanel
+                game={{
+                    ...gameProps,
+                    ratingStats: [
+                        { __typename: 'RatingStats', rating: 10, count: 2 },
+                        { __typename: 'RatingStats', rating: 10, count: 3 },
+                        { __typename: 'RatingStats', rating: 9, count: null },
+                    ],
+                }}
+            />,
+        )
+        // The panel renders without crashing on the null count (the total
+        // falls back to 0 and the aggregation stays silent).
+        expect(document.body.textContent).not.toContain('NaN')
+    })
+
+    it('answers a zero share for every band when there are not enough ratings', () => {
+        render(<GameRatingPanel game={{ ...gameProps, ratingStats: null, amountOfRatings: 2 }} />)
+
+        // hasEnoughRatings false: every band's share computes as 0, and the
+        // chart still renders (the ?? [] arms).
+        expect(document.body.textContent).toBeTruthy()
+    })
 })

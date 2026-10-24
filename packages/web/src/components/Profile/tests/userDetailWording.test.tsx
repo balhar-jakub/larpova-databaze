@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react'
-import { render } from '@testing-library/react'
+import { render, cleanup } from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -69,5 +69,43 @@ describe('the profile header speaks in the gender of the profile owner', () => {
 
         expect(text).toContain('Hráč/čka 3\u00a0larpů')
         expect(text).toContain('tvůrce 2\u00a0larpů')
+    })
+})
+
+describe('branch arms of the profile header', () => {
+    test('an avatar image is served when the user has one, the default otherwise', () => {
+        const withImage = render(
+            <UserDetailPanel userData={{ ...userData(), image: { id: 'img7' } } as never} />,
+        )
+        expect(withImage.container.querySelector('img')?.getAttribute('src')).toBe('/user-icon?id=42&imageId=img7')
+
+        cleanup()
+        const without = render(<UserDetailPanel userData={userData() as never} />)
+        expect(without.container.querySelector('img')?.getAttribute('src')).toBe('/images/user-icon.png')
+    })
+
+    test('a missing profile renders the empty placeholder', () => {
+        const { container } = render(<UserDetailPanel userData={undefined as never} />)
+        expect(container.querySelector('img')).toBeNull()
+        expect(container.querySelector('div')).toBeTruthy()
+    })
+
+    test('the age shows only when the birth date gives one', () => {
+        const withAge = render(
+            <UserDetailPanel userData={{ ...userData(), birthDate: '2000-05-01' } as never} />,
+        )
+        expect(withAge.container.textContent).toMatch(/\d+\u00a0let/)
+
+        cleanup()
+        const withoutAge = render(<UserDetailPanel userData={userData() as never} />)
+        expect(withoutAge.container.textContent).not.toMatch(/\d+\u00a0let/)
+    })
+
+    test('played and created counts fall back to zero', () => {
+        const sparse = render(
+            <UserDetailPanel userData={{ ...userData(), amountOfPlayed: null, amountOfCreated: null } as never} />,
+        )
+        // The gender context with no gender reads as the generic form.
+        expect(sparse.container.textContent).toContain('Hráč/čka 0')
     })
 })
