@@ -58,9 +58,11 @@ function collectCoverage(jestArgs, label) {
     );
   } catch (err) {
     // execFileSync throws on a non-zero exit — and jest's failure summary lives
-    // in the swallowed stdout. Surface it or the step fails with no diagnosis.
-    console.error(`coverage ratchet: the ${label} jest run failed. Its output:`);
-    console.error(err.stdout ?? err.message);
+    // in the swallowed stdout (tens of MB with coverage tables; the summary is
+    // at the end). Surface the tail or the step fails with no diagnosis.
+    const out = typeof err?.stdout === 'string' ? err.stdout : '';
+    console.error(`coverage ratchet: the ${label} jest run failed. Output tail:`);
+    console.error(out.slice(-20_000) || err.message);
     throw err;
   }
 
