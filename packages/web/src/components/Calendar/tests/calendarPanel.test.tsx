@@ -407,5 +407,10 @@ describe('CalendarPanel: sidebar filters', () => {
         // year pager shows. (3 remaining of 4.)
         const yearList = await screen.findByTestId('calendar.historyYearList')
         expect(yearList).toBeTruthy()
+
+        // Loading more of the year archive appends the next page.
+        eventsAnswer = Promise.resolve(eventsData([event('2'), event('3')], 4))
+        fireEvent.click(screen.getByText('Načíst dalších 100'))
+        await waitFor(() => expect(screen.getByText('Událost 2')).toBeTruthy())
     })
 })
