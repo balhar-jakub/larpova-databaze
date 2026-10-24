@@ -14,8 +14,15 @@
  */
 import { jest, describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { PrismaClient } from '@prisma/client';
-import { parseDetail, importLarpCzArticles } from '../external/larpCzArticlesImport';
-import { importLarpyCzArticles } from '../external/larpyCzArticlesImport';
+import {
+  parseDetail,
+  importLarpCzArticles,
+  setRequestSpacing as setLarpCzSpacing,
+} from '../external/larpCzArticlesImport';
+import {
+  importLarpyCzArticles,
+  setRequestSpacing as setLarpyCzSpacing,
+} from '../external/larpyCzArticlesImport';
 import { importLarpCzEvents } from '../external/larpCzImport';
 
 const db = new PrismaClient();
@@ -160,6 +167,13 @@ describe('larpCzArticlesImport.importLarpCzArticles', () => {
   const createdIds: number[] = [];
   const originalFetch = global.fetch;
 
+  beforeAll(() => {
+    // The real import spaces requests by 1s (and CI is slower than a dev
+    // box); with the hook at 0 the whole suite runs in milliseconds and
+    // never flirts with jest's 5s per-test timeout.
+    setLarpCzSpacing(0);
+  });
+
   beforeAll(async () => {
     // One full listing page (7 items stops pagination naturally), one new
     // article, one already-imported article.
@@ -260,6 +274,8 @@ describe('larpCzArticlesImport.importLarpCzArticles', () => {
 // ---------------------------------------------------------------------------
 
 describe('larpyCzArticlesImport.importLarpyCzArticles', () => {
+  beforeAll(() => setLarpyCzSpacing(0));
+
   const originalFetch = global.fetch;
 
   beforeAll(async () => {
@@ -367,6 +383,7 @@ describe('larpyCzArticlesImport.importLarpyCzArticles', () => {
 
 describe('larpCzImport.importLarpCzEvents', () => {
   const originalFetch = global.fetch;
+
   const eventNames = [`${MARK}event-1`, `${MARK}event-2`];
 
   /** Removes this suite's events (and their label links) by name prefix. */
@@ -450,6 +467,35 @@ describe('larpCzImport.importLarpCzEvents', () => {
       expect(event!.from).toEqual(new Date('2025-11-02'));
     } finally {
       global.fetch = originalFetch;
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fresh-database bootstrap
+// ---------------------------------------------------------------------------
+
+describe('larpCzImport on a database with users (the FK owner exists)', () => {
+  it('attributes imported events to the lowest existing user id', async () => {
+    const anyUser = await db.csld_csld_user.findFirst({ orderBy: { id: 'asc' }, select: { id: true } });
+    if (!anyUser) return; // covered by the CI's empty-database run
+    const html = `
+      <html><body><div class="kalendar-akce">
+        <div class="akce-nazev"><a href="https://www.larp.cz/x">${MARK}boot-user</a></div>
+        <div class="akce-datum">3. 7. 2026</div>
+        <div class="akce-misto">Plzeň</div>
+      </div></body></html>`;
+    const originalFetch = global.fetch;
+    routeFetch([{ match: 'larp.cz/kalendar', response: () => res({ text: html }) }]);
+    try {
+      await importLarpCzEvents(db);
+      const event = await db.event.findFirst({ where: { name: `${MARK}boot-user` } });
+      expect(event).not.toBeNull();
+      expect(event!.added_by).toBe(anyUser.id);
+    } finally {
+      global.fetch = originalFetch;
+      await db.event_has_labels.deleteMany({ where: { event: { name: `${MARK}boot-user` } } });
+      await db.event.deleteMany({ where: { name: `${MARK}boot-user` } });
     }
   });
 });

@@ -12,13 +12,23 @@ import type { PrismaClient } from '@prisma/client';
 const LARP_CZ_URL = 'https://www.larp.cz/kalendar';
 
 /**
- * The user the imported events are attributed to (the "system" account).
- * The Java importer used user 1; that row does not exist in every database
- * (fresh imports, test databases), so fall back to the lowest existing id.
+ * The id of the user that "owns" rows created by automated imports.
+ *
+ * The historical Java importer assumed user id 1 exists; on a fresh
+ * database (CI, a new deployment) it does not, and the FK violation was
+ * silently swallowed by the import's catch block ("imported: 0"). So: use
+ * the lowest existing id, and when the database has no users at all
+ * (fresh install), create the bootstrap system account first.
  */
+const SYSTEM_USER_EMAIL = 'system@larpova-databaze.local';
+
 async function systemUserId(db: PrismaClient): Promise<number> {
   const anyUser = await db.csld_csld_user.findFirst({ orderBy: { id: 'asc' }, select: { id: true } });
-  return anyUser?.id ?? 1;
+  if (anyUser) return anyUser.id;
+  const created = await db.csld_csld_user.create({
+    data: { password: '!', role: 2, name: 'Systém', email: SYSTEM_USER_EMAIL },
+  });
+  return created.id;
 }
 
 interface ParsedEvent {
