@@ -136,6 +136,35 @@ describe('common/form fields', () => {
             await act(async () => { await Promise.resolve() })
             expect(seen.length).toBeGreaterThan(0)
         })
+
+        it('offers the create-new action', async () => {
+            const { onCreateNew } = renderAutoComplete()
+            const input = screen.getByPlaceholderText('Hry')
+            fireEvent.change(input, { target: { value: 'hru' } })
+            await act(async () => { await Promise.resolve() })
+
+            const createButton = screen.getAllByText('Vytvořit novou').at(-1)!
+            fireEvent.click(createButton)
+            expect(onCreateNew).toHaveBeenCalledTimes(1)
+        })
+
+        it('says when the search answers with nothing', async () => {
+            renderAutoComplete()
+            const input = screen.getByPlaceholderText('Hry')
+            fireEvent.change(input, { target: { value: 'nic' } })
+
+            // AsyncTypeahead debounces the search (~200ms); wait for the answer.
+            await screen.findByText('Žádné výsledky nenalezeny', {}, { timeout: 3000 })
+        })
+
+        it('links every option to its entity page', async () => {
+            renderAutoComplete({ createUrl: (item: { id?: string }) => `/hra/${item.id}`, entityLinkText: 'detail' })
+            const input = screen.getByPlaceholderText('Hry')
+            fireEvent.change(input, { target: { value: 'hru' } })
+
+            // AsyncTypeahead debounces the search (~200ms); wait for the options.
+            expect(await screen.findAllByText('detail', {}, { timeout: 3000 }).then(l => l.length)).toBe(2)
+        })
     })
 
     describe('FormDateInputField', () => {

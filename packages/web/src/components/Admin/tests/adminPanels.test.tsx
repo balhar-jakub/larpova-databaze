@@ -241,6 +241,34 @@ describe('AdminLabelsPanel', () => {
         expect(mutationVariables.at(-1)).toEqual({ labelId: '2', required: false })
     })
 
+    it('sorts labels with equal flags by name and then id', () => {
+        queryResult = {
+            admin: {
+                allLabels: [
+                    label('5', { name: 'zeta' }),
+                    label('2', { name: 'Beta' }),
+                    label('1', { name: 'Beta' }),
+                    label('3', { name: 'alfa' }),
+                ],
+            },
+        }
+        render(<AdminLabelsPanel />)
+
+        // Same flags everywhere: alphabetical by name, id as the tiebreak.
+        const cells = Array.from(document.body.querySelectorAll('*')).filter(el => /^zeta$|^Beta$|^alfa$/.test(el.textContent ?? ''))
+        expect(cells.length).toBe(4)
+        const order = cells.map(el => el.textContent)
+        // The comparator lowercases the names, so alfa < Beta < zeta.
+        expect(order).toEqual(['alfa', 'Beta', 'Beta', 'zeta'])
+    })
+
+    it('shows the loading state when there are no labels yet', () => {
+        queryResult = { admin: { allLabels: [] } }
+        render(<AdminLabelsPanel />)
+
+        expect(screen.getByText('loading')).toBeTruthy()
+    })
+
     it('saves the edited label with its id and refetches', async () => {
         render(<AdminLabelsPanel />)
 
