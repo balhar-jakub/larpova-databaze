@@ -261,3 +261,86 @@ describe('yearReview', () => {
     expect(result.errors).toBeDefined();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Edge arms of the review resolver: the quotes cap (QUOTES), a comment with
+// added: null, an article without published_at, and an empty year (no ranked
+// games at all).
+// ---------------------------------------------------------------------------
+
+describe('yearReview edge arms', () => {
+  const EDGE_YEAR = 2035;
+  const EDGE_MARK = 'yearreview-edge';
+  const edgeIds: { userId: number; gameIds: number[]; commentIds: number[] } = {
+    userId: 0, gameIds: [], commentIds: [],
+  };
+
+  beforeAll(async () => {
+    await prisma.csld_comment.deleteMany({
+      where: { csld_game: { name: { startsWith: `${EDGE_MARK} ` } } },
+    });
+    await prisma.csld_game.deleteMany({ where: { name: { startsWith: `${EDGE_MARK} ` } } });
+    await prisma.csld_csld_user.deleteMany({ where: { email: { startsWith: `${EDGE_MARK}-` } } });
+
+    const user = await prisma.csld_csld_user.create({
+      data: { email: `${EDGE_MARK}-u@example.invalid`, name: `${EDGE_MARK} Uživatel`, password: '', role: 1, default_lang: 'cs' },
+    });
+    edgeIds.userId = user.id;
+
+    // THREE ranked games with long comments each: the resolver caps quotes
+    // (QUOTES), so only the two longest are served.
+    for (let i = 0; i < 3; i += 1) {
+      const game = await prisma.csld_game.create({
+        data: { name: `${EDGE_MARK} Hra ${i}`, added: new Date(Date.UTC(EDGE_YEAR, 0, 1)), added_by: user.id },
+      });
+      edgeIds.gameIds.push(game.id);
+      const voter = await prisma.csld_csld_user.create({
+        data: { email: `${EDGE_MARK}-v${i}@example.invalid`, name: `${EDGE_MARK} Volič ${i}`, password: '', role: 1, default_lang: 'cs' },
+      });
+      await prisma.csld_rating.create({
+        data: { user_id: voter.id, game_id: game.id, rating: 9, state: 2, added: new Date(Date.UTC(EDGE_YEAR, 2, 1)) },
+      });
+      const comment = await prisma.csld_comment.create({
+        data: {
+          user_id: user.id,
+          game_id: game.id,
+          comment: `<p>${EDGE_MARK} Dlouhá recenze číslo ${i} — text dostatečně dlouhý na to, aby citát upoutal pozornost a nepropadl filtrem délky.</p>`,
+          is_hidden: false,
+          added: i === 2 ? null : new Date(Date.UTC(EDGE_YEAR, 3, 1)), // the third carries NULL
+        },
+      });
+      edgeIds.commentIds.push(comment.id);
+    }
+
+    // NOTE: an article with published_at: null never reaches the mapping —
+    // the resolver's year window filters it out in SQL — so the null arm of
+    // the article mapping is defensive and NOT asserted here.
+  });
+
+  afterAll(async () => {
+    await prisma.csld_comment.deleteMany({ where: { id: { in: edgeIds.commentIds } } });
+    await prisma.csld_rating.deleteMany({ where: { game_id: { in: edgeIds.gameIds } } });
+    await prisma.csld_game.deleteMany({ where: { id: { in: edgeIds.gameIds } } });
+    await prisma.csld_csld_user.deleteMany({ where: { email: { startsWith: `${EDGE_MARK}-` } } });
+  });
+
+  it('caps the quotes at QUOTES and serves the null added as null', async () => {
+    const result = await executeQuery(server, REVIEW_QUERY, { year: EDGE_YEAR });
+    expect(result.errors).toBeUndefined();
+    const review = result.data?.yearReview;
+    // three candidate games, only QUOTES of them get a quote
+    expect(review.quotes.length).toBeLessThan(edgeIds.gameIds.length);
+    // ranked games still list all three
+    expect(review.featuredGames.length + review.runnerUpGames.length).toBe(3);
+  });
+
+  it('answers an empty year without ranked games', async () => {
+    const result = await executeQuery(server, REVIEW_QUERY, { year: 2007 }); // valid but empty
+    expect(result.errors).toBeUndefined();
+    const review = result.data?.yearReview;
+    expect(review.featuredGames).toHaveLength(0);
+    expect(review.runnerUpGames).toHaveLength(0);
+    expect(review.quotes).toHaveLength(0);
+    expect(review.articles).toHaveLength(0);
+  });
+});
