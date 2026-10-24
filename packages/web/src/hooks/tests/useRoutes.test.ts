@@ -76,6 +76,45 @@ describe('the route table', () => {
         expect(routes.gameEdit('g1')).toEqual({ href: '/gameEdit?id=g1', as: '/gameEdit/g1' })
     })
 
+    test('group detail', () => {
+        expect(routes.groupDetail('g1')).toEqual({ href: '/groupDetail?id=g1', as: '/group/g1' })
+    })
+
+    test('the games ladder with its type', () => {
+        expect(routes.games('MostPlayed' as never)).toEqual({
+            href: '/games?ladderType=MostPlayed',
+            as: '/games/MostPlayed',
+        })
+        expect(routes.games()).toEqual({
+            href: '/games?ladderType=RecentAndMostPlayed',
+            as: '/games/RecentAndMostPlayed',
+        })
+    })
+
+    test('statistics and the password flow', () => {
+        expect(routes.statistics()).toEqual({ href: '/statistiky', as: '/statistiky' })
+        expect(routes.recoverPasswordStart()).toEqual({ href: '/recoverPassword', as: '/recoverPassword' })
+        expect(routes.signIn()).toEqual({ href: '/signIn', as: '/signIn' })
+        expect(routes.signUp()).toEqual({ href: '/signUp', as: '/signUp' })
+    })
+
+    test('privacy policy', () => {
+        expect(routes.privacyPolicy()).toEqual({ href: '/ochrana-osobnich-udaju', as: '/ochrana-osobnich-udaju' })
+    })
+
+    test('event create and edit', () => {
+        expect(routes.eventCreate()).toEqual({ href: '/eventEdit', as: '/eventEdit' })
+        expect(routes.eventEdit('e1')).toEqual({ href: '/eventEdit?id=e1', as: '/eventEdit/e1' })
+    })
+
+    test('the admin section', () => {
+        expect(routes.adminIntro()).toEqual({ href: '/admin', as: '/admin' })
+        expect(routes.adminUsers()).toEqual({ href: '/admin/users', as: '/admin/users' })
+        expect(routes.adminLabels()).toEqual({ href: '/admin/labels', as: '/admin/labels' })
+        expect(routes.adminStats()).toEqual({ href: '/admin/stats', as: '/admin/stats' })
+        expect(routes.adminSelfRated()).toEqual({ href: '/admin/selfRated', as: '/admin/selfRated' })
+    })
+
     test('gamesOfAuthor carries the author id and name', () => {
         expect(routes.gamesOfAuthor('a1', 'Jakub Balhar')).toEqual({
             href: '/games?autor=a1&autorn=Jakub%20Balhar',

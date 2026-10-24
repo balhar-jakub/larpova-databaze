@@ -321,6 +321,36 @@ describe('AdminUsersPanel', () => {
         expect(screen.getByText('Alice')).toBeTruthy()
     })
 
+    it('finds users by their nickname too', async () => {
+        render(<AdminUsersPanel />)
+
+        const filterBox = screen.getByPlaceholderText(translate(cs, 'AdminUsers.filterPlaceholder'))
+        fireEvent.change(filterBox, { target: { value: 'bobik' } })
+        await new Promise((r) => setTimeout(r, 550))
+
+        expect(screen.queryByText('Alice')).toBeNull()
+        expect(screen.getByText('Bob')).toBeTruthy()
+    })
+
+    it('caps the list and reveals everyone behind the show-all toggle', async () => {
+        queryResult = {
+            admin: {
+                allUsers: Array.from({ length: 55 }, (_, i) =>
+                    user(String(i + 1), { role: 'USER', name: `Uzivatel ${i + 1}` })),
+            },
+        }
+        render(<AdminUsersPanel />)
+
+        // Only the first 50 show up.
+        expect(screen.getByText('Uzivatel 1')).toBeTruthy()
+        expect(screen.queryByText('Uzivatel 51')).toBeNull()
+
+        fireEvent.click(screen.getByText(/Zobrazit všech 55/))
+
+        expect(screen.getByText('Uzivatel 51')).toBeTruthy()
+        expect(screen.getByText('Uzivatel 55')).toBeTruthy()
+    })
+
     it('asks for confirmation before deleting a user', async () => {
         render(<AdminUsersPanel />)
 

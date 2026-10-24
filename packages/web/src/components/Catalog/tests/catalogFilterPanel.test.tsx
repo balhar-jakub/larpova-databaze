@@ -60,10 +60,23 @@ const state = {
     playersTo: undefined,
 }
 
-const renderPanel = () =>
+const facets = (over: Record<string, unknown> = {}) => ({
+    labels: [
+        { id: 'l1', name: 'svět', count: 3, isRequired: true },
+        { id: 'l2', name: 'fantasy', count: 5, isRequired: false },
+        { id: 'l3', name: 'drama', count: 1, isRequired: false },
+    ],
+    durations: [{ key: 'short', count: 7 }],
+    yearMin: 2000,
+    yearMax: 2026,
+    ...over,
+})
+
+const renderPanel = (over: Record<string, unknown> = {}) =>
     render(
         <CatalogFilterPanel
             state={state as never}
+            facets={facets(over) as never}
             onStateChange={(patch) => { patches.push(patch as Record<string, unknown>) }}
             onReset={() => { resets += 1 }}
         />,
@@ -106,5 +119,68 @@ describe('CatalogFilterPanel', () => {
 
         fireEvent.click(screen.getByTestId('catalog.reset'))
         expect(resets).toBe(1)
+    })
+
+    it('toggles a required-label checkbox and reports the new selection', () => {
+        renderPanel()
+
+        fireEvent.click(screen.getByText('svět'))
+
+        expect(patches).toEqual([{ labels: ['l1'] }])
+    })
+
+    it('switches the label mode between all and any', () => {
+        // The mode row only renders once more than one label is selected.
+        patches.length = 0
+        render(
+            <CatalogFilterPanel
+                state={{ ...state, labels: ['l1', 'l2'], labelMode: 'all' } as never}
+                facets={facets() as never}
+                onStateChange={(patch) => { patches.push(patch as Record<string, unknown>) }}
+                onReset={() => { resets += 1 }}
+            />,
+        )
+
+        fireEvent.click(screen.getByText(translate(cs, 'Catalog.filters.labelModeAny')))
+
+        expect(patches).toEqual([{ labelMode: 'any' }])
+    })
+
+    it('expands the theme list and back', () => {
+        // The expand button only appears past the preview count (8).
+        const manyThemes = Array.from({ length: 10 }, (_, i) => ({
+            id: `t${i}`, name: `tema-${i}`, count: 1, isRequired: false,
+        }))
+        patches.length = 0
+        render(
+            <CatalogFilterPanel
+                state={state as never}
+                facets={facets({ labels: manyThemes }) as never}
+                onStateChange={(patch) => { patches.push(patch as Record<string, unknown>) }}
+                onReset={() => { resets += 1 }}
+            />,
+        )
+
+        expect(screen.queryByText('tema-9')).toBeNull()
+        fireEvent.click(screen.getByText(translate(cs, 'Catalog.filters.showAllThemes', { count: 10 })))
+        expect(screen.getByText('tema-9')).toBeTruthy()
+
+        fireEvent.click(screen.getByText(translate(cs, 'Catalog.filters.showFewerThemes')))
+        expect(screen.queryByText('tema-9')).toBeNull()
+    })
+
+    it('toggles a duration checkbox', () => {
+        renderPanel()
+
+        fireEvent.click(screen.getByText(translate(cs, 'Catalog.durations.short')))
+
+        expect(patches).toEqual([{ durations: ['short'] }])
+    })
+
+    it('toggles the recommended-only and enough-ratings filters', () => {
+        renderPanel()
+
+        fireEvent.click(screen.getByText(/jen doporučované/))
+        expect(patches.at(-1)).toEqual({ minRating: 70 })
     })
 })
