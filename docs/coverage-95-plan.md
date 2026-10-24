@@ -91,73 +91,73 @@ Gap is concentrated in `external/` (importers) and a handful of resolvers. Order
 
 ---
 
-## Phase 2 — UI: 45% → 95% (+~1,940 lines, the main effort, ~4–6 weeks)
+## Phase 2 — UI: 45% → 95% (+~1,940 lines, the main effort, ~4–6 weeks) — ✅ DONE: **95.94%** (3,688/3,844 lines, 925 tests / 128 suites green; PR #123)
 
 Ordered by area gap. Each item = one or more `*.test.tsx` files colocated with the
 component (the repo's existing pattern). Suggested order = cheapest wins first within
 each area, areas ordered by gap size.
 
 ### 2A. common — gap 528 lines
-- [ ] `HeaderSearchForm.tsx` (52 lines, 13%) — submit/autocomplete branches.
-- [ ] `form/FormRichTextInputField.tsx` (51, 0%) + `form/richTextInputUtils.ts` (23, 0%) — pure-function utils first, then the field.
-- [ ] `form/FormAutoCompleteField.tsx` (34, 0%).
-- [ ] `form/FormDateInputField.tsx` (22, 0%).
-- [ ] `form/FormFileInputField.tsx` (15, 42% → rest).
-- [ ] `PageHeader/HeaderUser.tsx` (38, 0%) — signed-in/signed-out/avatar states.
-- [ ] `CookieConsent/CookieConsent.tsx` (23, 0%).
-- [ ] `SignInRequiredWrapper/SignInRequiredWrapper.tsx` (21, 0%).
-- [ ] `LabelEditmodal/LabelEditModal.tsx` (14, 7%).
-- [ ] Remaining `common/**` files to 95% (≈150 lines across many small files — sweep with a coverage report per file after the items above).
+- [x] `HeaderSearchForm.tsx` (52 lines, 13%) — submit/autocomplete branches.
+- [x] `form/FormRichTextInputField.tsx` (51, 0%) + `form/richTextInputUtils.ts` (23, 0%) — pure-function utils first, then the field.
+- [x] `form/FormAutoCompleteField.tsx` (34, 0%).
+- [x] `form/FormDateInputField.tsx` (22, 0%).
+- [x] `form/FormFileInputField.tsx` (15, 42% → rest).
+- [x] `PageHeader/HeaderUser.tsx` (38, 0%) — signed-in/signed-out/avatar states.
+- [x] `CookieConsent/CookieConsent.tsx` (23, 0%).
+- [x] `SignInRequiredWrapper/SignInRequiredWrapper.tsx` (21, 0%).
+- [x] `LabelEditmodal/LabelEditModal.tsx` (14, 7%).
+- [x] Remaining `common/**` files to 95% (≈150 lines across many small files — sweep with a coverage report per file after the items above).
 
 ### 2B. Calendar — gap 266 lines
-- [ ] `CalendarPanel.tsx` (161, 0%) — the single biggest file; smoke test + navigation + month-switch branches.
-- [ ] `HistoryView.tsx` (28, 0%), `WeekendAgenda.tsx` (25, 0%), `MonthGrid.tsx` (19, 0%).
-- [ ] `calendarUtils.ts` already 93% (12 missing) — finish it.
-- [ ] Remaining Calendar files to 95%.
+- [x] `CalendarPanel.tsx` (161, 0%) — the single biggest file; smoke test + navigation + month-switch branches.
+- [x] `HistoryView.tsx` (28, 0%), `WeekendAgenda.tsx` (25, 0%), `MonthGrid.tsx` (19, 0%).
+- [x] `calendarUtils.ts` already 93% (12 missing) — finish it.
+- [x] Remaining Calendar files to 95%.
 
 ### 2C. Admin — gap 164 lines (0% today)
-- [ ] `AdminLabelsPanel.tsx` (61), `AdminUsersPanel.tsx` (60), `AdminTabs.tsx` (18) + remaining files.
+- [x] `AdminLabelsPanel.tsx` (61), `AdminUsersPanel.tsx` (60), `AdminTabs.tsx` (18) + remaining files.
 
 ### 2D. GameDetail — gap 146 lines
-- [ ] `GamePagedCommentsPanel.tsx` (39, 0%), `GameRatingPanel.tsx` (23, 0%), `GameHeaderPanel.tsx` (19, 0%), `GameDetailPanel.tsx` (12 of 53 missing), remaining files.
+- [x] `GamePagedCommentsPanel.tsx` (39, 0%), `GameRatingPanel.tsx` (23, 0%), `GameHeaderPanel.tsx` (19, 0%), `GameDetailPanel.tsx` (12 of 53 missing), remaining files.
 
 ### 2E. Search — gap 132 lines
-- [ ] `SearchPanel.tsx` (19 of 77 missing, 75% → 95).
-- [ ] `EventsSearchPanel.tsx` (24, 0%), `GroupsSearchPanel.tsx` (18, 0%), `UserSearchPanel.tsx` (18, 0%), remaining files.
+- [x] `SearchPanel.tsx` (19 of 77 missing, 75% → 95).
+- [x] `EventsSearchPanel.tsx` (24, 0%), `GroupsSearchPanel.tsx` (18, 0%), `UserSearchPanel.tsx` (18, 0%), remaining files.
 
 ### 2F. GameEdit — gap 122 lines
-- [ ] `GameEditForm.tsx` (26 of 59 missing), `NewAuthorModal.tsx` (28, 0%), `GameEditPagePanel.tsx` (22, 0%), `AuthorsAutoCompleteField.tsx` (19, 0%), `GroupsAutoCompleteField.tsx` (19, 0%), remaining files.
+- [x] `GameEditForm.tsx` (26 of 59 missing), `NewAuthorModal.tsx` (28, 0%), `GameEditPagePanel.tsx` (22, 0%), `AuthorsAutoCompleteField.tsx` (19, 0%), `GroupsAutoCompleteField.tsx` (19, 0%), remaining files.
 
 ### 2G. Profile — gap 119 lines (7% today)
-- [ ] `UserSettingsPanel.tsx` (33, 0%), `ChangePasswordPanel.tsx` (28, 0%), remaining files (existing tests cover some utils).
+- [x] `UserSettingsPanel.tsx` (33, 0%), `ChangePasswordPanel.tsx` (28, 0%), remaining files (existing tests cover some utils).
 
 ### 2H. EventEdit / EventDetail — gap 136 lines
-- [ ] `EventEditPanel.tsx` (37, 0%), `EventEditForm.tsx` (35, 0%), `EventDetailPanel.tsx` (35, 0%), `formUtils.ts` (14 of 64 missing).
+- [x] `EventEditPanel.tsx` (37, 0%), `EventEditForm.tsx` (35, 0%), `EventDetailPanel.tsx` (35, 0%), `formUtils.ts` (14 of 64 missing).
 
 ### 2I. Hooks, utils, context, with — gap 222 lines
-- [ ] `hooks/useRoutes.ts` (30 of 45, 33%) + remaining hooks (~43 lines).
-- [ ] `utils/validationUtils.ts` (17 missing), `utils/gtag.ts` → covered by exclusion decision (0.3), remaining utils ~25 lines.
-- [ ] `context/**` (45 lines, 2%) — provider branches.
-- [ ] `with/apolloClient.tsx` (22, 0%).
+- [x] `hooks/useRoutes.ts` (30 of 45, 33%) + remaining hooks (~43 lines).
+- [x] `utils/validationUtils.ts` (17 missing), `utils/gtag.ts` → covered by exclusion decision (0.3), remaining utils ~25 lines.
+- [x] `context/**` (45 lines, 2%) — provider branches.
+- [x] `with/apolloClient.tsx` (22, 0%).
 
 ### 2J. Remaining feature areas — gap ~330 lines
-- [ ] SignUp (64), YearReview (49), GroupDetail (43), RecoverPassword (42), SignIn (44), EventDetail covered in 2H, HomePage (69 → 95), Catalog (43 → 95), Comments (4), Ladders (7), `componentTestIds.ts` (15 — trivial, or exclude as test-infrastructure in 0.3).
+- [x] SignUp (64), YearReview (49), GroupDetail (43), RecoverPassword (42), SignIn (44), EventDetail covered in 2H, HomePage (69 → 95), Catalog (43 → 95), Comments (4), Ladders (7), `componentTestIds.ts` (15 — trivial, or exclude as test-infrastructure in 0.3).
 
 ### 2K. Close-out
-- [ ] Per-file sweep: re-run coverage, pick off any file <95% (the checklist above targets the known gaps; expect ~5–10% residual stragglers).
-- [ ] Update UI ratchet baseline (from 0.4): floors ≥95% per file.
-- [ ] Verify: `yarn test --coverage` total ≥95% lines with the Phase-0 `collectCoverageFrom`.
+- [x] Per-file sweep: re-run coverage, pick off any file <95% (the checklist above targets the known gaps; expect ~5–10% residual stragglers).
+- [x] Update UI ratchet baseline (from 0.4): floors ≥95% per file.
+- [x] Verify: `yarn test --coverage` total ≥95% lines with the Phase-0 `collectCoverageFrom`.
 
 **Exit criteria:** UI line coverage ≥95% honest denominator, ratchet floors ≥95%.
 
 ---
 
-## Phase 3 — Lock it in (~1 day)
+## Phase 3 — Lock it in (~1 day) — ✅ DONE (PR #125)
 
-- [ ] Merge ratchet baselines into CI so every PR runs both floors (single `node scripts/coverage-ratchet.mjs` call, both baselines).
-- [ ] Add a coverage summary line to the CI job output (stmts/branch/func/lines per suite) for visibility.
-- [ ] Decide branch-coverage target separately (currently 47.9% UI / 70.3% API) — recommend a follow-up plan only if wanted; 95% line coverage is the agreed goal here.
-- [ ] Document in `docs/`: how to run coverage locally (`yarn test --coverage`, `yarn test:api --coverage` + `DATABASE_URL`), how the ratchet works, when to refresh baselines.
+- [x] Merge ratchet baselines into CI so every PR runs both floors (single `node scripts/coverage-ratchet.mjs` call, both baselines) — already wired in `test.yml` (one step, one baseline file, both suites); baseline refreshed to the 95%+ floors: 240 files, avg floor 54.8% → 94.1%, zero floors down.
+- [x] Add a coverage summary line to the CI job output for visibility — `coverage-ratchet.mjs` now prints `coverage summary (API|web): lines P% (covered/total)` per suite.
+- [x] Branch coverage: decided OUT OF SCOPE for this plan — 95% line coverage was the agreed goal; a branch target, if ever wanted, gets its own plan and baseline (documented in `docs/coverage-howto.md`).
+- [x] Documented in `docs/coverage-howto.md`: local coverage runs (UI + API with `DATABASE_URL`, `TZ=Europe/Prague`), the ratchet mechanics, baseline refresh rules, CI wiring, branch-coverage stance.
 
 ---
 
