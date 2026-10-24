@@ -61,6 +61,11 @@ per-file line-coverage floor recorded in
 - The API run needs `DATABASE_URL`; CI uses a fresh migrated,
   zero-seed postgres — floors must hold in that environment, so don't
   calibrate them against the seeded local DB for data-dependent files.
+- Known data-dependent floors (calibrated to CI's empty database, so the
+  floor reflects what the empty-DB run can reach, not the seeded DB's
+  higher numbers): `resolvers/homepage.ts` (99, not 100) and
+  `scheduled/similarityEngine.ts` (90, not 96) — a seeded-DB branch
+  (e.g. similarity work only when games exist) is unreachable in CI.
 
 ### When and how to refresh the baseline
 
