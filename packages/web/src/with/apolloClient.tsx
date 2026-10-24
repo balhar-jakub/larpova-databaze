@@ -4,10 +4,9 @@
 // Uses plain @apollo/client (not the experimental package) since
 // ApolloNextAppProvider requires App Router.
 
-import { HttpLink, InMemoryCache, InMemoryCacheConfig } from '@apollo/client/index.js'
+import { HttpLink, InMemoryCache, InMemoryCacheConfig, from } from '@apollo/client/index.js'
 import { ApolloClient } from '@apollo/client/index.js'
 import { onError } from '@apollo/client/link/error/index.js'
-import { from } from '@apollo/client/index.js'
 import { toastContextValue } from '../context/ToastContext/ToastContext'
 import GraphQLErrorContent, {
     PropsFromGraphQLError,
@@ -86,7 +85,7 @@ export function makeClient() {
     })
 
     return new ApolloClient({
-        link: httpLink,
+        link: from([errorLink, httpLink]),
         cache: new InMemoryCache(cacheConfig),
     })
 }

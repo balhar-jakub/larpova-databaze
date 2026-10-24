@@ -2,15 +2,16 @@
  * @jest-environment jsdom
  */
 /**
- * The Apollo client factory: the client wires an HttpLink at /graphql with
- * same-origin credentials, and the error link toasts mutation/network
- * errors while leaving custom-handled operations alone.
+ * The Apollo client factory: the client wires the error link in front of
+ * the HttpLink at /graphql. Mutation and network errors are toasted
+ * through the module-level toast context and cleared from the response;
+ * operations with their own error handling (ChangePassword) are left
+ * alone, and plain reads surface their errors without a toast.
  */
 import React from 'react'
 import { jest } from '@jest/globals'
-import { act, cleanup, render } from '@testing-library/react'
-
-
+import { cleanup } from '@testing-library/react'
+import { gql } from '@apollo/client/index.js'
 
 const toasts: Array<{ text: unknown; type: string }> = []
 
@@ -27,21 +28,58 @@ jest.unstable_mockModule('../../components/common/GraphQLErrorContent/GraphQLErr
     },
 }))
 
-// Apollo's HttpLink validates fetch availability in jsdom — provide a stub.
-;(globalThis as unknown as { fetch: unknown }).fetch ??= () => Promise.resolve(new Response('{}'))
+// jsdom has no Response global; give fetch a minimal stand-in.
+class StubResponse {
+    readonly ok: boolean
+    readonly status: number
+    readonly body: string
+    constructor(body: string, init?: { status?: number }) {
+        this.body = body
+        this.status = init?.status ?? 200
+        this.ok = this.status < 400
+    }
+    async json() { return JSON.parse(this.body) }
+    async text() { return this.body }
+}
+
+// The transport is stubbed: the fetch behind HttpLink answers with the
+// configured payload or rejects like a dead network.
+let fetchAnswer: () => Promise<StubResponse> = () => Promise.resolve(new StubResponse('{}'))
+
+const realFetch = globalThis.fetch
+;(globalThis as unknown as { fetch: unknown }).fetch = ((...args: unknown[]) => fetchAnswer()) as unknown
 
 let apolloClientModule: typeof import('../apolloClient')
-let ToastContextModule: typeof import('../../context/ToastContext/ToastContext')
 
 beforeAll(async () => {
     apolloClientModule = await import('../apolloClient')
-    ToastContextModule = await import('../../context/ToastContext/ToastContext')
 })
 
 beforeEach(() => {
     cleanup()
     toasts.length = 0
+    fetchAnswer = () => Promise.resolve(new StubResponse('{}'))
 })
+
+afterAll(() => {
+    ;(globalThis as unknown as { fetch: unknown }).fetch = realFetch
+})
+
+const MUTATION = gql`
+    mutation AddLabel($input: LabelInput!) {
+        addLabel(input: $input) {
+            id
+        }
+    }
+`
+
+const QUERY = gql`
+    query Games {
+        games {
+            id
+        }
+    }
+`
 
 describe('makeClient', () => {
     it('creates a client with an http link to /graphql', () => {
@@ -58,13 +96,61 @@ describe('makeClient', () => {
     })
 })
 
-describe('error link behavior (through toastContextValue)', () => {
-    it('toasts a mutation error and clears response errors', () => {
-        const onError = ToastContextModule.toastContextValue.actions.showToast
-        expect(typeof onError).toBe('function')
+describe('the error link is wired into the client', () => {
+    it('toasts a mutation GraphQL error and clears it from the response', async () => {
+        fetchAnswer = () => Promise.resolve(new StubResponse(JSON.stringify({
+            errors: [{ message: 'nope', extensions: { errorClass: 'VALIDATION' } }],
+        }), { status: 200 }))
 
-        // Simulate what the error link does on a mutation GraphQL error.
-        toasts.push({ text: 'error-VALIDATION', type: 'alert' })
+        const client = apolloClientModule.makeClient()
+        const result = await client.mutate({ mutation: MUTATION, variables: { input: {} } })
+
+        expect(toasts.length).toBe(1)
         expect(toasts[0]?.type).toBe('alert')
+        // The error link swallows the errors so the caller does not throw.
+        expect(result.errors).toBeUndefined()
+    })
+
+    it('toasts a network error', async () => {
+        fetchAnswer = () => Promise.reject(new TypeError('network down'))
+
+        const client = apolloClientModule.makeClient()
+        await client.query({ query: QUERY, fetchPolicy: 'network-only' }).catch(() => undefined)
+
+        expect(toasts.length).toBe(1)
+        expect(toasts[0]?.type).toBe('alert')
+    })
+
+    it('leaves query GraphQL errors to the caller (no toast for reads)', async () => {
+        fetchAnswer = () => Promise.resolve(new StubResponse(JSON.stringify({
+            errors: [{ message: 'nope', extensions: { errorClass: 'VALIDATION' } }],
+        }), { status: 200 }))
+
+        const client = apolloClientModule.makeClient()
+        await client.query({ query: QUERY, fetchPolicy: 'network-only' }).catch(() => undefined)
+
+        expect(toasts.length).toBe(0)
+    })
+
+    it('leaves ChangePassword errors to the operation (no toast)', async () => {
+        fetchAnswer = () => Promise.resolve(new StubResponse(JSON.stringify({
+            errors: [{ message: 'bad old password', extensions: { errorClass: 'VALIDATION', path: 'oldPassword' } }],
+        }), { status: 200 }))
+
+        const client = apolloClientModule.makeClient()
+        // The operation keeps its error (it does its own handling), so the
+        // promise rejects with it.
+        await expect(client.mutate({
+            mutation: gql`
+                mutation ChangePassword($oldPassword: String!, $newPassword: String!) {
+                    changePassword(oldPassword: $oldPassword, newPassword: $newPassword) {
+                        id
+                    }
+                }
+            `,
+            variables: { oldPassword: 'x', newPassword: 'y' },
+        })).rejects.toThrow('bad old password')
+
+        expect(toasts.length).toBe(0)
     })
 })
