@@ -132,7 +132,18 @@ function collectCoverage(jestArgs, label) {
 function main() {
   // The same invocation CI uses, so the floors are what a PR actually sees.
   const api = collectCoverage(
-    ['--config', 'jest.api.config.json', '--collectCoverageFrom=src/api/src/**/*.ts', '--collectCoverageFrom=!src/api/src/**/*.d.ts', 'src/api/src/__tests__'],
+    [
+      '--config', 'jest.api.config.json',
+      '--collectCoverageFrom=src/api/src/**/*.ts',
+      '--collectCoverageFrom=!src/api/src/**/*.d.ts',
+      // The bootstrap: main() starts the real server (app.listen, cron
+      // registration, passport wiring). It can only run once at boot — an
+      // in-process import would bind the port and schedule jobs — so its
+      // branches are no more testable than packages/web/server.ts, which the
+      // web scope excludes the same way by never importing it.
+      '--collectCoverageFrom=!src/api/src/index.ts',
+      'src/api/src/__tests__',
+    ],
     'API',
   );
   // The whole web tree minus the API server tree and the agreed exclusions
