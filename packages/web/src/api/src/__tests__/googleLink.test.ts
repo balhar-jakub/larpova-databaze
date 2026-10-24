@@ -244,3 +244,69 @@ describe('googleSignInConfigured', () => {
     expect(googleSignInConfigured({ GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret' })).toBe(true);
   });
 });
+
+
+describe('unique-violation race and configuration arms', () => {
+  const identity = (sub: string, email: string) => ({
+    sub, email, emailVerified: true, name: 'Race Test',
+  });
+
+  it('a P2002 on create that finds the raced link after answers sign-in', async () => {
+    // The other callback won the insert between our findUnique and create:
+    // the first lookup missed, the create hits the unique constraint, and
+    // the retry finds the raced row. A crafted db shapes exactly that.
+    const sub = `sub-race-${stamp}`;
+    let lookup = 0;
+    const racedDb = {
+      csld_oauth_account: {
+        // first call (rule 1): nothing; after the failed create: the raced row
+        findUnique: async () => {
+          lookup += 1;
+          return lookup === 1 ? null : { id: 999, user_id: plainId };
+        },
+        findFirst: async () => null,
+        create: async () => {
+          throw Object.assign(new Error('unique'), { code: 'P2002' });
+        },
+        update: async () => ({}),
+      },
+      csld_csld_user: { findMany: async () => [{ id: plainId }] },
+      $transaction: async (fn: (tx: unknown) => unknown) => fn(racedDb),
+      $queryRaw: async () => [{ id: plainId, email: plainEmail }],
+    };
+    const outcome = await linkGoogleIdentity(racedDb as never, identity(sub, plainEmail));
+    // the raced link exists → sign-in through it (how: linked)
+    expect(outcome.kind).toBe('sign-in');
+  });
+
+  it('a P2002 with no raced link left answers conflict', async () => {
+    const sub = `sub-ghost-${stamp}`;
+    const ghostDb = {
+      csld_oauth_account: {
+        findUnique: async () => null,
+        findFirst: async () => null,
+        // after the failed create, the raced lookup STILL finds nothing
+        create: async () => {
+          throw Object.assign(new Error('unique'), { code: 'P2002' });
+        },
+        update: async () => ({}),
+      },
+      csld_csld_user: { findMany: async () => [{ id: plainId }] },
+      $transaction: async (fn: (tx: unknown) => unknown) => fn(ghostDb),
+      $queryRaw: async () => [{ id: plainId, email: plainEmail }],
+    };
+    const outcome = await linkGoogleIdentity(ghostDb as never, identity(sub, plainEmail));
+    expect(outcome.kind).toBe('conflict');
+    expect((outcome as any).userId).toBe(plainId);
+  });
+
+  it('googleSignInConfigured needs both halves of the credentials', () => {
+    expect(googleSignInConfigured({ GOOGLE_CLIENT_ID: 'id' } as never)).toBe(false);
+    expect(googleSignInConfigured({ GOOGLE_CLIENT_SECRET: 'secret' } as never)).toBe(false);
+    expect(googleSignInConfigured({} as never)).toBe(false);
+    expect(
+      googleSignInConfigured({ GOOGLE_CLIENT_ID: 'id', GOOGLE_CLIENT_SECRET: 'secret' } as never),
+    ).toBe(true);
+  });
+});
+

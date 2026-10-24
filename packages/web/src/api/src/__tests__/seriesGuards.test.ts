@@ -90,6 +90,13 @@ describe('seriesByQuery fallbacks (the picker)', () => {
     expect(names).not.toContain(`${marker} smazaná`);
   });
 
+
+  it('an undefined query lists series too (the optional-chain arm)', async () => {
+    const rows = await seriesByQueryResolver({}, {}, anonymousCtx());
+    const names = rows.map((r: any) => r.name);
+    expect(names).toContain(`${marker} živá`);
+  });
+
   it('a substring query narrows the list; limit is clamped at 50', async () => {
     const rows = await seriesByQueryResolver({}, { query: `${marker} živ`, offset: 0, limit: 50 }, anonymousCtx());
     expect(rows.map((r: any) => r.name)).toEqual([`${marker} živá`]);

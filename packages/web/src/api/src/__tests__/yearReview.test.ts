@@ -287,9 +287,9 @@ describe('yearReview edge arms', () => {
     });
     edgeIds.userId = user.id;
 
-    // THREE ranked games with long comments each: the resolver caps quotes
-    // (QUOTES), so only the two longest are served.
-    for (let i = 0; i < 3; i += 1) {
+    // NINE ranked games with long comments each: the resolver caps quotes
+    // at QUOTES = 8, so the ninth-longest comment never becomes a quote.
+    for (let i = 0; i < 9; i += 1) {
       const game = await prisma.csld_game.create({
         data: { name: `${EDGE_MARK} Hra ${i}`, added: new Date(Date.UTC(EDGE_YEAR, 0, 1)), added_by: user.id },
       });
@@ -328,10 +328,11 @@ describe('yearReview edge arms', () => {
     const result = await executeQuery(server, REVIEW_QUERY, { year: EDGE_YEAR });
     expect(result.errors).toBeUndefined();
     const review = result.data?.yearReview;
-    // three candidate games, only QUOTES of them get a quote
+    // nine candidate games, only QUOTES of them get a quote
     expect(review.quotes.length).toBeLessThan(edgeIds.gameIds.length);
-    // ranked games still list all three
-    expect(review.featuredGames.length + review.runnerUpGames.length).toBe(3);
+    expect(review.quotes.length).toBe(8); // the cap itself
+    // ranked games still list all nine
+    expect(review.featuredGames.length + review.runnerUpGames.length).toBe(9);
   });
 
   it('answers an empty year without ranked games', async () => {
