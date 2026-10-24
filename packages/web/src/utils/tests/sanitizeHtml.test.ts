@@ -142,4 +142,23 @@ describe('sanitizeHtml — XSS vectors (real walker path)', () => {
     expect(out.toLowerCase()).not.toContain('onmouseover');
     expect(out.toLowerCase()).not.toContain('alert');
   });
-});
+
+  it('the firefox bogus node: a lone <br> sanitizes to the empty string', () => {
+    expect(sanitize('<br>')).toBe('')
+    expect(sanitize('  <br>  ')).toBe('')
+  })
+
+  it('null and undefined answers the empty string without touching the DOM', () => {
+    expect(sanitize(null)).toBe('')
+    expect(sanitize(undefined)).toBe('')
+    expect(sanitize('')).toBe('')
+  })
+
+  it('a <br> directly followed by text gains the newline, and so do stacked divs', () => {
+    // The replace() arms of the return: <br>X becomes <br>\nX and div><div
+    // becomes div>\n<div — both fire only when the shapes actually occur.
+    const out = sanitize('<p>one<br>two</p><div>a</div><div>b</div>')
+    expect(out).toContain('<br>\ntwo')
+    expect(out).toContain('div>\n<div')
+  })
+})
