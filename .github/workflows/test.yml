@@ -126,13 +126,16 @@ jobs:
         # the server runs this very tree (packages/web/server.ts imports it),
         # so a red here is a real regression, not drift documentation.
 
-      - name: Coverage ratchet (per-file floors)
+      - name: Coverage ratchet (per-file floors + suite branch gate)
         # Phase 4: a coverage drop is a regression like a red test — a probe
-        # deleted or an untested path regained. The baseline
+        # deleted or an untested path regained. The line baseline
         # (scripts/coverage-ratchet-baseline.json) holds per-file line floors;
-        # refresh it ONLY on a green main with
+        # the branch baseline (scripts/coverage-ratchet-branch-baseline.json)
+        # holds the suite-level branch targets (the ≥90% branch plan's gate)
+        # plus informational per-file branch numbers. Refresh both ONLY on a
+        # green main with
         #   node scripts/coverage-ratchet.mjs --update-baseline
-        # and review that floors only went UP.
+        # and review that line floors and suite targets only went UP.
         env:
           DATABASE_URL: postgresql://csld:csld@localhost:5432/csld
           NODE_OPTIONS: --experimental-vm-modules

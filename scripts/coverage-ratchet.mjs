@@ -1,28 +1,38 @@
 #!/usr/bin/env node
 /**
- * Coverage ratchet (Phase 4).
+ * Coverage ratchet (Phase 4; branch gate added by the branch-coverage plan,
+ * docs/coverage-branch-90-plan.md Phase 0).
  *
  * A drop in per-file coverage is a regression like a red test: coverage can
  * only be *regained* deliberately (a PR that raises the floor), never
  * silently lost (a PR that deletes a probe to make the suite green).
  *
  * How it works:
- * - scripts/coverage-ratchet-baseline.json holds per-file line-coverage
+ * - scripts/coverage-ratchet-baseline.json holds per-file LINE-coverage
  *   floors, generated from the current main (see the workflow and
  *   "Raising the floors" below).
  * - This script runs a jest coverage pass (API + web suites) and fails if
  *   ANY file drops even 1 point below its floor. Files not in the baseline
  *   are NOT required to have coverage — new files enter the baseline at
  *   their merged coverage the next time the baseline is refreshed.
+ * - scripts/coverage-ratchet-branch-baseline.json holds the BRANCH-coverage
+ *   state: per-suite targets (the gate) plus per-file numbers (informational
+ *   progress tracking). The branch goal is suite-level, not per-file:
+ *   branch floors churn on innocent refactors (two if-arms merged into one,
+ *   an extraction), while a suite total is refactor-stable — merging two
+ *   arms removes one from BOTH numerator and denominator, so the number
+ *   only moves when coverage genuinely changes.
  *
  * Refreshing the baseline (only on a green main, never to "fix" a red one):
  *   node scripts/coverage-ratchet.mjs --update-baseline
- *   # review the diff — floors must only go UP per file (or gain files)
+ *   # review the diff — floors must only go UP per file (or gain files),
+ *   # and suite branch targets must only go UP.
  *
  * Design notes:
- * - Lines, not branches: branch floors churn on refactors that merge two
- *   if-arms, and the audit's regression classes (a deleted probe, an
- *   untested resolver body) all show up as lost lines first.
+ * - Lines, not branches, for the per-file floors: branch floors churn on
+ *   refactors that merge two if-arms, and the audit's regression classes (a
+ *   deleted probe, an untested resolver body) all show up as lost lines
+ *   first.
  * - Whole-percentage floors (no decimals): a 79.99→79.5 wobble must not
  *   fail a PR; only real regressions do.
  * - The API suite and the web suite run in one process each, the same way
@@ -36,17 +46,18 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const BASELINE_PATH = join(ROOT, 'scripts', 'coverage-ratchet-baseline.json');
+const BRANCH_BASELINE_PATH = join(ROOT, 'scripts', 'coverage-ratchet-branch-baseline.json');
 const UPDATE = process.argv.includes('--update-baseline');
 
 /**
- * Collect per-file LINE coverage for a jest config.
- * Returns { [absPath]: pct }.
+ * Collect per-file coverage for a jest config.
+ * Returns { files: { [absPath]: { lines, branches } }, totals: { lines, branches } }.
  */
 function collectCoverage(jestArgs, label) {
   // The coverage numbers are read from coverage-summary.json on disk; jest's
   // stdout (tens of MB of coverage tables for the API suite) is never used.
-  // Capturing it into a JS string was the ratchet's memory peak — enough to get
-  // the process OOM-killed on the 2-core runner after the API run finished,
+  // Capturing it into a JS string was the ratchet's memory peak — enough to
+  // get the process OOM-killed on the 2-core runner after the API run finished,
   // with no failure summary because nothing had failed yet. Stdout goes to
   // /dev/null; stderr streams through so a red suite still explains itself.
   const result = spawnSync(
@@ -81,20 +92,35 @@ function collectCoverage(jestArgs, label) {
     process.exit(1);
   }
   const summary = JSON.parse(readFileSync(summaryPath, 'utf-8'));
-  // Visibility line for CI: the per-suite totals, the same numbers the
-  // ratchet floors are built from (json-summary "total" entry).
-  const total = summary.total?.lines ?? summary.total;
-  if (total) {
+  // Visibility lines for CI: the per-suite totals, the same numbers the
+  // ratchet floors and branch gate are built from (json-summary "total").
+  const linesTotal = summary.total?.lines;
+  if (linesTotal) {
     console.log(
-      `coverage summary (${label}): lines ${total.pct}% (${total.covered}/${total.total})`,
+      `coverage summary (${label}): lines ${linesTotal.pct}% (${linesTotal.covered}/${linesTotal.total})`,
+    );
+  }
+  const branchesTotal = summary.total?.branches;
+  if (branchesTotal) {
+    console.log(
+      `coverage summary (${label}): branches ${branchesTotal.pct}% (${branchesTotal.covered}/${branchesTotal.total})`,
     );
   }
   const files = {};
   for (const [path, data] of Object.entries(summary)) {
     if (path === 'total') continue;
-    files[path] = data.lines.pct;
+    files[path] = {
+      lines: data.lines.pct,
+      branches: data.branches.pct,
+    };
   }
-  return files;
+  return {
+    files,
+    totals: {
+      lines: summary.total?.lines,
+      branches: summary.total?.branches,
+    },
+  };
 }
 
 function main() {
@@ -123,19 +149,50 @@ function main() {
     'web',
   );
 
-  const current = { ...api, ...web };
+  const current = { ...api.files, ...web.files };
 
   if (UPDATE) {
     // Baselines are written as repo-relative paths so they survive checkouts
     // at different absolute locations.
-    const relative = {};
-    for (const [path, pct] of Object.entries(current)) {
-      relative[path.replace(/^.*\/packages\/web\//, 'packages/web/')] = pct;
+    const relativeLines = {};
+    const branchFiles = {};
+    for (const [path, data] of Object.entries(current)) {
+      const rel = path.replace(/^.*\/packages\/web\//, 'packages/web/');
+      relativeLines[rel] = data.lines;
+      // Math.floor, not round: the check below compares Math.floor(current)
+      // against the recorded value, so a file measuring 66.5 must record 66 —
+      // rounding it to 67 would flag drift on every run forever.
+      branchFiles[rel] = Math.floor(data.branches);
     }
-    const sorted = Object.fromEntries(Object.entries(relative).sort(([a], [b]) => a.localeCompare(b)));
-    writeFileSync(BASELINE_PATH, JSON.stringify(sorted, null, 2) + '\n');
-    const floorFiles = Object.keys(sorted).length;
+    const sortedLines = Object.fromEntries(
+      Object.entries(relativeLines).sort(([a], [b]) => a.localeCompare(b)),
+    );
+    writeFileSync(BASELINE_PATH, JSON.stringify(sortedLines, null, 2) + '\n');
+
+    // Branch baseline: suite-level targets (the gate — whole percent, floored
+    // so a 78.94 measured today tolerates wobble down to 78.00) plus the
+    // per-file numbers for progress tracking. The targets ratchet UP with
+    // each coverage batch until they reach the 90% goal (Phase 3 of the plan).
+    const branchBaseline = {
+      // Suite branch-coverage floors enforced on every PR. Raise these only
+      // with the coverage work that makes the higher number true.
+      targets: {
+        API: Math.floor(api.totals.branches?.pct ?? 0),
+        web: Math.floor(web.totals.branches?.pct ?? 0),
+      },
+      // Per-file branch coverage at baseline time — informational (printed
+      // as drift warnings, never failing a PR): branch floors churn on
+      // refactors that merge if-arms, so per-file branch numbers are
+      // progress tracking, not gates. The suite targets above are the gate.
+      files: Object.fromEntries(Object.entries(branchFiles).sort(([a], [b]) => a.localeCompare(b))),
+    };
+    writeFileSync(BRANCH_BASELINE_PATH, JSON.stringify(branchBaseline, null, 2) + '\n');
+
+    const floorFiles = Object.keys(sortedLines).length;
     console.log(`coverage ratchet: baseline written (${floorFiles} files)`);
+    console.log(
+      `coverage ratchet: branch baseline written (targets API ${branchBaseline.targets.API}%, web ${branchBaseline.targets.web}%; ${Object.keys(branchFiles).length} files recorded)`,
+    );
     console.log('Review the diff — floors must only go UP, never down.');
     return;
   }
@@ -150,15 +207,52 @@ function main() {
   for (const [relPath, floorRaw] of Object.entries(baseline)) {
     const floor = Math.floor(Number(floorRaw)); // whole-% floors: wobble-tolerant
     const absPath = join(ROOT, relPath);
-    const pct = current[absPath];
-    if (pct === undefined) {
+    const data = current[absPath];
+    if (data === undefined) {
       // The file moved or was deleted — not a coverage regression, but worth
       // flagging so the baseline gets refreshed consciously.
       console.warn(`coverage ratchet: ${relPath} not covered by this run (moved/deleted?) — baseline needs a refresh`);
       continue;
     }
-    if (Math.floor(pct) < floor) {
-      failures.push({ relPath, floor, pct });
+    if (Math.floor(data.lines) < floor) {
+      failures.push({ relPath, floor, pct: data.lines });
+    }
+  }
+
+  // Suite-level branch gate: each suite is gated separately on its own tree —
+  // never a blended number (the same convention as the line plan). The
+  // branch baseline file carries the targets; it is created together with
+  // the line baseline, so a missing file here means the baseline predates
+  // the branch plan — refresh on a green main.
+  const branchFailures = [];
+  if (existsSync(BRANCH_BASELINE_PATH)) {
+    const branchBaseline = JSON.parse(readFileSync(BRANCH_BASELINE_PATH, 'utf-8'));
+    const suites = [
+      { label: 'API', totals: api.totals },
+      { label: 'web', totals: web.totals },
+    ];
+    for (const { label, totals } of suites) {
+      const target = Number(branchBaseline.targets?.[label]);
+      const pct = totals.branches?.pct ?? 0;
+      if (!Number.isFinite(target) || target <= 0) continue; // no target recorded yet
+      if (Math.floor(pct) < target) {
+        branchFailures.push({ label, pct, target, branches: totals.branches });
+      }
+    }
+    // Informational per-file branch drift (never fails a PR — see design
+    // notes): files whose branch % dipped below the recorded state, so the
+    // batch authors see where arms were lost even while the suite gate
+    // holds. One point of tolerance: same whole-% wobble philosophy as the
+    // line floors — a file measuring 66.5 one run and 66.4 the next must
+    // not warn forever; only a real multi-arm loss does.
+    for (const [relPath, recordedRaw] of Object.entries(branchBaseline.files ?? {})) {
+      const recorded = Math.floor(Number(recordedRaw));
+      const absPath = join(ROOT, relPath);
+      const data = current[absPath];
+      if (data === undefined) continue;
+      if (Math.floor(data.branches) < recorded - 1) {
+        console.warn(`coverage ratchet: branch drift ${relPath}: ${Math.floor(data.branches)}% < recorded ${recorded}% (informational)`);
+      }
     }
   }
 
@@ -173,8 +267,21 @@ function main() {
     process.exit(1);
   }
 
-  const checked = Object.keys(baseline).length;
-  console.log(`coverage ratchet: OK — ${checked} files at or above their floors`);
+  if (branchFailures.length > 0) {
+    console.error('\ncoverage ratchet: SUITE branch coverage DROPPED below its floor:');
+    for (const f of branchFailures) {
+      console.error(
+        `  ${f.label}: ${Math.floor(f.pct)}% < floor ${f.target}% (${f.branches?.covered}/${f.branches?.total} branches)`,
+      );
+    }
+    console.error('\nBranch coverage only moves when arms are genuinely gained or lost — a drop means');
+    console.error('a test stopped exercising a code path, or new untested branchy code landed.');
+    console.error('Fix the coverage in this PR, or raise the floor consciously in the coverage batch PR');
+    console.error('(docs/coverage-branch-90-plan.md): node scripts/coverage-ratchet.mjs --update-baseline');
+    process.exit(1);
+  }
+
+  console.log(`coverage ratchet: OK — ${Object.keys(baseline).length} files at or above their floors`);
 }
 
 main();
