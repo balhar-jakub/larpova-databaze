@@ -45,9 +45,6 @@ const GAME_INCLUDE = {
   csld_image_csld_game_cover_imageTocsld_image: true,
 } as const;
 
-const inRange = (date: Date | null, from: Date, to: Date): boolean =>
-  Boolean(date) && !isNaN(date.getTime()) && date >= from && date < to;
-
 /**
  * The old CSLD had a default avatar uploaded as a user picture
  * (`upload/default_avatar.png` — a flat blue silhouette). It is not a photo
