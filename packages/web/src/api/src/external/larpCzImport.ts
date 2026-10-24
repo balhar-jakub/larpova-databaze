@@ -11,6 +11,16 @@ import type { PrismaClient } from '@prisma/client';
 
 const LARP_CZ_URL = 'https://www.larp.cz/kalendar';
 
+/**
+ * The user the imported events are attributed to (the "system" account).
+ * The Java importer used user 1; that row does not exist in every database
+ * (fresh imports, test databases), so fall back to the lowest existing id.
+ */
+async function systemUserId(db: PrismaClient): Promise<number> {
+  const anyUser = await db.csld_csld_user.findFirst({ orderBy: { id: 'asc' }, select: { id: true } });
+  return anyUser?.id ?? 1;
+}
+
 interface ParsedEvent {
   name: string;
   date: string;
@@ -70,7 +80,7 @@ export async function importLarpCzEvents(db: PrismaClient): Promise<number> {
           description: 'Události importované z larp.cz',
           is_required: false,
           is_authorized: true,
-          added_by: 1, // system user
+          added_by: await systemUserId(db), // system user
         },
       });
     }
@@ -111,7 +121,7 @@ export async function importLarpCzEvents(db: PrismaClient): Promise<number> {
           from,
           to,
           source: 'larp.cz',
-          added_by: 1, // system user
+          added_by: await systemUserId(db), // system user
           deleted: false,
         },
       });
