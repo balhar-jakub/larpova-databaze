@@ -177,6 +177,31 @@ describe('CatalogFilterPanel', () => {
         expect(patches).toEqual([{ durations: ['short'] }])
     })
 
+    it('toggles the with-comments and with-image filters', () => {
+        renderPanel()
+
+        const toggleByLabel = (labelText: string) => {
+            const label = screen.getByText(labelText).closest('label')
+            const input = label!.querySelector('input')
+            fireEvent.click(input!)
+        }
+        toggleByLabel(translate(cs, 'Catalog.filters.withComments'))
+        expect(patches.at(-1)).toEqual({ withComments: true })
+
+        toggleByLabel(translate(cs, 'Catalog.filters.withImage'))
+        expect(patches.at(-1)).toEqual({ withImage: true })
+    })
+
+    it('commits the to-side of the year range on Enter', () => {
+        renderPanel()
+
+        const yearTo = screen.getByLabelText(`${translate(cs, 'Catalog.filters.yearShort')} ${translate(cs, 'Catalog.filters.to')}`)
+        fireEvent.change(yearTo, { target: { value: '2020' } })
+        fireEvent.keyDown(yearTo, { key: 'Enter' })
+
+        expect(patches).toEqual([{ yearFrom: undefined, yearTo: 2020 }])
+    })
+
     it('toggles the recommended-only and enough-ratings filters', () => {
         renderPanel()
 
