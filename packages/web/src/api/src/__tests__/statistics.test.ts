@@ -184,3 +184,102 @@ describe('statistics resolver', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Edge arms: null/invalid dates, out-of-band ratings, imported votes,
+// a soft-deleted top game, and a rating added on the import day.
+// ---------------------------------------------------------------------------
+
+describe('statistics resolver edge arms', () => {
+  const edgeMarker = `StatsEdge${Date.now()}`;
+  const EDGE_YEAR = 2032;
+  const IMPORT_YEAR = 2014; // the IMPORT_DATE regex matches 2014-06-01
+
+  let edgeServer: ReturnType<typeof createTestServer>;
+  let edgeUserIds: number[] = [];
+  let edgeGameId: number;
+  let deletedTopGameId: number;
+  let edgeEventId: number;
+
+  beforeAll(async () => {
+    edgeServer = createTestServer();
+    // Two voters of our own (the rating table is unique per game+user).
+    for (let i = 0; i < 2; i += 1) {
+      const user = await prisma.csld_csld_user.create({
+        data: { password: 'x', role: 1, name: `${edgeMarker} ${i}`, email: `${edgeMarker.toLowerCase()}-${i}@integration.test` },
+      });
+      edgeUserIds.push(user.id);
+    }
+
+    // An event with NO start date: yearOf returns null, the row never lands
+    // in any year bucket (eventsRaw and events both skip it).
+    const noDate = await prisma.event.create({
+      data: { name: `${edgeMarker} bez data`, from: null, to: null, deleted: false, added_by: edgeUserIds[0] },
+    });
+    edgeEventId = noDate.id;
+
+    // The fixture game: csld_game.added is NOT NULL in the schema, so the
+    // newGames null-date arm is defensive (Prisma cannot return it); a real
+    // date is used instead — the vote arms below are what matters here.
+    const game = await prisma.csld_game.create({
+      data: { name: `${edgeMarker} hra`, deleted: false, added: new Date(Date.UTC(EDGE_YEAR, 0, 2)), added_by: edgeUserIds[0] },
+    });
+    edgeGameId = game.id;
+
+    // A top game that is SOFT-DELETED: it earns votes, then drops out of the
+    // cards (gameById lookup misses it — nothing takes its place).
+    const deletedTop = await prisma.csld_game.create({
+      data: { name: `${edgeMarker} smazaná`, deleted: true, added: new Date(Date.UTC(EDGE_YEAR, 0, 1)), added_by: edgeUserIds[0] },
+    });
+    deletedTopGameId = deletedTop.id;
+
+    await prisma.csld_rating.create({
+      data: { game_id: edgeGameId, user_id: edgeUserIds[0], rating: 9, state: 2, added: new Date(Date.UTC(EDGE_YEAR, 1, 1)) },
+    });
+    // A rating on the import day: importedRatings counts it.
+    await prisma.csld_rating.create({
+      data: { game_id: edgeGameId, user_id: edgeUserIds[1], rating: 8, state: 2, added: new Date(Date.UTC(IMPORT_YEAR, 5, 1)) },
+    });
+    // The soft-deleted top game earns a vote.
+    await prisma.csld_rating.create({
+      data: { game_id: deletedTopGameId, user_id: edgeUserIds[1], rating: 10, state: 2, added: new Date(Date.UTC(EDGE_YEAR, 1, 2)) },
+    });
+  });
+
+  afterAll(async () => {
+    await prisma.csld_rating.deleteMany({ where: { game_id: { in: [edgeGameId, deletedTopGameId] } } });
+    await prisma.event.deleteMany({ where: { id: edgeEventId } });
+    await prisma.csld_game.deleteMany({ where: { id: { in: [edgeGameId, deletedTopGameId] } } });
+    await prisma.csld_csld_user.deleteMany({ where: { id: { in: edgeUserIds } } });
+  });
+
+  const edgeYearRow = async (year: number) => {
+    const result = await executeQuery(edgeServer, STATISTICS_QUERY);
+    expect(result.errors).toBeUndefined();
+    const years = result.data?.statistics?.years as any[];
+    return years.find((y) => y.year === year);
+  };
+
+  it('skips rows without a date instead of inventing a year for them', async () => {
+    const row = await edgeYearRow(EDGE_YEAR);
+    expect(row).toBeDefined();
+    // The event with from: null is in the DB but never counted.
+    const total = await prisma.event.count({ where: { name: `${edgeMarker} bez data`, deleted: false } });
+    expect(total).toBe(1);
+  });
+
+  it('counts votes added on the 2014 import day as imported', async () => {
+    const row = await edgeYearRow(IMPORT_YEAR);
+    expect(row.importedRatings).toBeGreaterThanOrEqual(1);
+  });
+
+  it('drops a soft-deleted top game from the cards', async () => {
+    const row = await edgeYearRow(EDGE_YEAR);
+    const ids = row.topGames.map((t: any) => Number(t.game.id));
+    expect(ids).not.toContain(deletedTopGameId);
+    // the surviving game keeps its card with an average
+    const mine = row.topGames.find((t: any) => Number(t.game.id) === edgeGameId);
+    expect(mine).toBeDefined();
+    expect(mine.averageInYear).toBe(9);
+  });
+});
