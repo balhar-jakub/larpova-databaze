@@ -22,6 +22,21 @@ const cs = JSON.parse(
 let queryResult: Record<string, unknown> = {}
 let queryVariables: Record<string, unknown> = {}
 
+// The router the panel filters through — a minimal stand-in for next/router
+// whose `query` the tests steer (the URL is the filter's source of truth).
+let routerQuery: Record<string, string | string[]> = {}
+const pushedQueries: Record<string, unknown>[] = []
+jest.unstable_mockModule('next/router', () => ({
+    useRouter: () => ({
+        query: routerQuery,
+        push: (route: Record<string, unknown>) => {
+            pushedQueries.push(route)
+            routerQuery = { ...(route.query as Record<string, string | string[]>) }
+            return Promise.resolve(true)
+        },
+    }),
+}))
+
 jest.unstable_mockModule('src/lib/i18n', () => ({
     useTranslation: () => ({ t: (key: string, options?: Record<string, unknown>) => translate(cs, key, options), locale: 'cs', ready: true }),
 }))
@@ -77,16 +92,27 @@ const commentRow = (id: string, text: string) => ({
     game: { id: '5', name: 'Hra', averageRating: 80, amountOfRatings: 3 },
 })
 
+const statsResult = {
+    lengths: { SHORT: 495, MEDIUM: 2976, LONG: 1336 },
+    years: [
+        { year: 2026, amount: 53 },
+        { year: 2025, amount: 83 },
+    ],
+}
+
+const withStats = (data: Record<string, unknown>) => ({ ...data, commentsStats: statsResult })
+
 test('renders the newest comments with the pager', () => {
     queryResult = {
         loading: false,
-        data: {
+        data: withStats({
             allComments: {
                 totalAmount: 25,
                 comments: [commentRow('1', 'Nejnovější komentář'), commentRow('2', 'Starší komentář')],
             },
-        },
+        }),
     }
+    routerQuery = {}
 
     render(<Panel />)
 
@@ -100,25 +126,85 @@ test('renders the newest comments with the pager', () => {
 test('a pager click asks the server for the next page', () => {
     queryResult = {
         loading: false,
-        data: {
+        data: withStats({
             allComments: { totalAmount: 25, comments: [commentRow('1', 'První stránka')] },
-        },
+        }),
     }
+    routerQuery = {}
 
     render(<Panel />)
-    expect(queryVariables).toEqual({ offset: 0, limit: 10 })
+    expect(queryVariables).toEqual({ offset: 0, limit: 10, length: undefined, year: undefined })
 
     fireEvent.click(screen.getByText('next'))
-    expect(queryVariables).toEqual({ offset: 10, limit: 10 })
+    expect(queryVariables).toEqual({ offset: 10, limit: 10, length: undefined, year: undefined })
 })
 
 test('an empty database gets a sentence, not an empty panel', () => {
     queryResult = {
         loading: false,
-        data: { allComments: { totalAmount: 0, comments: [] } },
+        data: withStats({ allComments: { totalAmount: 0, comments: [] } }),
     }
+    routerQuery = {}
 
     render(<Panel />)
 
-    expect(screen.getByText('Zatím žádné komentáře.')).toBeTruthy()
+    expect(screen.getByText('Žádný komentář neodpovídá této kombinaci filtrů.')).toBeTruthy()
+})
+
+test('the toolbar renders the length and year chips with their stats numbers', () => {
+    queryResult = {
+        loading: false,
+        data: withStats({
+            allComments: { totalAmount: 25, comments: [commentRow('1', 'Komentář')] },
+        }),
+    }
+    routerQuery = {}
+
+    render(<Panel />)
+
+    // The chips quote the stats the API answered with — the numbers a filter
+    // click then has to actually list.
+    expect(screen.getByText('Krátké (495)')).toBeTruthy()
+    expect(screen.getByText('Střední (2976)')).toBeTruthy()
+    expect(screen.getByText('Dlouhé (1336)')).toBeTruthy()
+    expect(screen.getByText('2026')).toBeTruthy()
+    expect(screen.getByText('2025')).toBeTruthy()
+})
+
+test('a length chip click filters the query and lands in the URL', () => {
+    queryResult = {
+        loading: false,
+        data: withStats({
+            allComments: { totalAmount: 1336, comments: [commentRow('1', 'Dlouhá recenze')] },
+        }),
+    }
+    routerQuery = {}
+    pushedQueries.length = 0
+
+    render(<Panel />)
+
+    fireEvent.click(screen.getByText('Dlouhé (1336)'))
+
+    // The URL is the source of truth: the filter landed in `delka`.
+    expect(pushedQueries.length).toBe(1)
+    expect(pushedQueries[0].query).toEqual(expect.objectContaining({ delka: 'long' }))
+    expect(routerQuery).toEqual({ delka: 'long' })
+})
+
+test('a year chip click filters by the year and composes with the length', () => {
+    queryResult = {
+        loading: false,
+        data: withStats({
+            allComments: { totalAmount: 53, comments: [commentRow('1', 'Letošek')] },
+        }),
+    }
+    // The URL arrived pre-filtered by length — a filtered list is a link.
+    routerQuery = { delka: 'long' }
+
+    render(<Panel />)
+    expect(queryVariables).toEqual({ offset: 0, limit: 10, length: 'LONG', year: undefined })
+
+    fireEvent.click(screen.getByText('2025'))
+
+    expect(routerQuery).toEqual({ delka: 'long', rok: '2025' })
 })

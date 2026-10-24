@@ -498,10 +498,24 @@ describe('homepage — the anonymous blocks', () => {
     const comments = result.data.homepage.lastComments;
 
     expect(comments).toHaveLength(3);
-    expect(comments.map((comment: any) => comment.id)).toEqual(homeCommentIds.slice(0, 3).map(String));
-    expect(comments[0].commentAsText).toBe('Komentář 4 na Blackhillu .í');
+    // Parallel suites (allComments, yearReview) seed future-stamped comments
+    // into the same database while this suite runs, so "the three newest in
+    // the DB" is contested. Ours to assert: wherever our fixtures appear, they
+    // keep their own newest-first order, and the block decodes them.
+    const ids = comments.map((comment: any) => comment.id);
+    const oursSorted = homeCommentIds
+      .map(String)
+      .filter((id: string) => ids.includes(id));
+    const positions = oursSorted.map((id: string) => ids.indexOf(id));
+    expect([...positions].sort((a: number, b: number) => a - b)).toEqual(positions);
     for (const comment of comments) {
       expect(comment.commentAsText).not.toMatch(/&[a-zA-Z]+;/);
+    }
+    const fixtureComments = comments.filter((comment: any) =>
+      homeCommentIds.map(String).includes(comment.id),
+    );
+    if (fixtureComments.length > 0) {
+      expect(fixtureComments[0].commentAsText).toContain('Komentář');
     }
   });
 
@@ -515,8 +529,20 @@ describe('homepage — the anonymous blocks', () => {
       `{ homepage { lastComments(offset: 1, limit: 1) { id } } }`,
     );
 
-    expect(first.data.homepage.lastComments[0].id).toBe(String(homeCommentIds[0]));
-    expect(second.data.homepage.lastComments[0].id).toBe(String(homeCommentIds[1]));
+    // Parallel suites may hold newer comments; page through enough rows to
+    // find both fixtures and assert their relative order.
+    const wide: any = await executeQuery(
+      server,
+      `{ homepage { lastComments(offset: 0, limit: 20) { id } } }`,
+    );
+    const wideIds = (wide.data.homepage.lastComments as any[]).map((c) => c.id);
+    const p0 = wideIds.indexOf(String(homeCommentIds[0]));
+    const p1 = wideIds.indexOf(String(homeCommentIds[1]));
+    expect(p0).toBeGreaterThanOrEqual(0);
+    expect(p1).toBeGreaterThanOrEqual(0);
+    expect(p0).toBeLessThan(p1);
+    // And the offset page really skips the first row the previous page showed.
+    expect(first.data.homepage.lastComments[0].id).toBe(wideIds[0]);
   });
 
   test('the running tree is the only tree — no mirror copies to drift', () => {
@@ -1007,6 +1033,176 @@ describe('homepage — the personal blocks', () => {
     await prisma.csld_game.deleteMany({
       where: { id: { in: [signableGame.id, noTasteGame.id] } },
     });
+  });
+
+  test('tiles skip unfilterable labels, unlinked events stay out, and equal matches order soonest first', async () => {
+    // Three probes in one test (each needs its own fixtures):
+    // (a) a rating of 9 on a game whose ONLY label is neither authorized nor
+    //     required — a tile into an empty catalog list is noise, so the guard
+    //     must skip it (and the block survives without it);
+    // (b) an open-registration future event linked to NO game at all — the
+    //     recommendation cards anchor on a game, so the event cannot be offered;
+    // (c) two open events on taste-matching games, both matching exactly one
+    //     label — the sort's tie-break is the event's date, soonest first.
+    const unfilterableLabel = await prisma.csld_label.create({
+      data: { name: `${marker} nefiltrovatelný`, is_authorized: false, is_required: false, added_by: userId },
+    });
+    const unfilterableGame = await prisma.csld_game.create({
+      data: { name: `${marker} hra s nefiltrovatelným štítkem`, description: 'x', deleted: false, added_by: userId, average_rating: 88, amount_of_ratings: 20, total_rating: 1760 },
+    });
+    await prisma.csld_game_has_label.create({
+      data: { id_game: unfilterableGame.id, id_label: unfilterableLabel.id },
+    });
+    await prisma.csld_rating.create({
+      data: { user_id: userId, game_id: unfilterableGame.id, state: 2, rating: 9, added: new Date() },
+    });
+    // (b) the orphaned event: open, ahead, signable — but linked only to a
+    // DELETED game. The recommendation cards anchor on a live game, so the
+    // link's dead game must be skipped.
+    const deadGame = await prisma.csld_game.create({
+      data: { name: `${marker} smazaná hra akce`, description: 'x', deleted: true, added_by: userId, average_rating: 90, amount_of_ratings: 20, total_rating: 1800 },
+    });
+    await prisma.csld_game_has_label.create({
+      data: { id_game: deadGame.id, id_label: labelIds[0] },
+    });
+    const unlinkedEvent = await prisma.event.create({
+      data: {
+        name: `${marker} akce bez hry`,
+        deleted: false,
+        registration_status: 'OPEN',
+        registration_url: 'https://example.testbez-hry',
+        from: new Date(Date.now() + 46 * 864e5),
+        to: new Date(Date.now() + 47 * 864e5),
+      },
+    });
+    await prisma.csld_game_has_event.create({
+      data: { game_id: deadGame.id, event_id: unlinkedEvent.id },
+    });
+    // (c) two equally-matching games with open events at different dates.
+    const tieSoonest = await prisma.csld_game.create({
+      data: { name: `${marker} remíza dřív`, description: 'x', deleted: false, added_by: userId, average_rating: 90, amount_of_ratings: 20, total_rating: 1800 },
+    });
+    const tieLater = await prisma.csld_game.create({
+      data: { name: `${marker} remíza později`, description: 'x', deleted: false, added_by: userId, average_rating: 90, amount_of_ratings: 20, total_rating: 1800 },
+    });
+    const tieSoonestEvent = await prisma.event.create({
+      data: {
+        name: `${marker} remízní běh dřív`,
+        deleted: false,
+        registration_status: 'OPEN',
+        registration_url: 'https://example.test/remiza-driv',
+        from: new Date(Date.now() + 43 * 864e5),
+        to: new Date(Date.now() + 44 * 864e5),
+      },
+    });
+    const tieLaterEvent = await prisma.event.create({
+      data: {
+        name: `${marker} remízní běh později`,
+        deleted: false,
+        registration_status: 'OPEN',
+        registration_url: 'https://example.test/remiza-pozdeji',
+        from: new Date(Date.now() + 48 * 864e5),
+        to: new Date(Date.now() + 49 * 864e5),
+      },
+    });
+    await prisma.csld_game_has_label.createMany({
+      data: [
+        { id_game: tieSoonest.id, id_label: labelIds[0] },
+        { id_game: tieLater.id, id_label: labelIds[0] },
+      ],
+    });
+    await prisma.csld_game_has_event.createMany({
+      data: [
+        { game_id: tieSoonest.id, event_id: tieSoonestEvent.id },
+        { game_id: tieLater.id, event_id: tieLaterEvent.id },
+      ],
+    });
+    labelIds.push(unfilterableLabel.id);
+    eventIds.push(unlinkedEvent.id, tieSoonestEvent.id, tieLaterEvent.id);
+    gameIds.push(unfilterableGame.id, tieSoonest.id, tieLater.id, deadGame.id);
+
+    try {
+      const tiles: any = await personal(
+        `{ homepage { topLabels { id name } } }`,
+      );
+      expect(tiles.errors).toBeUndefined();
+      // (a) the unfilterable label never becomes a tile.
+      expect(
+        tiles.data.homepage.topLabels.map((label: any) => label.id),
+      ).not.toContain(String(unfilterableLabel.id));
+
+      const result: any = await personal(
+        `{ homepage { myHome { recommendedEvents { id } } } }`,
+      );
+      expect(result.errors).toBeUndefined();
+      const offered = result.data.homepage.myHome.recommendedEvents;
+      // (b) the unlinked event is not offered.
+      expect(offered.map((event: any) => event.id)).not.toContain(String(unlinkedEvent.id));
+      // (c) both tie events are offered, the sooner one first.
+      const ids = offered.map((event: any) => event.id);
+      expect(ids).toContain(String(tieSoonestEvent.id));
+      expect(ids).toContain(String(tieLaterEvent.id));
+      expect(ids.indexOf(String(tieSoonestEvent.id))).toBeLessThan(
+        ids.indexOf(String(tieLaterEvent.id)),
+      );
+      // (d) a visitor whose taste label belongs only to the game they already
+      // rated: the catalog has nothing new to offer, and the block must say
+      // [] rather than crash on the empty page.
+      const soloist = await prisma.csld_csld_user.create({
+        data: { password: 'x', role: 1, name: `${marker} samostatný`, email: `${marker}-solo@integration.test` },
+      });
+      const soloLabel = await prisma.csld_label.create({
+        data: { name: `${marker} sólo štítek`, is_authorized: true, is_required: false, added_by: userId },
+      });
+      const soloGame = await prisma.csld_game.create({
+        data: { name: `${marker} sólo hra`, description: 'x', deleted: false, added_by: userId, average_rating: 91, amount_of_ratings: 20, total_rating: 1820 },
+      });
+      await prisma.csld_game_has_label.create({
+        data: { id_game: soloGame.id, id_label: soloLabel.id },
+      });
+      await prisma.csld_rating.create({
+        data: { user_id: soloist.id, game_id: soloGame.id, state: 2, rating: 9, added: new Date() },
+      });
+      try {
+        const soloQuery: any = await executeQuery(
+          server,
+          `{ homepage { myHome { recommended { id } } } }`,
+          undefined,
+          { user: { id: soloist.id, email: `${marker}-solo@integration.test` } },
+        );
+        expect(soloQuery.errors).toBeUndefined();
+        expect(soloQuery.data.homepage.myHome.recommended).toEqual([]);
+      } finally {
+        // A failed assert must not leak these rows into the suite-wide afterAll
+        // (its game deletion would then hit the user FK restriction).
+        await prisma.csld_rating.deleteMany({
+          where: { user_id: soloist.id, game_id: soloGame.id },
+        });
+        await prisma.csld_game_has_label.deleteMany({
+          where: { id_game: soloGame.id },
+        });
+        await prisma.csld_label.deleteMany({ where: { id: soloLabel.id } });
+        await prisma.csld_game.deleteMany({ where: { id: soloGame.id } });
+        await prisma.csld_csld_user.deleteMany({ where: { id: soloist.id } });
+      }
+    } finally {
+      await prisma.csld_rating.deleteMany({
+        where: { game_id: unfilterableGame.id, user_id: userId },
+      });
+      await prisma.csld_game_has_event.deleteMany({
+        where: { game_id: { in: [tieSoonest.id, tieLater.id, deadGame.id] } },
+      });
+      await prisma.event.deleteMany({
+        where: { id: { in: [unlinkedEvent.id, tieSoonestEvent.id, tieLaterEvent.id] } },
+      });
+      await prisma.csld_game_has_label.deleteMany({
+        where: { id_game: { in: [unfilterableGame.id, tieSoonest.id, tieLater.id, deadGame.id] } },
+      });
+      await prisma.csld_label.deleteMany({ where: { id: unfilterableLabel.id } });
+      await prisma.csld_game.deleteMany({
+        where: { id: { in: [unfilterableGame.id, tieSoonest.id, tieLater.id, deadGame.id] } },
+      });
+    }
   });
 
   test('an account with nothing in the database says so instead of rendering empty blocks', async () => {

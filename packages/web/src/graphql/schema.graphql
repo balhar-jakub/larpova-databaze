@@ -32,14 +32,47 @@ type Query {
     "Metadata of larp articles published in Czech (larpy.cz, larp.cz)."
     articles(source: ArticleSource, query: String, offset: Int, limit: Int): ArticlesPaged!
     articleById(articleId: ID!): Article
-    "Every visible comment in the database, newest first — the page the homepage's „všechny komentáře“ link opens. Hidden comments and comments under deleted games stay out."
-    allComments(offset: Int, limit: Int): CommentsPaged!
+    "Every visible comment in the database, newest first — the page the homepage's „všechny komentáře“ link opens. Hidden comments and comments under deleted games stay out. `length` picks the comment's reading weight (SHORT under 200 characters, MEDIUM 200–999, LONG 1 000 and more — the boundaries sit at the 10th and 72nd percentile of the live data); `year` narrows to comments added in that calendar year (UTC). Both compose with the pager."
+    allComments(offset: Int, limit: Int, length: CommentLength, year: Int): CommentsPaged!
+    "Counts of visible comments per length band and per year — the numbers the /komentare filter chips show, so a chip's count matches what selecting it lists. One call per page load, not one per chip."
+    commentsStats: CommentsStats!
     config: Config!
 }
 
 enum ArticleSource {
     LARPY_CZ
     LARP_CZ
+}
+
+"Reading weight of a comment's text. The boundaries (200 and 1 000 characters of the stripped text) sit at the 10th and 72nd percentile of the live data: under 200 is a one-breath reaction, 1 000 and up is an essay."
+enum CommentLength {
+    SHORT
+    MEDIUM
+    LONG
+}
+
+"""
+The /komentare filter chips' own numbers: how many visible comments sit in
+each length band and in each year (UTC, from `added`). A chip's count must
+match what selecting it lists — `allComments(length: …)` and `allComments(year: …)`
+both count from the same visibility rules as this breakdown.
+"""
+type CommentsStats {
+    "Visible comments per length band."
+    lengths: CommentLengthCounts!
+    "Visible comments per calendar year, oldest first (the chips render newest first and reverse this)."
+    years: [CommentYearCount!]!
+}
+
+type CommentLengthCounts {
+    SHORT: Int!
+    MEDIUM: Int!
+    LONG: Int!
+}
+
+type CommentYearCount {
+    year: Int!
+    amount: Int!
 }
 
 type ArticlesPaged {

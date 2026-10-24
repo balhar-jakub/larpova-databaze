@@ -409,6 +409,15 @@
     "pageTitle": "All comments",
     "pageDescription": "Every comment in the larp database, newest first \u2014 what the community is saying about games.",
     "pageSubtitle": "Every comment in the database, newest first.",
-    "empty": "No comments yet."
+    "empty": "No comments yet.",
+    "filterLength": "Length:",
+    "filterYear": "Year:",
+    "lengthAll": "All",
+    "lengthShort": "Short ({{amount}})",
+    "lengthMedium": "Medium ({{amount}})",
+    "lengthLong": "Long ({{amount}})",
+    "yearAll": "All",
+    "yearCount": "{{amount}} comments",
+    "emptyFiltered": "No comments match this filter combination."
   }
 }

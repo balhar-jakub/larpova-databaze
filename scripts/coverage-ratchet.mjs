@@ -28,7 +28,7 @@
  * - The API suite and the web suite run in one process each, the same way
  *   CI runs them, so the numbers match what a PR sees.
  */
-import { execFileSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,17 +43,37 @@ const UPDATE = process.argv.includes('--update-baseline');
  * Returns { [absPath]: pct }.
  */
 function collectCoverage(jestArgs, label) {
-  const out = execFileSync(
+  // The coverage numbers are read from coverage-summary.json on disk; jest's
+  // stdout (tens of MB of coverage tables for the API suite) is never used.
+  // Capturing it into a JS string was the ratchet's memory peak — enough to get
+  // the process OOM-killed on the 2-core runner after the API run finished,
+  // with no failure summary because nothing had failed yet. Stdout goes to
+  // /dev/null; stderr streams through so a red suite still explains itself.
+  const result = spawnSync(
     process.execPath,
     [
       '--experimental-vm-modules',
       join(ROOT, 'node_modules', 'jest', 'bin', 'jest.js'),
       ...jestArgs,
+      // One worker: the suite-heavy API run under coverage spawns several
+      // instrumented workers at once and the 2-core runner OOM-kills the
+      // tree mid-run. Serial is slower per run but deterministic — a
+      // ratchet's whole job is determinism.
+      '--runInBand',
       '--coverage',
       '--coverageReporters=json-summary',
     ],
-    { cwd: join(ROOT, 'packages', 'web'), encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 },
+    { cwd: join(ROOT, 'packages', 'web'), stdio: ['ignore', 'ignore', 'inherit'] },
   );
+
+  if (result.error) {
+    console.error(`coverage ratchet: could not run the ${label} jest suite:`, result.error);
+    process.exit(1);
+  }
+  if (result.status !== 0) {
+    console.error(`coverage ratchet: the ${label} jest run failed (exit ${result.status}). See its stderr above.`);
+    process.exit(1);
+  }
 
   const summaryPath = join(ROOT, 'packages', 'web', 'coverage', 'coverage-summary.json');
   if (!existsSync(summaryPath)) {

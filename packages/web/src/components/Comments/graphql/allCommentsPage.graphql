@@ -1,5 +1,5 @@
-query AllCommentsPage($offset: Int, $limit: Int) {
-    allComments(offset: $offset, limit: $limit) {
+query AllCommentsPage($offset: Int, $limit: Int, $length: CommentLength, $year: Int) {
+    allComments(offset: $offset, limit: $limit, length: $length, year: $year) {
         totalAmount
         comments {
             id
@@ -21,6 +21,17 @@ query AllCommentsPage($offset: Int, $limit: Int) {
                 averageRating
                 amountOfRatings
             }
+        }
+    }
+    commentsStats {
+        lengths {
+            SHORT
+            MEDIUM
+            LONG
+        }
+        years {
+            year
+            amount
         }
     }
 }
