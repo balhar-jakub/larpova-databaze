@@ -117,4 +117,17 @@ describe('NewAuthorModal', () => {
         fireEvent.click(screen.getByText(translate(cs, 'NewAuthorModal.cancel')))
         expect(hideCalls).toBe(1)
     })
+
+    it('adds a found user without a nickname (the null arm)', async () => {
+        usedByUser = { id: '9', name: 'Bez Přezdívky', nickname: null, email: 'stary2@example.test' }
+        render(<NewAuthorModal onHide={() => { hideCalls += 1 }} onAddAuthor={(a: import('../NewAuthorModal').Author) => addedAuthors.push(a)} />)
+
+        fireEvent.blur(screen.getByPlaceholderText(translate(cs, 'NewAuthorModal.email')))
+
+        const addFound = await screen.findByText(translate(cs, 'NewAuthorModal.addUser'))
+        fireEvent.click(addFound)
+
+        expect(addedAuthors.length).toBe(1)
+        expect(addedAuthors[0]).toMatchObject({ id: '9', name: 'Bez Přezdívky', nickname: undefined })
+    })
 })

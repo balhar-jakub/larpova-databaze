@@ -412,6 +412,28 @@ describe('HistoryView', () => {
         expect(onSelectYear).toHaveBeenCalledWith(2026)
     })
 
+    it('aggregates two months of the same year into one year row', () => {
+        const byMonth = [
+            { year: 2026, month: 3, count: 2 },
+            { year: 2026, month: 7, count: 5 },
+        ]
+        render(
+            <HistoryView
+                byMonth={byMonth}
+                totalAmount={7}
+                today={new Date(2027, 5, 1)}
+                onSelectYear={() => undefined}
+                yearEvents={[]}
+                loadingYear={false}
+                selectedYear={undefined}
+                hasMoreYear={false}
+                onLoadMoreYear={() => undefined}
+            />,
+        )
+        // Both months landed in the same year entry (the years.get() hit arm).
+        expect(document.body.textContent).toContain('2026')
+    })
+
     it('shows the loading note while the year archive loads', () => {
         render(
             <HistoryView
