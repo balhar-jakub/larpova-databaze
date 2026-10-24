@@ -361,6 +361,27 @@ describe('AdminUsersPanel', () => {
         expect(screen.queryByTestId('confirm-modal')).toBeNull()
     })
 
+    it('confirms the deletion and refetches', async () => {
+        render(<AdminUsersPanel />)
+
+        fireEvent.click(screen.getAllByText(translate(cs, 'AdminUsers.delete'))[0])
+        const modal = screen.getByTestId('confirm-modal')
+        fireEvent.click(within(modal).getByText('confirm'))
+
+        await waitFor(() => expect(screen.queryByTestId('confirm-modal')).toBeNull())
+        expect(mutationVariables.at(-1)).toEqual({ userId: '1' })
+    })
+
+    it('narrows the list to privileged users only', () => {
+        render(<AdminUsersPanel />)
+
+        fireEvent.click(screen.getByText(translate(cs, 'AdminUsers.showPrivileged')))
+
+        // Alice (USER) drops out, Bob (ADMIN) stays.
+        expect(screen.queryByText('Alice')).toBeNull()
+        expect(screen.getByText('Bob')).toBeTruthy()
+    })
+
     it('switches a user role via the dropdown and shows all users past the cap', async () => {
         const many = Array.from({ length: 60 }, (_, i) => user(String(i + 10), { name: `U${i}` }))
         queryResult = { admin: { allUsers: many } }

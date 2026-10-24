@@ -22,7 +22,7 @@ jest.unstable_mockModule('../../common/form/NewLabelsField', () => ({
 // Keys only; the messages themselves do not matter for these rules.
 const t = (key: string) => key
 
-const { validate } = await import('../formUtils')
+const { validate, toInitialValues, createInputFromValues, emptyInitialValues } = await import('../formUtils')
 
 const date = (iso: string) => new Date(iso)
 
@@ -103,5 +103,54 @@ describe('event form validate', () => {
             registrationUrl: 'https://registrace.example.test',
         })
         expect(openAbsolute.registrationUrl).toBeUndefined()
+    })
+})
+
+describe('toInitialValues', () => {
+    it('maps a loaded event into form values, splitting games and labels', () => {
+        const event = {
+            id: 'e1',
+            name: 'Festival',
+            from: '2026-05-01T10:00:00',
+            to: '2026-05-03T18:00:00',
+            amountOfPlayers: 40,
+            web: 'https://akce.test',
+            registrationUrl: null,
+            registrationStatus: '',
+            registrationOpensAt: null,
+            loc: 'Praha',
+            description: '<p>popis</p>',
+            games: [{ id: 'g1', name: 'Dračí doupě', year: 2014 }],
+            labels: [
+                { id: 'l1', name: 'svět', isRequired: true },
+                { id: 'l2', name: 'fantasy', isRequired: false },
+            ],
+        }
+        const values = toInitialValues(event as never)
+
+        expect(values.name).toBe('Festival')
+        expect(values.games).toEqual([
+            { id: 'g1', name: 'Dračí doupě', itemLabel: '' },
+        ])
+        expect(values.requiredLabels).toEqual(['l1'])
+        expect(values.optionalLabels).toEqual(['l2'])
+    })
+
+    it('survives an event without games and labels', () => {
+        const values = toInitialValues({
+            id: 'e2', name: 'Akce', from: null, to: null, games: null, labels: null,
+        } as never)
+
+        expect(values.games).toEqual([])
+        expect(values.requiredLabels).toEqual([])
+        expect(values.optionalLabels).toEqual([])
+    })
+})
+
+describe('createInputFromValues', () => {
+    it('builds the CreateEventInput from the form values', () => {
+        const input = createInputFromValues(emptyInitialValues)
+        expect(input).toBeTruthy()
+        expect(input.name).toBe(emptyInitialValues.name)
     })
 })
