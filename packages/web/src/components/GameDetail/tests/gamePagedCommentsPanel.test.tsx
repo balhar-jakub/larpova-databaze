@@ -167,4 +167,37 @@ describe('GamePagedCommentsPanel', () => {
         // New game: the cache resets but the panel renders again.
         expect(screen.getByTestId('paged-comments')).toBeTruthy()
     })
+
+    it('falls back to the cached page when the query answers without one', async () => {
+        loggedInUser = { id: 'u1' }
+        // First render: a real page lands in the cache.
+        const { rerender } = render(<GamePagedCommentsPanel gameId="g1" commentsDisabled={false} />)
+        await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+        // Second render: the answer carries NO commentsPaged (the dataPage ||
+        // cachedPage arm) — the cached page keeps the panel alive.
+        queryData = { gameById: { __typename: 'Game', id: 'g1', commentsPaged: undefined, currentUsersComment: null } }
+        rerender(<GamePagedCommentsPanel gameId="g1" commentsDisabled={false} />)
+        expect(screen.getByTestId('paged-comments')).toBeTruthy()
+    })
+
+    it('refuses the delete when the comment id is missing (the early return)', async () => {
+        loggedInUser = { id: 'u1' }
+        queryData = {
+            gameById: {
+                __typename: 'Game',
+                id: 'g1',
+                commentsPaged: { __typename: 'CommentsPaged', totalAmount: 1, list: [] },
+                // A comment object exists but carries no id.
+                currentUsersComment: { __typename: 'UsersComment', id: null, comment: { __typename: 'Comment', id: 'c9', text: 'Bez id', added: '2027-03-01' } },
+            },
+        }
+        render(<GamePagedCommentsPanel gameId="g1" commentsDisabled={false} />)
+        await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+        fireEvent.click(screen.getByRole('button', { name: (t) => t.includes(translate(cs, 'GameDetail.deleteComment')) }))
+        await act(async () => { await Promise.resolve() })
+        // The guard returned before the mutation: nothing was called.
+        expect(mutationCalls.length).toBe(0)
+    })
 })

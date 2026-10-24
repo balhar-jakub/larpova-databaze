@@ -96,4 +96,24 @@ describe('SeriesListPanel', () => {
 
         expect(screen.getByText(/2014 ·/)).toBeTruthy()
     })
+
+    it('renders a series with no first year as "?" and games with missing numbers', () => {
+        render(
+            <SeriesListPanel
+                series={{
+                    ...series,
+                    firstYear: null,
+                    name: null,
+                    games: [
+                        { __typename: 'Game', id: 'g3', name: 'Bez roku', year: null, amountOfRatings: null, averageRating: null },
+                    ],
+                } as never}
+                currentGameId="g3"
+            />,
+        )
+
+        // The header names the series as empty, the range as "?" (both ?? arms).
+        expect(document.body.textContent).toContain(translate(cs, 'GameDetail.series'))
+        expect(document.body.textContent).toContain('?')
+    })
 })

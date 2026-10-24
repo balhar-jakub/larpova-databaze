@@ -177,4 +177,50 @@ describe('GameDetailPanel', () => {
 
         expect(screen.queryByText(translate(cs, 'GameDetail.deleteGame'))).toBeNull()
     })
+
+    it('renders the video tab with its iframe when the game carries one', async () => {
+        queryData = { gameById: gameRow({ video: { path: 'https://video.example.test/embed' } }) }
+        renderPanel()
+        await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+        // The tabs now carry the video tab; clicking it mounts the iframe.
+        const videoTab = screen.getByText(translate(cs, 'GameDetail.video'))
+        await act(async () => { fireEvent.click(videoTab) })
+        const frame = document.querySelector('iframe[title="video"]')
+        expect(frame?.getAttribute('src')).toBe('https://video.example.test/embed')
+    })
+
+    it('renders the cover image and the articles block when present', async () => {
+        queryData = {
+            gameById: gameRow({
+                coverImage: { __typename: 'Image', id: 'img9' },
+                articles: [{ __typename: 'Article', id: 'a1', title: 'Reportáž', url: 'https://example.test', publishedAt: null, source: null, authors: null, perex: null }],
+            }),
+        }
+        renderPanel()
+        await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+        const img = document.querySelector('img.coverImage-0-2-8, img[class*="coverImage"]') as HTMLElement | null
+        expect(img?.getAttribute('src')).toBe('/game-image/?id=g1&imageId=img9')
+        expect(screen.getByTestId('article-list')).toBeTruthy()
+    })
+
+    it('restores a deleted game and toasts the result', async () => {
+        queryData = { gameById: gameRow({ deleted: true }) }
+        renderPanel()
+        await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+        fireEvent.click(screen.getByText(translate(cs, 'GameDetail.restoreGame')))
+        await waitFor(() => expect(mutations.length).toBe(1))
+        await waitFor(() => expect(toasts[0]?.type).toBe('success'))
+    })
+
+    it('shows the edit action when the permission allows it', async () => {
+        queryData = { gameById: gameRow({ allowedActions: ['Edit'] }) }
+        renderPanel()
+        await act(async () => { await Promise.resolve(); await Promise.resolve() })
+
+        expect(screen.getByText(translate(cs, 'GameDetail.editGame'))).toBeTruthy()
+        expect(screen.queryByText(translate(cs, 'GameDetail.deleteGame'))).toBeNull()
+    })
 })
