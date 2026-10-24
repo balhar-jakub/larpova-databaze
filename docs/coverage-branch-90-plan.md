@@ -100,7 +100,13 @@ main; CI prints both summary lines; a deliberate branch drop goes red. ✅ verif
 ## Phase 1 — API: 78.94% → 90% (+252 arms, ~1–2 weeks) — DONE ✅
 
 Reached on branch `chore/branch-coverage-90-phase1` (190 commits):
-API branch 90.08% (2,045/2,270), 73 suites / 712 tests green. The
+API branch 90.08% (2,045/2,270) on the ratchet DB, 90.17% (2,038/2,260)
+on the seeded dev DB — 73 suites / 712 tests green on BOTH (the exit
+criteria's two-database demand; seven suites had asserts that assumed a
+small database and were made data-independent). Note for any seeded
+environment: the 2014 import left six id sequences behind their max ids
+(game/image/label/photo/video/donation) — implicit-id inserts collide
+until the sequences are setval'd to max(id). The
 suite-level gate is live in CI (`scripts/coverage-ratchet.mjs`, targets
 API 90 / web 82, exit-verified locally); `src/api/src/index.ts` (the
 server bootstrap) is excluded from the API scope for the same reason
