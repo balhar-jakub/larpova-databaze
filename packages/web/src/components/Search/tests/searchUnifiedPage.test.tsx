@@ -51,7 +51,10 @@ jest.unstable_mockModule('src/hooks/useFocusInput', () => ({
     useFocusInput: () => formRef,
 }))
 jest.unstable_mockModule('../../common/BigLoading/BigLoading', () => ({ default: () => <div /> }))
-jest.unstable_mockModule('../SearchSuggestion', () => ({ default: () => <div /> }))
+jest.unstable_mockModule('../SearchSuggestion', () => ({
+    default: ({ suggestion, onUse }: { suggestion?: string | null; onUse: (value: string) => void }) =>
+        suggestion ? <button type="button" onClick={() => onUse(suggestion)}>{suggestion}</button> : null,
+}))
 
 // The four lists themselves are not under test here — only that the page picks
 // the right one, so each stub shouts which panel got rendered.
@@ -242,6 +245,42 @@ describe('the page says what it was asked', () => {
         expect(screen.getByTestId('search.panel').textContent).toContain('Výsledky pro')
         fireEvent.click(screen.getByTestId('search.clearQuery'))
         expect(replaceSpy).toHaveBeenCalledWith({ pathname: '/search', query: {} }, undefined, { shallow: true })
+    })
+
+    test('submitting the form updates the query in the URL', () => {
+        renderPanel()
+
+        const input = screen.getByPlaceholderText(translate(cs, 'Search.query'))
+        fireEvent.change(input, { target: { value: '  legie  ' } })
+        fireEvent.submit(input.closest('form')!)
+
+        // The query is trimmed before it lands in the URL.
+        expect(replaceSpy).toHaveBeenCalledWith(
+            { pathname: '/search', query: { q: 'legie' } },
+            undefined,
+            { shallow: true },
+        )
+    })
+
+    test('the did-you-mean suggestion becomes the query', async () => {
+        queryAnswer = {
+            loading: false,
+            data: overviewAnswer({
+                suggestion: 'legii',
+                totalGames: 0, totalUsers: 0, totalEvents: 0, totalGroups: 0,
+                games: [], users: [], events: [], groups: [],
+            }),
+        }
+
+        renderPanel()
+
+        const suggestion = await screen.findByText('legii', { selector: 'button' })
+        fireEvent.click(suggestion)
+        expect(replaceSpy).toHaveBeenCalledWith(
+            { pathname: '/search', query: { q: 'legii' } },
+            undefined,
+            { shallow: true },
+        )
     })
 
     test('nothing was found at all', () => {
