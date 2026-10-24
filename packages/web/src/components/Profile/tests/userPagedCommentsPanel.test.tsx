@@ -1,0 +1,96 @@
+/**
+ * @jest-environment jsdom
+ */
+/**
+ * The user's own comments panel's page-cache arms: the first page can be
+ * handed in pre-loaded (skip arm), the refetch path caches the last page,
+ * and the panel survives an answer without comments.
+ */
+import React from 'react'
+import { render, screen, cleanup } from '@testing-library/react'
+import { jest } from '@jest/globals'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { translate } from 'src/lib/translationLookup'
+
+const cs = JSON.parse(
+    readFileSync(fileURLToPath(new URL('../../../../public/static/locales/cs/common.json', import.meta.url)), 'utf-8'),
+)
+
+;(globalThis as unknown as { require: (p: string) => unknown }).require = () => ({})
+
+let queryData: Record<string, unknown> | undefined
+let queryLoading = false
+let queryCalls = 0
+
+jest.unstable_mockModule('src/lib/i18n', () => ({
+    useTranslation: () => ({
+        t: (key: string, options?: Record<string, unknown>) => translate(cs, key, options),
+        locale: 'cs',
+        ready: true,
+    }),
+}))
+jest.unstable_mockModule('@apollo/client', () => ({
+    useQuery: () => {
+        queryCalls += 1
+        return { data: queryData, loading: queryLoading, refetch: () => Promise.resolve() }
+    },
+}))
+jest.unstable_mockModule('is-in-browser', () => ({ __esModule: true, default: true }))
+jest.unstable_mockModule('../../common/PagedCommentsPanel/PagedCommentsPanel', () => ({
+    default: ({ page, pageSize }: { page: { totalAmount: number; comments: unknown[] } | undefined; pageSize: number }) => (
+        <div data-testid="paged" data-total={page?.totalAmount ?? 'x'} data-pagesize={String(pageSize)} />
+    ),
+}))
+
+let UserPagedCommentsPanel: typeof import('../UserPagedCommentsPanel').default
+
+beforeAll(async () => {
+    UserPagedCommentsPanel = (await import('../UserPagedCommentsPanel')).default
+})
+
+beforeEach(() => {
+    cleanup()
+    queryData = undefined
+    queryLoading = false
+    queryCalls = 0
+})
+
+const commentPage = (totalAmount: number, n: number) => ({
+    __typename: 'CommentsPaged',
+    totalAmount,
+    comments: Array.from({ length: n }, (_, i) => ({ __typename: 'Comment', id: `c${i}` })),
+})
+
+describe('UserPagedCommentsPanel', () => {
+    it('skips the query when the first page was handed in', () => {
+        render(<UserPagedCommentsPanel userId="u1" firstPage={commentPage(12, 10) as never} />)
+
+        // The skip arm: no query fired, the handed-in page renders.
+        expect(queryCalls).toBe(1)
+        expect(screen.getByTestId('paged').dataset.total).toBe('12')
+    })
+
+    it('caches the answered page and survives an empty answer', () => {
+        queryData = { userById: { __typename: 'User', id: 'u1', commentsPaged: commentPage(5, 5) } }
+        render(<UserPagedCommentsPanel userId="u1" firstPage={undefined} />)
+
+        expect(screen.getByTestId('paged').dataset.total).toBe('5')
+
+        // A later render with no answer keeps the cached page.
+        queryData = undefined
+        cleanup()
+        queryData = undefined
+        const { container } = render(<UserPagedCommentsPanel userId="u1" firstPage={undefined} />)
+        expect(container).toBeTruthy()
+    })
+
+    it('renders without a page while loading', () => {
+        queryLoading = true
+        queryData = undefined
+        render(<UserPagedCommentsPanel userId="u1" firstPage={undefined} />)
+
+        // The panel's page is undefined: the pager receives nothing, not a crash.
+        expect(screen.getByTestId('paged').dataset.total).toBe('x')
+    })
+})

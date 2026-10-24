@@ -35,7 +35,7 @@ const AdminStatsPanel = () => {
         fetchPolicy: 'cache-and-network',
     })
 
-    const stats = data?.admin.stats
+    const stats = data?.admin?.stats
     const sortedStats = useMemo(
         () => [...(stats || [])].sort((a, b) => b.year * 100 + b.month - (a.year * 100 + a.month)),
 

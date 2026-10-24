@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react'
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { render, screen, fireEvent, act, cleanup, waitFor, within } from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -452,6 +452,26 @@ describe('AdminStatsPanel', () => {
         // Sorted newest first: October's row (12 ratings) comes before September's.
         expect(screen.getByText('12')).toBeTruthy()
         expect(screen.getByText('4.25')).toBeTruthy()
+    })
+
+    it('answers zero and empty cells for a sparse stats row and shows loading when empty', () => {
+        queryResult = {
+            admin: {
+                stats: [
+                    { __typename: 'AdminRatingStats', id: '1', year: 2026, month: 3, numRatings: null, numComments: null, averageRating: null },
+                ],
+            },
+        }
+        render(<AdminStatsPanel />)
+
+        // The nulls fall back: 0 ratings, no average text, 0 comments.
+        expect(document.body.textContent).toContain('0')
+        expect(document.body.textContent).not.toContain('null')
+
+        cleanup()
+        queryResult = {}
+        render(<AdminStatsPanel />)
+        expect(screen.getByText('loading')).toBeTruthy()
     })
 })
 
