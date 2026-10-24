@@ -492,6 +492,48 @@ describe('larpCzImport.importLarpCzEvents', () => {
 // ---------------------------------------------------------------------------
 
 describe('larpCzImport on a database with users (the FK owner exists)', () => {
+
+  it('answers 0 for a page with no event rows (structure changed)', async () => {
+    const restore = global.fetch;
+    routeFetch([{ match: 'larp.cz/kalendar', response: () => res({ text: '<html><body><p>nic</p></body></html>' }) }]);
+    try {
+      const imported = await importLarpCzEvents(db);
+      expect(imported).toBe(0);
+    } finally {
+      global.fetch = restore;
+    }
+  });
+
+  it('skips a row without a name, keeps one without a link href, and clears location when absent', async () => {
+    const restore = global.fetch;
+    const html = `
+      <html><body>
+      <div class="kalendar-akce">
+        <div class="akce-nazev"><span>${MARK}bezejmena</span></div>
+        <div class="akce-datum">5. 8. 2026</div>
+        <div class="akce-misto">Praha</div>
+      </div><div class="kalendar-akce">
+        <div class="akce-nazev"><a>${MARK}bez-odkazu</a></div>
+        <div class="akce-datum">7. 8. 2026</div>
+        <div class="akce-misto"></div>
+      </div></body></html>`;
+    routeFetch([{ match: 'larp.cz/kalendar', response: () => res({ text: html }) }]);
+    try {
+      const imported = await importLarpCzEvents(db);
+      expect(imported).toBe(1);
+      const event = await db.event.findFirst({ where: { name: `${MARK}bez-odkazu` } });
+      expect(event).not.toBeNull();
+      expect(event!.web).toBeNull();   // no href → null
+      expect(event!.loc).toBeNull();   // empty location → null
+      const nameless = await db.event.findFirst({ where: { name: `${MARK}bezejmena` } });
+      expect(nameless).toBeNull();     // a row without a name is skipped
+    } finally {
+      await db.event_has_labels.deleteMany({ where: { event: { name: `${MARK}bez-odkazu` } } });
+      await db.event.deleteMany({ where: { name: { startsWith: `${MARK}bez` } } });
+      global.fetch = restore;
+    }
+  });
+
   it('attributes imported events to the lowest existing user id', async () => {
     const anyUser = await db.csld_csld_user.findFirst({ orderBy: { id: 'asc' }, select: { id: true } });
     if (!anyUser) return; // covered by the CI's empty-database run
