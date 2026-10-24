@@ -51,6 +51,12 @@ function collectCoverage(jestArgs, label) {
         '--experimental-vm-modules',
         join(ROOT, 'node_modules', 'jest', 'bin', 'jest.js'),
         ...jestArgs,
+        // One worker: the suite-heavy API run under coverage spawns several
+        // instrumented workers at once and the 2-core runner OOM-kills the
+        // tree mid-run (the step dies with no failure summary and no ratchet
+        // print). Serial is slower per run but deterministic — a ratchet's
+        // whole job is determinism.
+        '--runInBand',
         '--coverage',
         '--coverageReporters=json-summary',
       ],
