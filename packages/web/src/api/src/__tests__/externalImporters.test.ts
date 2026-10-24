@@ -111,7 +111,10 @@ function routeFetch(routes: Array<{ match: string; response: (url: string) => Re
     for (const r of routes) {
       if (url.includes(r.match)) return r.response(url);
     }
-    return genericDetail(url);
+    // No route matched. Fail loudly: a silently-routed detail URL turns
+    // "expected 0 imports" into an import via the generic fixture and
+    // masks missing routing (this is exactly what CI caught).
+    throw new Error(`fetch stub: no route for ${url}`);
   }) as unknown as typeof fetch;
   return { calls };
 }
@@ -175,6 +178,11 @@ describe('larpCzArticlesImport.importLarpCzArticles', () => {
   });
 
   beforeAll(async () => {
+    // Self-healing: purge every article id this suite uses, so a rerun
+    // (or a leftover row from an aborted run) cannot change the outcome.
+    await db.csld_article.deleteMany({
+      where: { source: 'LARP_CZ', source_id: { in: ['97001', '97002', '98001', '98011', '98002', '98003', '98012', '98013'] } },
+    });
     // One full listing page (7 items stops pagination naturally), one new
     // article, one already-imported article.
     await db.csld_article.create({
@@ -239,6 +247,8 @@ describe('larpCzArticlesImport.importLarpCzArticles', () => {
     const { calls } = routeFetch([
       { match: 'page=0', response: () => res({ text: listing }) },
       { match: 'clanek/98001', response: () => res({ text: '<html><body>no title here</body></html>' }) },
+      { match: 'clanek/98002', response: () => res({ text: '<html><body>no title here</body></html>' }) },
+      { match: 'clanek/98003', response: () => res({ text: '<html><body>no title here</body></html>' }) },
     ]);
     try {
       const imported = await importLarpCzArticles(db);
@@ -258,6 +268,8 @@ describe('larpCzArticlesImport.importLarpCzArticles', () => {
     const { calls } = routeFetch([
       { match: 'page=0', response: () => res({ text: listing }) },
       { match: 'clanek/98011', response: () => res({ ok: false, status: 500 }) },
+      { match: 'clanek/98012', response: () => res({ ok: false, status: 500 }) },
+      { match: 'clanek/98013', response: () => res({ ok: false, status: 500 }) },
     ]);
     try {
       const imported = await importLarpCzArticles(db);
