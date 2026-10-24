@@ -1,20 +1,37 @@
 {
   "preset": "ts-jest/presets/default-esm",
   "testEnvironment": "jsdom",
-  "extensionsToTreatAsEsm": [".ts", ".tsx"],
+  "extensionsToTreatAsEsm": [
+    ".ts",
+    ".tsx"
+  ],
   "moduleNameMapper": {
     "\\.graphql$": "<rootDir>/src/lib/tests/graphqlDocumentStub.js",
     "^(\\.{1,2}/.*)\\.js$": "$1",
     "^@/(.*)$": "<rootDir>/src/$1",
     "^src/(.*)$": "<rootDir>/src/$1",
-    "^server/(.*)$": "<rootDir>/src/lib/$1"
+    "^server/(.*)$": "<rootDir>/src/lib/$1",
+    "\\.css$": "<rootDir>/src/lib/tests/emptyModuleStub.js"
   },
   "transform": {
-    "^.+\\.(ts|tsx)$": ["ts-jest", { "useESM": true, "tsconfig": { "jsx": "react-jsx" } }]
+    "^.+\\.(ts|tsx)$": [
+      "ts-jest",
+      {
+        "useESM": true,
+        "tsconfig": {
+          "jsx": "react-jsx"
+        }
+      }
+    ]
   },
   "globalSetup": "<rootDir>/jest.globalSetup.cjs",
-  "testMatch": ["**/*.test.ts", "**/*.test.tsx"],
-  "testPathIgnorePatterns": ["<rootDir>/src/api/"],
+  "testMatch": [
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ],
+  "testPathIgnorePatterns": [
+    "<rootDir>/src/api/"
+  ],
   "collectCoverageFrom": [
     "src/**/*.ts",
     "src/**/*.tsx",
