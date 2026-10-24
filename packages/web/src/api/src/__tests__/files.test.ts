@@ -215,3 +215,66 @@ describe('LocalFiles.streamToResponse', () => {
     // event from createReadStream.
   });
 });
+
+// ---------------------------------------------------------------------------
+// saveImageWithPreviewAndReturnPath / saveFileAndReturnPath / stream edge
+// ---------------------------------------------------------------------------
+
+describe('LocalFiles save paths', () => {
+  let tmpDir: string;
+  let files: LocalFiles;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'csld-files-save-test-'));
+    files = new LocalFiles(tmpDir);
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  const PNG = Buffer.from(
+    // 1x1 transparent PNG
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+    'base64',
+  );
+
+  it('saveImageAndReturnPath writes the processed image and returns its path and dimensions', async () => {
+    const upload = new Base64UploadedFile('test.png', PNG.toString('base64'));
+    const strategy = getMaxWidthHeightStrategy(64);
+    const result = await files.saveImageAndReturnPath(upload, strategy);
+
+    expect(result.path).toMatch(/^[0-9a-f]\//);
+    const { existsSync, readFileSync } = await import('node:fs');
+    expect(existsSync(join(tmpDir, result.path))).toBe(true);
+    expect(result.width).toBe(strategy.outputWidth ?? 0);
+    expect(result.height).toBe(strategy.outputHeight ?? 0);
+  });
+
+  it('saveImageWithPreviewAndReturnPath writes full and preview variants', async () => {
+    const upload = new Base64UploadedFile('preview.png', PNG.toString('base64'));
+    const full = getMaxWidthHeightStrategy(64);
+    const preview = getMaxWidthHeightStrategy(32);
+    const result = await files.saveImageWithPreviewAndReturnPath(upload, full, preview);
+
+    const { existsSync } = await import('node:fs');
+    expect(existsSync(join(tmpDir, result.path))).toBe(true);
+    expect(existsSync(join(tmpDir, getPreviewPath(result.path)))).toBe(true);
+  });
+
+  it('saveFileAndReturnPath writes the raw buffer under a generated path', async () => {
+    const upload = new Base64UploadedFile('raw.txt', Buffer.from('plain bytes').toString('base64'));
+    const path = await files.saveFileAndReturnPath(upload);
+
+    const { existsSync, readFileSync } = await import('node:fs');
+    const full = join(tmpDir, path);
+    expect(existsSync(full)).toBe(true);
+    expect(readFileSync(full).toString()).toBe('plain bytes');
+  });
+
+  it('exists() reports the truth about a file', async () => {
+    expect(await files.exists('nope.txt')).toBe(false);
+    writeFileSync(join(tmpDir, 'yes.txt'), 'x');
+    expect(await files.exists('yes.txt')).toBe(true);
+  });
+});
