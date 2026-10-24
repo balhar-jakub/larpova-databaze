@@ -89,11 +89,11 @@ import type { Context } from '../context.js';
  * `registrationOpen` is derived from the tri-state `registration_status`:
  * true only while the sign-up is live (`OPEN`). Kept as a boolean for the
  * benefit of existing clients (homepage panels, calendar filter, search).
- * The legacy `registration_open` column is honored for rows that were not
- * backfilled yet.
+ * (The legacy `registration_open` boolean column was dropped with the
+ * migration set — no deployment carries it — so no fallback reads it.)
  */
 const registrationOpenResolver = (event: any): boolean =>
-  event.registrationOpen ?? (event.registration_status ?? (event.registration_open ? 'OPEN' : null)) === 'OPEN';
+  event.registrationOpen ?? event.registration_status === 'OPEN';
 
 export const resolvers: any = {
   Query: {
