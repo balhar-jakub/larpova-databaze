@@ -3,6 +3,7 @@ import {
     CATALOG_PRESETS,
     DEFAULT_CATALOG_SIZE,
     catalogActiveFilters,
+    catalogActiveFilterText,
     catalogStateKey,
     catalogStateToFilter,
     catalogStateToQuery,
@@ -140,6 +141,22 @@ describe('catalogStateToFilter', () => {
         expect(catalogStateToFilter(parseCatalogState({}))).toEqual({})
     })
 
+    test('the author id, year range and minimum ratings become filter fields', () => {
+        const state = parseCatalogState({ autor: '42', yf: '2010', yt: '2020', minr: '5' })
+
+        const filter = catalogStateToFilter(state)
+        expect(filter.authorIds).toEqual(['42'])
+        expect(filter.yearFrom).toBe(2010)
+        expect(filter.yearTo).toBe(2020)
+        expect(filter.minRatings).toBe(5)
+
+        const query = catalogStateToQuery(state) as Record<string, string>
+        expect(query.autor).toBe('42')
+        expect(query.yf).toBe('2010')
+        expect(query.yt).toBe('2020')
+        expect(query.minr).toBe('5')
+    })
+
     test('flags become explicit booleans', () => {
         const filter = catalogStateToFilter(parseCatalogState({ comments: '1', img: '1' }))
 
@@ -269,5 +286,26 @@ describe('presets', () => {
         expect(on.labels).toEqual(['5'])
         expect(on.yearFrom).toBe(2010)
         expect(on.durations).toEqual(['short'])
+    })
+})
+
+describe('active filter text', () => {
+    const t = (key: string, options?: Record<string, unknown>) =>
+        key + (options ? `:${JSON.stringify(options)}` : '')
+
+    test('names every chip kind', () => {
+        const state = parseCatalogState({ q: 'legie', autor: '42' })
+        const filters = catalogActiveFilters(state, {})
+
+        const texts = filters.map((filter) => catalogActiveFilterText(filter, t))
+        expect(texts).toContain('Catalog.active.query:{"query":"legie"}')
+        expect(texts).toContain('Catalog.active.author:{"name":"42"}')
+    })
+
+    test('the range helpers cover one-sided years and players', () => {
+        const yearFrom = catalogActiveFilterText({ key: 'yf', kind: 'year', from: 2010, to: null, remove: {} }, t)
+        expect(yearFrom).toBe('Catalog.active.yearFrom:{"from":2010}')
+        const playersTo = catalogActiveFilterText({ key: 'pt', kind: 'players', from: null, to: 20, remove: {} }, t)
+        expect(playersTo).toBe('Catalog.active.playersTo:{"to":20}')
     })
 })
