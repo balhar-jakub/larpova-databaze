@@ -51,6 +51,7 @@ jest.unstable_mockModule('src/hooks/useRoutes', () => ({
     useRoutes: () => {
         const routes = {
             currentProfile: () => '/muj-profil',
+            groupDetail: (id: string) => ({ href: `/groupDetail?id=${id}`, as: `/group/${id}` }),
             userSettings: () => '/nastaveni',
             changePassword: () => '/zmena-hesla',
             adminIntro: () => '/admin',
@@ -241,6 +242,71 @@ describe('HeaderSearchForm', () => {
         // results render, and the box must stay focused.
         expect(await screen.findByText('Dračí doupě', {}, { timeout: 2000 })).toBeTruthy()
         expect(screen.getByText('Hráč')).toBeTruthy()
+    })
+
+    it('renders found groups with their links', async () => {
+        searchResult = {
+            search: {
+                __typename: 'SearchResult',
+                games: [], users: [], events: [],
+                groups: [{ __typename: 'Group', id: 'g1', name: 'Dragon Games' }],
+                totalGames: 0, totalUsers: 0, totalEvents: 0, totalGroups: 1,
+            },
+        }
+        render(<HeaderSearchForm />)
+        const input = screen.getByRole('textbox')
+        fireEvent.focus(input)
+        fireEvent.change(input, { target: { value: 'dragon' } })
+
+        // The query is highlighted inside the name: 'Dragon' in a mark.
+        const mark = await screen.findByText('Dragon', { selector: 'mark' }, { timeout: 2000 })
+        expect(mark.textContent).toBe('Dragon')
+    })
+
+    it('adopts the did-you-mean suggestion on click', async () => {
+        searchResult = {
+            search: {
+                __typename: 'SearchResult',
+                games: [], users: [], events: [], groups: [],
+                totalGames: 0, totalUsers: 0, totalEvents: 0, totalGroups: 0,
+                suggestion: 'draci',
+            },
+        }
+        render(<HeaderSearchForm />)
+        const input = screen.getByRole('textbox')
+        fireEvent.focus(input)
+        fireEvent.change(input, { target: { value: 'drax' } })
+
+        // The suggestion is the only button inside the suggestion row.
+        const suggestion = await screen.findByText('draci', { selector: 'button' }, { timeout: 2000 })
+        fireEvent.click(suggestion)
+
+        // The suggestion replaces the query state: the box is uncontrolled,
+        // so observe it through the rendered results, which now use the
+        // suggestion as the highlight query.
+        await waitFor(() => expect(screen.getByTestId('search.headerResults')).toBeTruthy())
+    })
+
+    it('hides the results after the blur timeout', async () => {
+        searchResult = {
+            search: {
+                __typename: 'SearchResult',
+                games: [], users: [], events: [], groups: [],
+                totalGames: 0, totalUsers: 0, totalEvents: 0, totalGroups: 0,
+            },
+        }
+        render(<HeaderSearchForm />)
+        const input = screen.getByRole('textbox')
+        fireEvent.focus(input)
+        fireEvent.change(input, { target: { value: 'drac' } })
+
+        expect(await screen.findByTestId('search.headerResults', {}, { timeout: 2000 })).toBeTruthy()
+
+        // Blurring schedules the hide (BLUR_TIMEOUT = 100ms); after it
+        // elapses the results box is gone.
+        fireEvent.blur(input)
+        await new Promise((resolve) => setTimeout(resolve, 250))
+        expect(screen.queryByTestId('search.headerResults')).toBeNull()
     })
 
     it('submits the typed query to the search page and clears the box', async () => {

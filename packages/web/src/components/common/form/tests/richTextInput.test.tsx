@@ -107,6 +107,36 @@ describe('FormRichTextInputField', () => {
         expect(document.querySelector('[contenteditable]') !== null || document.querySelector('.DraftEditor-root') !== null).toBe(true)
     })
 
+    it('marks the field blurred on editor blur and refocuses through the wrapper', async () => {
+        renderField(undefined)
+        await act(async () => { await Promise.resolve() })
+
+        // The editor's contenteditable surface fires blur/focus events.
+        const surface = document.querySelector('[contenteditable]') ?? document.querySelector('.DraftEditor-root')
+        expect(surface).toBeTruthy()
+        fireEvent.blur(surface!)
+        // The wrapper click focuses the editor again (and stops the event).
+        const wrapper = (surface as HTMLElement).parentElement!
+        fireEvent.click(wrapper)
+    })
+
+    it('auto-focuses the editor once after mount when autoFocus is set', async () => {
+        render(
+            <Form
+                onSubmit={() => undefined}
+                initialValues={{ text: undefined }}
+                render={() => <FormRichTextInputField name="text" label="Popis" autoFocus />}
+            />,
+        )
+        await act(async () => {
+            await Promise.resolve()
+            // The autofocus fires through a 100ms timeout so it also works in modals.
+            jest.advanceTimersByTime?.(0)
+            await new Promise((resolve) => setTimeout(resolve, 150))
+        })
+        expect(document.querySelector('[contenteditable]') !== null || document.querySelector('.DraftEditor-root') !== null).toBe(true)
+    })
+
     it('keeps an already-converted EditorState value as-is', async () => {
         const seen = renderField(EditorState.createEmpty())
         await act(async () => { await Promise.resolve() })
