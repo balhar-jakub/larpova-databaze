@@ -25,16 +25,31 @@ const IMPORT_UA = 'CSLD-Articles-Import/1.0 (+https://www.larpovadatabaze.cz)';
 /** Minimum spacing between requests — larpy.cz throttles bursts. */
 const REQUEST_SPACING_MS = 1_000;
 
+/**
+ * The pause between requests, in ms. Tests set this to ~0 via
+ * `setRequestSpacing()`; the nightly import keeps the 1s default.
+ */
+let requestSpacingMs = REQUEST_SPACING_MS;
+
+/** Test hook: collapse the inter-request pause (real spacing is 1s). */
+export function setRequestSpacing(ms: number): void {
+  requestSpacingMs = Math.max(0, ms);
+}
+
 async function sleep(ms: number): Promise<void> {
   await new Promise((r) => setTimeout(r, ms));
 }
 
 async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
-  await sleep(REQUEST_SPACING_MS);
+  await sleep(requestSpacingMs);
   let lastRes: Response | null = null;
   for (let attempt = 0; attempt < attempts; attempt++) {
     if (attempt > 0) {
-      const delay = attempt === 1 ? 5_000 : attempt === 2 ? 15_000 : 30_000;
+      // Real backoff is 5/15/30s; under the test hook (spacing 0) the
+      // backoff collapses too, or a single throttled response would blow
+      // the 5s jest timeout.
+      const scale = requestSpacingMs / REQUEST_SPACING_MS;
+      const delay = Math.round((attempt === 1 ? 5_000 : attempt === 2 ? 15_000 : 30_000) * scale);
       await new Promise((r) => setTimeout(r, delay));
     }
     lastRes = await fetch(url, { headers: { 'User-Agent': IMPORT_UA } });

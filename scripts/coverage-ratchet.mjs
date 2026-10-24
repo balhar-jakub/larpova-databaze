@@ -95,8 +95,23 @@ function main() {
     ['--config', 'jest.api.config.json', '--collectCoverageFrom=src/api/src/**/*.ts', '--collectCoverageFrom=!src/api/src/**/*.d.ts', 'src/api/src/__tests__'],
     'API',
   );
+  // The whole web tree minus the API server tree and the agreed exclusions
+  // (mirrors jest.config.json's collectCoverageFrom): the floor set must not
+  // silently shrink because a suite stopped importing a file.
   const web = collectCoverage(
-    ['--config', 'jest.config.json', '--collectCoverageFrom=src/lib/**/*.ts*', 'src/lib', 'src/components'],
+    [
+      '--config', 'jest.config.json',
+      '--collectCoverageFrom=src/**/*.ts',
+      '--collectCoverageFrom=src/**/*.tsx',
+      '--collectCoverageFrom=!src/api/**',
+      '--collectCoverageFrom=!src/graphql/__generated__/**',
+      '--collectCoverageFrom=!**/*.test.*',
+      '--collectCoverageFrom=!**/__tests__/**',
+      '--collectCoverageFrom=!**/tests/**',
+      '--collectCoverageFrom=!**/*.stories.tsx',
+      '--collectCoverageFrom=!src/utils/gtag.ts',
+      '--collectCoverageFrom=!src/components/componentTestIds.ts',
+    ],
     'web',
   );
 

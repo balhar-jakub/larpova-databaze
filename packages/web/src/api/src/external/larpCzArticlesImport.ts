@@ -19,8 +19,19 @@ const LARP_CZ_SOURCE = 'LARP_CZ';
 const IMPORT_UA = 'CSLD-Articles-Import/1.0 (+https://www.larpovadatabaze.cz)';
 const REQUEST_SPACING_MS = 1_000;
 
+/**
+ * The pause between requests, in ms. Tests set this to ~0 via
+ * `setRequestSpacing()`; the nightly import keeps the 1s default.
+ */
+let requestSpacingMs = REQUEST_SPACING_MS;
+
+/** Test hook: collapse the inter-request pause (real spacing is 1s). */
+export function setRequestSpacing(ms: number): void {
+  requestSpacingMs = Math.max(0, ms);
+}
+
 async function fetchSpaced(url: string): Promise<Response> {
-  await new Promise((r) => setTimeout(r, REQUEST_SPACING_MS));
+  await new Promise((r) => setTimeout(r, requestSpacingMs));
   return fetch(url, { headers: { 'User-Agent': IMPORT_UA } });
 }
 

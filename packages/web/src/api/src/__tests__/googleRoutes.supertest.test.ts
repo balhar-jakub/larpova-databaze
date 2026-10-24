@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import { createGoogleRouter, safeReturnTo } from '../auth/googleRoutes';
+import { google } from 'googleapis';
 import type { GoogleEnv } from '../auth/googleLink';
 import { prisma } from '../context';
 
@@ -135,5 +136,146 @@ describe('the callback refuses everything it should', () => {
 
     const response = await agent.get('/auth/google/callback?error=access_denied');
     expect(response.headers.location).toBe('/signIn?error=google_cancelled');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The callback happy path — the token exchange and ID-token verification are
+// stubbed on the OAuth2 prototype (the router news up the client itself), the
+// DB side is real: `linkGoogleIdentity` runs against fixture rows.
+// ---------------------------------------------------------------------------
+
+describe('the callback completes a real sign-in', () => {
+  const stamp = Date.now();
+  const email = `google-routes-${stamp}@integration.test`;
+  let userId: number;
+
+  /** Stubs `getToken`/`verifyIdToken` on the OAuth2 prototype for one test. */
+  function stubOAuth2(payload: { sub: string; email?: string; email_verified?: boolean; name?: string }) {
+    const proto = Object.getPrototypeOf(new google.auth.OAuth2('id', 'secret')) as Record<
+      string,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      any
+    >;
+    const tokenSpy: { mockRestore: () => void } = jest
+      .spyOn(proto, 'getToken')
+      .mockResolvedValue({ tokens: { id_token: 'stub-id-token' } });
+    const verifySpy: { mockRestore: () => void } = jest
+      .spyOn(proto, 'verifyIdToken')
+      .mockResolvedValue({ getPayload: () => payload });
+    return { tokenSpy, verifySpy };
+  }
+
+  beforeAll(async () => {
+    const user = await prisma.csld_csld_user.create({
+      data: {
+        email,
+        password: 'x',
+        role: 1,
+        name: 'google-routes-fixture',
+        is_author: false,
+      },
+    });
+    userId = user.id;
+  });
+
+  afterAll(async () => {
+    await prisma.csld_oauth_account.deleteMany({ where: { user_id: userId } });
+    await prisma.csld_csld_user.deleteMany({ where: { id: userId } });
+  });
+
+  function buildHappyPathApp() {
+    const app = express();
+    app.use(cookieParser());
+    app.use(
+      session({ secret: SECRET, resave: false, saveUninitialized: false, name: 'csld.sid' }),
+    );
+    let loggedIn = false;
+    app.use(
+      '/auth/google',
+      createGoogleRouter({
+        prisma,
+        // The shape toAuthUser consumes; only the id matters for the assertions.
+        loadUser: async (id: number) => ({
+          id,
+          email,
+          name: 'google-routes-fixture',
+          nickname: null,
+          role: 1,
+          csld_image: null,
+          amount_of_comments: 0,
+          amount_of_played: 0,
+          amount_of_created: 0,
+        }),
+        login: async () => {
+          loggedIn = true;
+        },
+        env: CONFIGURED,
+      }),
+    );
+    return { app, wasCalled: () => loggedIn };
+  }
+
+  it('exchanges the code, links the identity and redirects to returnTo', async () => {
+    const sub = `sub-${stamp}`;
+    const spies = stubOAuth2({ sub, email, email_verified: true, name: 'Google Tester' });
+    const { app, wasCalled } = buildHappyPathApp();
+    const agent = request.agent(app);
+
+    const started = await agent.get('/auth/google?returnTo=%2Fgame%2Fabc');
+    const state = stateFrom(started.headers.location);
+
+    const response = await agent.get(`/auth/google/callback?code=abc&state=${encodeURIComponent(state)}`);
+
+    expect(response.headers.location).toBe('/game/abc');
+    expect(wasCalled()).toBe(true);
+    expect(spies.tokenSpy).toHaveBeenCalled();
+    // The identity is persisted (email auto-link path).
+    const link = await prisma.csld_oauth_account.findUnique({
+      where: { provider_provider_account_id: { provider: 'google', provider_account_id: sub } },
+    });
+    expect(link).not.toBeNull();
+    expect(link!.user_id).toBe(userId);
+
+    spies.tokenSpy.mockRestore();
+    spies.verifySpy.mockRestore();
+  });
+
+  it('refuses an unverified e-mail', async () => {
+    const spies = stubOAuth2({ sub: `unverified-${stamp}`, email, email_verified: false });
+    const { app } = buildHappyPathApp();
+    const agent = request.agent(app);
+
+    const started = await agent.get('/auth/google');
+    const state = stateFrom(started.headers.location);
+
+    const response = await agent.get(`/auth/google/callback?code=abc&state=${encodeURIComponent(state)}`);
+    expect(response.headers.location).toBe('/signIn?error=google_unverified');
+
+    spies.tokenSpy.mockRestore();
+    spies.verifySpy.mockRestore();
+  });
+
+  it('reports a token exchange failure as google_failed', async () => {
+    const proto = Object.getPrototypeOf(new google.auth.OAuth2('id', 'secret')) as Record<
+      string,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      any
+    >;
+    const tokenSpy: { mockRestore: () => void } = jest
+      .spyOn(proto, 'getToken')
+      .mockRejectedValue(new Error('exchange failed'));
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { app } = buildHappyPathApp();
+    const agent = request.agent(app);
+
+    const started = await agent.get('/auth/google');
+    const state = stateFrom(started.headers.location);
+
+    const response = await agent.get(`/auth/google/callback?code=abc&state=${encodeURIComponent(state)}`);
+    expect(response.headers.location).toBe('/signIn?error=google_failed');
+
+    tokenSpy.mockRestore();
+    errorSpy.mockRestore();
   });
 });

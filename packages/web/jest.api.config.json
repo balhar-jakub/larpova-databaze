@@ -10,5 +10,17 @@
   },
   "globalSetup": "<rootDir>/jest.globalSetup.cjs",
   "testMatch": ["**/*.test.ts"],
+  "testPathIgnorePatterns": [
+    "<rootDir>/src/components/",
+    "<rootDir>/src/utils/",
+    "<rootDir>/src/hooks/",
+    "<rootDir>/src/lib/",
+    "<rootDir>/src/graphql/",
+    "<rootDir>/src/pages/",
+    "<rootDir>/src/with/",
+    "<rootDir>/src/context/",
+    "<rootDir>/src/theme/",
+    "<rootDir>/pages/"
+  ],
   "testEnvironmentOptions": {}
 }

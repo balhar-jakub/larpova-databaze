@@ -396,3 +396,53 @@ describe('game catalog — against the database', () => {
     expect(recommended.indexOf(prefixMatchGameId)).toBeLessThan(recommended.indexOf(exactMatchGameId));
   });
 });
+
+// The order and filter branches the happy-path tests never select.
+describe('game catalog — remaining order and filter branches', () => {
+  test('MostPlayed orders by the played count', () => {
+    const first = catalogOrderBy('MostPlayed')[0] as any;
+    expect(first.amount_of_played.sort).toBe('desc');
+  });
+
+  test('Newest orders by the added date', () => {
+    const first = catalogOrderBy('Newest')[0] as any;
+    expect(first.added).toBe('desc');
+    expect(catalogOrderBy('Newest')[1]).toHaveProperty('name');
+  });
+
+  test('an unknown order falls back to the Recommended weighting', () => {
+    const order = catalogOrderBy('NoSuchOrder' as any);
+    expect(order[0]).toHaveProperty('average_rating');
+    expect(order[1]).toHaveProperty('amount_of_ratings');
+  });
+
+  test('noLabels excludes games carrying the label', () => {
+    const where = buildCatalogWhere({ noLabels: ['5'] }) as any;
+    expect(where.AND).toContainEqual({ csld_game_has_label: { none: { id_label: { in: [5] } } } });
+  });
+
+  test('year and player ranges build gte/lte pairs', () => {
+    const where = buildCatalogWhere({ yearFrom: 2000, yearTo: 2010, playersFrom: 10, playersTo: 50 }) as any;
+    expect(where.AND).toContainEqual({ year: { gte: 2000, lte: 2010 } });
+    expect(where.AND).toContainEqual({ players: { gte: 10, lte: 50 } });
+  });
+
+  test('withComments and withImage require the denormalized columns', () => {
+    const where = buildCatalogWhere({ withComments: true, withImage: true }) as any;
+    expect(where.AND).toContainEqual({ amount_of_comments: { gt: 0 } });
+    expect(where.AND).toContainEqual({ cover_image: { not: null } });
+  });
+
+  test('addedWithinDays lower-bounds the added date', () => {
+    const before = Date.now();
+    const where = buildCatalogWhere({ addedWithinDays: 30 }) as any;
+    const cond = where.AND.find((c: any) => c.added) as { added: { gte: Date } };
+    expect(cond.added.gte.getTime()).toBeGreaterThanOrEqual(before - 31 * 24 * 3600 * 1000);
+    expect(cond.added.gte.getTime()).toBeLessThanOrEqual(Date.now() - 29 * 24 * 3600 * 1000);
+  });
+
+  test('a non-positive addedWithinDays is ignored', () => {
+    const where = buildCatalogWhere({ addedWithinDays: 0 }) as any;
+    expect(where.AND.find((c: any) => c.added)).toBeUndefined();
+  });
+});

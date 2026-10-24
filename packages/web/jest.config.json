@@ -14,5 +14,17 @@
   },
   "globalSetup": "<rootDir>/jest.globalSetup.cjs",
   "testMatch": ["**/*.test.ts", "**/*.test.tsx"],
-  "testPathIgnorePatterns": ["<rootDir>/src/api/"]
+  "testPathIgnorePatterns": ["<rootDir>/src/api/"],
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "!src/api/**",
+    "!src/graphql/__generated__/**",
+    "!**/*.test.*",
+    "!**/__tests__/**",
+    "!**/tests/**",
+    "!**/*.stories.tsx",
+    "!src/utils/gtag.ts",
+    "!src/components/componentTestIds.ts"
+  ]
 }
