@@ -139,6 +139,51 @@ describe('statistics resolver', () => {
     return years.find((y) => y.year === year);
   };
 
+
+  // A year the fixtures fill ONLY with events — no games, no ratings: its
+  // bucket has no votes, so averageRating answers null (the null arm) and
+  // topGames is empty.
+  it('answers null average and no top games for a year with events but no votes', async () => {
+    const lonelyYear = FIXTURE_YEAR + 5;
+    const ev = await prisma.event.create({
+      data: {
+        name: `${marker} osamělá akce`,
+        from: new Date(Date.UTC(lonelyYear, 0, 5)),
+        to: new Date(Date.UTC(lonelyYear, 0, 6)),
+        deleted: false,
+        added_by: userIds[0],
+      },
+    });
+    try {
+      const row = await yearRow(lonelyYear);
+      expect(row).toBeDefined();
+      expect(row.events).toBe(1);
+      expect(row.ratings).toBe(0);
+      expect(row.averageRating).toBeNull();
+      expect(row.topGames).toEqual([]);
+    } finally {
+      await prisma.event.deleteMany({ where: { id: ev.id } });
+    }
+  });
+
+  it('skips a rating whose added is null instead of inventing a year', async () => {
+    const undated = await prisma.csld_rating.create({
+      data: { game_id: gameIdB, user_id: userIds[4], rating: 7, state: 2, added: null },
+    });
+    try {
+      const before = await yearRow(FIXTURE_YEAR);
+      const res: any = await executeQuery(server, STATISTICS_QUERY);
+      expect(res.errors).toBeUndefined();
+      const ratingsTotal = res.data.statistics.ratingsTotal;
+      // the undated rating exists in the total but in no year bucket
+      expect(ratingsTotal).toBeGreaterThan(0);
+      const after = await yearRow(FIXTURE_YEAR);
+      expect(after.ratings).toBe(before.ratings); // unchanged: null-added skipped
+    } finally {
+      await prisma.csld_rating.deleteMany({ where: { id: undated.id } });
+    }
+  });
+
   it('counts unique events (same name + date = one), keeps the raw count', async () => {
     const row = await yearRow(FIXTURE_YEAR);
     expect(row).toBeDefined();

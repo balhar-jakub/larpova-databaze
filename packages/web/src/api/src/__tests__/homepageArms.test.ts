@@ -80,6 +80,61 @@ beforeAll(async () => {
   });
   ratingIds.push(rating.id);
 
+  // Recommendation arms: taste from a rating >= 8 on a labeled game; an
+  // event linked ONLY to a soft-deleted game (the find fails → skipped), an
+  // event whose game carries the SAME label name twice (the dedup arm), and
+  // a normal one so the block is not empty.
+  const tasteLabel = await prisma.csld_label.create({
+    data: { name: `${marker} chuť`, is_required: false, is_authorized: true, added_by: userId },
+  });
+  labelIds.push(tasteLabel.id);
+  const twinLabel = await prisma.csld_label.create({
+    data: { name: `${marker} chuť`, is_required: false, is_authorized: true, added_by: userId },
+  });
+  labelIds.push(twinLabel.id);
+  const tasteGame = await prisma.csld_game.create({
+    data: { name: `${marker} chuťovka`, deleted: false, added_by: userId, lang: 'cs' },
+  });
+  gameIds.push(tasteGame.id);
+  await prisma.csld_game_has_label.create({ data: { id_game: tasteGame.id, id_label: tasteLabel.id } });
+  await prisma.csld_game_has_label.create({ data: { id_game: tasteGame.id, id_label: twinLabel.id } });
+  ratingIds.push(
+    (await prisma.csld_rating.create({
+      data: { user_id: userId, game_id: tasteGame.id, rating: 9, state: 2, added: new Date() },
+    })).id,
+  );
+
+  const openTasteEvent = await prisma.event.create({
+    data: {
+      name: `${marker} chuťová akce`,
+      deleted: false,
+      registration_status: 'OPEN',
+      registration_url: 'https://example.test/chut',
+      from: new Date(Date.now() + 20 * 864e5),
+      to: new Date(Date.now() + 21 * 864e5),
+    },
+  });
+  eventIds.push(openTasteEvent.id);
+  await prisma.csld_game_has_event.create({ data: { game_id: tasteGame.id, event_id: openTasteEvent.id } });
+
+  // The event whose ONLY linked game is soft-deleted: the find must fail.
+  const deadGame = await prisma.csld_game.create({
+    data: { name: `${marker} smazaná chuťovka`, deleted: true, added_by: userId, lang: 'cs' },
+  });
+  gameIds.push(deadGame.id);
+  const deadGameEvent = await prisma.event.create({
+    data: {
+      name: `${marker} akce smazané hry`,
+      deleted: false,
+      registration_status: 'OPEN',
+      registration_url: 'https://example.test/smazana',
+      from: new Date(Date.now() + 22 * 864e5),
+      to: new Date(Date.now() + 23 * 864e5),
+    },
+  });
+  eventIds.push(deadGameEvent.id);
+  await prisma.csld_game_has_event.create({ data: { game_id: deadGame.id, event_id: deadGameEvent.id } });
+
   // A played game with added: null on the state row → since: null in toRate.
   const playedGame = await prisma.csld_game.create({
     data: { name: `${marker} odehraná`, deleted: false, added_by: userId, lang: 'cs' },
@@ -127,6 +182,7 @@ describe('homepage.myHome author and finish arms', () => {
       toRate { game { id } since }
       hasData
       authoredCount
+      recommendedEvents { id name matchedLabels }
     } } }`;
 
   it('orders authored games by their last rating (unrated last) and maps nulls', async () => {
@@ -158,4 +214,19 @@ describe('homepage.myHome author and finish arms', () => {
     expect(row.since).toBeNull();
     expect(mine.hasData).toBe(true);
   });
+
+
+  it('recommends the taste event, dedups twin labels, and skips a dead-game event', async () => {
+    const result: any = await executeQuery(server, MY_HOME, undefined, me());
+    expect(result.errors).toBeUndefined();
+    const mine = result.data.homepage.myHome;
+    const rec = mine.recommendedEvents;
+    // the taste event is offered, with the label name listed ONCE (twin dedup)
+    const offered = rec.find((r: any) => r.name === `${marker} chuťová akce`);
+    expect(offered).toBeDefined();
+    expect(offered.matchedLabels.filter((l: any) => l === `${marker} chuť`)).toHaveLength(1);
+    // the event whose only game is soft-deleted never appears
+    expect(rec.some((r: any) => r.name === `${marker} akce smazané hry`)).toBe(false);
+  });
+
 });

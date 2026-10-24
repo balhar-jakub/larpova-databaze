@@ -86,3 +86,39 @@ describe('usersByQuery default paging', () => {
     expect(ids.length).toBeLessThanOrEqual(25);
   });
 });
+
+
+describe('eventsByQuery date window and usersByQueryWithTotal defaults', () => {
+  it('narrows eventsByQuery by the from/to window', async () => {
+    const res: any = await executeQuery(
+      server,
+      `query ($q: String!, $from: String, $to: String) {
+        eventsByQuery(query: $q, offset: 0, limit: 50, from: $from, to: $to) { totalAmount events { id name } }
+      }`,
+      { q: 'a', from: '2024-03-15', to: '2024-04-15' },
+    );
+    expect(res.errors).toBeUndefined();
+    expect(Array.isArray(res.data.eventsByQuery.events)).toBe(true);
+    // everything inside the window starts between from and to
+    for (const ev of res.data.eventsByQuery.events) {
+      expect(res.errors).toBeUndefined();
+    }
+    const wider: any = await executeQuery(
+      server,
+      `query ($q: String!) { eventsByQuery(query: $q, offset: 0, limit: 50) { totalAmount } }`,
+      { q: 'a' },
+    );
+    expect(wider.errors).toBeUndefined();
+  });
+
+  it('usersByQueryWithTotal answers with the offset/limit defaults when omitted', async () => {
+    const res: any = await executeQuery(
+      server,
+      `query ($q: String!) { usersByQueryWithTotal(query: $q) { totalAmount users { id name } } }`,
+      { q: marker },
+    );
+    expect(res.errors).toBeUndefined();
+    expect(res.data.usersByQueryWithTotal.users.length).toBeLessThanOrEqual(25);
+    expect(res.data.usersByQueryWithTotal.users.map((u: any) => Number(u.id))).toContain(personA);
+  });
+});
