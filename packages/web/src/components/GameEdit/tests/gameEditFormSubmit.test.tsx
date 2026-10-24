@@ -24,6 +24,8 @@ const mutationCalls: Array<{ name: string; variables?: Record<string, unknown> }
 const toasts: Array<{ text: string; type: string }> = []
 const savedGames: Array<{ id: string; name?: string }> = []
 let currentResponse: { data?: unknown } = { data: undefined }
+/** When true, the setGameSeries mutation rejects (the seriesFailed arm). */
+let failSeries = false
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
     useTranslation: () => ({
@@ -40,9 +42,13 @@ jest.unstable_mockModule('@apollo/client', () => ({
         const input = opts.variables?.input as Record<string, unknown> | undefined
         const name = typeof input?.id === 'string' && input.id ? 'updateGame' : 'createGame'
         mutationCalls.push({ name, variables: opts.variables })
-        const seriesCall = Boolean(opts.variables) && 'seriesId' in ((opts.variables as Record<string, { input?: Record<string, unknown> }>).input ?? {})
+        const seriesInput = Boolean(opts.variables) && 'input' in (opts.variables as Record<string, unknown>) ? (opts.variables as Record<string, { input?: Record<string, unknown> }>).input : undefined
+        const seriesCall = Boolean(seriesInput) && ('seriesId' in (seriesInput ?? {}) || 'newSeriesName' in (seriesInput ?? {}))
         if (seriesCall) {
             mutationCalls[mutationCalls.length - 1]!.name = 'setGameSeries'
+        }
+        if (seriesCall && failSeries) {
+            return Promise.reject(new Error('series link failed'))
         }
         return Promise.resolve(seriesCall ? { data: {} } : currentResponse)
     }, { loading: false }],
@@ -82,9 +88,27 @@ jest.unstable_mockModule('../GroupsAutoCompleteField', () => ({
     ),
 }))
 jest.unstable_mockModule('../SeriesAutoCompleteField', () => ({
-    default: ({ name, placeholder }: { name: string; placeholder?: string }) => (
-        <input name={name} placeholder={placeholder} readOnly />
-    ),
+    default: ({ name, placeholder }: { name: string; placeholder?: string }) => {
+        const { useField } = jest.requireActual('react-final-form') as typeof import('react-final-form')
+        const { input } = useField(name)
+        return (
+            <input
+                name={name}
+                placeholder={placeholder}
+                data-testid={`series-${name}`}
+                onChange={(event) =>
+                    input.onChange({
+                        target: {
+                            value: event.target.value
+                                ? JSON.parse(event.target.value)
+                                : null,
+                        },
+                    })
+                }
+                value={JSON.stringify(input.value ?? null)}
+            />
+        )
+    },
 }))
 
 let GameEditForm: typeof import('../GameEditForm')['default']
@@ -99,6 +123,7 @@ beforeEach(() => {
     toasts.length = 0
     savedGames.length = 0
     currentResponse = { data: undefined }
+    failSeries = false
 })
 
 const requiredLabels = [{ id: '1', name: 'svět', description: '' }]
@@ -162,5 +187,85 @@ describe('GameEditForm submit flow', () => {
         await waitFor(() => expect(toasts[0]).toEqual({ text: translate(cs, 'GameEdit.gameUpdated'), type: 'success' }))
         expect(mutationCalls.filter((c) => c.name === 'setGameSeries').length).toBe(0)
         expect(savedGames[0]?.id).toBe('g1')
+    })
+
+    const chooseSeries = (choice: Record<string, unknown> | null) => {
+        // The series field lives in the expandable half of the form; an edit
+        // form (gameId) starts expanded already.
+        const expand = screen.queryByText(translate(cs, 'GameEdit.showFields'))
+        if (expand) fireEvent.click(expand)
+        fireEvent.change(screen.getByTestId('series-series'), { target: { value: choice ? JSON.stringify(choice) : '' } })
+    }
+
+    it('links a new game to a stored series by id', async () => {
+        currentResponse = { data: { game: { createGame: { id: 'g10', name: 'Ve hře', year: 2027 } } } }
+        renderForm()
+
+        chooseSeries({ id: 's1', name: 'Zlenice', amountOfGames: 18, itemLabel: 'Zlenice (18)' })
+        submitValid('Ve hře')
+
+        await waitFor(() => expect(mutationCalls[0]?.name).toBe('createGame'))
+        await waitFor(() => expect(mutationCalls.some((c) => c.name === 'setGameSeries')).toBe(true))
+        const seriesCall = mutationCalls.find((c) => c.name === 'setGameSeries')
+        expect((seriesCall?.variables as { input: Record<string, unknown> })?.input).toMatchObject({
+            gameId: 'g10',
+            seriesId: 's1',
+        })
+        await waitFor(() => expect(toasts[0]).toEqual({ text: translate(cs, 'GameEdit.seriesSaved'), type: 'success' }))
+    })
+
+    it('creates the series from a typed name when no stored one is chosen', async () => {
+        currentResponse = { data: { game: { createGame: { id: 'g11', name: 'Nová hra', year: 2027 } } } }
+        renderForm()
+
+        chooseSeries({ name: 'Zcela nová série', amountOfGames: null, itemLabel: 'Zcela nová série', isNew: true })
+        submitValid('Nová hra')
+
+        await waitFor(() => expect(mutationCalls.some((c) => c.name === 'setGameSeries')).toBe(true), { timeout: 3000 })
+        const seriesCall = mutationCalls.find((c) => c.name === 'setGameSeries')
+        expect((seriesCall?.variables as { input: Record<string, unknown> })?.input).toMatchObject({
+            gameId: 'g11',
+            newSeriesName: 'Zcela nová série',
+        })
+        expect((seriesCall?.variables as { input: Record<string, unknown> })?.input).not.toHaveProperty('seriesId')
+    })
+
+    it('reports a failed series link as an alert, not a saved game', async () => {
+        failSeries = true
+        currentResponse = { data: { game: { createGame: { id: 'g12', name: 'Hra s výpadkem', year: 2027 } } } }
+        renderForm()
+
+        chooseSeries({ id: 's2', name: 'Florie', amountOfGames: 9, itemLabel: 'Florie (9)' })
+        submitValid('Hra s výpadkem')
+
+        await waitFor(() => expect(toasts[0]).toEqual({ text: translate(cs, 'GameEdit.seriesFailed'), type: 'alert' }))
+        // The game itself WAS created and reported.
+        expect(savedGames.length).toBeGreaterThan(0)
+    })
+
+    it('removes a stored series on save (seriesId: null)', async () => {
+        currentResponse = { data: { game: { updateGame: { id: 'g1', name: 'Bez série', year: 2026 } } } }
+        renderForm({ gameId: 'g1', initialValues: { name: 'Bez série', authors: [], groupAuthors: [], requiredLabels: [], optionalLabels: [], newLabels: [], series: { id: 's3', name: 'Stará', amountOfGames: 2, itemLabel: 'Stará (2)' } } as never })
+
+        chooseSeries(null)
+        submitValid('Bez série')
+
+        await waitFor(() => expect(mutationCalls[0]?.name).toBe('updateGame'))
+        await waitFor(() => expect(mutationCalls.some((c) => c.name === 'setGameSeries')).toBe(true))
+        const seriesCall = mutationCalls.find((c) => c.name === 'setGameSeries')
+        expect((seriesCall?.variables as { input: Record<string, unknown> })?.input).toMatchObject({
+            gameId: 'g1',
+            seriesId: null,
+        })
+        // The removal is NOT reported as "added to the series".
+        await waitFor(() => expect(toasts[0]).toEqual({ text: translate(cs, 'GameEdit.gameUpdated'), type: 'success' }))
+    })
+
+    it('renders the cancel button and reports the cancel when the prop is present', () => {
+        let canceled = false
+        renderForm({ onFormCanceled: () => { canceled = true } })
+
+        fireEvent.click(screen.getByText(translate(cs, 'GameEdit.back')))
+        expect(canceled).toBe(true)
     })
 })

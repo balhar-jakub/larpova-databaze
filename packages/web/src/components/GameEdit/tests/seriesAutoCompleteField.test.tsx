@@ -134,4 +134,49 @@ describe('SeriesAutoCompleteField', () => {
         expect(screen.getByPlaceholderText('Série')).toBeTruthy()
         expect(seen.at(-1)).toBeNull()
     })
+
+    it('shows the searching row while the query runs and picks a nameless series row safely', async () => {
+        loading = true
+        renderField()
+
+        await act(async () => {
+            fireEvent.change(screen.getByPlaceholderText('Série'), { target: { value: 'Zl' } })
+        })
+
+        expect(screen.getByText(translate(cs, 'AutoComplete.searching'))).toBeTruthy()
+
+        // The query resolves with a null-named series: the chip falls back to
+        // the empty string instead of crashing on null.
+        loading = false
+        searchResult = [{ id: '44', name: null, amountOfGames: 0 }]
+        await act(async () => {
+            fireEvent.change(screen.getByPlaceholderText('Série'), { target: { value: 'Zle' } })
+        })
+
+        const row = await screen.findByText((content: string) => content.trim() === '(0)')
+        await act(async () => {
+            fireEvent.mouseDown(row)
+        })
+        expect(screen.getByText((content: string) => content.trim() === '(0)')).toBeTruthy()
+    })
+
+    it('holds a create-new choice as a chip (the isNew arm)', async () => {
+        const seen = renderField()
+
+        await act(async () => {
+            fireEvent.change(screen.getByPlaceholderText('Série'), { target: { value: 'Novinka' } })
+        })
+        const createRow = await screen.findByText(/Vytvořit novou sérii/)
+        await act(async () => {
+            fireEvent.mouseDown(createRow)
+        })
+
+        // The create-new chip renders (no id), and removing it clears the form.
+        expect(screen.getByText('Novinka')).toBeTruthy()
+        expect(screen.queryByPlaceholderText('Série')).toBeNull()
+        await act(async () => {
+            fireEvent.click(screen.getByLabelText('remove'))
+        })
+        expect(seen.at(-1)).toBeNull()
+    })
 })

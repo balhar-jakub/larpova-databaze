@@ -102,4 +102,36 @@ describe('GameEditPagePanel', () => {
         await act(async () => { await Promise.resolve() })
         expect(pushedRoute).toBe('/larp/g7-Uložená hra')
     })
+
+    it('maps a sparse game: null name, no nickname, nameless group and series', async () => {
+        queryData = {
+            gameById: {
+                __typename: 'Game',
+                id: 'g8',
+                name: null,
+                description: null,
+                authors: [{ __typename: 'User', id: 'u2', name: 'Autor bez nicku', nickname: null }],
+                groupAuthor: [{ __typename: 'Group', id: 'gr1', name: null }],
+                labels: [],
+                web: null,
+                photoAuthor: null,
+                galleryURL: null,
+                series: { __typename: 'Series', id: 's1', name: null, amountOfGames: 4 },
+                year: null,
+                players: null,
+                womenRole: null,
+                menRole: null,
+                bothRole: null,
+                hours: null,
+                days: null,
+                ratingsDisabled: null,
+                commentsDisabled: null,
+            },
+        }
+        render(<GameEditPagePanel gameId="g8" />)
+
+        // toInitialValues survives every null: the form receives initial values
+        // (not undefined), so the panel is ready for editing.
+        await waitFor(() => expect(screen.getByTestId('game-edit-form').dataset.hasInitials).toBe('true'))
+    })
 })

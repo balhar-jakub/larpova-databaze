@@ -135,7 +135,8 @@ const SeriesAutoCompleteField = ({ name, placeholder, hint }: Props) => {
     }
 
     const pickNew = () => {
-        if (!text.trim()) return
+        // No empty guard: the row only renders when text.trim().length >= 2,
+        // so there is always a name to create.
         pick({ name: text.trim(), amountOfGames: null, itemLabel: text.trim(), isNew: true })
     }
 
