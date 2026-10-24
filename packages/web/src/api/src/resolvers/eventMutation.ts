@@ -284,12 +284,14 @@ export async function updateEventResolver(
     },
   });
 
-  // Resync games
+  // Resync games — the SAME NaN-filtered list the author check used: a
+  // malformed id must be skipped here too, not crash Prisma's create
+  // (observed as INTERNAL_SERVER_ERROR when an editor resynced).
   if (input.games) {
     await ctx.db.csld_game_has_event.deleteMany({ where: { event_id: eventId } });
-    for (const gameId of input.games) {
+    for (const gameId of gameIds) {
       await ctx.db.csld_game_has_event.create({
-        data: { game_id: parseInt(gameId), event_id: eventId },
+        data: { game_id: gameId, event_id: eventId },
       });
     }
   }
