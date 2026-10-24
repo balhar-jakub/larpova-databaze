@@ -19,6 +19,7 @@ const cs = JSON.parse(
 
 ;(globalThis as unknown as { require: (p: string) => unknown }).require = () => ({})
 
+let mutationLoading = false
 let queryData: Record<string, unknown> | undefined
 let mutationResult: Promise<{ data?: unknown }> = Promise.resolve({ data: {} })
 const mutationCalls: Array<{ variables?: Record<string, unknown> }> = []
@@ -37,9 +38,16 @@ jest.unstable_mockModule('@apollo/client', () => ({
     useMutation: () => [(opts: { variables?: Record<string, unknown> }) => {
         mutationCalls.push(opts)
         return mutationResult
-    }, { loading: false }],
+    }, { loading: mutationLoading }],
 }))
 jest.unstable_mockModule('is-in-browser', () => ({ __esModule: true, default: true }))
+jest.unstable_mockModule('../../common/Icons/Icons', () => ({
+    IconDisabled: () => <span>icon-disabled</span>,
+    IconEdit: () => <span>icon-edit</span>,
+    IconLoading: () => <span data-testid="icon-loading">icon-loading</span>,
+    IconPlus: () => <span data-testid="icon-plus">icon-plus</span>,
+    IconTrash: () => <span data-testid="icon-trash">icon-trash</span>,
+}))
 jest.unstable_mockModule('src/hooks/useLoggedInUser', () => ({
     useLoggedInUser: () => loggedInUser,
 }))
@@ -74,6 +82,7 @@ beforeEach(() => {
     modalCalls.length = 0
     loggedInUser = null
     mutationResult = Promise.resolve({ data: {} })
+    mutationLoading = false
     queryData = {
         gameById: {
             __typename: 'Game',
@@ -199,5 +208,25 @@ describe('GamePagedCommentsPanel', () => {
         await act(async () => { await Promise.resolve() })
         // The guard returned before the mutation: nothing was called.
         expect(mutationCalls.length).toBe(0)
+    })
+
+    it('swaps the action icons to spinners while the mutations load', () => {
+        loggedInUser = { id: 'u1' }
+        queryData = {
+            gameById: {
+                __typename: 'Game',
+                id: 'g1',
+                commentsPaged: { __typename: 'CommentsPaged', totalAmount: 1, list: [] },
+                currentUsersComment: { __typename: 'UsersComment', id: 'c9', comment: { __typename: 'Comment', id: 'c9', text: 'Moje', added: '2027-03-01' } },
+            },
+        }
+        mutationLoading = true
+        render(<GamePagedCommentsPanel gameId="g1" commentsDisabled={false} />)
+
+        // The delete button carries the spinner instead of the trash icon
+        // while its mutation loads. (editModalLoading is the lazy-chunk
+        // state of the open modal, not a mutation flag.)
+        expect(screen.getAllByTestId('icon-loading').length).toBe(1)
+        expect(screen.queryByTestId('icon-trash')).toBeNull()
     })
 })
