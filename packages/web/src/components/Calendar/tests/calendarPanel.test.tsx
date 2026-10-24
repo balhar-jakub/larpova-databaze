@@ -193,6 +193,101 @@ describe('CalendarPanel', () => {
         expect(empty).toBeTruthy()
     })
 
+    // Clicks the checkbox/radio inside the label that contains the given text.
+    const clickFilterInput = (labelText: string) => {
+        const label = screen.getByText(labelText).closest('label')
+        expect(label).toBeTruthy()
+        const input = label!.querySelector('input')
+        expect(input).toBeTruthy()
+        fireEvent.click(input!)
+    }
+
+    it('toggles the with-web and registration-open filters', async () => {
+        eventsAnswer = Promise.resolve(eventsData([
+            event('1', { web: 'https://akce.test', registrationOpen: false }),
+            event('2', { web: null, registrationOpen: true, registrationUrl: 'https://reg.test' }),
+        ]))
+        render(<CalendarPanel initialQuery={{}} />)
+        await screen.findAllByText('Událost 1')
+
+        clickFilterInput(translate(cs, 'Calendar.filters.withWeb'))
+        let lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[] as never as { query: Record<string, string> }[]
+        expect(lastCall[0].query.web).toBe('1')
+
+        clickFilterInput(translate(cs, 'Calendar.filters.registrationOpen'))
+        lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[] as never as { query: Record<string, string> }[]
+        expect(lastCall[0].query.reg).toBe('1')
+    })
+
+    it('toggles a duration filter and a label checkbox', async () => {
+        eventsAnswer = Promise.resolve(eventsData([
+            event('1', { labels: [{ id: 'l1', name: 'svět' }] }),
+        ]))
+        render(<CalendarPanel initialQuery={{}} />)
+        await screen.findAllByText('Událost 1')
+
+        // The weekend duration checkbox.
+        clickFilterInput(translate(cs, 'Calendar.filters.duration_weekend'))
+        let lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[] as never as { query: Record<string, string> }[]
+        expect(lastCall[0].query.dd).toBe('weekend')
+
+        // A label facet checkbox (the event carries one label).
+        clickFilterInput('svět')
+        lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[] as never as { query: Record<string, string> }[]
+        expect(lastCall[0].query.lb).toBe('l1')
+    })
+
+    it('offers the any-label mode once two labels are selected', async () => {
+        eventsAnswer = Promise.resolve(eventsData([
+            event('1', { labels: [{ id: 'l1', name: 'svět' }, { id: 'l2', name: 'fantasy' }] }),
+        ]))
+        render(<CalendarPanel initialQuery={{}} />)
+        await screen.findAllByText('Událost 1')
+
+        clickFilterInput('svět')
+        clickFilterInput('fantasy')
+
+        const anyMode = screen.getByText(translate(cs, 'Calendar.filters.labelsModeAny'))
+        fireEvent.click(anyMode)
+
+        const lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[] as never as { query: Record<string, string> }[]
+        expect(lastCall[0].query.lm).toBe('any')
+    })
+
+    it('switches the when radio to weekend and month, and back to all', async () => {
+        render(<CalendarPanel initialQuery={{}} />)
+        await screen.findAllByText('Událost 1')
+
+        clickFilterInput(translate(cs, 'Calendar.filters.when_weekend'))
+        let lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[] as never as { query: Record<string, string> }[]
+        expect(lastCall[0].query.kdy).toBe('weekend')
+
+        clickFilterInput(translate(cs, 'Calendar.filters.when_month'))
+        lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[] as never as { query: Record<string, string> }[]
+        expect(lastCall[0].query.kdy).toBe('month')
+
+        clickFilterInput(translate(cs, 'Calendar.filters.when_all'))
+        lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[] as never as { query: Record<string, string> }[]
+        expect(lastCall[0].query.kdy).toBeUndefined()
+    })
+
+    it('removes an active filter through its chip', async () => {
+        routerQuery = { q: 'Událost' }
+        render(<CalendarPanel initialQuery={{ q: 'Událost' }} />)
+        await screen.findByTestId('calendar.panel')
+
+        // The chip row renders an active-query chip as a button; clicking it
+        // removes that one filter.
+        const chip = screen.getAllByRole('button').find(
+            el => (el.textContent ?? '').includes('Událost') && (el.textContent ?? '').includes('✕'),
+        )
+        expect(chip).toBeTruthy()
+        fireEvent.click(chip!)
+
+        const lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[] as never as { query: Record<string, string> }[]
+        expect(lastCall[0].query.q).toBeUndefined()
+    })
+
     it('links to event creation from the toolbar', async () => {
         let target = ''
         routePush = (url: string) => { target = url }
