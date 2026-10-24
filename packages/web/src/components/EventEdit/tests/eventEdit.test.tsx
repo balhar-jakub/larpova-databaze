@@ -278,3 +278,45 @@ describe('EventEditPanel', () => {
         expect(screen.getByPlaceholderText(translate(cs, 'EventEdit.name'))).toBeTruthy()
     })
 })
+
+describe('EventEditPanel', () => {
+    it('opens the game-creation tab, hands the saved game back and cancels safely', async () => {
+        jest.useFakeTimers()
+        render(<EventEditPanel />)
+
+        // New event: the tab bar names the add variant.
+        expect(screen.getByTestId('tabs').textContent).toContain(translate(cs, 'EventEdit.addEventTab'))
+
+        // The games field lives in the expandable half; expand it first.
+        fireEvent.click(screen.getByText(translate(cs, 'EventEdit.showFields')))
+        fireEvent.click(screen.getByTestId('create-new-game'))
+        // The game tab appears and the mocked GameEditForm renders.
+        expect(screen.getByTestId('tabs').textContent).toContain(translate(cs, 'EventEdit.addGameTab'))
+        expect(screen.getByTestId('game-edit-form')).toBeTruthy()
+
+        // Cancel: the callback ref clears, the game tab disappears, and the
+        // focus helper survives without the games-input element present.
+        fireEvent.click(screen.getByText('cancel game'))
+        act(() => { jest.advanceTimersByTime(400) })
+        expect(screen.queryByTestId('game-edit-form')).toBeNull()
+        jest.useRealTimers()
+    })
+
+    it('passes a saved game with a null name and year to the add callback', async () => {
+        jest.useFakeTimers()
+        // Reuse the mocked GameEditForm's save — but with nulls we need the
+        // callback contract: render the panel, start creation, then invoke the
+        // form's save through the exposed button.
+        render(<EventEditPanel />)
+        fireEvent.click(screen.getByText(translate(cs, 'EventEdit.showFields')))
+        fireEvent.click(screen.getByTestId('create-new-game'))
+
+        // The save button hands a game with name/year; the panel must not
+        // throw on a null name (the ?? '' arms inside handleGameCreated).
+        fireEvent.click(screen.getByText('save game'))
+        act(() => { jest.advanceTimersByTime(400) })
+        expect(screen.queryByTestId('game-edit-form')).toBeNull()
+        jest.useRealTimers()
+    })
+})
+

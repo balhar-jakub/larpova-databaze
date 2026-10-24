@@ -154,3 +154,76 @@ describe('createInputFromValues', () => {
         expect(input.name).toBe(emptyInitialValues.name)
     })
 })
+
+describe('branch arms of the form utils', () => {
+    it('parseMinutes: midnight reads as 0, so equal zero-times count as inverted', () => {
+        // "0:0" is a VALID time per validateTime (digits:digits) and parses as
+        // 0 minutes — the >= guard fires on the same day.
+        const res = validate(t)({
+            ...baseValues,
+            fromDate: date('2026-05-01'),
+            toDate: date('2026-05-01'),
+            fromTime: '0:0',
+            toTime: '0:0',
+        })
+        expect(res.toTime).toBe('EventEdit.timeMismatch')
+    })
+
+    it('the same-day equal times read as inverted (>=, not >)', () => {
+        const res = validate(t)({
+            ...baseValues,
+            fromDate: date('2026-05-01'),
+            toDate: date('2026-05-01'),
+            fromTime: '10:00',
+            toTime: '10:00',
+        })
+        expect(res.toTime).toBe('EventEdit.timeMismatch')
+    })
+
+    it('an UPCOMING registration builds its opens-at from date and time', () => {
+        const input = createInputFromValues({
+            ...baseValues,
+            registrationStatus: 'UPCOMING',
+            registrationOpensDate: date('2026-04-01'),
+            registrationOpensTime: '09:30',
+        })
+        expect(input.registrationOpensAt).toBe('2026-04-01T09:30:00')
+
+        // Without a date: no opens-at at all (the undefined arm).
+        const noDate = createInputFromValues({
+            ...baseValues,
+            registrationStatus: 'UPCOMING',
+            registrationOpensDate: undefined,
+        })
+        expect(noDate.registrationOpensAt).toBeUndefined()
+
+        // A CLOSED registration ignores the fields entirely.
+        const closed = createInputFromValues({
+            ...baseValues,
+            registrationStatus: 'CLOSED',
+            registrationOpensDate: date('2026-04-01'),
+        })
+        expect(closed.registrationOpensAt).toBeUndefined()
+    })
+
+    it('the amount of players parses only when present', () => {
+        const withAmount = createInputFromValues({ ...baseValues, amountOfPlayers: '40' })
+        expect(withAmount.amountOfPlayers).toBe(40)
+        const without = createInputFromValues({ ...baseValues, amountOfPlayers: '' })
+        expect(without.amountOfPlayers).toBeUndefined()
+    })
+
+    it('toInitialValues maps a null name and a game without a year', () => {
+        const values = toInitialValues({
+            id: 'e3',
+            name: null,
+            from: '2026-05-01T10:00:00',
+            to: null,
+            games: [{ id: 'g2', name: null, year: null }],
+            labels: [],
+        } as never)
+
+        expect(values.name).toBe('')
+        expect(values.games[0]?.name).toBe('')
+    })
+})

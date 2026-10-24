@@ -254,3 +254,30 @@ test('a year chip click filters by the year and composes with the length', () =>
 
     expect(routerQuery).toEqual({ delka: 'long', rok: '2025' })
 })
+
+test('branch arms: loading without a page, missing stats, array URL params', () => {
+    // Loading with no page yet: the big loading state, not the empty sentence.
+    queryResult = { loading: true, data: undefined }
+    routerQuery = {}
+    const { unmount } = render(<Panel />)
+    expect(screen.queryByText('Žádný komentář neodpovídá této kombinaci filtrů.')).toBeNull()
+    unmount()
+
+    // No stats at all: the chips fall back to zeros (stats?.lengths.X ?? 0).
+    queryResult = {
+        loading: false,
+        data: { allComments: { totalAmount: 0, comments: [] } },
+    }
+    render(<Panel />)
+    expect(document.body.textContent).not.toContain('NaN')
+    unmount()
+
+    // Array-shaped URL params (next-router multi-value): the first value wins.
+    queryResult = {
+        loading: false,
+        data: withStats({ allComments: { totalAmount: 0, comments: [] } }),
+    }
+    routerQuery = { delka: ['long', 'short'], rok: ['2021', '2020'] }
+    render(<Panel />)
+    expect(queryVariables).toEqual({ offset: 0, limit: 10, length: 'LONG', year: 2021 })
+})

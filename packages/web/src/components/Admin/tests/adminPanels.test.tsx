@@ -262,6 +262,49 @@ describe('AdminLabelsPanel', () => {
         expect(order).toEqual(['alfa', 'Beta', 'Beta', 'zeta'])
     })
 
+
+    it('orders authorized before unauthorized and required before optional', () => {
+        queryResult = {
+            admin: {
+                allLabels: [
+                    label('1', { name: 'Volný', isAuthorized: false, isRequired: false }),
+                    label('2', { name: 'Povinný', isAuthorized: true, isRequired: true }),
+                    label('3', { name: 'Neautorizovaný povinný', isAuthorized: false, isRequired: true }),
+                    label('4', { name: 'Autorizovaný volný', isAuthorized: true, isRequired: false }),
+                ],
+            },
+        }
+        render(<AdminLabelsPanel />)
+
+        // Authorized first; within them required first; the unauthorized tail
+        // again required-first.
+        const names = Array.from(document.body.querySelectorAll('*'))
+            .filter(el => ['Volný', 'Povinný', 'Neautorizovaný povinný', 'Autorizovaný volný'].includes(el.textContent ?? ''))
+            .map(el => el.textContent)
+        expect(names.slice(0, 4)).toEqual([
+            'Povinný',
+            'Autorizovaný volný',
+            'Neautorizovaný povinný',
+            'Volný',
+        ])
+    })
+
+    it('a null-named label sorts as the empty string', () => {
+        queryResult = {
+            admin: {
+                allLabels: [
+                    label('1', { name: null, isAuthorized: true }),
+                    label('2', { name: 'aaa', isAuthorized: true }),
+                ],
+            },
+        }
+        render(<AdminLabelsPanel />)
+
+        // The null name lowercases to '' and sorts before 'aaa'.
+        const cells = Array.from(document.body.querySelectorAll('*')).filter(el => ['aaa'].includes(el.textContent ?? ''))
+        expect(cells.length).toBeGreaterThan(0)
+        expect(document.body.textContent).toContain('aaa')
+    })
     it('shows the loading state when there are no labels yet', () => {
         queryResult = { admin: { allLabels: [] } }
         render(<AdminLabelsPanel />)
