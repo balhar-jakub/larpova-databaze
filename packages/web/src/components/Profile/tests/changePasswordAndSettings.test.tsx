@@ -206,4 +206,36 @@ describe('UserSettingsPanel', () => {
         render(<UserSettingsPanel />)
         expect(screen.getByText('loading')).toBeTruthy()
     })
+
+    it('refuses the save and shows the owner when the email is taken', async () => {
+        usedByUser = { id: '9', name: 'Jiný Jakub' }
+        render(<UserSettingsPanel />)
+
+        fireEvent.submit(document.querySelector('form')!)
+
+        // The save is refused before the mutation; the taken-email hint
+        // names the owner of the address.
+        await waitFor(() => expect(screen.getByText(translate(cs, 'UserSettings.emailAlreadyUsed', { name: 'Jiný Jakub' }))).toBeTruthy(), { timeout: 5000 })
+        expect(mutationCalls.length).toBe(0)
+    })
+
+    it('saves with an empty city and a null gender (the fallback arms)', async () => {
+        const current = queryData.loggedInUser as Record<string, unknown>
+        queryData = {
+            loggedInUser: {
+                ...current,
+                city: '',
+                gender: null,
+            } as never,
+        }
+        render(<UserSettingsPanel />)
+
+        fireEvent.submit(document.querySelector('form')!)
+
+        await waitFor(() => expect(pushedRoute).toBe('/muj-profil'), { timeout: 5000 })
+        const variables = mutationCalls[0]?.variables as { input?: Record<string, unknown> } | undefined
+        // city || undefined -> undefined; gender ?? Unspecified -> the enum default.
+        expect(variables?.input?.city).toBeUndefined()
+        expect(variables?.input?.gender).toBe('UNSPECIFIED')
+    })
 })

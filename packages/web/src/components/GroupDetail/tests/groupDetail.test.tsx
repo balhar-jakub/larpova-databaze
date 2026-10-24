@@ -151,6 +151,22 @@ describe('GroupDetailPanel', () => {
     })
 })
 
+
+    it('a group with a null name and null authors still renders', () => {
+        queryData = {
+            groupById: {
+                __typename: 'Group',
+                id: 'g2',
+                name: null,
+                authorsOf: null,
+            },
+        }
+        render(<GroupDetailPanel groupId="g2" />)
+
+        // The null name falls back to the space, the null authors to [] —
+        // the authors-of line reads zero instead of crashing.
+        expect(document.body.textContent).toContain('Tvůrci 0 larpů')
+    })
 describe('GroupEditModal', () => {
     it('creates a group and navigates to its detail', async () => {
         render(<GroupEditModal initialName="" onHide={() => undefined} />)
@@ -182,4 +198,15 @@ describe('GroupEditModal', () => {
         expect(mutationCalls.length).toBe(0)
         expect(screen.getAllByText(translate(cs, 'Errors.required')).length).toBeGreaterThan(0)
     })
+
+    it('renders the loading shape safely: no group, no name, no list', () => {
+        queryData = undefined
+        render(<GroupDetailPanel groupId="g404" />)
+
+        // The fallback name is the non-breaking space and the authors-of
+        // line stays silent rather than saying zero authors.
+        expect(screen.queryByText(/autor/)).toBeNull()
+        expect(document.body.textContent).toBeTruthy()
+    })
+
 })
