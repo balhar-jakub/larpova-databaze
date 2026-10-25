@@ -168,13 +168,13 @@ export const HomePagePanel = () => {
                             </Row>
                         </WidthFixer>
                     </div>
-                    {anonymous && hasComments && (
-                        <div className={classes.comments}>
-                            <HomePageCommentsPanel comments={homepage?.lastComments ?? []} href={COMMENTS_PAGE} />
-                        </div>
-                    )}
                 </>
             ) : null}
+            {hasComments && (
+                <div className={classes.comments}>
+                    <HomePageCommentsPanel comments={homepage?.lastComments ?? []} href={COMMENTS_PAGE} />
+                </div>
+            )}
             {signedIn ? (
                 <HomePageCtaPanel
                     titleKey="HomePage.ctaPersonalTitle"
