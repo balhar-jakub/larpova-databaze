@@ -251,6 +251,19 @@ test('the newest community comments show to a signed-in visitor too', () => {
     expect(screen.getByText('všechny komentáře »').getAttribute('href')).toBe('/komentare')
 })
 
+test('a signed-in visitor sees no comment block when the database has none', () => {
+    const quiet = personalAnswer()
+    ;(quiet.data as any).homepage.lastComments = []
+
+    queryResult = quiet
+    render(<Panel />)
+
+    // With nothing to show the block is skipped instead of leaving a hole —
+    // the same gate the anonymous page follows.
+    expect(screen.queryByText('Poslední komentáře')).toBeNull()
+    expect(screen.getByText('Události z vašich her')).toBeTruthy()
+})
+
 test('an account with nothing gets the first steps and the anonymous content', () => {
     const empty = personalAnswer()
     const home = (empty.data as any).homepage
