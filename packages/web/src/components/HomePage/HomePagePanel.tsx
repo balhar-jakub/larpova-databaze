@@ -101,7 +101,8 @@ export const HomePagePanel = () => {
     const homepage = homePageQuery.data?.homepage
     const my = personalQuery.data?.homepage?.myHome
     // With nothing written yet the block would be a 190 px hole in the page.
-    const hasComments = (homepage?.lastComments?.length ?? 0) > 0
+    const lastComments = homepage?.lastComments ?? []
+    const hasComments = lastComments.length > 0
 
     const personal = Boolean(signedIn && my?.hasData)
     const emptyState = Boolean(signedIn && my && !my.hasData)
@@ -172,7 +173,7 @@ export const HomePagePanel = () => {
             ) : null}
             {hasComments && (
                 <div className={classes.comments}>
-                    <HomePageCommentsPanel comments={homepage?.lastComments ?? []} href={COMMENTS_PAGE} />
+                    <HomePageCommentsPanel comments={lastComments} href={COMMENTS_PAGE} />
                 </div>
             )}
             {signedIn ? (
