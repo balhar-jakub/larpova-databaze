@@ -43,6 +43,7 @@ const originalFetch = global.fetch
 
 beforeEach(() => {
     query = {}
+    window.history.pushState({}, '', '/')
 })
 
 afterEach(() => {
@@ -73,6 +74,32 @@ describe('GoogleSignInButton', () => {
         const link = await screen.findByRole('link')
         expect(link.textContent).toBe(cs.SignIn.googleSignIn)
         expect(link.getAttribute('href')).toBe(`/auth/google?returnTo=${encodeURIComponent('/')}`)
+    })
+
+    // A user who signs in from an auth page must land on the homepage, not be
+    // bounced back to the sign-in form — the email form and magic-link flows
+    // already behave that way.
+    it.each(['/signIn', '/signUp', '/recoverPassword'])(
+        'sends a sign-in started on %s back to the homepage',
+        async (pathname) => {
+            window.history.pushState({}, '', pathname)
+            status(true)
+            render(<GoogleSignInButton />)
+
+            const link = await screen.findByRole('link')
+            expect(link.getAttribute('href')).toBe(`/auth/google?returnTo=${encodeURIComponent('/')}`)
+        },
+    )
+
+    it('keeps the current page for an in-place sign-in (rating, comment)', async () => {
+        window.history.pushState({}, '', '/gameDetail?id=42')
+        status(true)
+        render(<GoogleSignInButton />)
+
+        const link = await screen.findByRole('link')
+        expect(link.getAttribute('href')).toBe(
+            `/auth/google?returnTo=${encodeURIComponent('/gameDetail?id=42')}`,
+        )
     })
 
     it('shows the divider only when there is a button above it', async () => {
@@ -109,4 +136,10 @@ describe('GoogleSignInButton', () => {
         await waitFor(() => expect(failing).toHaveBeenCalled())
         expect(container.innerHTML).toBe('')
     })
+
+    // SSR, in a separate file with @jest-environment node (jsdom's global IS
+    // the Window — window.window === window, non-configurable getter — so the
+    // `typeof window === 'undefined'` arm cannot be driven from jsdom at all;
+    // a plain globalThis.window = undefined bounces off the getter silently).
+    // See googleSignInButtonSSR.test.tsx.
 })

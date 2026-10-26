@@ -107,9 +107,19 @@ export const GoogleSignInButton = ({ showDivider }: Props) => {
     if (!enabled && !errorKey) return null
 
     // Where the user was when they clicked, so an in-place sign-in (rating,
-    // comment) comes back to that page instead of the home page.
-    const returnTo =
-        typeof window === 'undefined' ? '/' : `${window.location.pathname}${window.location.search}`
+    // comment) comes back to that page instead of the home page. Auth pages are
+    // the exception: a user who signs in from /signIn, /signUp or the password
+    // recovery page should land on the homepage (and see it signed in), not be
+    // bounced back to the sign-in form — the email form (SignInPanel) and the
+    // the magic-link flow (server.ts redirects to '/') already behave that way.
+    // The match is on the pathname only, so retrying from an error state
+    // ('/signIn?error=...') also lands on the homepage — the error page is
+    // rendered by the fail() redirect, not by returnTo, and the user is
+    // signed in by then anyway.
+    const AUTH_PAGE_PATHS = ['/signIn', '/signUp', '/recoverPassword']
+    const search = typeof window === 'undefined' ? '' : window.location.search
+    const pathname = typeof window === 'undefined' ? '/' : window.location.pathname
+    const returnTo = AUTH_PAGE_PATHS.includes(pathname) ? '/' : `${pathname}${search}`
 
     return (
         <div className={classes.wrapper}>

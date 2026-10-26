@@ -60,6 +60,18 @@ describe('safeReturnTo', () => {
     expect(safeReturnTo(undefined)).toBe('/');
     expect(safeReturnTo(['/a'])).toBe('/');
   });
+
+  it("rewrites the auth pages to '/': a fresh sign-in must not land on the form again", () => {
+    expect(safeReturnTo('/signIn')).toBe('/');
+    expect(safeReturnTo('/signUp')).toBe('/');
+    expect(safeReturnTo('/recoverPassword')).toBe('/');
+    expect(safeReturnTo('/signIn?error=google_state')).toBe('/');
+  });
+
+  it("leaves paths that only share a prefix with an auth page untouched", () => {
+    expect(safeReturnTo('/signInLater')).toBe('/signInLater');
+    expect(safeReturnTo('/recoverPassword/finish?token=x')).toBe('/recoverPassword/finish?token=x');
+  });
 });
 
 describe('the feature is inert without credentials', () => {
@@ -254,6 +266,58 @@ describe('the callback completes a real sign-in', () => {
 
     spies.tokenSpy.mockRestore();
     spies.verifySpy.mockRestore();
+  });
+
+  it("sends a flow started from the sign-in page to '/' even if returnTo names an auth page", async () => {
+    // A dedicated fixture user: the shared one already carries a linked
+    // identity after the first happy-path test, and a second sub on the same
+    // account is refused as google_conflict.
+    const ownEmail = `google-signinto-${stamp}@integration.test`;
+    const ownUser = await prisma.csld_csld_user.create({
+      data: { email: ownEmail, password: 'x', role: 1, name: 'google-signinto-fixture', is_author: false },
+    });
+    try {
+      const spies = stubOAuth2({ sub: `signinto-${stamp}`, email: ownEmail, email_verified: true, name: 'Google Tester' });
+      const app = express();
+      app.use(cookieParser());
+      app.use(session({ secret: SECRET, resave: false, saveUninitialized: false, name: 'csld.sid' }));
+      let loggedIn = false;
+      app.use(
+        '/auth/google',
+        createGoogleRouter({
+          prisma,
+          loadUser: async (id: number) => ({
+            id,
+            email: ownEmail,
+            name: 'google-signinto-fixture',
+            nickname: null,
+            role: 1,
+            csld_image: null,
+            amount_of_comments: 0,
+            amount_of_played: 0,
+            amount_of_created: 0,
+          }),
+          login: async () => {
+            loggedIn = true;
+          },
+          env: CONFIGURED,
+        }),
+      );
+      const agent = request.agent(app);
+
+      const started = await agent.get('/auth/google?returnTo=%2FsignIn');
+      const state = stateFrom(started.headers.location);
+
+      const response = await agent.get(`/auth/google/callback?code=abc&state=${encodeURIComponent(state)}`);
+      expect(response.headers.location).toBe('/');
+      expect(loggedIn).toBe(true);
+
+      spies.tokenSpy.mockRestore();
+      spies.verifySpy.mockRestore();
+    } finally {
+      await prisma.csld_oauth_account.deleteMany({ where: { user_id: ownUser.id } });
+      await prisma.csld_csld_user.delete({ where: { id: ownUser.id } });
+    }
   });
 
 
