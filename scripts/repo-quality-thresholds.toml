@@ -1,0 +1,54 @@
+# repo-quality-thresholds.toml
+# Thresholds for repo_quality_gate.py. Every value names its source; values
+# without a literature source are marked "calibrate" and must be set from the
+# repository's own data (see the calibration procedure in the wiki page).
+#
+# Sources (captures in raw/articles/code-quality-metrics-2026-10-24/ and
+# ...-research-2021-2026/):
+#   NIST   = NIST SP 500-235 quoted by Microsoft Learn (cyclomatic limit 10,
+#            up to 15 only with a written justification)
+#   CA1502 = Visual Studio rule warns at cyclomatic complexity 25
+#   SONAR  = Sonar way quality gate (new code: 0 new issues, hotspots reviewed,
+#            coverage >= 80%, duplication <= 3%)
+#   S3776  = Sonar cognitive-complexity default for functions (15)
+#   GC25/26= GitClear change telemetry (direction of travel, vendor data)
+#   MSR26  = He et al. DiD: complexity +41% and warnings +30% after Cursor
+#            adoption, and the resulting velocity loss
+#   EMO    = Nagappan & Ball relative churn predicts defect density (89%)
+
+[function]
+# per-function gates, applied to NEW code only (functions last touched inside
+# the window); legacy violations are reported, never failed (ratchet)
+cyclomatic_fail   = 10    # NIST / McCabe: split the module or explain why not
+cyclomatic_justify= 15    # NIST: above 10 needs documented justification
+cyclomatic_abs_fail = 25  # CA1502: at this point it is simply excessive
+cognitive_warn    = 10    # calibrate: start warning early, tune after 4 weeks
+cognitive_fail    = 15    # S3776 default
+
+[duplication]
+# Sonar way applies <= 3% to NEW code; repo-wide duplication is a trend signal
+duplication_fail_pct = 3.0   # SONAR (new code)
+duplication_warn_pct = 5.0   # calibrate / GC25 direction
+
+[hotspots]
+# churn x complexity ranking: refactor-first list, not a hard gate
+hotspot_warn_count = 3    # calibrate: >3 hotspots in a 90d window => discuss
+hotspot_top_n      = 10
+
+[repo]
+# share of churned files whose previous change predates the window by >365d.
+# GitClear measured long-term maintenance collapsing 1.7% -> 0.46% (2023->2026);
+# there is no literature "healthy" value, so watch the trend, calibrate the bar.
+legacy_touch_warn_pct = 50.0  # calibrate
+
+[ci]
+# Declared for CI (SonarQube quality gate + coverage tooling), NOT computed by
+# this script. Mirror of the Sonar way gate:
+coverage_new_code_min_pct = 80   # SONAR
+new_blocker_or_critical   = 0    # SONAR ("no new issues")
+security_hotspots_reviewed_pct = 100  # SONAR
+# Effective false-positive budget for any enabled static-analysis rule:
+effective_false_positive_max_pct = 10  # Google Tricorder / CACM 2018
+# Mutation testing: no literature-backed number -> measure once, then ratchet;
+# coverage alone was refuted as a defect predictor (Tengeri et al.).
+mutation_score_starting_point_pct = 0  # calibrate on first full run

@@ -7,6 +7,52 @@ on:
     branches: [main]
 
 jobs:
+  quality-gate:
+    name: Code-quality gate (W1, window 90d)
+    runs-on: ubuntu-latest
+    # SPEC W6 rollout: first two weeks report-only — a red gate does not block
+    # the PR yet. Delete the next line when the gate switches to blocking.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The gate reads git history (churn, blame, last-touch): full depth.
+          fetch-depth: 0
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run quality gate
+        # New code (functions last touched inside the 90d window, untracked
+        # files) is gated; legacy is report-only (ratchet). TS/JS complexity
+        # is a keyword approximation (~approx); authoritative numbers come
+        # from a linter/Sonar step (W2). Thresholds live in the TOML —
+        # values change only via calibration (W4).
+        run: |
+          python3 scripts/repo_quality_gate.py . \
+            --thresholds scripts/repo-quality-thresholds.toml \
+            --window-days 90 \
+            --json quality-gate.json \
+            --report quality-gate.md
+      - name: Archive gate report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gate-report
+          path: |
+            quality-gate.json
+            quality-gate.md
+          if-no-files-found: warn
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Code-quality gate (report-only period)"
+            echo '```'
+            cat quality-gate.md || echo "(no report produced)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   monorepo-tests:
     name: API + Web tests
     runs-on: ubuntu-latest
