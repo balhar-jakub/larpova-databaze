@@ -596,20 +596,7 @@ export async function createGameResolver(
 
   const game = await ctx.db.csld_game.create({
     data: {
-      name: input.name,
-      description: urlLinkify(input.description ?? ''),
-      year: input.year ?? null,
-      players: input.players ?? null,
-      men_role: input.menRole ?? null,
-      women_role: input.womenRole ?? null,
-      both_role: input.bothRole ?? null,
-      hours: input.hours ?? null,
-      days: input.days ?? null,
-      web: input.web ?? null,
-      gallery_url: input.galleryURL ?? null,
-      photo_author: input.photoAuthor ?? null,
-      ratingsdisabled: input.ratingsDisabled ?? false,
-      commentsdisabled: input.commentsDisabled ?? false,
+      ...gameFieldData(input),
       added_by: ctx.user!.id,
       deleted: false,
       lang: 'cs',
@@ -618,30 +605,7 @@ export async function createGameResolver(
   });
 
   // Handle cover image upload
-  if (input.coverImage?.fileName && input.coverImage?.contents) {
-    const uploaded = new Base64UploadedFile(input.coverImage.fileName, input.coverImage.contents);
-    const strategy = getCoverImageStrategy();
-    const result = await ctx.files.saveImageAndReturnPath(uploaded, strategy);
-
-    await ctx.db.csld_image.create({
-      data: {
-        path: result.path,
-        contenttype: `image/${input.coverImage.fileName.split('.').pop()?.toLowerCase() || 'jpeg'}`,
-      },
-    });
-
-    // Link cover image to game
-    const image = await ctx.db.csld_image.findFirst({
-      where: { path: result.path },
-      orderBy: { id: 'desc' },
-    });
-    if (image) {
-      await ctx.db.csld_game.update({
-        where: { id: game.id },
-        data: { cover_image: image.id },
-      });
-    }
-  }
+  await saveCoverImage(ctx, game.id, input.coverImage);
 
   // Link authors (user authors)
   if (input.authors?.length) {
@@ -703,6 +667,141 @@ export async function createGameResolver(
 
 // ── updateGame ───────────────────────────────────────────
 
+/** Full include set for the game the mutation resolvers return (createGame,
+ * updateGame, setGameSeries all serve the same shape). */
+const FULL_GAME_INCLUDE = {
+  csld_game_has_label: { include: { csld_label: true } },
+  csld_game_has_author: { include: { csld_csld_user: true } },
+  csld_game_has_group: { include: { csld_csld_group: true } },
+  csld_game_has_event: { include: { event: true } },
+  csld_video: true,
+  csld_image_csld_game_cover_imageTocsld_image: true,
+  csld_image_csld_game_imageTocsld_image: true,
+  csld_photo_csld_photo_gameTocsld_game: {
+    include: { csld_image: true },
+    orderBy: { orderseq: 'asc' as const },
+  },
+  similar_games_similar_games_id_game1Tocsld_game: {
+    include: { csld_game_similar_games_id_game2Tocsld_game: true },
+    take: 9,
+  },
+  csld_comment: {
+    include: { csld_csld_user: true, csld_game: true },
+    orderBy: { added: 'asc' as const },
+  },
+  csld_rating: {
+    include: { csld_csld_user: true, csld_game: true },
+  },
+};
+
+/** Load the game an edit-style mutation may act on, with the author list the
+ * permission check needs. Shared by updateGame, setGameSeries, deleteGame. */
+async function loadEditableGame(ctx: Context, gameId: number) {
+  const game = await ctx.db.csld_game.findUnique({
+    where: { id: gameId },
+    include: { csld_game_has_author: true },
+  });
+  if (!game) throw new GraphQLError('Game not found');
+  return game;
+}
+
+/** Authors may edit the game they wrote; editors and admins any game. */
+async function requireGameEditPermission(game: { csld_game_has_author: { id_user: number }[] }, ctx: Context) {
+  if (!(await isGameAuthor(game, ctx)) && !isAtLeastEditor(ctx)) {
+    throw new GraphQLError('Not authorized to edit this game', {
+      extensions: { code: 'ACCESS_DENIED' },
+    });
+  }
+}
+
+/** Save the base (scalar) game fields; also used by createGame. */
+function gameFieldData(input: any) {
+  return {
+    name: input.name,
+    description: urlLinkify(input.description ?? ''),
+    year: input.year ?? null,
+    players: input.players ?? null,
+    men_role: input.menRole ?? null,
+    women_role: input.womenRole ?? null,
+    both_role: input.bothRole ?? null,
+    hours: input.hours ?? null,
+    days: input.days ?? null,
+    web: input.web ?? null,
+    gallery_url: input.galleryURL ?? null,
+    photo_author: input.photoAuthor ?? null,
+    ratingsdisabled: input.ratingsDisabled ?? false,
+    commentsdisabled: input.commentsDisabled ?? false,
+  };
+}
+
+/** Store an uploaded cover image and link it to the game. Shared by
+ * createGame and updateGame (identical block in both before). The GraphQL
+ * schema (UploadedFileInput: fileName String!, contents String!) already
+ * guarantees a half-input never reaches this far — null means "no upload". */
+async function saveCoverImage(ctx: Context, gameId: number, coverImage: { fileName: string; contents: string } | null | undefined) {
+  if (!coverImage) return;
+  const uploaded = new Base64UploadedFile(coverImage.fileName, coverImage.contents);
+  const strategy = getCoverImageStrategy();
+  const result = await ctx.files.saveImageAndReturnPath(uploaded, strategy);
+
+  await ctx.db.csld_image.create({
+    data: {
+      path: result.path,
+      contenttype: `image/${coverImage.fileName.split('.').pop()?.toLowerCase() || 'jpeg'}`,
+    },
+  });
+
+  const image = await ctx.db.csld_image.findFirst({
+    where: { path: result.path },
+    orderBy: { id: 'desc' },
+  });
+  if (image) {
+    await ctx.db.csld_game.update({
+      where: { id: gameId },
+      data: { cover_image: image.id },
+    });
+  }
+}
+
+/** Replace the game's user-author links (delete old, insert new). */
+async function syncGameAuthors(ctx: Context, gameId: number, authorIds: string[]) {
+  await ctx.db.csld_game_has_author.deleteMany({ where: { id_game: gameId } });
+  for (const authorId of authorIds) {
+    await ctx.db.csld_game_has_author.create({
+      data: { id_game: gameId, id_user: parseInt(authorId) },
+    });
+  }
+}
+
+/** Replace the game's group-author links (delete old, insert new). */
+async function syncGameGroupAuthors(ctx: Context, gameId: number, groupIds: string[]) {
+  await ctx.db.csld_game_has_group.deleteMany({ where: { id_game: gameId } });
+  for (const groupId of groupIds) {
+    await ctx.db.csld_game_has_group.create({
+      data: { id_game: gameId, id_group: parseInt(groupId) },
+    });
+  }
+}
+
+/** Replace the game's label links (delete old, insert new). */
+async function syncGameLabels(ctx: Context, gameId: number, labelIds: string[]) {
+  await ctx.db.csld_game_has_label.deleteMany({ where: { id_game: gameId } });
+  for (const labelId of labelIds) {
+    await ctx.db.csld_game_has_label.create({
+      data: { id_game: gameId, id_label: parseInt(labelId) },
+    });
+  }
+}
+
+/** Load the full game (all relations) a mutation returns. */
+async function loadFullGame(ctx: Context, gameId: number) {
+  const fullGame = await ctx.db.csld_game.findUnique({
+    where: { id: gameId },
+    include: FULL_GAME_INCLUDE,
+  });
+  return fullGame ? normalizeGame(fullGame) : null;
+}
+
 export async function updateGameResolver(
   _parent: unknown,
   args: { input: any },
@@ -714,123 +813,35 @@ export async function updateGameResolver(
   if (isNaN(gameId)) throw new GraphQLError('Invalid game ID');
 
   // The game's authors may edit the game they wrote, editors and admins any game.
-  const game = await ctx.db.csld_game.findUnique({
-    where: { id: gameId },
-    include: { csld_game_has_author: true },
-  });
-
-  if (!game) throw new GraphQLError('Game not found');
-
-  if (!(await isGameAuthor(game, ctx)) && !isAtLeastEditor(ctx)) {
-    throw new GraphQLError('Not authorized to edit this game', {
-      extensions: { code: 'ACCESS_DENIED' },
-    });
-  }
+  const game = await loadEditableGame(ctx, gameId);
+  await requireGameEditPermission(game, ctx);
 
   // Update game fields
   await ctx.db.csld_game.update({
     where: { id: gameId },
     data: {
-      name: input.name,
-      description: urlLinkify(input.description ?? ''),
-      year: input.year ?? null,
-      players: input.players ?? null,
-      men_role: input.menRole ?? null,
-      women_role: input.womenRole ?? null,
-      both_role: input.bothRole ?? null,
-      hours: input.hours ?? null,
-      days: input.days ?? null,
-      web: input.web ?? null,
-      gallery_url: input.galleryURL ?? null,
-      photo_author: input.photoAuthor ?? null,
-      ratingsdisabled: input.ratingsDisabled ?? false,
-      commentsdisabled: input.commentsDisabled ?? false,
+      ...gameFieldData(input),
       added: new Date(), // Java behavior: reset added timestamp on every save
     },
   });
 
   // Sync authors — delete old, insert new
   if (input.authors) {
-    await ctx.db.csld_game_has_author.deleteMany({ where: { id_game: gameId } });
-    for (const authorId of input.authors) {
-      await ctx.db.csld_game_has_author.create({
-        data: { id_game: gameId, id_user: parseInt(authorId) },
-      });
-    }
+    await syncGameAuthors(ctx, gameId, input.authors);
   }
 
   // Handle cover image upload
-  if (input.coverImage?.fileName && input.coverImage?.contents) {
-    const uploaded = new Base64UploadedFile(input.coverImage.fileName, input.coverImage.contents);
-    const strategy = getCoverImageStrategy();
-    const result = await ctx.files.saveImageAndReturnPath(uploaded, strategy);
-
-    await ctx.db.csld_image.create({
-      data: {
-        path: result.path,
-        contenttype: `image/${input.coverImage.fileName.split('.').pop()?.toLowerCase() || 'jpeg'}`,
-      },
-    });
-
-    const image = await ctx.db.csld_image.findFirst({
-      where: { path: result.path },
-      orderBy: { id: 'desc' },
-    });
-    if (image) {
-      await ctx.db.csld_game.update({
-        where: { id: gameId },
-        data: { cover_image: image.id },
-      });
-    }
-  }
+  await saveCoverImage(ctx, gameId, input.coverImage);
 
   // Sync group authors
   if (input.groupAuthors) {
-    await ctx.db.csld_game_has_group.deleteMany({ where: { id_game: gameId } });
-    for (const groupId of input.groupAuthors) {
-      await ctx.db.csld_game_has_group.create({
-        data: { id_game: gameId, id_group: parseInt(groupId) },
-      });
-    }
+    await syncGameGroupAuthors(ctx, gameId, input.groupAuthors);
   }
 
   // Sync labels
   if (input.labels) {
-    await ctx.db.csld_game_has_label.deleteMany({ where: { id_game: gameId } });
-    for (const labelId of input.labels) {
-      await ctx.db.csld_game_has_label.create({
-        data: { id_game: gameId, id_label: parseInt(labelId) },
-      });
-    }
+    await syncGameLabels(ctx, gameId, input.labels);
   }
 
-  const fullGame = await ctx.db.csld_game.findUnique({
-    where: { id: gameId },
-    include: {
-      csld_game_has_label: { include: { csld_label: true } },
-      csld_game_has_author: { include: { csld_csld_user: true } },
-      csld_game_has_group: { include: { csld_csld_group: true } },
-      csld_game_has_event: { include: { event: true } },
-      csld_video: true,
-      csld_image_csld_game_cover_imageTocsld_image: true,
-      csld_image_csld_game_imageTocsld_image: true,
-      csld_photo_csld_photo_gameTocsld_game: {
-        include: { csld_image: true },
-        orderBy: { orderseq: 'asc' },
-      },
-      similar_games_similar_games_id_game1Tocsld_game: {
-        include: { csld_game_similar_games_id_game2Tocsld_game: true },
-        take: 9,
-      },
-      csld_comment: {
-        include: { csld_csld_user: true, csld_game: true },
-        orderBy: { added: 'asc' },
-      },
-      csld_rating: {
-        include: { csld_csld_user: true, csld_game: true },
-      },
-    },
-  });
-
-  return fullGame ? normalizeGame(fullGame) : null;
+  return loadFullGame(ctx, gameId);
 }

@@ -114,6 +114,18 @@ describe('ratingsDisabled is enforced by the API', () => {
     const res = await executeQuery(server, RATE, { g: String(normalGameId), r: 4 }, userCtx);
     expect(res.errors).toBeUndefined();
   });
+
+  it('rating a nonexistent game errors instead of leaving an orphan row', async () => {
+    // The disabled-check read (findUnique -> null) must not crash and the
+    // upsert after it must fail on the game FK — no csld_rating row may
+    // survive for an id no game has.
+    const ghostId = 2_000_000_000;
+    const res = await executeQuery(server, RATE, { g: String(ghostId), r: 3 }, userCtx);
+    expect(res.errors).toBeDefined();
+    expect(
+      await prisma.csld_rating.count({ where: { game_id: ghostId } }),
+    ).toBe(0);
+  });
 });
 
 describe('commentsDisabled is enforced by the API (new comments only)', () => {

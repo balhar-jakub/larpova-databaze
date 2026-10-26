@@ -226,6 +226,7 @@ describe('User.commentsPaged guards (resolvers/index.ts)', () => {
   let server: ApolloServer;
   const marker = `UsrPaged${Date.now()}`;
   let userId: number;
+  let editorId: number;
   let gameId: number;
   let hiddenCommentId: number;
   let deletedGameId: number;
@@ -238,6 +239,16 @@ describe('User.commentsPaged guards (resolvers/index.ts)', () => {
       data: { password: 'x', role: 1, name: `${marker} user`, email: `${marker}@integration.test` },
     });
     userId = user.id;
+
+    // The editor the 'editor sees hidden comments' case acts as. Created
+    // here, not looked up: a findFirst({ role: { gte: 2 } }) only matches
+    // while some OTHER parallel suite happens to hold its editor fixtures
+    // in the database — on an isolated database the test failed with
+    // "Received: null".
+    const editor = await prisma.csld_csld_user.create({
+      data: { password: 'x', role: 2, name: `${marker} editor`, email: `${marker}-editor@integration.test` },
+    });
+    editorId = editor.id;
 
     const game = await prisma.csld_game.create({ data: { name: `${marker} hra`, deleted: false } });
     gameId = game.id;
