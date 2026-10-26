@@ -534,6 +534,28 @@ describe('larpCzImport on a database with users (the FK owner exists)', () => {
     }
   });
 
+  it('skips an event whose date cell is empty (unparseable, not imported)', async () => {
+    // The empty-string date arm of parseCzechDate: the row is skipped with a
+    // log line, and nothing reaches the database.
+    const restore = global.fetch;
+    const name = `${MARK}bez-datumu`;
+    const html = `
+      <html><body><div class="kalendar-akce">
+        <div class="akce-nazev"><a href="https://www.larp.cz/x">${name}</a></div>
+        <div class="akce-datum"></div>
+        <div class="akce-misto">Praha</div>
+      </div></body></html>`;
+    routeFetch([{ match: 'larp.cz/kalendar', response: () => res({ text: html }) }]);
+    try {
+      const imported = await importLarpCzEvents(db);
+      expect(imported).toBe(0);
+      const event = await db.event.findFirst({ where: { name } });
+      expect(event).toBeNull();
+    } finally {
+      global.fetch = restore;
+    }
+  });
+
   it('attributes imported events to the lowest existing user id', async () => {
     const anyUser = await db.csld_csld_user.findFirst({ orderBy: { id: 'asc' }, select: { id: true } });
     if (!anyUser) return; // covered by the CI's empty-database run

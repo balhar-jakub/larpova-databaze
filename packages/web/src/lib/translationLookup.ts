@@ -25,16 +25,45 @@ export function csPluralSuffix(count: number): string {
   return '_2'
 }
 
-export function getNested(obj: NestedRecord, path: string, options?: Record<string, unknown>): string {
-  const parts = path.split('.')
+/** Walks the dotted path; returns the parent object and the leaf value (which
+ * must be a string for a translation to exist), or null when the path ends
+ * early. */
+function resolvePath(obj: NestedRecord, path: string): { parent: any; leaf: any } | null {
   let current: any = obj
   let parent: any = null
-  const lastKey = parts[parts.length - 1]
-  for (const p of parts) {
-    if (current == null || typeof current !== 'object') return path
+  for (const p of path.split('.')) {
+    if (current == null || typeof current !== 'object') return null
     parent = current
     current = current[p]
   }
+  return { parent, leaf: current }
+}
+
+/** The keys to try, most specific first: context+plural, context, the
+ * neutral plain key, then the bare plural. The plain key is the neutral form
+ * and the fallback for a language without gendered keys, so it never has to
+ * be duplicated per gender. */
+function translationCandidates(
+  lastKey: string,
+  leaf: unknown,
+  context: string | null,
+  pluralSuffix: string | null,
+): string[] {
+  const candidates: string[] = []
+  if (context) {
+    if (pluralSuffix) candidates.push(`${lastKey}_${context}${pluralSuffix}`)
+    candidates.push(`${lastKey}_${context}`)
+  }
+  if (typeof leaf === 'string') candidates.push(lastKey)
+  if (pluralSuffix) candidates.push(`${lastKey}${pluralSuffix}`)
+  return candidates
+}
+
+export function getNested(obj: NestedRecord, path: string, options?: Record<string, unknown>): string {
+  const lastKey = path.split('.').pop()!
+  const resolved = resolvePath(obj, path)
+  if (!resolved) return path
+  const { parent, leaf } = resolved
 
   const context = typeof options?.context === 'string' && options.context ? (options.context as string) : null
   let pluralSuffix: string | null = null
@@ -43,17 +72,7 @@ export function getNested(obj: NestedRecord, path: string, options?: Record<stri
     if (!isNaN(count)) pluralSuffix = csPluralSuffix(count)
   }
 
-  const candidates: string[] = []
-  if (context) {
-    if (pluralSuffix) candidates.push(`${lastKey}_${context}${pluralSuffix}`)
-    candidates.push(`${lastKey}_${context}`)
-  }
-  // The plain key is the neutral form and the fallback for a language without
-  // gendered keys, so it never has to be duplicated per gender.
-  if (typeof current === 'string') candidates.push(lastKey)
-  if (pluralSuffix) candidates.push(`${lastKey}${pluralSuffix}`)
-
-  for (const key of candidates) {
+  for (const key of translationCandidates(lastKey, leaf, context, pluralSuffix)) {
     const value = parent?.[key]
     if (typeof value === 'string') return value
   }
