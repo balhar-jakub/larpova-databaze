@@ -47,6 +47,69 @@ const emptyBucket = (): YearBucket => ({
   topGameVotes: new Map(),
 });
 
+/** UTC year of a date, or null when it is missing/invalid — such rows fall out
+ * of every bucket instead of poisoning the "unknown" year. */
+function yearOf(date: Date | null): number | null {
+  if (!date || isNaN(date.getTime())) return null;
+  return date.getUTCFullYear();
+}
+
+/** Count events per year, dedup by name + start date within the year. The whole
+ * table is a couple of thousand rows; the key needs no normalization beyond
+ * the exact name because the duplicates come from imports that repeated rows
+ * verbatim. Returns the deduplicated grand total alongside the buckets. */
+function countEvents(eventRows: { name: string | null; from: Date | null }[], buckets: Map<number, YearBucket>): number {
+  let eventsTotal = 0;
+  for (const row of eventRows) {
+    const year = yearOf(row.from);
+    if (year === null) continue;
+    const bucket = buckets.get(year) ?? emptyBucket();
+    buckets.set(year, bucket);
+    bucket.eventsRaw += 1;
+    const key = `${row.name ?? ''}|${row.from?.toISOString() ?? ''}`;
+    if (!bucket.events.has(key)) {
+      bucket.events.add(key);
+      eventsTotal += 1;
+    }
+  }
+  return eventsTotal;
+}
+
+/** New games per year, by the `added` timestamp. */
+function countNewGames(gameRows: { added: Date | null }[], buckets: Map<number, YearBucket>): void {
+  for (const row of gameRows) {
+    const year = yearOf(row.added);
+    if (year === null) continue;
+    const bucket = buckets.get(year) ?? emptyBucket();
+    buckets.set(year, bucket);
+    bucket.newGames += 1;
+  }
+}
+
+/** Ratings per year: totals, average, band histogram, imported share and the
+ * per-game vote tallies the "Hry roku" cards are ranked from. */
+function countRatings(ratingRows: { game_id: number; rating: number | null; added: Date | null }[], buckets: Map<number, YearBucket>): void {
+  for (const row of ratingRows) {
+    const year = yearOf(row.added);
+    if (year === null) continue;
+    const bucket = buckets.get(year) ?? emptyBucket();
+    buckets.set(year, bucket);
+    const rating = row.rating!;
+    bucket.ratings += 1;
+    if (IMPORT_DATE.test(row.added?.toISOString() ?? '')) {
+      bucket.importedRatings += 1;
+    }
+    bucket.ratingSum += rating;
+    const band = BAND_RANGES.findIndex(([lo, hi]) => rating >= lo && rating <= hi);
+    if (band >= 0) bucket.bands[band] += 1;
+
+    const top = bucket.topGameVotes.get(row.game_id) ?? { votes: 0, sum: 0 };
+    top.votes += 1;
+    top.sum += rating;
+    bucket.topGameVotes.set(row.game_id, top);
+  }
+}
+
 /**
  * Year-by-year history of the database: how many events ran, how many games
  * were added and how the community rated, per calendar year. The statistics
@@ -80,59 +143,12 @@ export async function statisticsResolver(
   ]);
 
   const buckets = new Map<number, YearBucket>();
-  const bucketOf = (year: number) => {
-    let bucket = buckets.get(year);
-    if (!bucket) {
-      bucket = emptyBucket();
-      buckets.set(year, bucket);
-    }
-    return bucket;
-  };
-  const yearOf = (date: Date | null): number | null => {
-    if (!date || isNaN(date.getTime())) return null;
-    return date.getUTCFullYear();
-  };
 
-  // Events: dedup by name + start date within the year. The whole table is a
-  // couple of thousand rows; the key needs no normalization beyond the exact
-  // name because the duplicates come from imports that repeated rows verbatim.
-  let eventsTotal = 0;
-  for (const row of eventRows) {
-    const year = yearOf(row.from);
-    if (year === null) continue;
-    const bucket = bucketOf(year);
-    bucket.eventsRaw += 1;
-    const key = `${row.name ?? ''}|${row.from?.toISOString() ?? ''}`;
-    if (!bucket.events.has(key)) {
-      bucket.events.add(key);
-      eventsTotal += 1;
-    }
-  }
+  // Events: dedup by name + start date within the year.
+  const eventsTotal = countEvents(eventRows, buckets);
 
-  for (const row of gameRows) {
-    const year = yearOf(row.added);
-    if (year === null) continue;
-    bucketOf(year).newGames += 1;
-  }
-
-  for (const row of ratingRows) {
-    const year = yearOf(row.added);
-    if (year === null) continue;
-    const bucket = bucketOf(year);
-    const rating = row.rating!;
-    bucket.ratings += 1;
-    if (IMPORT_DATE.test(row.added?.toISOString() ?? '')) {
-      bucket.importedRatings += 1;
-    }
-    bucket.ratingSum += rating;
-    const band = BAND_RANGES.findIndex(([lo, hi]) => rating >= lo && rating <= hi);
-    if (band >= 0) bucket.bands[band] += 1;
-
-    const top = bucket.topGameVotes.get(row.game_id) ?? { votes: 0, sum: 0 };
-    top.votes += 1;
-    top.sum += rating;
-    bucket.topGameVotes.set(row.game_id, top);
-  }
+  countNewGames(gameRows, buckets);
+  countRatings(ratingRows, buckets);
 
   const years = Array.from(buckets.keys()).sort((a, b) => a - b);
 

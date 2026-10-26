@@ -406,6 +406,56 @@ export async function commentsStats(ctx: Context) {
 }
 
 /**
+ * The visitor's taste: labels of the games they rated 8 or more, counted over
+ * their own ratings. Only labels the catalog can filter by are kept — a tile
+ * that leads into an empty list is worse than no tile.
+ */
+function countTasteLabels(ratingRows: readonly any[]): {
+  recommended: { id: string; name: string | null; count: number }[];
+  tasteIds: Set<number>;
+} {
+  const labelCounts = new Map<number, { id: string; name: string | null; count: number }>();
+  for (const row of ratingRows) {
+    if ((row.rating ?? 0) < MIN_RATING_FOR_TASTE) continue;
+    for (const link of row.csld_game?.csld_game_has_label ?? []) {
+      const label = link.csld_label;
+      if (!label || (!label.is_authorized && !label.is_required)) continue;
+      const entry = labelCounts.get(label.id) ?? { id: String(label.id), name: label.name, count: 0 };
+      entry.count += 1;
+      labelCounts.set(label.id, entry);
+    }
+  }
+  const recommended = [...labelCounts.values()]
+    .sort((a, b) => b.count - a.count || (a.name ?? '').localeCompare(b.name ?? '', 'cs'))
+    .slice(0, MY_RECOMMENDED_LABELS);
+  return { recommended, tasteIds: new Set(labelCounts.keys()) };
+}
+
+/** Games the visitor rated but never wrote about: rated, uncommented and with
+ * comments not turned off, newest first. A game whose author turned the
+ * comments off cannot be reviewed either — the detail page refuses the form,
+ * so the block must not ask for it. */
+function gamesToComment(played: readonly any[], commentedGameIds: Set<number>): readonly any[] {
+  return played
+    .filter((row: any) => row.rating != null)
+    .filter((row: any) => !commentedGameIds.has(row.game_id))
+    .filter((row: any) => !row.csld_game?.commentsdisabled)
+    .sort((a: any, b: any) => new Date(b.added).getTime() - new Date(a.added).getTime())
+    .slice(0, MY_HOME_COMMENTS);
+}
+
+/** Played but unrated games: a played game with the ratings turned off keeps
+ * its state rows, but the vote itself is impossible, so it never belongs in
+ * the "finish" list. The rows stay in the database untouched — when the
+ * author turns the ratings back on, the game returns on its own. */
+function gamesToRate(knownGames: readonly any[]): readonly any[] {
+  return knownGames
+    .filter((row: any) => row.state === STATE_PLAYED && row.rating == null)
+    .filter((row: any) => !row.csld_game?.ratingsdisabled)
+    .slice(0, 2);
+}
+
+/**
  * The signed-in visitor's own blocks.
  *
  * Everything here is counted from the visitor's *rows*, never from the legacy
@@ -464,25 +514,7 @@ export async function myHomepage(ctx: Context, userId: number) {
   // The visitor's taste: labels of the games they rated 8 or more, counted over
   // their own ratings. The personal path used to return no labels at all, which
   // is why the block could not exist before.
-  const labelCounts = new Map<number, { id: string; name: string | null; count: number }>();
-  for (const row of ratingRows as any[]) {
-    if ((row.rating ?? 0) < MIN_RATING_FOR_TASTE) continue;
-    for (const link of row.csld_game?.csld_game_has_label ?? []) {
-      const label = link.csld_label;
-      // Only labels the catalog can filter by: a tile that leads into an empty
-      // list is worse than no tile.
-      if (!label || (!label.is_authorized && !label.is_required)) continue;
-      const entry = labelCounts.get(label.id) ?? { id: String(label.id), name: label.name, count: 0 };
-      entry.count += 1;
-      labelCounts.set(label.id, entry);
-    }
-  }
-  const recommendedLabels = [...labelCounts.values()]
-    .sort((a, b) => b.count - a.count || (a.name ?? '').localeCompare(b.name ?? '', 'cs'))
-    .slice(0, MY_RECOMMENDED_LABELS);
-  // The full taste set — the signable-events recommendation matches on labels
-  // beyond the four the note above the cards names.
-  const tasteLabelIds = new Set(labelCounts.keys());
+  const { recommended: recommendedLabels, tasteIds: tasteLabelIds } = countTasteLabels(ratingRows);
 
   const wantedIds = wanted.map((row: any) => row.game_id);
   const linkedWantedIds = new Set(upcomingLinks.map((link: any) => link.game_id));
@@ -561,18 +593,7 @@ export async function myHomepage(ctx: Context, userId: number) {
   // the work that helps the next visitor. Rated-but-uncommented is three times
   // more common in the database than played-but-unrated, so this list is the
   // bigger half of "finish it".
-  const toComment = played
-    .filter((row: any) => row.rating != null)
-    .filter(
-      (row: any) =>
-        !commentedGameIds.has(row.game_id),
-    )
-    // A game whose author turned the comments off cannot be reviewed either —
-    // the detail page refuses the form, so the block must not ask for it.
-    .filter((row: any) => !row.csld_game?.commentsdisabled)
-    .sort((a: any, b: any) => new Date(b.added).getTime() - new Date(a.added).getTime())
-    .slice(0, MY_HOME_COMMENTS)
-    .map(personal);
+  const toComment = gamesToComment(played, commentedGameIds).map(personal);
 
   // The taste-based signable events: future open-registration events of games
   // whose labels overlap the visitor's 8+ taste. Wishlist games are excluded
@@ -595,15 +616,7 @@ export async function myHomepage(ctx: Context, userId: number) {
     hasData: played.length + wanted.length + authoredGames.length + commentsCount > 0,
     myEvents: myEvents.map((event: any) => mapEventRow(event, ctx)),
     wantedWithoutEvent: wantedIds.filter((id: number) => !linkedWantedIds.has(id)).length,
-    toRate: knownGames
-      .filter((row: any) => row.state === STATE_PLAYED && row.rating == null)
-      // Same for the rating: a played game with the ratings turned off keeps
-      // its state rows, but the vote itself is impossible, so it never belongs
-      // in the "finish" list. The rows stay in the database untouched — when
-      // the author turns the ratings back on, the game returns on its own.
-      .filter((row: any) => !row.csld_game?.ratingsdisabled)
-      .slice(0, 2)
-      .map(personal),
+    toRate: gamesToRate(knownGames).map(personal),
     toComment,
     oldestWanted: wantedOldestFirst.slice(0, 2).map(personal),
     authored: authoredByRecency.slice(0, MY_HOME_AUTHORED).map((game: any) => {
