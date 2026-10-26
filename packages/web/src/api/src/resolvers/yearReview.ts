@@ -116,6 +116,21 @@ function pickQuotes<T extends { game_id: number; comment: unknown }>(commentRows
   return picked;
 }
 
+/** The ranking: votes received in the year, tie-broken by the comment count
+ * of the year — how much discussion the game drove. */
+function rankGames(
+  votesByGame: Map<number, { votes: number; sum: number }>,
+  commentRows: readonly { game_id: number }[],
+): { id: number; votes: number; comments: number }[] {
+  const commentsByGame = new Map<number, number>();
+  for (const row of commentRows) {
+    commentsByGame.set(row.game_id, (commentsByGame.get(row.game_id) ?? 0) + 1);
+  }
+  return Array.from(votesByGame.keys())
+    .map((id) => ({ id, votes: votesByGame.get(id)!.votes, comments: commentsByGame.get(id) ?? 0 }))
+    .sort((a, b) => b.votes - a.votes || b.comments - a.comments);
+}
+
 export async function yearReviewResolver(
   _parent: unknown,
   args: { year: number },
@@ -156,15 +171,8 @@ export async function yearReviewResolver(
     }),
   ]);
 
-  // The ranking: votes received in the year, tie-broken by the comment count
-  // of the year — how much discussion the game drove.
-  const commentsByGame = new Map<number, number>();
-  for (const row of commentRows) {
-    commentsByGame.set(row.game_id, (commentsByGame.get(row.game_id) ?? 0) + 1);
-  }
-  const ranking = Array.from(votesByGame.keys())
-    .map((id) => ({ id, votes: votesByGame.get(id)!.votes, comments: commentsByGame.get(id) ?? 0 }))
-    .sort((a, b) => b.votes - a.votes || b.comments - a.comments);
+  // The ranked games need full rows (cover, labels, authors with avatars).
+  const ranking = rankGames(votesByGame, commentRows);
 
   const featuredIds = ranking.slice(0, FEATURED_GAMES).map((r) => r.id);
   const runnerUpIds = ranking.slice(FEATURED_GAMES, FEATURED_GAMES + RUNNER_UP_GAMES).map((r) => r.id);

@@ -95,6 +95,55 @@ interface WpTerm {
   name: string;
 }
 
+/** The embedded author and featured-media of a post; `/users/<id>` is
+ * auth-gated on larpy.cz, so `_embed` carries both inside the payload. */
+function postMedia(post: WpPost): { author: string | null; imageUrl: string | null } {
+  const author = post._embedded?.author?.[0]?.name ?? null;
+  const media = post._embedded?.['wp:featuredmedia']?.[0];
+  const imageUrl =
+    media && typeof media !== 'boolean' ? (media.source_url ?? null) : null;
+  return { author, imageUrl };
+}
+
+/** Import the not-yet-known posts of one page, deduplicated by source id;
+ * returns how many were created. */
+async function importPosts(
+  db: PrismaClient,
+  posts: readonly WpPost[],
+  categoryNames: ReadonlyMap<number, string>,
+  tagNames: ReadonlyMap<number, string>,
+): Promise<number> {
+  let imported = 0;
+  for (const post of posts) {
+    const existing = await db.csld_article.findUnique({
+      where: { source_source_id: { source: LARPY_CZ_SOURCE, source_id: String(post.id) } },
+    });
+    if (existing) continue;
+
+    const { author, imageUrl } = postMedia(post);
+
+    await db.csld_article.create({
+      data: {
+        source: LARPY_CZ_SOURCE,
+        source_id: String(post.id),
+        url: post.link,
+        title: articleExcerptAsText(post.title.rendered),
+        perex: post.excerpt?.rendered ? articleExcerptAsText(post.excerpt.rendered) : null,
+        language: 'cs',
+        authors: author,
+        published_at: post.date_gmt ? new Date(post.date_gmt + 'Z') : null,
+        categories: post.categories
+          .filter((c) => c !== ENGLISH_CATEGORY_ID)
+          .map((c) => categoryNames.get(c) ?? String(c)),
+        tags: post.tags.map((t) => tagNames.get(t) ?? String(t)),
+        image_url: imageUrl,
+      },
+    });
+    imported += 1;
+  }
+  return imported;
+}
+
 export async function importLarpyCzArticles(db: PrismaClient): Promise<number> {
   // Warm the category/tag id → name maps (paged — tags exceed 1000 items).
   const categoryNames = new Map<number, string>();
@@ -138,38 +187,7 @@ export async function importLarpyCzArticles(db: PrismaClient): Promise<number> {
     // the authoritative guard (some may surface via `?after=` paging).
     const keep = posts.filter((p) => !p.categories.includes(ENGLISH_CATEGORY_ID));
 
-    for (const post of keep) {
-      const existing = await db.csld_article.findUnique({
-        where: { source_source_id: { source: LARPY_CZ_SOURCE, source_id: String(post.id) } },
-      });
-      if (existing) continue;
-
-      // /users/<id> is auth-gated on larpy.cz; `_embed` carries the author
-      // name (and featured media) inside the post payload instead.
-      const author = post._embedded?.author?.[0]?.name ?? null;
-      const media = post._embedded?.['wp:featuredmedia']?.[0];
-      const imageUrl =
-        media && typeof media !== 'boolean' ? (media.source_url ?? null) : null;
-
-      await db.csld_article.create({
-        data: {
-          source: LARPY_CZ_SOURCE,
-          source_id: String(post.id),
-          url: post.link,
-          title: articleExcerptAsText(post.title.rendered),
-          perex: post.excerpt?.rendered ? articleExcerptAsText(post.excerpt.rendered) : null,
-          language: 'cs',
-          authors: author,
-          published_at: post.date_gmt ? new Date(post.date_gmt + 'Z') : null,
-          categories: post.categories
-            .filter((c) => c !== ENGLISH_CATEGORY_ID)
-            .map((c) => categoryNames.get(c) ?? String(c)),
-          tags: post.tags.map((t) => tagNames.get(t) ?? String(t)),
-          image_url: imageUrl,
-        },
-      });
-      imported += 1;
-    }
+    imported += await importPosts(db, keep, categoryNames, tagNames);
     page += 1;
   } while (page <= totalPages);
 

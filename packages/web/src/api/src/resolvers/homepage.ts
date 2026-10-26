@@ -405,6 +405,21 @@ export async function commentsStats(ctx: Context) {
   };
 }
 
+/** Add one game's labels to the counts, skipping labels the catalog cannot
+ * filter by (a tile that leads into an empty list is worse than no tile). */
+function tallyGameLabels(
+  labelCounts: Map<number, { id: string; name: string | null; count: number }>,
+  row: any,
+): void {
+  for (const link of row.csld_game?.csld_game_has_label ?? []) {
+    const label = link.csld_label;
+    if (!label || (!label.is_authorized && !label.is_required)) continue;
+    const entry = labelCounts.get(label.id) ?? { id: String(label.id), name: label.name, count: 0 };
+    entry.count += 1;
+    labelCounts.set(label.id, entry);
+  }
+}
+
 /**
  * The visitor's taste: labels of the games they rated 8 or more, counted over
  * their own ratings. Only labels the catalog can filter by are kept — a tile
@@ -417,13 +432,7 @@ function countTasteLabels(ratingRows: readonly any[]): {
   const labelCounts = new Map<number, { id: string; name: string | null; count: number }>();
   for (const row of ratingRows) {
     if ((row.rating ?? 0) < MIN_RATING_FOR_TASTE) continue;
-    for (const link of row.csld_game?.csld_game_has_label ?? []) {
-      const label = link.csld_label;
-      if (!label || (!label.is_authorized && !label.is_required)) continue;
-      const entry = labelCounts.get(label.id) ?? { id: String(label.id), name: label.name, count: 0 };
-      entry.count += 1;
-      labelCounts.set(label.id, entry);
-    }
+    tallyGameLabels(labelCounts, row);
   }
   const recommended = [...labelCounts.values()]
     .sort((a, b) => b.count - a.count || (a.name ?? '').localeCompare(b.name ?? '', 'cs'))
