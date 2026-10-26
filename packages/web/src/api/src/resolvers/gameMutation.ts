@@ -225,6 +225,47 @@ export async function setGamePlayedStateResolver(
 
 // ── createOrUpdateComment ────────────────────────────────
 
+/** New comments are refused on a comments-disabled game; editing an existing
+ * one stays possible (the UI mirrors exactly that). */
+async function requireCommentsEnabledForNew(db: Context['db'], gameId: number): Promise<void> {
+  const gameRow = await db.csld_game.findUnique({
+    where: { id: gameId },
+    select: { commentsdisabled: true },
+  });
+  if (gameRow?.commentsdisabled) {
+    throw new GraphQLError('Comments are disabled for this game', {
+      extensions: { code: 'COMMENTS_DISABLED' },
+    });
+  }
+}
+
+/** Write the comment: update the user's existing row, or create the first
+ * one (hidden=false, zero upvotes — same defaults the old insert used). */
+async function writeComment(
+  db: Context['db'],
+  gameId: number,
+  userId: number,
+  existing: { id: number } | null,
+  processed: string,
+): Promise<void> {
+  if (existing) {
+    await db.csld_comment.update({
+      where: { id: existing.id },
+      data: { comment: processed, added: new Date() },
+    });
+  } else {
+    await db.csld_comment.create({
+      data: {
+        game_id: gameId,
+        user_id: userId,
+        comment: processed,
+        is_hidden: false,
+        amount_of_upvotes: 0,
+      },
+    });
+  }
+}
+
 export async function createOrUpdateCommentResolver(
   _parent: unknown,
   args: { gameId: string; comment: string },
@@ -248,37 +289,10 @@ export async function createOrUpdateCommentResolver(
     where: { game_id: gameId, user_id: ctx.user!.id },
   });
 
-  // A game with comments disabled accepts no NEW comments through the API —
-  // the UI hides the add button but keeps the edit button for an existing
-  // comment, and the API mirrors exactly that.
   if (!existing) {
-    const gameRow = await ctx.db.csld_game.findUnique({
-      where: { id: gameId },
-      select: { commentsdisabled: true },
-    });
-    if (gameRow?.commentsdisabled) {
-      throw new GraphQLError('Comments are disabled for this game', {
-        extensions: { code: 'COMMENTS_DISABLED' },
-      });
-    }
+    await requireCommentsEnabledForNew(ctx.db, gameId);
   }
-
-  if (existing) {
-    await ctx.db.csld_comment.update({
-      where: { id: existing.id },
-      data: { comment: processed, added: new Date() },
-    });
-  } else {
-    await ctx.db.csld_comment.create({
-      data: {
-        game_id: gameId,
-        user_id: ctx.user!.id,
-        comment: processed,
-        is_hidden: false,
-        amount_of_upvotes: 0,
-      },
-    });
-  }
+  await writeComment(ctx.db, gameId, ctx.user!.id, existing, processed);
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
@@ -405,6 +419,37 @@ export async function deleteCommentResolver(
 
 // ── setGameSeries ───────────────────────────────────────
 
+/** Resolve the target series of setGameSeries: existing id, a new one by
+ * name (reusing a same-name series instead of a silent duplicate), or null
+ * (unlink). */
+async function resolveTargetSeries(
+  db: Context['db'],
+  ctx: Context,
+  input: { seriesId?: string | null; newSeriesName?: string | null },
+): Promise<number | null> {
+  if (input.seriesId) {
+    const seriesId = parseInt(input.seriesId, 10);
+    if (isNaN(seriesId)) throw new GraphQLError('Invalid series ID');
+    const exists = await db.csld_series.findUnique({ where: { id: seriesId } });
+    if (!exists || (exists.deleted && !isAtLeastEditor(ctx))) {
+      throw new GraphQLError('Series not found', { extensions: { code: 'NOT_FOUND' } });
+    }
+    return seriesId;
+  }
+  if (input.newSeriesName?.trim()) {
+    const name = input.newSeriesName.trim();
+    const existing = await db.csld_series.findFirst({ where: { name, deleted: false } });
+    return existing
+      ? existing.id
+      : (
+          await db.csld_series.create({
+            data: { name, added_by: ctx.user!.id, deleted: false },
+          })
+        ).id;
+  }
+  return null;
+}
+
 /**
  * Assign a game to a series (or unlink it from any series). The series is a
  * relationship between existing game rows: an instalment never loses its own
@@ -439,27 +484,7 @@ export async function setGameSeriesResolver(
     });
   }
 
-  // Resolve the target series: existing id, a new one by name, or none (unlink).
-  let seriesId: number | null = null;
-  if (input.seriesId) {
-    seriesId = parseInt(input.seriesId, 10);
-    if (isNaN(seriesId)) throw new GraphQLError('Invalid series ID');
-    const exists = await ctx.db.csld_series.findUnique({ where: { id: seriesId } });
-    if (!exists || (exists.deleted && !isAtLeastEditor(ctx))) {
-      throw new GraphQLError('Series not found', { extensions: { code: 'NOT_FOUND' } });
-    }
-  } else if (input.newSeriesName?.trim()) {
-    const name = input.newSeriesName.trim();
-    // Reuse an existing series with the same name instead of creating a silent duplicate.
-    const existing = await ctx.db.csld_series.findFirst({ where: { name, deleted: false } });
-    seriesId = existing
-      ? existing.id
-      : (
-          await ctx.db.csld_series.create({
-            data: { name, added_by: ctx.user!.id, deleted: false },
-          })
-        ).id;
-  }
+  const seriesId = await resolveTargetSeries(ctx.db, ctx, input);
 
   await ctx.db.csld_game.update({
     where: { id: gameId },
