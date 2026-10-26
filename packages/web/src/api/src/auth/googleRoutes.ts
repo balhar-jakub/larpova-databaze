@@ -40,10 +40,21 @@ export interface GoogleRouterDeps {
   env?: GoogleEnv;
 }
 
-/** Only same-origin absolute paths: `//evil.example` is a protocol-relative URL. */
+/**
+ * Only same-origin absolute paths: `//evil.example` is a protocol-relative URL.
+ *
+ * Auth pages (`/signIn`, `/signUp`, `/recoverPassword`) are rewritten to `/`:
+ * they make no sense as a return destination — a user who just signed in
+ * gains nothing from landing on the sign-in form again, and the client-side
+ * button already sends `/` for them. The server-side rewrite is the guarantee
+ * for anyone hitting `/auth/google?returnTo=/signIn` directly (the callback's
+ * own error redirects never carry a returnTo).
+ */
 export function safeReturnTo(value: unknown): string {
   if (typeof value !== 'string' || !value.startsWith('/')) return '/';
   if (value.startsWith('//') || value.includes('\\')) return '/';
+  const AUTH_PAGE_PATHS = ['/signIn', '/signUp', '/recoverPassword'];
+  if (AUTH_PAGE_PATHS.some((p) => value === p || value.startsWith(`${p}?`))) return '/';
   return value;
 }
 
