@@ -39,6 +39,33 @@ export function clearRememberMeCookie(res: Response): void {
   res.clearCookie(COOKIE_NAME, { path: '/' });
 }
 
+/** Parse and verify the cookie's token into a user id, or null when the
+ * token is malformed, expired or badly signed. Every failure means the same
+ * thing: no auto-login, carry on anonymously. */
+function userIdFromToken(token: string): number | null {
+  try {
+    const decoded = Buffer.from(token, 'base64url').toString('utf-8');
+    const [userIdStr, expiryStr, signature] = decoded.split(':');
+
+    if (!userIdStr || !expiryStr || !signature) return null;
+
+    const userId = parseInt(userIdStr, 10);
+    const expiry = parseInt(expiryStr, 10);
+
+    if (isNaN(userId) || isNaN(expiry)) return null;
+    if (Date.now() > expiry) return null; // expired
+
+    // Verify signature
+    const payload = `${userId}:${expiry}`;
+    if (!verify(payload, signature)) return null;
+
+    return userId;
+  } catch {
+    // Invalid cookie — ignore
+    return null;
+  }
+}
+
 /**
  * Express middleware that checks for remember-me cookie and
  * auto-authenticates the user if the session has no user.
@@ -49,38 +76,18 @@ export function rememberMeMiddleware(db: PrismaClient) {
     if ((req as any).user) return next();
 
     const token = req.cookies?.[COOKIE_NAME];
-    if (!token) return next();
+    const userId = token ? userIdFromToken(token) : null;
+    if (userId == null) return next();
 
-    try {
-      const decoded = Buffer.from(token, 'base64url').toString('utf-8');
-      const [userIdStr, expiryStr, signature] = decoded.split(':');
+    // Find user and set on request
+    const user = await db.csld_csld_user.findUnique({
+      where: { id: userId },
+      include: { csld_image: true },
+    });
 
-      if (!userIdStr || !expiryStr || !signature) return next();
-
-      const userId = parseInt(userIdStr, 10);
-      const expiry = parseInt(expiryStr, 10);
-
-      if (isNaN(userId) || isNaN(expiry)) return next();
-      if (Date.now() > expiry) return next(); // expired
-
-      // Verify signature
-      const payload = `${userId}:${expiry}`;
-      if (!verify(payload, signature)) return next();
-
-      // Find user and set on request
-      const user = await db.csld_csld_user.findUnique({
-        where: { id: userId },
-        include: { csld_image: true },
-      });
-
-      if (!user) return next();
-
-      const authUser: AuthUser = toAuthUser(user);
-
+    if (user) {
       // Set user on request so Passport sees them
-      (req as any).user = authUser;
-    } catch {
-      // Invalid cookie — ignore
+      (req as any).user = toAuthUser(user);
     }
 
     next();

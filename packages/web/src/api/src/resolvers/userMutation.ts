@@ -225,6 +225,35 @@ export async function createUserResolver(
 
 // ── UpdateLoggedInUser ───────────────────────────────────
 
+/** The profile's updatable columns. Fields an older client does not send
+ * (bio, gender, picture) are left untouched — spread-when-present keeps the
+ * stored value instead of wiping it to null. */
+function profileFieldData(input: {
+  email: string;
+  name: string;
+  nickname?: string;
+  birthDate?: string;
+  city?: string;
+  description?: string;
+  gender?: string;
+}, email: string, imageId: number | null) {
+  return {
+    email,
+    name: input.name,
+    nickname: input.nickname ?? null,
+    birth_date: input.birthDate ? new Date(input.birthDate) : null,
+    address: input.city ?? null,
+    // A request that does not mention the bio (an older client) must not wipe
+    // it, so the column is only touched when the field is actually sent.
+    ...(input.description !== undefined ? { description: input.description || null } : {}),
+    // An absent gender means "keep the stored one" (older clients do not
+    // send the field); an explicit UNSPECIFIED clears it.
+    ...(input.gender ? { gender: genderToNumber(input.gender) } : {}),
+    // No picture in this request means "keep the current one".
+    ...(imageId ? { image: imageId } : {}),
+  };
+}
+
 export async function updateLoggedInUserResolver(
   _parent: unknown,
   args: {
@@ -276,21 +305,7 @@ export async function updateLoggedInUserResolver(
 
   await ctx.db.csld_csld_user.update({
     where: { id: ctx.user.id },
-    data: {
-      email,
-      name: input.name,
-      nickname: input.nickname ?? null,
-      birth_date: input.birthDate ? new Date(input.birthDate) : null,
-      address: input.city ?? null,
-      // A request that does not mention the bio (an older client) must not wipe
-      // it, so the column is only touched when the field is actually sent.
-      ...(input.description !== undefined ? { description: input.description || null } : {}),
-      // An absent gender means "keep the stored one" (older clients do not
-      // send the field); an explicit UNSPECIFIED clears it.
-      ...(input.gender ? { gender: genderToNumber(input.gender) } : {}),
-      // No picture in this request means "keep the current one".
-      ...(imageId ? { image: imageId } : {}),
-    },
+    data: profileFieldData(input, email, imageId),
   });
 
   if (imageId && previous?.image) {

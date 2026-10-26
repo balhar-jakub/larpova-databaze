@@ -232,6 +232,20 @@ describe('rememberMeMiddleware', () => {
     expect(findUnique).not.toHaveBeenCalled();
   });
 
+  it('a signature of the wrong LENGTH is a hard reject, not a crash', async () => {
+    // timingSafeEqual throws on length mismatch; the token parser must turn
+    // that into "no auto-login", not a 500 on every odd-length cookie.
+    const mod = await import('../auth/rememberMe.js');
+    const { db, findUnique } = dbWithUser(USER_ROW);
+    const expiry = Date.now() + 24 * 3600 * 1000;
+    const req = middlewareReq(makeToken(7, expiry, 'tooshort'));
+
+    const next = await runMiddleware(mod, db, req);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect((req as { user?: unknown }).user).toBeUndefined();
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
   it('a signed token for a user that no longer exists authenticates nobody', async () => {
     const mod = await import('../auth/rememberMe.js');
     const { db, findUnique } = dbWithUser(null);

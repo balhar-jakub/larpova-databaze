@@ -165,6 +165,25 @@ async function saveEventCoverImage(ctx: Context, eventId: number, coverImage: { 
 
 // ── createEvent ──────────────────────────────────────────
 
+/** Link the listed games to a fresh event (create — the event has no links
+ * yet, so there is nothing to clear first). */
+async function linkEventGames(ctx: Context, eventId: number, gameIds: readonly string[]): Promise<void> {
+  for (const gameId of gameIds) {
+    await ctx.db.csld_game_has_event.create({
+      data: { game_id: parseInt(gameId), event_id: eventId },
+    });
+  }
+}
+
+/** Link the listed labels to a fresh event. */
+async function linkEventLabels(ctx: Context, eventId: number, labelIds: readonly string[]): Promise<void> {
+  for (const labelId of labelIds) {
+    await ctx.db.event_has_labels.create({
+      data: { event_id: eventId, label_id: parseInt(labelId) },
+    });
+  }
+}
+
 export async function createEventResolver(
   _parent: unknown,
   args: { input: EventInput },
@@ -172,45 +191,18 @@ export async function createEventResolver(
 ) {
   requireAuth(ctx);
   const { input } = args;
-  const registration = normalizeRegistrationInput(input.registrationUrl, input.registrationOpen, input.registrationStatus, input.registrationOpensAt);
 
   const event = await ctx.db.event.create({
     data: {
-      name: input.name,
-      description: input.description ?? null,
-      loc: input.loc ?? null,
-      web: input.web ?? null,
-      registration_url: registration.registrationUrl,
-      registration_status: registration.registrationStatus,
-      registration_opens_at: registration.registrationOpensAt,
-      from: new Date(input.fromDate),
-      to: new Date(input.toDate),
-      amountofplayers: input.amountOfPlayers ?? null,
-      latitude: input.latitude ?? null,
-      longitude: input.longitude ?? null,
+      ...eventFieldData(input),
       added_by: ctx.user!.id,
       deleted: false,
       lang: 'cs',
     },
   });
 
-  // Link games
-  if (input.games?.length) {
-    for (const gameId of input.games) {
-      await ctx.db.csld_game_has_event.create({
-        data: { game_id: parseInt(gameId), event_id: event.id },
-      });
-    }
-  }
-
-  // Link labels
-  if (input.labels?.length) {
-    for (const labelId of input.labels) {
-      await ctx.db.event_has_labels.create({
-        data: { event_id: event.id, label_id: parseInt(labelId) },
-      });
-    }
-  }
+  await linkEventGames(ctx, event.id, input.games ?? []);
+  await linkEventLabels(ctx, event.id, input.labels ?? []);
 
   // Sync to Google Calendar
   await syncEventToCalendar(ctx.db, event.id).catch((err) => {
@@ -236,8 +228,9 @@ export async function createEventResolver(
 // ── updateEvent ──────────────────────────────────────────
 
 /** The event's updatable columns, schema-shaped (null when the field was
- * cleared, dates parsed, registration normalized). */
-function eventFieldData(input: EventInput & { id: string }) {
+ * cleared, dates parsed, registration normalized) — the same columns
+ * create and update write. */
+function eventFieldData(input: EventInput) {
   const registration = normalizeRegistrationInput(
     input.registrationUrl, input.registrationOpen, input.registrationStatus, input.registrationOpensAt,
   );
