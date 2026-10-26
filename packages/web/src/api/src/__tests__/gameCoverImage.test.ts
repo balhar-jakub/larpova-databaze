@@ -213,4 +213,54 @@ describe('updateGame cover image', () => {
     );
     expect(res.errors).toBeDefined();
   });
+
+  it('reports a missing game instead of creating one', async () => {
+    // updateGame on an id that never existed: the lookup must throw
+    // 'Game not found' — not silently act on a null row.
+    const res = await executeQuery(
+      server,
+      UPDATE_GAME,
+      { input: { id: String(2_000_000_000), ...(await baseInput('ghost')), description: 'x' } },
+      ctxFor(meId, 2),
+    );
+    expect(res.errors).toBeDefined();
+    expect(res.errors![0].message).toBe('Game not found');
+  });
+
+  it('keeps a game without a cover image on update', async () => {
+    // No coverImage in the input: the resolver must not touch images at all
+    // (the saveCoverImage guard's null path) while the fields still save.
+    const createRes = await executeQuery(
+      server,
+      CREATE_GAME,
+      { input: await baseInput(`${marker} empty-cover`) },
+      ctxFor(meId, 1),
+    );
+    const created = (createRes.data as { game: { createGame: { id: string } } }).game.createGame;
+    const gameId = parseInt(created.id, 10);
+    createdGameIds.push(gameId);
+
+    const imagesBefore = await prisma.csld_image.count();
+
+    const res = await executeQuery(
+      server,
+      UPDATE_GAME,
+      {
+        input: {
+          id: created.id,
+          ...(await baseInput(`${marker} empty-cover`)),
+          description: 'still saved',
+        },
+      },
+      ctxFor(meId, 1),
+    );
+    expect(res.errors).toBeUndefined();
+    const game = (res.data as { game: { updateGame: { coverImage: { path: string } | null } } })
+      .game.updateGame;
+    expect(game.coverImage).toBeNull();
+    const row = await prisma.csld_game.findUnique({ where: { id: gameId } });
+    expect(row?.cover_image).toBeNull();
+    expect(row?.description).toContain('still saved');
+    expect(await prisma.csld_image.count()).toBe(imagesBefore);
+  });
 });

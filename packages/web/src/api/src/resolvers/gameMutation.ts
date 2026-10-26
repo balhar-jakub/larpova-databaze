@@ -735,9 +735,11 @@ function gameFieldData(input: any) {
 }
 
 /** Store an uploaded cover image and link it to the game. Shared by
- * createGame and updateGame (identical block in both before). */
-async function saveCoverImage(ctx: Context, gameId: number, coverImage: { fileName?: string; contents?: string } | undefined) {
-  if (!coverImage?.fileName || !coverImage.contents) return;
+ * createGame and updateGame (identical block in both before). The GraphQL
+ * schema (UploadedFileInput: fileName String!, contents String!) already
+ * guarantees a half-input never reaches this far — null means "no upload". */
+async function saveCoverImage(ctx: Context, gameId: number, coverImage: { fileName: string; contents: string } | null | undefined) {
+  if (!coverImage) return;
   const uploaded = new Base64UploadedFile(coverImage.fileName, coverImage.contents);
   const strategy = getCoverImageStrategy();
   const result = await ctx.files.saveImageAndReturnPath(uploaded, strategy);
