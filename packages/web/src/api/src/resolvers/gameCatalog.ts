@@ -151,6 +151,44 @@ export interface WhereOptions {
   skipDurations?: boolean;
 }
 
+/** Label conditions: every allLabels id must be present, anyLabels is an OR,
+ * noLabels must be absent. Skipped entirely by facet counting. */
+function labelWheres(filter: CatalogFilter): Prisma.csld_gameWhereInput[] {
+  const wheres: Prisma.csld_gameWhereInput[] = [];
+  toIntIds(filter.allLabels).forEach((id) => {
+    wheres.push({ csld_game_has_label: { some: { id_label: id } } });
+  });
+
+  const anyLabels = toIntIds(filter.anyLabels);
+  if (anyLabels.length) {
+    wheres.push({ csld_game_has_label: { some: { id_label: { in: anyLabels } } } });
+  }
+
+  const noLabels = toIntIds(filter.noLabels);
+  if (noLabels.length) {
+    wheres.push({ csld_game_has_label: { none: { id_label: { in: noLabels } } } });
+  }
+  return wheres;
+}
+
+/** Duration-bucket conditions: an OR over the selected buckets' ranges. */
+function durationWhere(filter: CatalogFilter): Prisma.csld_gameWhereInput | null {
+  if (!filter.durations?.length) return null;
+  const buckets = DURATION_KEYS.filter((key) => filter.durations?.includes(key)).map(
+    (key) => DURATION_WHERE[key],
+  );
+  return buckets.length ? { OR: buckets } : null;
+}
+
+/** A nullable-range condition (year, players): gte/lte only when set. */
+function rangeWhere(from: number | null | undefined, to: number | null | undefined): { gte?: number; lte?: number } | null {
+  if (from == null && to == null) return null;
+  const range: Prisma.IntNullableFilter = {};
+  if (from != null) range.gte = from;
+  if (to != null) range.lte = to;
+  return range;
+}
+
 /**
  * `queryIds` is the result of the shared search engine for `filter.query`
  * (`gameIdsForQuery`): the text filter cannot be a Prisma condition, because it
@@ -179,41 +217,23 @@ export function buildCatalogWhere(
   }
 
   if (!options.skipLabels) {
-    toIntIds(filter.allLabels).forEach((id) => {
-      and.push({ csld_game_has_label: { some: { id_label: id } } });
-    });
+    and.push(...labelWheres(filter));
+  }
 
-    const anyLabels = toIntIds(filter.anyLabels);
-    if (anyLabels.length) {
-      and.push({ csld_game_has_label: { some: { id_label: { in: anyLabels } } } });
-    }
-
-    const noLabels = toIntIds(filter.noLabels);
-    if (noLabels.length) {
-      and.push({ csld_game_has_label: { none: { id_label: { in: noLabels } } } });
+  if (!options.skipDurations) {
+    const duration = durationWhere(filter);
+    if (duration) {
+      and.push(duration);
     }
   }
 
-  if (!options.skipDurations && filter.durations?.length) {
-    const buckets = DURATION_KEYS.filter((key) => filter.durations?.includes(key)).map(
-      (key) => DURATION_WHERE[key],
-    );
-    if (buckets.length) {
-      and.push({ OR: buckets });
-    }
-  }
-
-  if (filter.yearFrom != null || filter.yearTo != null) {
-    const year: Prisma.IntNullableFilter = {};
-    if (filter.yearFrom != null) year.gte = filter.yearFrom;
-    if (filter.yearTo != null) year.lte = filter.yearTo;
+  const year = rangeWhere(filter.yearFrom, filter.yearTo);
+  if (year) {
     and.push({ year });
   }
 
-  if (filter.playersFrom != null || filter.playersTo != null) {
-    const players: Prisma.IntNullableFilter = {};
-    if (filter.playersFrom != null) players.gte = filter.playersFrom;
-    if (filter.playersTo != null) players.lte = filter.playersTo;
+  const players = rangeWhere(filter.playersFrom, filter.playersTo);
+  if (players) {
     and.push({ players });
   }
 

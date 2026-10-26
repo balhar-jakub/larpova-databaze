@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { google } from 'googleapis';
 import type { PrismaClient } from '@prisma/client';
-import { linkGoogleIdentity, googleSignInConfigured, type GoogleEnv } from './googleLink.js';
+import { linkGoogleIdentity, googleSignInConfigured, type GoogleEnv, type GoogleLinkOutcome } from './googleLink.js';
 import { toAuthUser, type AuthUser, type SessionUserRow } from './appUsers.js';
 import { setRememberMeCookie } from './rememberMe.js';
 
@@ -141,6 +141,24 @@ export function createGoogleRouter(deps: GoogleRouterDeps): Router {
     return res.redirect(url);
   });
 
+  /** Narrows to the two outcomes that may open a session (sign-in /
+ * registered) and reports the failure redirect otherwise. */
+  const linkedOutcome = (outcome: GoogleLinkOutcome): { kind: 'sign-in'; userId: number; how: 'linked' | 'email' } | { kind: 'registered'; userId: number } | null => {
+    if (outcome.kind === 'unverified') return null;
+    if (outcome.kind === 'ambiguous') {
+      console.warn(
+        `[google] refused to link: ` +
+          `${outcome.userIds.length} accounts share one address (ids ${outcome.userIds.join(', ')})`,
+      );
+      return null;
+    }
+    if (outcome.kind === 'conflict') {
+      console.warn(`[google] refused to link: account ${outcome.userId} has another Google identity`);
+      return null;
+    }
+    return outcome;
+  };
+
   router.get('/callback', async (req, res) => {
     const session = sessionOf(req);
     const flow = session[STATE_COOKIE_KEY] as PendingFlow | undefined;
@@ -178,29 +196,22 @@ export function createGoogleRouter(deps: GoogleRouterDeps): Router {
         name: payload.name ?? null,
       });
 
-      if (outcome.kind === 'unverified') return fail(res, 'google_unverified');
-      if (outcome.kind === 'ambiguous') {
-        console.warn(
-          `[google] refused to link sub ${payload.sub}: ` +
-            `${outcome.userIds.length} accounts share one address (ids ${outcome.userIds.join(', ')})`,
-        );
-        return fail(res, 'google_ambiguous');
-      }
-      if (outcome.kind === 'conflict') {
-        console.warn(`[google] refused to link sub ${payload.sub}: account ${outcome.userId} has another Google identity`);
-        return fail(res, 'google_conflict');
+      const linked = linkedOutcome(outcome);
+      if (!linked) {
+        return fail(res, outcome.kind === 'unverified' ? 'google_unverified'
+          : outcome.kind === 'ambiguous' ? 'google_ambiguous' : 'google_conflict');
       }
 
-      const row = await deps.loadUser(outcome.userId);
-      if (!row) throw new Error(`linked user ${outcome.userId} disappeared`);
+      const row = await deps.loadUser(linked.userId);
+      if (!row) throw new Error(`linked user ${linked.userId} disappeared`);
 
       const user = toAuthUser(row);
       await deps.login(req, user);
       setRememberMeCookie(res, user.id);
 
-      if (outcome.kind === 'registered') {
+      if (linked.kind === 'registered') {
         console.warn(`[google] registered account ${user.id} from sub ${payload.sub}`);
-      } else if (outcome.how === 'email') {
+      } else if (linked.how === 'email') {
         console.warn(`[google] signed in account ${user.id} via auto-link from sub ${payload.sub}`);
       }
 

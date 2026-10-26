@@ -51,6 +51,36 @@ export function normalizeUserRef(row: any) {
   };
 }
 
+/** A photo row with its image and its game back-link, schema-shaped. */
+function normalizePhoto(p: any) {
+  return {
+    ...p,
+    fullWidth: p.fullwidth,
+    fullHeight: p.fullheight,
+    image: p.csld_image ?? null,
+    game: normalizeGame(p.csld_game_csld_photo_gameTocsld_game),
+  };
+}
+
+/** A comment row with its author and its game back-link, schema-shaped. */
+function normalizeComment(c: any) {
+  return {
+    ...c,
+    commentAsText: commentAsText(c.comment),
+    user: normalizeUserRef(c.csld_csld_user),
+    game: normalizeGame(c.csld_game),
+  };
+}
+
+/** A rating row with its game and user back-links, schema-shaped. */
+function normalizeRating(r: any) {
+  return {
+    ...r,
+    game: normalizeGame(r.csld_game),
+    user: normalizeUserRef(r.csld_csld_user),
+  };
+}
+
 /**
  * Normalize a Prisma game row (snake_case) to GraphQL schema (camelCase).
  */
@@ -81,13 +111,7 @@ export function normalizeGame(row: any) {
     video: row.csld_video ?? null,
     coverImage: row.csld_image_csld_game_cover_imageTocsld_image ?? null,
     image: row.csld_image_csld_game_imageTocsld_image ?? null,
-    photos: (row.csld_photo_csld_photo_gameTocsld_game ?? []).map((p: any) => ({
-      ...p,
-      fullWidth: p.fullwidth,
-      fullHeight: p.fullheight,
-      image: p.csld_image ?? null,
-      game: normalizeGame(p.csld_game_csld_photo_gameTocsld_game),
-    })),
+    photos: (row.csld_photo_csld_photo_gameTocsld_game ?? []).map(normalizePhoto),
     similarGames: (row.similar_games_similar_games_id_game1Tocsld_game ?? []).map(
       (s: any) => s.csld_game_similar_games_id_game2Tocsld_game
     ).filter(Boolean)
@@ -96,17 +120,8 @@ export function normalizeGame(row: any) {
       .filter((g: any) => !g.deleted)
       .map((g: any) => normalizeGame(g)),
     ratingStats: computeRatingStats(row.csld_rating ?? []),
-    comments: (row.csld_comment ?? []).map((c: any) => ({
-      ...c,
-      commentAsText: commentAsText(c.comment),
-      user: normalizeUserRef(c.csld_csld_user),
-      game: normalizeGame(c.csld_game),
-    })),
-    ratings: (row.csld_rating ?? []).map((r: any) => ({
-      ...r,
-      game: normalizeGame(r.csld_game),
-      user: normalizeUserRef(r.csld_csld_user),
-    })),
+    comments: (row.csld_comment ?? []).map(normalizeComment),
+    ratings: (row.csld_rating ?? []).map(normalizeRating),
     allowedActions: null, // computed field — needs auth context
   };
 }

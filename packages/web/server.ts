@@ -241,19 +241,25 @@ app.get('/ical', async (req, res) => {
 
 // ── Image serving (resolves image IDs to file paths) ─────
 
-async function serveImageById(req: Request, res: Response) {
+/** Extension → Content-Type for the image table's files, with a safe default. */
+const IMAGE_MIME_TYPES: Record<string, string> = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+  gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
+};
+
+/** Stream a csld_image row's file out with the right Content-Type and a
+ * long-lived Cache-Control (paths are content-addressed by id). Shared by the
+ * game/event/user image routes; `missingStatus` is what an absent imageId
+ * answers with (400 where the call is form-like, 404 where it is a lookup). */
+async function streamImageById(req: Request, res: Response, missingStatus: 400 | 404) {
   const imageId = req.query.imageId as string;
-  if (!imageId) return res.status(400).end();
+  if (!imageId) return res.status(missingStatus).end();
   try {
     const img = await prisma.csld_image.findUnique({ where: { id: parseInt(imageId, 10) }, select: { path: true } });
     if (!img?.path) return res.status(404).end();
     if (!res.headersSent) {
       const ext = img.path.split('.').pop()?.toLowerCase();
-      const mimeTypes: Record<string, string> = {
-        jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-        gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
-      };
-      res.setHeader('Content-Type', mimeTypes[ext ?? ''] ?? 'application/octet-stream');
+      res.setHeader('Content-Type', IMAGE_MIME_TYPES[ext ?? ''] ?? 'application/octet-stream');
       res.setHeader('Cache-Control', 'public, max-age=31536000');
     }
     await fileService.streamToResponse(img.path, res);
@@ -262,31 +268,16 @@ async function serveImageById(req: Request, res: Response) {
   }
 }
 
+function serveImageById(req: Request, res: Response) {
+  return streamImageById(req, res, 400);
+}
+
 // Games and events share the same `csld_image` table; both routes answer any
 // image id, the names just read better in the markup.
 app.get('/game-image/', serveImageById);
 app.get('/event-image/', serveImageById);
 
-app.get('/user-icon', async (req, res) => {
-  const imageId = req.query.imageId as string;
-  if (!imageId) return res.status(404).end();
-  try {
-    const img = await prisma.csld_image.findUnique({ where: { id: parseInt(imageId, 10) }, select: { path: true } });
-    if (!img?.path) return res.status(404).end();
-    if (!res.headersSent) {
-      const ext = img.path.split('.').pop()?.toLowerCase();
-      const mimeTypes: Record<string, string> = {
-        jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-        gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
-      };
-      res.setHeader('Content-Type', mimeTypes[ext ?? ''] ?? 'application/octet-stream');
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
-    }
-    await fileService.streamToResponse(img.path, res);
-  } catch {
-    if (!res.headersSent) res.status(404).end();
-  }
-});
+app.get('/user-icon', (req, res) => streamImageById(req, res, 404));
 
 // ── Google sign-in ───────────────────────────────────────
 // Mounted before the catch-all; inert (and the button hidden) until

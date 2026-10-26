@@ -146,6 +146,40 @@ function candidateWords(candidate: SearchCandidate): string[] {
 }
 
 /**
+ * Where every token of the query sits in the candidate's words: how many
+ * matched at a word start (`wordStarts`), whether they appeared in the order
+ * they were written (`inOrder`), or `null` when any token matched nowhere.
+ */
+function tokenPositions(tokens: readonly string[], words: readonly string[]): { wordStarts: number; inOrder: boolean } | null {
+  let wordStarts = 0;
+  let inOrder = true;
+  let previousIndex = -1;
+
+  for (const token of tokens) {
+    const index = words.findIndex((word) => word.startsWith(token));
+    if (index < 0) {
+      if (!words.some((word) => word.includes(token))) return null;
+      inOrder = false;
+      continue;
+    }
+    wordStarts += 1;
+    if (index <= previousIndex) inOrder = false;
+    previousIndex = index;
+  }
+
+  return { wordStarts, inOrder };
+}
+
+/** The four match tiers: exact title, title prefix, every word at a word
+ * start, then a substring somewhere. */
+function matchScore(title: string, foldedQuery: string, wordStarts: number, tokens: readonly string[]): number {
+  if (title === foldedQuery) return SCORE_EXACT_TITLE;
+  if (title.startsWith(foldedQuery)) return SCORE_TITLE_START;
+  if (wordStarts === tokens.length) return SCORE_WORD_START;
+  return SCORE_SUBSTRING;
+}
+
+/**
  * Score one row against the words of the query, or `null` when it does not
  * match at all. Every word has to be found — `novak jozef` finds `Jozef Novák`
  * while `Jozef` alone only finds everybody called Jozef.
@@ -163,30 +197,13 @@ export function matchCandidate(
   const words = candidateWords(candidate);
   if (words.length === 0) return null;
 
-  let wordStarts = 0;
-  let inOrder = true;
-  let previousIndex = -1;
+  const positions = tokenPositions(tokens, words);
+  if (!positions) return null;
 
-  for (const token of tokens) {
-    const index = words.findIndex((word) => word.startsWith(token));
-    if (index < 0) {
-      if (!words.some((word) => word.includes(token))) return null;
-      inOrder = false;
-      continue;
-    }
-    wordStarts += 1;
-    if (index <= previousIndex) inOrder = false;
-    previousIndex = index;
-  }
-
-  const title = normalizedTitle(candidate);
-  let score: number;
-  if (title === foldedQuery) score = SCORE_EXACT_TITLE;
-  else if (title.startsWith(foldedQuery)) score = SCORE_TITLE_START;
-  else if (wordStarts === tokens.length) score = SCORE_WORD_START;
-  else score = SCORE_SUBSTRING;
-
-  return { score, inOrder };
+  return {
+    score: matchScore(normalizedTitle(candidate), foldedQuery, positions.wordStarts, tokens),
+    inOrder: positions.inOrder,
+  };
 }
 
 /**
@@ -263,14 +280,8 @@ export function allowedEdits(length: number): number {
  * returned as they appear in the data (`beta` → `Bête`), so accepting the
  * suggestion searches for something that really exists.
  */
-export function suggestQuery(
-  query: string | null | undefined,
-  candidates: readonly SearchCandidate[],
-): string | null {
-  const tokens = tokenizeSearchQuery(query);
-  if (tokens.length === 0) return null;
-
-  // Folded word → how it is really written, the most frequent form wins.
+/** Folded word → how it is really written, the most frequent form wins. */
+function buildVocabulary(candidates: readonly SearchCandidate[]): Map<string, VocabularyEntry> | null {
   const vocabulary = new Map<string, VocabularyEntry>();
   const remember = (value: string | null | undefined) => {
     const raw = (value ?? '').trim();
@@ -288,26 +299,43 @@ export function suggestQuery(
     remember(candidate.title);
     (candidate.extra ?? []).forEach(remember);
   });
-  if (vocabulary.size === 0) return null;
+  return vocabulary.size === 0 ? null : vocabulary;
+}
+
+/** The closest vocabulary word to a token the query misspelled, or `null`
+ * when nothing is within the allowed edit budget. */
+function closestCorrection(token: string, vocabulary: Map<string, VocabularyEntry>): VocabularyEntry | null {
+  let bestFold: string | null = null;
+  let bestEntry: VocabularyEntry | null = null;
+  for (const [word, entry] of vocabulary) {
+    const distance = editDistance(token, word);
+    if (distance === 0 || distance > allowedEdits(token.length)) continue;
+    if (bestEntry && bestFold) {
+      const bestDistance = editDistance(token, bestFold);
+      if (bestDistance < distance || (bestDistance === distance && entry.count <= bestEntry.count)) continue;
+    }
+    bestFold = word;
+    bestEntry = entry;
+  }
+  return bestEntry;
+}
+
+export function suggestQuery(
+  query: string | null | undefined,
+  candidates: readonly SearchCandidate[],
+): string | null {
+  const tokens = tokenizeSearchQuery(query);
+  if (tokens.length === 0) return null;
+
+  const vocabulary = buildVocabulary(candidates);
+  if (!vocabulary) return null;
 
   const words = Array.from(vocabulary.keys());
   let corrected = false;
   const parts = tokens.map((token) => {
     if (words.some((word) => word.startsWith(token))) return token;
 
-    let bestFold: string | null = null;
-    let bestEntry: VocabularyEntry | null = null;
-    for (const word of words) {
-      const distance = editDistance(token, word);
-      if (distance === 0 || distance > allowedEdits(token.length)) continue;
-      const entry = vocabulary.get(word)!;
-      if (bestEntry && bestFold) {
-        const bestDistance = editDistance(token, bestFold);
-        if (bestDistance < distance || (bestDistance === distance && entry.count <= bestEntry.count)) continue;
-      }
-      bestFold = word;
-      bestEntry = entry;
-    }
+    const bestEntry = closestCorrection(token, vocabulary);
     // A word nobody is close to stays as it is; it must not swallow the words
     // that *can* be corrected ("hell on weels" → "hell on Wheels").
     if (!bestEntry) return token;
