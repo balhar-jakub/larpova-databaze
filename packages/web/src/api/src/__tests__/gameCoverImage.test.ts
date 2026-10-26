@@ -147,6 +147,86 @@ describe('createGame cover image and link sync', () => {
     await prisma.csld_csld_group.deleteMany({ where: { id: group.id } });
     await prisma.csld_label.deleteMany({ where: { id: label.id } });
   });
+
+  it('creates a game with empty author, group and label lists', async () => {
+    // The form always sends the lists; the API must accept them empty:
+    // every ?.length false-arm and the "no links" path in one pass.
+    const res = await executeQuery(
+      server,
+      CREATE_GAME,
+      {
+        input: {
+          name: `${marker} bare`,
+          description: 'bare',
+          authors: [] as string[],
+          newAuthors: [],
+          groupAuthors: [] as string[],
+          newGroupAuthors: [],
+          labels: [] as string[],
+          newLabels: [],
+        },
+      },
+      ctxFor(meId, 1),
+    );
+    expect(res.errors).toBeUndefined();
+    const game = (res.data as { game: { createGame: { id: string } } }).game.createGame;
+    const gameId = parseInt(game.id, 10);
+    createdGameIds.push(gameId);
+
+    expect(
+      await prisma.csld_game_has_author.count({ where: { id_game: gameId } }),
+    ).toBe(0);
+    expect(
+      await prisma.csld_game_has_group.count({ where: { id_game: gameId } }),
+    ).toBe(0);
+    expect(
+      await prisma.csld_game_has_label.count({ where: { id_game: gameId } }),
+    ).toBe(0);
+  });
+
+  it('re-syncs labels to empty on update', async () => {
+    // updateGame with labels: [] must delete the existing links — the
+    // sync loop's empty-list arm, which no createGame path can reach.
+    const label = await prisma.csld_label.create({
+      data: { name: `${marker} sync-label`, is_required: false, is_authorized: true, added_by: meId },
+    });
+    const createRes = await executeQuery(
+      server,
+      CREATE_GAME,
+      {
+        input: {
+          ...(await baseInput(`${marker} label-sync`)),
+          labels: [String(label.id)],
+        },
+      },
+      ctxFor(meId, 1),
+    );
+    const created = (createRes.data as { game: { createGame: { id: string } } }).game.createGame;
+    const gameId = parseInt(created.id, 10);
+    createdGameIds.push(gameId);
+    expect(
+      await prisma.csld_game_has_label.count({ where: { id_game: gameId } }),
+    ).toBe(1);
+
+    const res = await executeQuery(
+      server,
+      UPDATE_GAME,
+      {
+        input: {
+          id: created.id,
+          ...(await baseInput(`${marker} label-sync`)),
+          labels: [],
+        },
+      },
+      ctxFor(meId, 1),
+    );
+    expect(res.errors).toBeUndefined();
+    expect(
+      await prisma.csld_game_has_label.count({ where: { id_game: gameId } }),
+    ).toBe(0);
+
+    await prisma.csld_label.deleteMany({ where: { id: label.id } });
+  });
 });
 
 describe('updateGame cover image', () => {
