@@ -63,6 +63,50 @@ function isUniqueViolation(error: unknown): boolean {
   return (error as { code?: string } | null)?.code === 'P2002';
 }
 
+/** The one matching e-mail account: refused when it already carries another
+ * Google identity, linked when free (a lost unique race counts as linked).
+ * The staff note in the log marks privileged accounts for review. */
+async function linkToExistingUser(
+  db: Db,
+  user: { id: number; role: number },
+  identity: GoogleIdentity,
+  email: string,
+  linkBySub: () => Promise<{ user_id: number } | null>,
+): Promise<GoogleLinkOutcome> {
+  // 5. Already bound to another Google identity.
+  const otherLink = await db.csld_oauth_account.findFirst({
+    where: { user_id: user.id, provider: GOOGLE_PROVIDER },
+    select: { provider_account_id: true },
+  });
+  if (otherLink && otherLink.provider_account_id !== identity.sub) {
+    return { kind: 'conflict', userId: user.id };
+  }
+
+  try {
+    await db.csld_oauth_account.create({
+      data: {
+        user_id: user.id,
+        provider: GOOGLE_PROVIDER,
+        provider_account_id: identity.sub,
+        provider_email: email,
+      },
+    });
+  } catch (error) {
+    if (!isUniqueViolation(error)) throw error;
+    // Two callbacks for the same identity raced; whichever won is the answer.
+    const raced = await linkBySub();
+    if (raced) return { kind: 'sign-in', userId: raced.user_id, how: 'linked' };
+    return { kind: 'conflict', userId: user.id };
+  }
+
+  const staff = user.role !== USER_ROLE;
+  console.warn(
+    `[google] auto-linked sub ${identity.sub} to existing account ${user.id} by e-mail` +
+      (staff ? ` — STAFF account (role ${user.role})` : ''),
+  );
+  return { kind: 'sign-in', userId: user.id, how: 'email' };
+}
+
 export async function linkGoogleIdentity(db: Db, identity: GoogleIdentity): Promise<GoogleLinkOutcome> {
   const email = normalizeEmail(identity.email);
   if (!identity.emailVerified || !email) return { kind: 'unverified' };
@@ -95,40 +139,7 @@ export async function linkGoogleIdentity(db: Db, identity: GoogleIdentity): Prom
   }
 
   if (candidates.length === 1) {
-    const user = candidates[0];
-
-    // 5. Already bound to another Google identity.
-    const otherLink = await db.csld_oauth_account.findFirst({
-      where: { user_id: user.id, provider: GOOGLE_PROVIDER },
-      select: { provider_account_id: true },
-    });
-    if (otherLink && otherLink.provider_account_id !== identity.sub) {
-      return { kind: 'conflict', userId: user.id };
-    }
-
-    try {
-      await db.csld_oauth_account.create({
-        data: {
-          user_id: user.id,
-          provider: GOOGLE_PROVIDER,
-          provider_account_id: identity.sub,
-          provider_email: email,
-        },
-      });
-    } catch (error) {
-      if (!isUniqueViolation(error)) throw error;
-      // Two callbacks for the same identity raced; whichever won is the answer.
-      const raced = await linkBySub();
-      if (raced) return { kind: 'sign-in', userId: raced.user_id, how: 'linked' };
-      return { kind: 'conflict', userId: user.id };
-    }
-
-    const staff = user.role !== USER_ROLE;
-    console.warn(
-      `[google] auto-linked sub ${identity.sub} to existing account ${user.id} by e-mail` +
-        (staff ? ` — STAFF account (role ${user.role})` : ''),
-    );
-    return { kind: 'sign-in', userId: user.id, how: 'email' };
+    return linkToExistingUser(db, candidates[0], identity, email, linkBySub);
   }
 
   // 4. New account, created and linked atomically so a race cannot leave an

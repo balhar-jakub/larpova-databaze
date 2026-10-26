@@ -5,6 +5,7 @@ import { useQuery } from '@apollo/client'
 import { Row } from 'react-bootstrap'
 import { useTranslation } from 'src/lib/i18n'
 import { useLoggedInUser } from 'src/hooks/useLoggedInUser'
+import { UserContextValue } from 'src/context/UserContext/UserContext'
 import { darkTheme } from '../../theme/darkTheme'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
 import { HomeHeroPanel } from './HomeHeroPanel'
@@ -72,6 +73,41 @@ const useStyles = createUseStyles({
  * An account with nothing in the database (36 % of them) gets the first steps
  * and the anonymous content, not five empty blocks.
  */
+/** The page's top: the signed-in visitor's own panel (or the first-steps
+ * empty state), the anonymous hero, nothing while the session is still
+ * being asked about. */
+const HomeMainPanel = ({
+    signedIn,
+    anonymous,
+    emptyState,
+    loggedInUser,
+    my,
+    homepage,
+}: {
+    signedIn: boolean
+    anonymous: boolean
+    emptyState: boolean
+    loggedInUser?: UserContextValue
+    my?: GetHomePageUserQuery['homepage']['myHome']
+    homepage?: GetHomePageDataQuery['homepage']
+}) =>
+    signedIn ? (
+        emptyState ? (
+            <HomeEmptyPanel name={loggedInUser?.name} />
+        ) : (
+            <HomePersonalPanel
+                name={loggedInUser?.name}
+                userId={loggedInUser?.id}
+                playedCount={my?.playedCount}
+                authoredCount={my?.authoredCount}
+                commentsCount={my?.commentsCount}
+                toFinishCount={(my?.toRate?.length ?? 0) + (my?.toComment?.length ?? 0)}
+            />
+        )
+    ) : anonymous ? (
+        <HomeHeroPanel stats={homepage?.stats} labels={homepage?.topLabels} />
+    ) : null
+
 export const HomePagePanel = () => {
     const classes = useStyles()
     const { t } = useTranslation('common')
@@ -117,22 +153,14 @@ export const HomePagePanel = () => {
                 description={t('HomePage.pageDescription')}
                 image="/images/logo200.png"
             />
-            {signedIn ? (
-                emptyState ? (
-                    <HomeEmptyPanel name={loggedInUser?.name} />
-                ) : (
-                    <HomePersonalPanel
-                        name={loggedInUser?.name}
-                        userId={loggedInUser?.id}
-                        playedCount={my?.playedCount}
-                        authoredCount={my?.authoredCount}
-                        commentsCount={my?.commentsCount}
-                        toFinishCount={(my?.toRate?.length ?? 0) + (my?.toComment?.length ?? 0)}
-                    />
-                )
-            ) : anonymous ? (
-                <HomeHeroPanel stats={homepage?.stats} labels={homepage?.topLabels} />
-            ) : null}
+            <HomeMainPanel
+                signedIn={signedIn}
+                anonymous={anonymous}
+                emptyState={emptyState}
+                loggedInUser={loggedInUser}
+                my={my}
+                homepage={homepage}
+            />
             {personal && my ? (
                 <div className={classes.gamesAndEvents}>
                     <WidthFixer>

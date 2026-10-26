@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { google } from 'googleapis';
 import type { PrismaClient } from '@prisma/client';
-import { linkGoogleIdentity, googleSignInConfigured, type GoogleEnv, type GoogleLinkOutcome } from './googleLink.js';
+import { linkGoogleIdentity, googleSignInConfigured, type GoogleEnv, type GoogleIdentity, type GoogleLinkOutcome } from './googleLink.js';
 import { toAuthUser, type AuthUser, type SessionUserRow } from './appUsers.js';
 import { setRememberMeCookie } from './rememberMe.js';
 
@@ -159,6 +159,42 @@ export function createGoogleRouter(deps: GoogleRouterDeps): Router {
     return outcome;
   };
 
+  /** The user-facing error code for every refusal `linkGoogleIdentity` can
+   * answer with — the visitor sees the reason in the sign-in form. */
+  const refusalReason = (kind: GoogleLinkOutcome['kind']): string =>
+    kind === 'unverified' ? 'google_unverified'
+      : kind === 'ambiguous' ? 'google_ambiguous' : 'google_conflict';
+
+  /** Exchange the one-time code for the verified id_token payload — the
+   * callback's trust root. Throws on any malformed answer. */
+  const exchangeCodeForIdentity = async (
+    code: string,
+    flow: PendingFlow,
+    req: Request,
+  ): Promise<GoogleIdentity> => {
+    const oauth = client();
+    const { tokens } = await oauth.getToken({
+      code,
+      codeVerifier: flow.codeVerifier,
+      redirect_uri: resolveRedirectUri(req, env),
+    });
+    if (!tokens.id_token) throw new Error('no id_token in the token response');
+
+    const ticket = await oauth.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload?.sub) throw new Error('id_token has no subject');
+
+    return {
+      sub: payload.sub,
+      email: payload.email ?? '',
+      emailVerified: payload.email_verified === true,
+      name: payload.name ?? null,
+    };
+  };
+
   router.get('/callback', async (req, res) => {
     const session = sessionOf(req);
     const flow = session[STATE_COOKIE_KEY] as PendingFlow | undefined;
@@ -174,32 +210,13 @@ export function createGoogleRouter(deps: GoogleRouterDeps): Router {
     if (!configured()) return fail(res, 'google_unavailable');
 
     try {
-      const oauth = client();
-      const { tokens } = await oauth.getToken({
-        code: req.query.code,
-        codeVerifier: flow.codeVerifier,
-        redirect_uri: resolveRedirectUri(req, env),
-      });
-      if (!tokens.id_token) throw new Error('no id_token in the token response');
+      const identity = await exchangeCodeForIdentity(req.query.code, flow, req);
 
-      const ticket = await oauth.verifyIdToken({
-        idToken: tokens.id_token,
-        audience: env.GOOGLE_CLIENT_ID,
-      });
-      const payload = ticket.getPayload();
-      if (!payload?.sub) throw new Error('id_token has no subject');
-
-      const outcome = await linkGoogleIdentity(deps.prisma, {
-        sub: payload.sub,
-        email: payload.email ?? '',
-        emailVerified: payload.email_verified === true,
-        name: payload.name ?? null,
-      });
+      const outcome = await linkGoogleIdentity(deps.prisma, identity);
 
       const linked = linkedOutcome(outcome);
       if (!linked) {
-        return fail(res, outcome.kind === 'unverified' ? 'google_unverified'
-          : outcome.kind === 'ambiguous' ? 'google_ambiguous' : 'google_conflict');
+        return fail(res, refusalReason(outcome.kind));
       }
 
       const row = await deps.loadUser(linked.userId);
@@ -210,9 +227,9 @@ export function createGoogleRouter(deps: GoogleRouterDeps): Router {
       setRememberMeCookie(res, user.id);
 
       if (linked.kind === 'registered') {
-        console.warn(`[google] registered account ${user.id} from sub ${payload.sub}`);
+        console.warn(`[google] registered account ${user.id} from sub ${identity.sub}`);
       } else if (linked.how === 'email') {
-        console.warn(`[google] signed in account ${user.id} via auto-link from sub ${payload.sub}`);
+        console.warn(`[google] signed in account ${user.id} via auto-link from sub ${identity.sub}`);
       }
 
       return res.redirect(flow.returnTo);

@@ -43,6 +43,46 @@ const parseMinutes = (value: string): number => {
     return parseInt(match[1], 10) * 60 + parseInt(match[2], 10)
 }
 
+/** Both times or neither: a lone time on one side is the classic half-filled
+ * range. The message lands on the empty side so the cursor knows where to go. */
+const pairTimes = (t: Translator, data: FormValues, res: { [key in keyof FormValues]: string | undefined }) => {
+    if (data.fromTime && !data.toTime) {
+        res.toTime = t('EventEdit.fillBothTimes')
+    }
+
+    if (!data.fromTime && data.toTime) {
+        res.fromTime = t('EventEdit.fillBothTimes')
+    }
+}
+
+/** The date relationship: to-date may not precede from-date, and on the same
+ * day the times order too. Only checked when the dates themselves are valid
+ * (no error message on those fields). */
+const pairDates = (t: Translator, data: FormValues, res: { [key in keyof FormValues]: string | undefined }) => {
+    if (res.fromDate || res.toDate) return
+
+    const from = data.fromDate?.getTime() || 0
+    const to = data.toDate?.getTime() || 0
+
+    if (to < from) {
+        res.toDate = t('EventEdit.dateMismatch')
+    }
+    if (to === from && data.fromTime && data.toTime && !res.fromTime && !res.toTime
+        && parseMinutes(data.fromTime || '') >= parseMinutes(data.toTime || '')) {
+        res.toTime = t('EventEdit.timeMismatch')
+    }
+}
+
+/** OPEN registration must point somewhere, and anywhere it points must be an
+ * absolute URL (a relative one would resolve inside the site). */
+const validateRegistrationUrl = (t: Translator, data: FormValues, res: { [key in keyof FormValues]: string | undefined }) => {
+    if (data.registrationStatus === 'OPEN' && !data.registrationUrl?.trim()) {
+        res.registrationUrl = t('EventEdit.registrationUrlRequiredWhenOpen')
+    } else if (data.registrationUrl && !isAbsoluteHttpUrl(data.registrationUrl)) {
+        res.registrationUrl = t('Errors.invalidUrl')
+    }
+}
+
 export const validate = (t: Translator) => (data: FormValues) => {
     const res = {} as { [key in keyof FormValues]: string | undefined }
     res.fromDate = fieldValidator(t, validateRequired)(data.fromDate)
@@ -51,34 +91,9 @@ export const validate = (t: Translator) => (data: FormValues) => {
     res.fromTime = fieldValidator(t, validateTime)(data.fromTime)
     res.toTime = fieldValidator(t, validateTime)(data.toTime)
 
-    if (data.fromTime && !data.toTime) {
-        res.toTime = t('EventEdit.fillBothTimes')
-    }
-
-    if (!data.fromTime && data.toTime) {
-        res.fromTime = t('EventEdit.fillBothTimes')
-    }
-
-    if (!res.fromDate && !res.toDate) {
-        // Check date relationship
-        const from = data.fromDate?.getTime() || 0
-        const to = data.toDate?.getTime() || 0
-
-        if (to < from) {
-            res.toDate = t('EventEdit.dateMismatch')
-        }
-        if (to === from && data.fromTime && data.toTime && !res.fromTime && !res.toTime) {
-            if (parseMinutes(data.fromTime || '') >= parseMinutes(data.toTime || '')) {
-                res.toTime = t('EventEdit.timeMismatch')
-            }
-        }
-    }
-
-    if (data.registrationStatus === 'OPEN' && !data.registrationUrl?.trim()) {
-        res.registrationUrl = t('EventEdit.registrationUrlRequiredWhenOpen')
-    } else if (data.registrationUrl && !isAbsoluteHttpUrl(data.registrationUrl)) {
-        res.registrationUrl = t('Errors.invalidUrl')
-    }
+    pairTimes(t, data, res)
+    pairDates(t, data, res)
+    validateRegistrationUrl(t, data, res)
 
     return res
 }
