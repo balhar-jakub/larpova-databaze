@@ -137,20 +137,33 @@ export function catalogStateToQuery(state: CatalogState): { [key: string]: strin
     if (state.labelMode !== 'all') query.mode = state.labelMode
     if (state.labels.length) query.labels = [...state.labels].sort().join(',')
     if (state.durations.length) query.dur = [...state.durations].sort().join(',')
-    if (state.yearFrom != null) query.yf = String(state.yearFrom)
-    if (state.yearTo != null) query.yt = String(state.yearTo)
+
+    setNullableQuery(query, ['yf', 'yt'], { yf: state.yearFrom, yt: state.yearTo })
     if (state.playersFrom != null) query.pf = String(state.playersFrom)
     if (state.playersTo != null) query.pt = String(state.playersTo)
-    if (state.minRating != null) query.rating = String(state.minRating)
-    if (state.minRatings != null) query.minr = String(state.minRatings)
+    setNullableQuery(query, ['rating', 'minr'], { rating: state.minRating, minr: state.minRatings })
+
     if (state.withComments) query.comments = '1'
     if (state.withImage) query.img = '1'
-    if (state.addedWithinDays != null) query.days = String(state.addedWithinDays)
+    setNullableQuery(query, ['days'], { days: state.addedWithinDays })
     if (state.query && state.query.trim()) query.q = state.query
-    if (state.author != null) query.autor = String(state.author)
+    setNullableQuery(query, ['autor'], { autor: state.author })
     if (state.authorName) query.autorn = state.authorName
 
     return query
+}
+
+/** Nullable numbers serialize as their string when set — one helper keeps the
+ * query builder a flat list instead of one if per parameter. */
+function setNullableQuery(
+    query: { [key: string]: string },
+    order: readonly string[],
+    values: { [key: string]: number | null },
+): void {
+    for (const key of order) {
+        const value = values[key]
+        if (value != null) query[key] = String(value)
+    }
 }
 
 /** Canonical identity of a state — used to detect "the filters changed". */
@@ -158,18 +171,21 @@ export function catalogStateKey(state: CatalogState): string {
     return JSON.stringify(catalogStateToQuery(state))
 }
 
+/** Labels → filter shape: mode 'any' means "any of the selected", 'all' means
+ * "all of the selected" (the catalog's two chip modes). */
+function labelFilter(state: CatalogState): Pick<GameCatalogFilter, 'anyLabels' | 'allLabels'> {
+    if (state.labelMode === 'any') {
+        return { anyLabels: [...state.labels] }
+    }
+    return { allLabels: [...state.labels] }
+}
+
 export function catalogStateToFilter(state: CatalogState): GameCatalogFilter {
     const filter: GameCatalogFilter = {}
 
     if (state.query) filter.query = state.query
     if (state.author != null) filter.authorIds = [String(state.author)]
-    if (state.labels.length) {
-        if (state.labelMode === 'any') {
-            filter.anyLabels = [...state.labels]
-        } else {
-            filter.allLabels = [...state.labels]
-        }
-    }
+    if (state.labels.length) Object.assign(filter, labelFilter(state))
     if (state.durations.length) filter.durations = [...state.durations]
     if (state.yearFrom != null) filter.yearFrom = state.yearFrom
     if (state.yearTo != null) filter.yearTo = state.yearTo
@@ -347,6 +363,19 @@ export function catalogActiveFilters(
     return filters
 }
 
+/** One-sided/two-sided range chip text ("od X do Y" / "od X" / "do Y"), shared
+ * by the year and players chips. */
+function rangeFilterText(
+    from: number | null,
+    to: number | null,
+    t: (key: string, options?: Record<string, unknown>) => string,
+    keys: { range: string; from: string; to: string },
+): string {
+    if (from != null && to != null) return t(keys.range, { from, to })
+    if (from != null) return t(keys.from, { from })
+    return t(keys.to, { to })
+}
+
 /**
  * The text of one active-filter chip. Shared by the catalog and by the search
  * page's games section so both name the same filter the same way.
@@ -361,17 +390,17 @@ export function catalogActiveFilterText(
         case 'duration':
             return t('Catalog.active.duration', { name: t(`Catalog.durations.${filter.value}`) })
         case 'year':
-            return filter.from != null && filter.to != null
-                ? t('Catalog.active.yearRange', { from: filter.from, to: filter.to })
-                : filter.from != null
-                ? t('Catalog.active.yearFrom', { from: filter.from })
-                : t('Catalog.active.yearTo', { to: filter.to })
+            return rangeFilterText(filter.from, filter.to, t, {
+                range: 'Catalog.active.yearRange',
+                from: 'Catalog.active.yearFrom',
+                to: 'Catalog.active.yearTo',
+            })
         case 'players':
-            return filter.from != null && filter.to != null
-                ? t('Catalog.active.playersRange', { from: filter.from, to: filter.to })
-                : filter.from != null
-                ? t('Catalog.active.playersFrom', { from: filter.from })
-                : t('Catalog.active.playersTo', { to: filter.to })
+            return rangeFilterText(filter.from, filter.to, t, {
+                range: 'Catalog.active.playersRange',
+                from: 'Catalog.active.playersFrom',
+                to: 'Catalog.active.playersTo',
+            })
         case 'rating':
             return t('Catalog.active.rating', { value: filter.to })
         case 'minRatings':

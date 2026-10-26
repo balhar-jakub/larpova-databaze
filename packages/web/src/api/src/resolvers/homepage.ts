@@ -683,6 +683,40 @@ async function recommendGames(ctx: Context, labelIds: string[], knownIds: number
  * a game has several runs open, only the soonest is offered — the rest is in
  * the calendar. Ranked by the number of shared labels, then by the date.
  */
+function scoreSignableEvents(
+  events: readonly any[],
+  tasteLabelIds: Set<number>,
+  wantedIds: readonly number[],
+): { event: any; matches: string[] }[] {
+  const wanted = new Set(wantedIds);
+  const seenGames = new Set<number>();
+  const scored: { event: any; matches: string[] }[] = [];
+
+  for (const event of events) {
+    // The first linked game decides; an event with several games is rare and
+    // the card shows one anyway.
+    const link = (event.csld_game_has_event ?? []).find(
+      (j: any) => j.csld_game && !j.csld_game.deleted,
+    );
+    if (!link?.csld_game) continue;
+    const game = link.csld_game;
+    if (wanted.has(game.id) || seenGames.has(game.id)) continue;
+
+    const matches: string[] = [];
+    for (const gl of game.csld_game_has_label ?? []) {
+      const label = gl.csld_label;
+      if (label && tasteLabelIds.has(label.id) && !matches.includes(label.name)) {
+        matches.push(label.name);
+      }
+    }
+    if (!matches.length) continue;
+
+    seenGames.add(game.id);
+    scored.push({ event, matches });
+  }
+  return scored;
+}
+
 async function recommendSignableEvents(
   ctx: Context,
   tasteLabelIds: Set<number>,
@@ -710,34 +744,7 @@ async function recommendSignableEvents(
     },
   });
 
-  const wanted = new Set(wantedIds);
-  const seenGames = new Set<number>();
-  const scored: { event: any; matches: string[] }[] = [];
-
-  for (const event of events as any[]) {
-    // The first linked game decides; an event with several games is rare and
-    // the card shows one anyway.
-    const link = (event.csld_game_has_event ?? []).find(
-      (j: any) => j.csld_game && !j.csld_game.deleted,
-    );
-    if (!link?.csld_game) continue;
-    const game = link.csld_game;
-    if (wanted.has(game.id) || seenGames.has(game.id)) continue;
-
-    const matches: string[] = [];
-    for (const gl of game.csld_game_has_label ?? []) {
-      const label = gl.csld_label;
-      if (label && tasteLabelIds.has(label.id) && !matches.includes(label.name)) {
-        matches.push(label.name);
-      }
-    }
-    if (!matches.length) continue;
-
-    seenGames.add(game.id);
-    scored.push({ event, matches });
-  }
-
-  return scored
+  return scoreSignableEvents(events, tasteLabelIds, wantedIds)
     .sort((a, b) => b.matches.length - a.matches.length || new Date(a.event.from).getTime() - new Date(b.event.from).getTime())
     .slice(0, MY_HOME_RECOMMENDED_EVENTS)
     .map(({ event, matches }) => ({

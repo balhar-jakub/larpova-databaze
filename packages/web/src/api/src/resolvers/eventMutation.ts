@@ -235,6 +235,73 @@ export async function createEventResolver(
 
 // ── updateEvent ──────────────────────────────────────────
 
+/** The event's updatable columns, schema-shaped (null when the field was
+ * cleared, dates parsed, registration normalized). */
+function eventFieldData(input: EventInput & { id: string }) {
+  const registration = normalizeRegistrationInput(
+    input.registrationUrl, input.registrationOpen, input.registrationStatus, input.registrationOpensAt,
+  );
+  return {
+    name: input.name,
+    description: input.description ?? null,
+    loc: input.loc ?? null,
+    web: input.web ?? null,
+    registration_url: registration.registrationUrl,
+    registration_status: registration.registrationStatus,
+    registration_opens_at: registration.registrationOpensAt,
+    from: new Date(input.fromDate),
+    to: new Date(input.toDate),
+    amountofplayers: input.amountOfPlayers ?? null,
+    latitude: input.latitude ?? null,
+    longitude: input.longitude ?? null,
+  };
+}
+
+/** The author of a linked game may not rewrite the game links wholesale:
+ * adding a link to a game they author would grant them rights over an
+ * event they had none. They may only remove links (e.g. their own game
+ * turned out not to run at the event); editors and admins resync freely. */
+async function requireNoNewGameLinksForAuthor(
+  ctx: Context,
+  eventId: number,
+  gameIds: readonly number[],
+): Promise<void> {
+  if (isAtLeastEditor(ctx)) return;
+  const existing = await ctx.db.csld_game_has_event.findMany({
+    where: { event_id: eventId },
+    select: { game_id: true },
+  });
+  const existingIds = new Set(existing.map((link: { game_id: number }) => link.game_id));
+  const added = gameIds.filter((id: number) => !existingIds.has(id));
+  if (added.length > 0) {
+    throw new GraphQLError('Not authorized to add game links to this event', {
+      extensions: { code: 'ACCESS_DENIED' },
+    });
+  }
+}
+
+/** Replace the event's game links wholesale. The schema (UpdateEventInput)
+ * requires `games` — an absent list never reaches the resolver, so there is
+ * no "leave as is" arm to keep. */
+async function resyncEventGames(ctx: Context, eventId: number, gameIds: readonly number[]): Promise<void> {
+  await ctx.db.csld_game_has_event.deleteMany({ where: { event_id: eventId } });
+  for (const gameId of gameIds) {
+    await ctx.db.csld_game_has_event.create({
+      data: { game_id: gameId, event_id: eventId },
+    });
+  }
+}
+
+/** Replace the event's labels (the schema requires the list). */
+async function resyncEventLabels(ctx: Context, eventId: number, labels: readonly string[]): Promise<void> {
+  await ctx.db.event_has_labels.deleteMany({ where: { event_id: eventId } });
+  for (const labelId of labels) {
+    await ctx.db.event_has_labels.create({
+      data: { event_id: eventId, label_id: parseInt(labelId) },
+    });
+  }
+}
+
 export async function updateEventResolver(
   _parent: unknown,
   args: { input: EventInput & { id: string } },
@@ -245,66 +312,20 @@ export async function updateEventResolver(
   const eventId = parseInt(input.id, 10);
   if (isNaN(eventId)) throw new GraphQLError('Invalid event ID');
   await requireEventAuthorOrEditor(eventId, ctx);
-  const registration = normalizeRegistrationInput(input.registrationUrl, input.registrationOpen, input.registrationStatus, input.registrationOpensAt);
 
-  // The author of a linked game may not rewrite the game links wholesale:
-  // adding a link to a game they author would grant them rights over an
-  // event they had none. They may only remove links (e.g. their own game
-  // turned out not to run at the event); editors and admins resync freely.
-  const gameIds = (input.games ?? []).map((gameId: string) => parseInt(gameId, 10)).filter((id: number) => !isNaN(id));
-  if (!isAtLeastEditor(ctx)) {
-    const existing = await ctx.db.csld_game_has_event.findMany({
-      where: { event_id: eventId },
-      select: { game_id: true },
-    });
-    const existingIds = new Set(existing.map((link: { game_id: number }) => link.game_id));
-    const added = gameIds.filter((id: number) => !existingIds.has(id));
-    if (added.length > 0) {
-      throw new GraphQLError('Not authorized to add game links to this event', {
-        extensions: { code: 'ACCESS_DENIED' },
-      });
-    }
-  }
+  // Resync games — the SAME NaN-filtered list the author check uses: a
+  // malformed id must be skipped here too, not crash Prisma's create
+  // (observed as INTERNAL_SERVER_ERROR when an editor resynced).
+  const gameIds = input.games.map((gameId: string) => parseInt(gameId, 10)).filter((id: number) => !isNaN(id));
+  await requireNoNewGameLinksForAuthor(ctx, eventId, gameIds);
 
   await ctx.db.event.update({
     where: { id: eventId },
-    data: {
-      name: input.name,
-      description: input.description ?? null,
-      loc: input.loc ?? null,
-      web: input.web ?? null,
-      registration_url: registration.registrationUrl,
-      registration_status: registration.registrationStatus,
-      registration_opens_at: registration.registrationOpensAt,
-      from: new Date(input.fromDate),
-      to: new Date(input.toDate),
-      amountofplayers: input.amountOfPlayers ?? null,
-      latitude: input.latitude ?? null,
-      longitude: input.longitude ?? null,
-    },
+    data: eventFieldData(input),
   });
 
-  // Resync games — the SAME NaN-filtered list the author check used: a
-  // malformed id must be skipped here too, not crash Prisma's create
-  // (observed as INTERNAL_SERVER_ERROR when an editor resynced).
-  if (input.games) {
-    await ctx.db.csld_game_has_event.deleteMany({ where: { event_id: eventId } });
-    for (const gameId of gameIds) {
-      await ctx.db.csld_game_has_event.create({
-        data: { game_id: gameId, event_id: eventId },
-      });
-    }
-  }
-
-  // Resync labels
-  if (input.labels) {
-    await ctx.db.event_has_labels.deleteMany({ where: { event_id: eventId } });
-    for (const labelId of input.labels) {
-      await ctx.db.event_has_labels.create({
-        data: { event_id: eventId, label_id: parseInt(labelId) },
-      });
-    }
-  }
+  await resyncEventGames(ctx, eventId, gameIds);
+  await resyncEventLabels(ctx, eventId, input.labels);
 
   // Sync to Google Calendar
   await syncEventToCalendar(ctx.db, eventId).catch((err) => {

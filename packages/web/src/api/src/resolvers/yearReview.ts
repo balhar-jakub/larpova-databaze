@@ -82,6 +82,40 @@ function mapQuote(row: {
   };
 }
 
+/** Votes received per game in the year: `{votes, sum}` tallies. A "played"
+ * state without a number is activity, but it is not a judgement, so the
+ * ranking sees votes only (the same rule as the statistics page). */
+function tallyVotes(ratingRows: { game_id: number; rating: number | null }[]): Map<number, { votes: number; sum: number }> {
+  const votesByGame = new Map<number, { votes: number; sum: number }>();
+  for (const row of ratingRows) {
+    const entry = votesByGame.get(row.game_id) ?? { votes: 0, sum: 0 };
+    entry.votes += 1;
+    entry.sum += row.rating!;
+    votesByGame.set(row.game_id, entry);
+  }
+  return votesByGame;
+}
+
+/** The year's quotes: the most substantial comments, at most one per game so
+ * no single game fills the wall. Only comments under the year's talked-about
+ * games qualify — a quote is here because its game mattered this year. */
+function pickQuotes<T extends { game_id: number; comment: unknown }>(commentRows: readonly T[], gamePool: Set<number>): T[] {
+  const candidates = (commentRows as any[])
+    .filter((row) => gamePool.has(row.game_id))
+    .map((row) => ({ row, length: commentAsText(row.comment)?.length ?? 0 }))
+    .filter(({ length }) => length >= QUOTE_MIN_LENGTH)
+    .sort((a, b) => b.length - a.length);
+  const seenGames = new Set<number>();
+  const picked: any[] = [];
+  for (const { row } of candidates) {
+    if (seenGames.has(row.game_id)) continue;
+    seenGames.add(row.game_id);
+    picked.push(row);
+    if (picked.length >= QUOTES) break;
+  }
+  return picked;
+}
+
 export async function yearReviewResolver(
   _parent: unknown,
   args: { year: number },
@@ -98,20 +132,11 @@ export async function yearReviewResolver(
   // exactly the games nothing ever touched. NULL means "not deleted".
   const live: Prisma.csld_gameWhereInput = { OR: [{ deleted: false }, { deleted: null }] };
 
-  // Value votes of the year: which games the community judged. A "played"
-  // state without a number is activity, but it is not a judgement, so the
-  // ranking sees votes only (the same rule as the statistics page).
   const ratingRows = await ctx.db.csld_rating.findMany({
     where: { added: { gte: from, lt: to }, rating: { not: null } },
     select: { game_id: true, rating: true },
   });
-  const votesByGame = new Map<number, { votes: number; sum: number }>();
-  for (const row of ratingRows) {
-    const entry = votesByGame.get(row.game_id) ?? { votes: 0, sum: 0 };
-    entry.votes += 1;
-    entry.sum += row.rating!;
-    votesByGame.set(row.game_id, entry);
-  }
+  const votesByGame = tallyVotes(ratingRows);
 
   const [commentRows, newGameRows, articleRows] = await Promise.all([
     ctx.db.csld_comment.findMany({
@@ -144,23 +169,7 @@ export async function yearReviewResolver(
   const featuredIds = ranking.slice(0, FEATURED_GAMES).map((r) => r.id);
   const runnerUpIds = ranking.slice(FEATURED_GAMES, FEATURED_GAMES + RUNNER_UP_GAMES).map((r) => r.id);
 
-  // Quotes: the most substantial comments of the year, one per game so no
-  // single game fills the wall. Only comments under the year's talked-about
-  // games qualify — a quote is here because its game mattered this year.
-  const quoteGamePool = new Set([...featuredIds, ...runnerUpIds]);
-  const quoteCandidates = commentRows
-    .filter((row) => quoteGamePool.has(row.game_id))
-    .map((row) => ({ row, length: commentAsText(row.comment)?.length ?? 0 }))
-    .filter(({ length }) => length >= QUOTE_MIN_LENGTH)
-    .sort((a, b) => b.length - a.length);
-  const seenQuoteGames = new Set<number>();
-  const quoteRows: typeof commentRows = [];
-  for (const { row } of quoteCandidates) {
-    if (seenQuoteGames.has(row.game_id)) continue;
-    seenQuoteGames.add(row.game_id);
-    quoteRows.push(row);
-    if (quoteRows.length >= QUOTES) break;
-  }
+  const quoteRows = pickQuotes(commentRows, new Set([...featuredIds, ...runnerUpIds]));
 
   // The ranked games need full rows (cover, labels, authors with avatars).
   const rankedIds = [...featuredIds, ...runnerUpIds];

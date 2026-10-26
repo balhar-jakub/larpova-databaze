@@ -144,6 +144,32 @@ beforeAll(async () => {
     data: { user_id: userId, game_id: playedGame.id, rating: null, state: 2, added: null },
   });
   ratingIds.push(played.id);
+
+  // A rated game whose author turned the comments off: it must NOT ask for
+  // a review (the detail page refuses the form), while a rated game with the
+  // same shape but comments on must.
+  const mutedGame = await prisma.csld_game.create({
+    data: { name: `${marker} ztlumená`, deleted: false, added_by: userId, lang: 'cs', commentsdisabled: true },
+  });
+  gameIds.push(mutedGame.id);
+  ratingIds.push(
+    (await prisma.csld_rating.create({
+      data: { user_id: userId, game_id: mutedGame.id, rating: 8, state: 2, added: new Date() },
+    })).id,
+  );
+
+  // A second game carrying the SAME taste label: the count's ?? default arm
+  // ran on the first occurrence, the increment arm runs on the second.
+  const twinTasteGame = await prisma.csld_game.create({
+    data: { name: `${marker} dvojitá chuť`, deleted: false, added_by: userId, lang: 'cs' },
+  });
+  gameIds.push(twinTasteGame.id);
+  await prisma.csld_game_has_label.create({ data: { id_game: twinTasteGame.id, id_label: twinLabel.id } });
+  ratingIds.push(
+    (await prisma.csld_rating.create({
+      data: { user_id: userId, game_id: twinTasteGame.id, rating: 9, state: 2, added: new Date() },
+    })).id,
+  );
 });
 
 afterAll(async () => {
@@ -185,6 +211,7 @@ describe('homepage.myHome author and finish arms', () => {
     query { homepage { myHome {
       authored { game { id } lastRating { rating added } }
       toRate { game { id } since }
+      toComment { game { id } }
       hasData
       authoredCount
       recommendedEvents { id name matchedLabels }
@@ -214,10 +241,20 @@ describe('homepage.myHome author and finish arms', () => {
   it('serves a played-but-unrated game in toRate with since null (added: null)', async () => {
     const result: any = await executeQuery(server, MY_HOME, undefined, me());
     const mine = result.data.homepage.myHome;
-    const row = mine.toRate.find((r: any) => Number(r.game.id) === gameIds[gameIds.length - 1]);
-    expect(row).toBeDefined();
-    expect(row.since).toBeNull();
+    const playedRow = mine.toRate.find((r: any) => r.since === null);
+    expect(playedRow).toBeDefined();
     expect(mine.hasData).toBe(true);
+  });
+
+  it('never asks for a review on a game with comments turned off', async () => {
+    // The muted game is rated-but-uncommented — the exact toComment shape —
+    // but commentsdisabled means the detail page would refuse the form,
+    // so the block must not ask for it.
+    const result: any = await executeQuery(server, MY_HOME, undefined, me());
+    expect(result.errors).toBeUndefined();
+    const mine = result.data.homepage.myHome;
+    const mutedId = gameIds[gameIds.length - 2];
+    expect(mine.toComment.some((r: any) => Number(r.game.id) === mutedId)).toBe(false);
   });
 
 

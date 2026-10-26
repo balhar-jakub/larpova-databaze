@@ -66,6 +66,48 @@ const CZECH_MONTHS: Record<string, number> = {
   'listopad': 11, 'prosinec': 12,
 };
 
+/** "13 Červen 2018" / "13. Červen 2018" → UTC date, or null when the text is
+ * not a date larp.cz actually prints. */
+function parseCzechDate(rawDate: string): Date | null {
+  const dateMatch = rawDate.match(/(\d{1,2})\.\s*(\S+)\s*(\d{4})/) ||
+    rawDate.match(/(\d{1,2})\s+(\S+)\s+(\d{4})/);
+  if (!dateMatch) return null;
+  const month = CZECH_MONTHS[dateMatch[2].toLowerCase()];
+  if (!month) return null;
+  const d = new Date(Date.UTC(+dateMatch[3], month - 1, +dateMatch[1]));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** Perex: the first non-heading paragraph with real text. Skips the metadata
+ * block (`.metanode` is a <p> too: "Redakce LARP.cz - zveřejněno30 Srpen 2011")
+ * and anything that still smells like metadata after cleanup. */
+function scrapePerex($: cheerio.CheerioAPI): string | null {
+  let perex: string | null = null;
+  $('p, .perex, .teaser').each((_i, el) => {
+    if (perex) return;
+    if ($(el).closest('.metanode').length > 0) return;
+    const text = $(el).text().replace(/\s+/g, ' ').trim();
+    if (text.length <= 40) return;
+    const clean = articleExcerptAsText(text);
+    if (/zveřejněno\s*\d/i.test(clean)) return; // metadata, not a perex
+    perex = clean.slice(0, 500);
+  });
+  return perex;
+}
+
+/** Unique trimmed texts of the links matching `selector` in the taxonomy
+ * block (optionally length-capped, as tags are). */
+function scrapeTaxonomy($: cheerio.CheerioAPI, selector: string, maxNameLength?: number): string[] {
+  const names: string[] = [];
+  $(selector).each((_i, el) => {
+    const name = $(el).text().trim();
+    if (name && (maxNameLength === undefined || name.length < maxNameLength) && !names.includes(name)) {
+      names.push(name);
+    }
+  });
+  return names;
+}
+
 /** Scrapes one article detail page for its metadata. */
 export function parseDetail(html: string, sourceId: string, url: string): ScrapedArticle | null {
   const $ = cheerio.load(html);
@@ -77,47 +119,15 @@ export function parseDetail(html: string, sourceId: string, url: string): Scrape
   // - zveřejněno<span class="date">13 Červen 2018</span>`.
   const meta = $('.metanode').first();
   const authors = meta.find('.author a').first().text().trim() || null;
+  const publishedAt = parseCzechDate(meta.find('.date').first().text().trim());
 
-  let publishedAt: Date | null = null;
-  const rawDate = meta.find('.date').first().text().trim();
-  const dateMatch = rawDate.match(/(\d{1,2})\.\s*(\S+)\s*(\d{4})/) ||
-    rawDate.match(/(\d{1,2})\s+(\S+)\s+(\d{4})/);
-  if (dateMatch) {
-    const month = CZECH_MONTHS[dateMatch[2].toLowerCase()];
-    if (month) {
-      const d = new Date(Date.UTC(+dateMatch[3], month - 1, +dateMatch[1]));
-      if (!isNaN(d.getTime())) publishedAt = d;
-    }
-  }
-
-  // Perex: the first non-heading paragraph with real text. Skip the metadata
-  // block (`.metanode` is a <p> too: "Redakce LARP.cz - zveřejněno30 Srpen 2011")
-  // and anything that still smells like metadata after cleanup.
-  let perex: string | null = null;
-  $('p, .perex, .teaser').each((_i, el) => {
-    if (perex) return;
-    if ($(el).closest('.metanode').length > 0) return;
-    const text = $(el).text().replace(/\s+/g, ' ').trim();
-    if (text.length <= 40) return;
-    const clean = articleExcerptAsText(text);
-    if (/zveřejněno\s*\d/i.test(clean)) return; // metadata, not a perex
-    perex = clean.slice(0, 500);
-  });
+  const perex = scrapePerex($);
 
   // Rubric: the taxonomy section ("štítky Pro organizátory…") names the real
   // section — NOT the menu links, which also match `cs/clanky/`.
-  const categories: string[] = [];
-  $('.taxonomy a[href*="cs/clanky/"]').each((_i, el) => {
-    const name = $(el).text().trim();
-    if (name && !categories.includes(name)) categories.push(name);
-  });
-
+  const categories = scrapeTaxonomy($, '.taxonomy a[href*="cs/clanky/"]');
   // Tags: links to /?q=cs/tagy/<slug> in the taxonomy block.
-  const tags: string[] = [];
-  $('.taxonomy a[href*="cs/tagy/"]').each((_i, el) => {
-    const name = $(el).text().trim();
-    if (name && name.length < 60 && !tags.includes(name)) tags.push(name);
-  });
+  const tags = scrapeTaxonomy($, '.taxonomy a[href*="cs/tagy/"]', 60);
 
   return { sourceId, url, title, perex, authors, publishedAt, categories, tags };
 }
