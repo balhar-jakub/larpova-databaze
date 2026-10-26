@@ -225,9 +225,19 @@ PY_LIKE = re.compile(r"\b(if|elif|for|while|except)\b")
 def functions_text(path: str, src: str, language: str) -> list[dict]:
     """Block-level approximation: complexity of the whole file's functions is
     reported as one pseudo-function per top-level `def/function/fn` chunk."""
+    # TS/JS class methods have no `function` keyword: `async streamToResponse(`
+    # at any indentation is a method head. The `[{:]` lookahead separates a
+    # method head from a call statement (`requireAuth(ctx);` matched too, which
+    # sliced resolvers mid-body and mis-attributed their complexity).
+    method = r"^\s+(?:public\s+|private\s+|protected\s+|static\s+|async\s+)?(?:get\s+|set\s+)?[A-Za-z_][\w]*(?:<[^\n]*>)?\s*\([^\n{;]*\)[ \t]*(:\s[^\n{;]+)?[ \t]*\{[^{]" 
     names = list(re.finditer(
-        r"^(?:export\s+)?(?:async\s+)?(?:function|def|fn|func|public|private|protected)"
+        r"^(?:export\s+)?(?:default\s+)?(?:async\s+)?(?:function|def|fn|func)"
         r"[^\n{;]*?([A-Za-z_][\w]*)\s*\(", src, re.M))
+    method_names = [m for m in re.finditer(method, src, re.M)
+                    if not re.match(r"^(?:if|for|while|switch|catch|return|const|let|var|await|typeof|new|delete|void|in|of|do|else|try|throw)\b", m.group(0).strip())]
+    # keep the original ordering by position
+    all_names = sorted(names + method_names, key=lambda m: m.start())
+    names = all_names
     if not names:
         return []
     out = []
@@ -241,7 +251,9 @@ def functions_text(path: str, src: str, language: str) -> list[dict]:
         acc = [0]
         for mm in rx.finditer(chunk):
             acc[0] += 1
-        out.append({"file": path, "name": m.group(1), "line": start, "end": end,
+        nm = re.search(r"([A-Za-z_][\w]*)\s*\(", m.group(0))
+        name = nm.group(1) if nm else "anonymous"
+        out.append({"file": path, "name": name, "line": start, "end": end,
                     "nloc": max(1, end - start + 1), "cyclomatic": cc,
                     "cognitive": acc[0], "language": language + "~approx"})
     return out

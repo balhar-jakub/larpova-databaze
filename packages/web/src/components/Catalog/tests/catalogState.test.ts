@@ -163,6 +163,26 @@ describe('catalogStateToFilter', () => {
         expect(filter.withComments).toBe(true)
         expect(filter.withImage).toBe(true)
     })
+
+    test('the player range becomes filter fields on both sides', () => {
+        const state = parseCatalogState({ pf: '10', pt: '80' })
+        const filter = catalogStateToFilter(state)
+
+        expect(filter.playersFrom).toBe(10)
+        expect(filter.playersTo).toBe(80)
+    })
+
+    test('a one-sided player range survives the filter too', () => {
+        expect(catalogStateToFilter(parseCatalogState({ pf: '10' })).playersFrom).toBe(10)
+        expect(catalogStateToFilter(parseCatalogState({ pt: '80' })).playersTo).toBe(80)
+    })
+})
+
+describe('catalogStateToQuery authorName arm', () => {
+    test('the author name rides along when set', () => {
+        const state = { ...parseCatalogState({}), authorName: 'Novák' }
+        expect(catalogStateToQuery(state).autorn).toBe('Novák')
+    })
 })
 
 describe('changing the state', () => {
