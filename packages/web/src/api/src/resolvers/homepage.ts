@@ -692,6 +692,19 @@ async function recommendGames(ctx: Context, labelIds: string[], knownIds: number
  * a game has several runs open, only the soonest is offered — the rest is in
  * the calendar. Ranked by the number of shared labels, then by the date.
  */
+/** The taste labels one game shares with the visitor's highly-rated games;
+ * an event with no shared label is not signable FOR THIS VISITOR and stays out. */
+function sharedTasteLabels(game: any, tasteLabelIds: Set<number>): string[] {
+  const matches: string[] = [];
+  for (const gl of game.csld_game_has_label ?? []) {
+    const label = gl.csld_label;
+    if (label && tasteLabelIds.has(label.id) && !matches.includes(label.name)) {
+      matches.push(label.name);
+    }
+  }
+  return matches;
+}
+
 function scoreSignableEvents(
   events: readonly any[],
   tasteLabelIds: Set<number>,
@@ -711,13 +724,7 @@ function scoreSignableEvents(
     const game = link.csld_game;
     if (wanted.has(game.id) || seenGames.has(game.id)) continue;
 
-    const matches: string[] = [];
-    for (const gl of game.csld_game_has_label ?? []) {
-      const label = gl.csld_label;
-      if (label && tasteLabelIds.has(label.id) && !matches.includes(label.name)) {
-        matches.push(label.name);
-      }
-    }
+    const matches = sharedTasteLabels(game, tasteLabelIds);
     if (!matches.length) continue;
 
     seenGames.add(game.id);

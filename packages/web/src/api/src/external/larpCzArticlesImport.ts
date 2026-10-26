@@ -132,17 +132,16 @@ export function parseDetail(html: string, sourceId: string, url: string): Scrape
   return { sourceId, url, title, perex, authors, publishedAt, categories, tags };
 }
 
-export async function importLarpCzArticles(db: PrismaClient): Promise<number> {
-  // The listing paginates with ?page=N; collect ids from ALL pages once,
-  // then scrape only the details of articles not yet in the DB.
+/** Walk the listing's pages (id → detail url), stopping at the first page that
+ * adds nothing new or is shorter than the observed page size. */
+async function collectArticleIds(): Promise<Map<string, string>> {
   const seen = new Map<string, string>(); // id -> detail url
   let page = 0;
   const perPage = 7; // observed listing page size
   for (let guard = 0; guard < 100; guard++) {
     const res = await fetchSpaced(`${LISTING_URL}&page=${page}`);
     if (!res.ok) break;
-    const html = await res.text();
-    const items = parseListing(html);
+    const items = parseListing(await res.text());
     if (items.length === 0) break;
     let added = 0;
     for (const item of items) {
@@ -155,44 +154,59 @@ export async function importLarpCzArticles(db: PrismaClient): Promise<number> {
     if (added === 0 || items.length < perPage) break;
     page += 1;
   }
+  return seen;
+}
+
+/** Import one not-yet-known article: fetch its detail, scrape, store.
+ * Returns 'imported', or the reason it was not (already known / unparsable). */
+async function importArticle(
+  db: PrismaClient,
+  id: string,
+  url: string,
+): Promise<'known' | 'no-detail' | 'imported'> {
+  const existing = await db.csld_article.findUnique({
+    where: { source_source_id: { source: LARP_CZ_SOURCE, source_id: id } },
+  });
+  if (existing) return 'known';
+
+  const res = await fetchSpaced(url);
+  if (!res.ok) {
+    console.error(`larp.cz import: detail ${id} failed with ${res.status}`);
+    return 'no-detail';
+  }
+  const scraped = parseDetail(await res.text(), id, url);
+  if (!scraped) {
+    console.error(`larp.cz import: detail ${id} has no parseable title`);
+    return 'no-detail';
+  }
+
+  await db.csld_article.create({
+    data: {
+      source: LARP_CZ_SOURCE,
+      source_id: scraped.sourceId,
+      url: scraped.url,
+      title: scraped.title,
+      perex: scraped.perex,
+      language: 'cs',
+      authors: scraped.authors,
+      published_at: scraped.publishedAt,
+      categories: scraped.categories,
+      tags: scraped.tags,
+    },
+  });
+  return 'imported';
+}
+
+export async function importLarpCzArticles(db: PrismaClient): Promise<number> {
+  const seen = await collectArticleIds();
 
   let imported = 0;
   const skipped = { total: 0, noDetail: 0 };
   for (const [id, url] of seen) {
     skipped.total += 1;
-    const existing = await db.csld_article.findUnique({
-      where: { source_source_id: { source: LARP_CZ_SOURCE, source_id: id } },
-    });
-    if (existing) continue;
-
-    const res = await fetchSpaced(url);
-    if (!res.ok) {
-      console.error(`larp.cz import: detail ${id} failed with ${res.status}`);
-      skipped.noDetail += 1;
-      continue;
-    }
-    const scraped = parseDetail(await res.text(), id, url);
-    if (!scraped) {
-      console.error(`larp.cz import: detail ${id} has no parseable title`);
-      skipped.noDetail += 1;
-      continue;
-    }
-
-    await db.csld_article.create({
-      data: {
-        source: LARP_CZ_SOURCE,
-        source_id: scraped.sourceId,
-        url: scraped.url,
-        title: scraped.title,
-        perex: scraped.perex,
-        language: 'cs',
-        authors: scraped.authors,
-        published_at: scraped.publishedAt,
-        categories: scraped.categories,
-        tags: scraped.tags,
-      },
-    });
-    imported += 1;
+    const outcome = await importArticle(db, id, url);
+    if (outcome === 'imported') imported += 1;
+    if (outcome === 'no-detail') skipped.noDetail += 1;
   }
 
   console.log(

@@ -70,6 +70,40 @@ const uriAttributes: { [key: string]: boolean | undefined } = { href: true, acti
 
 const startsWithAny = (str: string, substrings: string[]) => substrings.some(start => str.startsWith(start))
 
+/** A URI attribute may carry `javascript:` and friends — only the listed
+ * URL schemas pass. A value with a colon that matches no schema is dropped. */
+const isSafeUri = (value: string) =>
+    value.indexOf(':') === -1 || startsWithAny(value, schemaWhiteList)
+
+/** Copy the whitelisted `style` properties of one node onto its sanitized
+ * copy, property by property — only the CSS whitelist passes. */
+const copyStyleProperties = (node: HTMLElement, newNode: HTMLElement) => {
+    for (let s = 0; s < node.style.length; s += 1) {
+        const styleName = node.style[s]
+        if (cssWhitelist[styleName]) {
+            newNode.style.setProperty(styleName, node.style.getPropertyValue(styleName))
+        }
+    }
+}
+
+/** Copy the whitelisted attributes of one node onto its sanitized copy:
+ * plain attributes verbatim, `style` filtered property by property, URI
+ * attributes dropped when their schema is not whitelisted. */
+const copyAttributes = (node: HTMLElement, newNode?: HTMLElement) => {
+    for (let i = 0; i < node.attributes.length; i += 1) {
+        const attr = node.attributes[i]
+        if (!attributeWhitelist[attr.name] || !newNode) continue
+        if (attr.name === 'style') {
+            copyStyleProperties(node, newNode)
+        } else if (uriAttributes[attr.name]) {
+            // a "uri" attribute can have "javascript:" or something
+            if (isSafeUri(attr.value)) newNode.setAttribute(attr.name, attr.value)
+        } else {
+            newNode.setAttribute(attr.name, attr.value)
+        }
+    }
+}
+
 /**
  * Sanitizes HTML using the browser. Adapted from: https://github.com/jitbit/HtmlSanitizer/blob/master/HtmlSanitizer.js
  *
@@ -86,18 +120,18 @@ export const sanitizeHtml = (inputHtml: string | null | undefined) => {
 
     const iframe = document.createElement('iframe', {})
     if (iframe.sandbox === undefined) {
-        // eslint-disable-next-line no-console
         console.warn('Your browser does not support sandboxed iframes. Please upgrade to a modern browser.')
         return input || ''
     }
     iframe.sandbox.add('allow-same-origin')
     iframe.style.display = 'none'
     document.body.appendChild(iframe) // necessary so the iframe contains a document
-    const iframedoc = iframe.contentDocument || iframe.contentWindow?.document || ({} as any)
+    const iframedoc: Pick<Document, 'body' | 'createElement' | 'write'> =
+        iframe.contentDocument || iframe.contentWindow?.document || ({} as Pick<Document, 'body' | 'createElement' | 'write'>)
     if (iframedoc.body == null) iframedoc.write('<body></body>') // null in IE
     iframedoc.body.innerHTML = input
 
-    const makeSanitizedCopy = (node: HTMLElement) => {
+    const makeSanitizedCopy = (node: HTMLElement): HTMLElement | undefined => {
         let newNode: HTMLElement | undefined
         if (node.nodeType === Node.TEXT_NODE) {
             newNode = node.cloneNode(true) as HTMLElement
@@ -109,30 +143,8 @@ export const sanitizeHtml = (inputHtml: string | null | undefined) => {
             // convert to DIV
             else newNode = iframedoc.createElement(node.tagName)
 
-            for (let i = 0; i < node.attributes.length; i += 1) {
-                const attr = node.attributes[i]
-                if (attributeWhitelist[attr.name]) {
-                    if (attr.name === 'style') {
-                        for (let s = 0; s < node.style.length; s += 1) {
-                            const styleName = node.style[s]
-                            if (cssWhitelist[styleName] && newNode) {
-                                newNode.style.setProperty(styleName, node.style.getPropertyValue(styleName))
-                            }
-                        }
-                    } else {
-                        if (uriAttributes[attr.name]) {
-                            // if this is a "uri" attribute, that can have "javascript:" or something
-                            if (attr.value.indexOf(':') > -1 && !startsWithAny(attr.value, schemaWhiteList)) {
-                                // eslint-disable-next-line no-continue
-                                continue
-                            }
-                        }
-                        if (newNode) {
-                            newNode.setAttribute(attr.name, attr.value)
-                        }
-                    }
-                }
-            }
+            copyAttributes(node, newNode)
+
             for (let i = 0; i < node.childNodes.length; i += 1) {
                 const subCopy = makeSanitizedCopy(node.childNodes[i] as HTMLElement)
                 if (newNode && subCopy) {
@@ -140,7 +152,7 @@ export const sanitizeHtml = (inputHtml: string | null | undefined) => {
                 }
             }
         } else {
-            newNode = document.createDocumentFragment() as any
+            newNode = document.createDocumentFragment() as unknown as HTMLElement
         }
         return newNode
     }

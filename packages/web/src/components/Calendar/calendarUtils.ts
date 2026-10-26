@@ -162,6 +162,44 @@ export const calendarWindow = (
  * future), so exact counts are cheaper here than a round trip per checkbox, and
  * the counts in the sidebar are the real numbers of the loaded list.
  */
+/** Does one event pass every active filter? Each rule mirrors the catalog:
+ * absent lists and flags are "no opinion", present ones are hard rejects. */
+const eventMatches = (
+    event: CalendarEventDataFragment,
+    span: EventSpan,
+    state: CalendarState,
+    window: { from: Date; to: Date } | undefined,
+): boolean => {
+    if (window) {
+        const start = startOfDay(span.start).getTime()
+        const end = startOfDay(span.end).getTime()
+        if (end < window.from.getTime() || start > window.to.getTime()) return false
+    }
+
+    if (state.durations.length && !state.durations.includes(durationBucket(span))) return false
+
+    if (state.places.length && !state.places.includes(eventPlace(event))) return false
+
+    if (state.withWeb && !event.web) return false
+
+    // The same rule the homepage block uses: an open flag without a
+    // sign-up link is nothing to filter on.
+    if (state.registrationOpen && !(event.registrationOpen && isAbsoluteHttpUrl(event.registrationUrl))) return false
+
+    if (!matchTextQuery([event.name, event.loc], state.query)) return false
+
+    return state.labels.length === 0 || labelsMatch(event, state)
+}
+
+/** The label filter: `any` mode passes when the event carries one of the
+ * picked labels, `all` when it carries every one of them. */
+const labelsMatch = (event: CalendarEventDataFragment, state: CalendarState): boolean => {
+    const ids = (event.labels ?? []).map((label) => label.id)
+    return state.labelMode === 'any'
+        ? ids.some((id) => state.labels.includes(id))
+        : state.labels.every((id) => ids.includes(id))
+}
+
 export const filterCalendarEvents = (
     events: readonly CalendarEventDataFragment[],
     state: CalendarState,
@@ -172,35 +210,7 @@ export const filterCalendarEvents = (
     return events.filter((event) => {
         const span = eventSpan(event)
         if (!span) return false
-
-        if (window) {
-            const start = startOfDay(span.start).getTime()
-            const end = startOfDay(span.end).getTime()
-            if (end < window.from.getTime() || start > window.to.getTime()) return false
-        }
-
-        if (state.durations.length && !state.durations.includes(durationBucket(span))) return false
-
-        if (state.places.length && !state.places.includes(eventPlace(event))) return false
-
-        if (state.withWeb && !event.web) return false
-
-        // The same rule the homepage block uses: an open flag without a
-        // sign-up link is nothing to filter on.
-        if (state.registrationOpen && !(event.registrationOpen && isAbsoluteHttpUrl(event.registrationUrl))) return false
-
-        if (!matchTextQuery([event.name, event.loc], state.query)) return false
-
-        if (state.labels.length) {
-            const ids = (event.labels ?? []).map((label) => label.id)
-            const matches =
-                state.labelMode === 'any'
-                    ? state.labels.some((id) => ids.includes(id))
-                    : state.labels.every((id) => ids.includes(id))
-            if (!matches) return false
-        }
-
-        return true
+        return eventMatches(event, span, state, window)
     })
 }
 
