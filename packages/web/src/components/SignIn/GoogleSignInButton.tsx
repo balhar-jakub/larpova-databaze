@@ -117,8 +117,9 @@ export const GoogleSignInButton = ({ showDivider }: Props) => {
     // rendered by the fail() redirect, not by returnTo, and the user is
     // signed in by then anyway.
     const AUTH_PAGE_PATHS = ['/signIn', '/signUp', '/recoverPassword']
+    const search = typeof window === 'undefined' ? '' : window.location.search
     const pathname = typeof window === 'undefined' ? '/' : window.location.pathname
-    const returnTo = AUTH_PAGE_PATHS.includes(pathname) ? '/' : `${pathname}${window.location.search}`
+    const returnTo = AUTH_PAGE_PATHS.includes(pathname) ? '/' : `${pathname}${search}`
 
     return (
         <div className={classes.wrapper}>

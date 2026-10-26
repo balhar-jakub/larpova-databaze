@@ -136,4 +136,10 @@ describe('GoogleSignInButton', () => {
         await waitFor(() => expect(failing).toHaveBeenCalled())
         expect(container.innerHTML).toBe('')
     })
+
+    // SSR, in a separate file with @jest-environment node (jsdom's global IS
+    // the Window — window.window === window, non-configurable getter — so the
+    // `typeof window === 'undefined'` arm cannot be driven from jsdom at all;
+    // a plain globalThis.window = undefined bounces off the getter silently).
+    // See googleSignInButtonSSR.test.tsx.
 })
