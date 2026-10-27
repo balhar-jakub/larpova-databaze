@@ -168,7 +168,6 @@ export const GameDetailPanel = ({ gameId }: Props) => {
         })
     } catch (e) {
         // Object in cache but does not have required data - just continue
-        // eslint-disable-next-line no-console
         console.log('Fetch failed', e)
     }
 

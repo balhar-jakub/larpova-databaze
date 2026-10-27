@@ -101,7 +101,6 @@ export const HomePersonalPanel = ({ name, userId, playedCount, authoredCount, co
                 {numbers.length > 0 && <p className={classes.numbers}>{numbers.join(' · ')}</p>}
                 <div className={classes.links}>
                     <Link href="/profile/current" legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a className={classes.link} href="/profile/current">{t('HomePage.personalProfile')}</a>
                     </Link>
                     {userId && (

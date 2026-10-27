@@ -3,7 +3,6 @@ import { useQuery, useMutation } from '@apollo/client'
 import { Button } from 'react-bootstrap'
 import { useTranslation } from 'src/lib/i18n'
 import { createUseStyles } from 'react-jss'
-import isInBrowser from 'is-in-browser'
 import {
     CommentsPaged,
     MoreCommentsQuery,

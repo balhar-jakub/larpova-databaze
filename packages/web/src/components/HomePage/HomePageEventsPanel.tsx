@@ -41,7 +41,6 @@ export const HomePageEventsPanel = ({ nextEvents = loadingEvents, href }: Props)
             {href && (
                 <div className={classes.more}>
                     <Link href={href} legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a className={classes.moreLink} href={href}>{t('HomePage.seeCalendar')}</a>
                     </Link>
                 </div>

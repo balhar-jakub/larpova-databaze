@@ -15,6 +15,8 @@ import { useHideInPlaceLogin } from '../../../hooks/useHideInPlaceLogin'
 import { breakPoints } from '../../../theme/breakPoints'
 import { IconMenu } from '../Icons/Icons'
 
+const FLEX_START = 'flex-start'
+
 const useStyles = createUseStyles({
     placeholder: {
         height: 55,
@@ -55,7 +57,7 @@ const useStyles = createUseStyles({
         order: 8,
         flexBasis: '100%',
         flexDirection: 'column',
-        alignItems: 'flex-start',
+        alignItems: FLEX_START,
         borderTop: `1px solid ${darkTheme.textOnLight}`,
         marginBottom: 8,
     },
@@ -64,7 +66,7 @@ const useStyles = createUseStyles({
         margin: '0 0 5px',
         flexBasis: '100%',
         flexDirection: 'column',
-        alignItems: 'flex-start',
+        alignItems: FLEX_START,
     },
     buttonLike: {
         backgroundColor: darkTheme.redLight,
@@ -180,7 +182,6 @@ export const PageHeader = () => {
             <nav className={classes.container} id="mainNav">
                 <WidthFixer className={classes.innerContainer}>
                     <Link href="/" legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a
                             role="button"
                             tabIndex={0}

@@ -137,8 +137,8 @@ const FormRichTextInputField = ({
         inputOnFocus()
     }
 
-    const editorRef = useRef<any>(undefined)
-    const focusEditor = (e?: any) => {
+    const editorRef = useRef<Editor>(null)
+    const focusEditor = (e?: React.MouseEvent) => {
         editorRef.current?.focus()
         e?.stopPropagation()
         e?.preventDefault()
@@ -172,7 +172,7 @@ const FormRichTextInputField = ({
         }
     }, [autoFocus, value, autoFocusedRef, setEditorState])
 
-    const handleKeyCommand = (command: any, oldState: EditorState): DraftHandleValue => {
+    const handleKeyCommand = (command: string, oldState: EditorState): DraftHandleValue => {
         const newState = RichUtils.handleKeyCommand(oldState, command)
         if (newState) {
             setEditorState(newState)
@@ -202,7 +202,6 @@ const FormRichTextInputField = ({
                 <>
                     {label && <Form.Label>{label}</Form.Label>}
                     <ButtonBar theme={classes} getEditorState={getEditorState} setEditorState={setEditorState} />
-                    {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
                     <div
                         className={classNames({
                             [classes.editorWrapper]: true,

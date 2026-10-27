@@ -24,7 +24,6 @@ import CatalogFilterPanel, { CatalogFacetsData } from './CatalogFilterPanel'
 import {
     CATALOG_ORDERS,
     CATALOG_PRESETS,
-    CatalogActiveFilter,
     CatalogState,
     catalogActiveFilterText,
     catalogActiveFilters,

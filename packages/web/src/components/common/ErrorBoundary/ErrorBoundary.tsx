@@ -12,14 +12,12 @@ export interface ErrorReport {
  * never break the app that is already failing.
  */
 export function reportErrorToServer(report: ErrorReport) {
-    // eslint-disable-next-line no-console
     void fetch('/api/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(report),
     }).catch((error) => {
         // A failing app should not spawn error loops through its own logger.
-        // eslint-disable-next-line no-console
         console.error('reportErrorToServer: /api/log call failed', error)
     })
 }

@@ -5,12 +5,10 @@ import { Dropdown } from 'react-bootstrap'
 import { createUseStyles } from 'react-jss'
 import { UserContext } from 'src/context/UserContext/UserContext'
 import isInBrowser from 'is-in-browser'
-import { useRouter } from 'next/router'
 import { headerLinkStyle, headerLinkStyleMd, HeaderNavLink } from './HeaderNavLink'
 import { darkTheme } from '../../../theme/darkTheme'
 import { isAtLeastEditor } from '../../../utils/roleUtils'
 import { useRoutes } from '../../../hooks/useRoutes'
-import { InPlaceSignInContext } from '../../../context/InPlaceSignInContext/InPlaceSignInContext'
 import { breakPoints } from '../../../theme/breakPoints'
 import { DEFAULT_IMAGE_URL } from '../ProfileImage/ProfileImage'
 
@@ -94,18 +92,16 @@ const CustomToggle = React.forwardRef<HTMLButtonElement, CustomToggleProps>(
     },
 )
 
-const HeaderUser = ({ onInPlaceSignIn }: Props) => {
+const HeaderUser = ({ onInPlaceSignIn: _onInPlaceSignIn }: Props) => {
     const { t } = useTranslation('common')
     const routes = useRoutes()
-    const router = useRouter()
     const client = useApolloClient()
     const userContext = useContext(UserContext)
-    const signInContext = useContext(InPlaceSignInContext)
     const classes = useStyles()
 
     const user = userContext?.value
 
-    const handleSelect = async (eventKey: any) => {
+    const handleSelect = async (eventKey: string | null) => {
         if (eventKey === 'myPage') {
             routes.push(routes.currentProfile())
         }

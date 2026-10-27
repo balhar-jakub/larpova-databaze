@@ -13,7 +13,12 @@ import * as seriesByQueryDocument from './graphql/seriesByQuery.graphql'
 
 // The webpack loader exports the document as CommonJS, an ESM import of a stub
 // (tests) arrives empty — unwrap whichever shape turned up.
-const documentOf = (value: unknown) => ((value as { default?: unknown })?.default ?? value) as any
+import type { DocumentNode } from 'graphql'
+
+/** `.graphql` documents arrive as `{ default: DocumentNode }` under the
+ * webpack loader and bare under jest — this normalizes both. */
+const documentOf = (value: unknown): DocumentNode =>
+    ((value as { default?: DocumentNode })?.default ?? value) as DocumentNode
 const seriesByQueryGql = documentOf(seriesByQueryDocument)
 
 export interface SeriesChoice {

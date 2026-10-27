@@ -65,7 +65,6 @@ class WebAppDocument extends Document {
             originalRenderPage({
                 enhanceApp: App => props => (
                     <JssProvider registry={registry} generateId={generateId}>
-                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                         <App {...props} />
                     </JssProvider>
                 ),
@@ -97,7 +96,6 @@ class WebAppDocument extends Document {
                     {GA_ENABLED && <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`} />}
                     {GA_ENABLED && (
                         <script
-                            /* eslint-disable-next-line react/no-danger */
                             dangerouslySetInnerHTML={{
                                 __html: initGA,
                             }}

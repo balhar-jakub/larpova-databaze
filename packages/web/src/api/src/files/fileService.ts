@@ -175,8 +175,9 @@ export class LocalFiles implements FileService {
   }
 
   async removeFiles(relativePath: string): Promise<void> {
-    try { await unlink(this.fullPath(relativePath)); } catch {}
-    try { await unlink(this.fullPath(getPreviewPath(relativePath))); } catch {}
+    // Best-effort: a missing file must not fail the whole removal.
+    try { await unlink(this.fullPath(relativePath)); } catch { /* not present: ok */ }
+    try { await unlink(this.fullPath(getPreviewPath(relativePath))); } catch { /* not present: ok */ }
   }
 
   private async writeBuffer(filePath: string, buffer: Buffer): Promise<void> {

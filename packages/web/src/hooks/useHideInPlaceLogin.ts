@@ -6,7 +6,5 @@ import { InPlaceSignInContext } from '../context/InPlaceSignInContext/InPlaceSig
  */
 export const useHideInPlaceLogin = () => {
     const signInContext = useContext(InPlaceSignInContext)
-    const cb = useCallback(() => signInContext.setValue(false), [signInContext])
-
-    return cb
+    return useCallback(() => signInContext.setValue(false), [signInContext])
 }

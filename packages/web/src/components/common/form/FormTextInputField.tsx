@@ -75,14 +75,12 @@ const FormTextInputField = ({
                                 onBlur={handleOnBlur}
                                 onChange={handleOnChange}
                                 autoComplete={autoComplete}
-                                /* eslint-disable-next-line react/jsx-props-no-spreading */
                                 {...inputRest}
                                 placeholder={placeholder}
                             />
                             <InputGroup.Text>{appendIcon}</InputGroup.Text>
                         </InputGroup>
                     )}
-                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                     {!appendIcon && (
                         <Form.Control
                             isInvalid={isInvalid}
@@ -90,7 +88,6 @@ const FormTextInputField = ({
                             onBlur={handleOnBlur}
                             onChange={handleOnChange}
                             autoComplete={autoComplete}
-                            /* eslint-disable-next-line react/jsx-props-no-spreading */
                             {...inputRest}
                             placeholder={placeholder}
                         />

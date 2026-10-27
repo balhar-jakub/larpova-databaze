@@ -148,7 +148,6 @@ export const HomeToFinishPanel = ({ toRate = [], toComment = [], oldestWanted = 
                     {wantedSince ? ` ${t('HomePage.toFinishOldest', { year: format(wantedSince, 'yyyy') })}` : ''}
                     {' '}
                     <Link href="/profile/current" legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a className={classes.wantedLink} href="/profile/current">{t('HomePage.toFinishOpenProfile')}</a>
                     </Link>
                 </p>

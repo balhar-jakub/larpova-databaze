@@ -29,13 +29,11 @@ const FormFileInputField = ({
     hint,
     sizeLimit,
     label,
-    placeholder,
     showErrorPlaceholder,
     controlId,
 }: FormFileInputFieldProps) => {
     const { t } = useTranslation('common')
     const [fileTooBigError, setFileTooBigError] = useState(false)
-    const [fileName, setFileName] = useState('')
     const classes = useStyles()
     const {
         input: { onFocus, onBlur, onChange },
@@ -60,7 +58,6 @@ const FormFileInputField = ({
                     const fileContents = pe.target?.result
                     if (fileContents) {
                         onChange({ target: { value: `${file.name}\t${btoa(fileContents as string)}` } })
-                        setFileName(`${file.name} (${(file.size / 1000).toFixed(0)} kB)`)
                     }
                 })
                 reader.readAsBinaryString(file)
@@ -68,7 +65,6 @@ const FormFileInputField = ({
         } else {
             // Cleared
             onChange({ target: { value: '' } })
-            setFileName('')
             setFileTooBigError(false)
         }
     }

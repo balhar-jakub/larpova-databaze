@@ -184,7 +184,6 @@ const EventDetailPanel = ({ eventId }: Props) => {
                             {event.description && (
                                 <div
                                     className={classNames(classes.text, classes.description)}
-                                    /* eslint-disable-next-line react/no-danger */
                                     dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
                                 />
                             )}

@@ -6,7 +6,7 @@ import { darkTheme } from '../../../theme/darkTheme'
 
 interface Props {
     readonly controlId?: string
-    readonly meta: FieldMetaState<any>
+    readonly meta: FieldMetaState<unknown>
     readonly showErrorPlaceholder?: boolean
     readonly hint?: string
     readonly children: (isInvalid: boolean) => React.ReactNode

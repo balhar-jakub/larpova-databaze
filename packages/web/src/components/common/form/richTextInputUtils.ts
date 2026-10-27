@@ -3,14 +3,13 @@ import draftToHtml from 'draftjs-to-html'
 
 const removeEntities = (blocks: RawDraftContentBlock[]) => {
     blocks.forEach(block => {
-        // eslint-disable-next-line no-param-reassign
         block.entityRanges = []
     })
     return blocks
 }
 
 // Dynamic import — html-to-draftjs references `window` and cannot be loaded during SSR
-let htmlToDraft: ((html: string) => { contentBlocks: any; entityMap: any }) | null = null;
+let htmlToDraft: ((html: string) => { contentBlocks: RawDraftContentBlock[]; entityMap: Record<string, unknown> }) | null = null;
 async function getHtmlToDraft() {
     if (!htmlToDraft) {
         const mod = await import('html-to-draftjs');

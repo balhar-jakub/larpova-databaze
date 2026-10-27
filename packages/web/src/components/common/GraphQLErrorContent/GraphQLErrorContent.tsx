@@ -1,6 +1,5 @@
 import React from 'react'
 import { useTranslation } from 'src/lib/i18n'
-import { GraphQLError } from 'graphql'
 
 interface Props {
     readonly errorClass: string

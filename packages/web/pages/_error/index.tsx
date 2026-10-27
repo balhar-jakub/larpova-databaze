@@ -43,7 +43,6 @@ const Error: NextPage<ErrorPageProps, ErrorPageInitialProps> = ({ t, statusCode 
                 <br />
                 <br />
                 <Link href={route.as} legacyBehavior>
-                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                     <a className={classes.link}>{t('Error.toHomepage')}</a>
                 </Link>
             </WidthFixer>

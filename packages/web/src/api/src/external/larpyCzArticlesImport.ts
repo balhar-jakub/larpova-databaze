@@ -62,7 +62,7 @@ async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
 async function fetchAllPages<T>(url: string): Promise<T[]> {
   const out: T[] = [];
   let page = 1;
-  let totalPages = 1;
+  let totalPages: number;
   do {
     const sep = url.includes('?') ? '&' : '?';
     const res = await fetchWithRetry(`${url}${sep}per_page=100&page=${page}`);
@@ -170,7 +170,7 @@ export async function importLarpyCzArticles(db: PrismaClient): Promise<number> {
 
   let imported = 0;
   let page = 1;
-  let totalPages = 1;
+  let totalPages: number;
 
   do {
     const res = await fetchWithRetry(

@@ -1,5 +1,5 @@
 import type { Context } from '../context.js';
-import { isSignedIn, isAdminOfGroup } from '../auth/appUsers.js';
+import { isAdminOfGroup } from '../auth/appUsers.js';
 import { GraphQLError } from 'graphql';
 import { normalizeGame } from './mappers.js';
 

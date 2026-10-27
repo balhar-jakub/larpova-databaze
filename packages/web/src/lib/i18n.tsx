@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { ComponentType, createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { translate } from './translationLookup';
 
@@ -31,7 +31,7 @@ export function useTranslation(_ns?: string) {
 
 // ── Provider ────────────────────────────────────────────
 
-let cachedTranslations: Record<string, NestedRecord> = {};
+const cachedTranslations: Record<string, NestedRecord> = {};
 
 async function loadLocale(locale: string): Promise<NestedRecord> {
   if (cachedTranslations[locale]) return cachedTranslations[locale];
@@ -75,8 +75,8 @@ export function I18nProvider({
 
 // ── App wrapper (replaces appWithTranslation) ────────────
 
-export function appWithTranslation(App: any) {
-  const AppWithI18n = (props: any) => {
+export function appWithTranslation(App: ComponentType<Record<string, unknown>>) {
+  const AppWithI18n = (props: Record<string, unknown>) => {
     const router = useRouter();
     const locale = router.locale || 'cs';
 
@@ -101,14 +101,24 @@ export function appWithTranslation(App: any) {
 
 // Re-export withTranslation for compatibility
 export function withTranslation(_ns?: string) {
-  return (Component: any) => {
-    const Wrapped = (props: any) => {
+  // The wrapped component may expect its own `t` prop; the wrapper injects
+  // the context one, so the caller passes everything EXCEPT `t`.
+  return <P extends { t?: (key: string, options?: Record<string, unknown>) => string }>(
+    Component: ComponentType<P> & {
+      displayName?: string;
+      name?: string;
+      // Next.js static: whatever shape the page used, copied verbatim.
+      getInitialProps?: unknown;
+    },
+  ) => {
+    const Wrapped = (props: Omit<P, 't'>) => {
       const { t } = useTranslation();
-      return <Component {...props} t={t} />;
+      return <Component {...(props as P)} t={t as P['t']} />;
     };
     Wrapped.displayName = `withTranslation(${Component.displayName || Component.name})`;
     // Preserve Next.js static properties (getInitialProps, etc.)
-    if (Component.getInitialProps) Wrapped.getInitialProps = Component.getInitialProps;
+    const staticProps = Component as { getInitialProps?: unknown };
+    if (staticProps.getInitialProps) Wrapped.getInitialProps = staticProps.getInitialProps;
     return Wrapped;
   };
 }

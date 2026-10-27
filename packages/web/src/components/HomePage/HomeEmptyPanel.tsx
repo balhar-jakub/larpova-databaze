@@ -88,7 +88,6 @@ export const HomeEmptyPanel = ({ name }: Props) => {
                 <div className={classes.steps}>
                     {steps.map((step) => (
                         <Link key={step.href} href={step.href} legacyBehavior>
-                            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                             <a className={classes.step} href={step.href}>
                                 <span className={classes.stepTitle}>{step.title}</span>
                                 <span className={classes.stepText}>{step.text}</span>

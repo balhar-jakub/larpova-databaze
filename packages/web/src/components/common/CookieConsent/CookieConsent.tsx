@@ -69,8 +69,8 @@ export const CookieConsent = () => {
         let stored: string | null = null
         try {
             stored = window.localStorage.getItem(GA_CONSENT_KEY)
-        } catch (err) {
-            stored = null
+        } catch {
+            // localStorage refused (private mode): keep null, ask again
         }
         if (stored === 'granted' || stored === 'denied') {
             updateGTagConsent(stored === 'granted')

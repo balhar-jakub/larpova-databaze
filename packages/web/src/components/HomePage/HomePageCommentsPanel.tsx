@@ -70,7 +70,6 @@ export const HomePageCommentsPanel = ({ comments, href }: Props) => {
             <div className={classes.commentsTitle}>{t('HomePage.recentComments')}</div>
             <Row className={classes.commentsWrapper} style={{ height }}>
                 {commentsInColumns.map((column, n) => (
-                    // eslint-disable-next-line react/no-array-index-key
                     <Col lg={4} className={classes.commentsColumn} key={`col_${n}`}>
                         {column.map((comment, i) => (
                             <BaseCommentPanel key={comment ? comment.id : `c_${n}_${i}`} comment={comment} />
@@ -81,7 +80,6 @@ export const HomePageCommentsPanel = ({ comments, href }: Props) => {
             {href && (
                 <div className={classes.more}>
                     <Link href={href} legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a className={classes.moreLink} href={href}>{t('HomePage.allComments')}</a>
                     </Link>
                 </div>

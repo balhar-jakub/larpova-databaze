@@ -32,12 +32,10 @@ export const HighlightedText = ({ text, query, className }: Props) => {
         <span className={className}>
             {segments.map((segment, index) =>
                 segment.matched ? (
-                    // eslint-disable-next-line react/no-array-index-key
                     <mark key={index} className={classes.mark}>
                         {segment.value}
                     </mark>
                 ) : (
-                    // eslint-disable-next-line react/no-array-index-key
                     <React.Fragment key={index}>{segment.value}</React.Fragment>
                 ),
             )}

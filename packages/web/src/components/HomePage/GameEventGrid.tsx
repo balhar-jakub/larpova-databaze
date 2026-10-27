@@ -33,10 +33,10 @@ interface Props {
 }
 
 const isGame = (element: GameBaseData | EventBaseData): element is GameBaseData =>
-    (element as any).players !== undefined
+    'players' in element
 
 const isEvent = (element: GameBaseData | EventBaseData): element is EventBaseData =>
-    (element as any).amountOfPlayers !== undefined
+    'amountOfPlayers' in element
 
 /**
  * Grid for games or events

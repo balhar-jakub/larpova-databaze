@@ -32,7 +32,6 @@ interface IconProps {
     readonly className?: string
 }
 
-/* eslint-disable react/jsx-props-no-spreading */
 export const IconRating = (props: IconProps) => <FontAwesomeIcon icon={faStar} {...props} />
 
 export const IconStar = (props: IconProps) => <FontAwesomeIcon icon={faStar} {...props} />

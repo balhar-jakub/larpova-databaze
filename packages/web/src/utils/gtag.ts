@@ -40,7 +40,7 @@ export const readGTagConsent = (): boolean => {
     if (!isBrowser()) return false
     try {
         return window.localStorage.getItem(GA_CONSENT_KEY) === 'granted'
-    } catch (err) {
+    } catch {
         return false
     }
 }
@@ -50,7 +50,7 @@ export const hasGTagDecision = (): boolean => {
     try {
         const stored = window.localStorage.getItem(GA_CONSENT_KEY)
         return stored === 'granted' || stored === 'denied'
-    } catch (err) {
+    } catch {
         return false
     }
 }
@@ -59,8 +59,9 @@ export const storeGTagConsent = (granted: boolean) => {
     if (!isBrowser()) return
     try {
         window.localStorage.setItem(GA_CONSENT_KEY, granted ? 'granted' : 'denied')
-    } catch (err) {
         // private mode / storage disabled — the choice simply does not persist
+    } catch {
+        // same as above: private mode simply refuses the write
     }
 }
 

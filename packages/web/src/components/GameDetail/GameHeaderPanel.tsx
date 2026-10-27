@@ -231,7 +231,6 @@ export const GameHeaderPanel = ({ game }: Props) => {
             <div className={classes.divider} />
             {haveData && (
                 <>
-                    {/* eslint-disable-next-line react/no-danger */}
                     <p className={classes.description} dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
                     <div className={classes.divider} />
                     <DetailLabelList labels={game.labels} linkType="games" />

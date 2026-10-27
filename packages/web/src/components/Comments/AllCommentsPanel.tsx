@@ -28,7 +28,7 @@ export const COMMENTS_PAGE_SIZE = 10
 
 const LENGTH_VALUES: CommentLength[] = [CommentLength.Short, CommentLength.Medium, CommentLength.Long]
 
-interface Props {}
+// Takes no props; kept as a type so the component keeps a uniform shape.
 
 const useStyles = createUseStyles({
     row: {
@@ -141,7 +141,7 @@ const yearFromParam = (param: unknown): number | undefined => {
  * by (those live on the game's own page); the reading weight and the year are
  * what this data can answer.
  */
-export const AllCommentsPanel = (_props: Props) => {
+export const AllCommentsPanel = () => {
     const classes = useStyles()
     const { t } = useTranslation('common')
     const router = useRouter()

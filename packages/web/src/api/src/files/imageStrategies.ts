@@ -7,10 +7,9 @@ import type { ResizeStrategy } from './fileService.js';
  */
 export function getMaxWidthHeightStrategy(maxWidth: number, maxHeight: number): ResizeStrategy {
   const fn = async (buffer: Buffer): Promise<Buffer> => {
-    const result = await sharp(buffer)
+    return await sharp(buffer)
       .resize(maxWidth, maxHeight, { fit: 'inside', withoutEnlargement: true })
       .toBuffer();
-    return result;
   };
   // We can't know exact dimensions until after processing,
   // but these are approximate max bounds
@@ -48,11 +47,10 @@ export function getCuttingSquareStrategy(sideSize: number, leftTopPercent: numbe
       sy2 = sy1 + sw;
     }
 
-    const result = await sharp(buffer)
+    return await sharp(buffer)
       .extract({ left: sx1, top: sy1, width: sx2 - sx1, height: sy2 - sy1 })
       .resize(sideSize, sideSize)
       .toBuffer();
-    return result;
   };
   fn.outputWidth = sideSize;
   fn.outputHeight = sideSize;

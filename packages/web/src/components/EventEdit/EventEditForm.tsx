@@ -20,7 +20,6 @@ import { formClasses } from '../../utils/formClasses'
 import FormTextInputField from '../common/form/FormTextInputField'
 import FormRichTextInputField from '../common/form/FormRichTextInputField'
 import FormFileInputField from '../common/form/FormFileInputField'
-import { convertFileInput } from '../../utils/graphqlUtils'
 import { createInputFromValues, FormValues, validate } from './formUtils'
 import { useShowToast } from '../../hooks/useShowToast'
 import BigLoading from '../common/BigLoading/BigLoading'
@@ -28,6 +27,8 @@ import SubmitButton from '../common/SubmitButton/SubmitButton'
 import FormDateInputField from '../common/form/FormDateInputField'
 import FormSelectField from '../common/form/FormSelectField'
 import { FormSpy } from 'react-final-form'
+
+const TIME_HINT_T = 'EventEdit.timeHint'
 
 const createEventGql = require('./graphql/createEvent.graphql')
 const updateEventGql = require('./graphql/updateEvent.graphql')
@@ -145,14 +146,14 @@ const EventEditForm = ({
                                                 <FormTextInputField
                                                     name="fromTime"
                                                     placeholder={t('EventEdit.fromTime')}
-                                                    hint={t('EventEdit.timeHint')}
+                                                    hint={t(TIME_HINT_T)}
                                                 />
                                             </Col>
                                             <Col md={6}>
                                                 <FormTextInputField
                                                     name="toTime"
                                                     placeholder={t('EventEdit.toTime')}
-                                                    hint={t('EventEdit.timeHint')}
+                                                    hint={t(TIME_HINT_T)}
                                                 />
                                             </Col>
                                         </Row>
@@ -191,7 +192,7 @@ const EventEditForm = ({
                                                         <FormTextInputField
                                                             name="registrationOpensTime"
                                                             placeholder={t('EventEdit.registrationOpensTime')}
-                                                            hint={t('EventEdit.timeHint')}
+                                                            hint={t(TIME_HINT_T)}
                                                         />
                                                     </Col>
                                                 </Row>
