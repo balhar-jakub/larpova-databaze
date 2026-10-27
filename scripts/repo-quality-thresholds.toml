@@ -22,7 +22,9 @@
 cyclomatic_fail   = 10    # NIST / McCabe: split the module or explain why not
 cyclomatic_justify= 15    # NIST: above 10 needs documented justification
 cyclomatic_abs_fail = 25  # CA1502: at this point it is simply excessive
-cognitive_warn    = 10    # calibrate: start warning early, tune after 4 weeks
+cognitive_warn    = 10    # W4 calibrated 2026-10-27: band (10,15] warns on
+                          # unjustified functions — early warning before the
+                          # fail; measured 0 unjustified in the band today
 cognitive_fail    = 15    # S3776 default
 
 [justifications]
@@ -68,9 +70,18 @@ duplication_fail_pct = 3.0   # SONAR (new code)
 duplication_warn_pct = 5.0   # calibrate / GC25 direction
 
 [hotspots]
-# churn x complexity ranking: refactor-first list, not a hard gate
-hotspot_warn_count = 3    # calibrate: >3 hotspots in a 90d window => discuss
-hotspot_top_n      = 10
+# churn x complexity ranking: refactor-first list, not a hard gate.
+# W4 calibrated 2026-10-27 from the measured window:
+#   - warn counts only SIGNIFICANT hotspots (score above the floor); the raw
+#     top-N list is always ~top_n long, so counting it whole would keep the
+#     warn permanently red
+#   - floor 8000: measured gap between 8294 (externalImporters, campaign
+#     churn) and 4620 — today 7 hotspots count, warn trips at 11
+#   - the 7 counted files are the campaign's own refactor targets
+#     (search.ts 18378, homepage 11410, gameCatalog 9856, ...)
+hotspot_warn_count = 10
+hotspot_score_floor = 8000
+hotspot_top_n      = 15
 
 [repo]
 # share of churned files whose previous change predates the window by >365d.
