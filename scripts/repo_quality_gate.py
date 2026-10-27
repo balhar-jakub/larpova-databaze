@@ -341,10 +341,58 @@ def evaluate(report: dict, th: dict) -> list[dict]:
                          "level": level, "scope": scope, "why": why})
 
     f = th["function"]
+    just: dict[str, str] = th.get("justifications", {})
     new_funcs = [x for x in report["functions"] if x["scope"] == "new"]
     legacy = [x for x in report["functions"] if x["scope"] == "legacy"]
 
-    worst_cc = max((x["cyclomatic"] for x in new_funcs), default=0)
+    def justification_for(func: dict) -> str | None:
+        """A written justification (NIST: above 10 needs one) — matched on
+        'file::name' with the file's path prefix, so an entry covers the
+        function wherever it moved inside the file. An entry that matches
+        nothing is itself a finding: stale justifications hide real debt."""
+        key = f"{func['file']}::{func['name']}"
+        if key in just:
+            return just[key]
+        for jkey, why in just.items():
+            if jkey.endswith(f"::{func['name']}") and func["file"].endswith(jkey.rsplit("::", 1)[0]):
+                return why
+        return None
+
+    # Over-limit functions the register justifies stay WARN (visible debt with
+    # a written reason); the gate FAILS only on unjustified violations. This is
+    # the mechanism that lets the gate flip to blocking (W4) without reding
+    # forever on the documented frontier.
+    justified_over = []
+    unjustified_cc = [x for x in new_funcs if x["cyclomatic"] > f["cyclomatic_fail"]]
+    unjustified_cog = [x for x in new_funcs if x["cognitive"] > f["cognitive_fail"]]
+    for func in list(unjustified_cc) + list(unjustified_cog):
+        why = justification_for(func)
+        if why:
+            justified_over.append((func, why))
+    just_names = {id(x) for x, _ in justified_over}
+    unjustified_cc = [x for x in unjustified_cc if id(x) not in just_names]
+    unjustified_cog = [x for x in unjustified_cog if id(x) not in just_names]
+
+    if justified_over:
+        worst = max(x["cyclomatic"] for x, _ in justified_over)
+        add("justified_complexity(registered)", len({(x["file"], x["name"]) for x, _ in justified_over}),
+            "n/a", "info", "new code",
+            f"over-limit functions carrying a written justification (see [justifications]); "
+            f"highest CC {worst}")
+        # Make the justified frontier visible in the report — visible debt,
+        # with its written reason, so a reviewer can challenge any entry.
+        seen = set()
+        report["justified"] = []
+        for x, why in justified_over:
+            k = (x["file"], x["name"])
+            if k in seen:
+                continue
+            seen.add(k)
+            report["justified"].append(
+                {"file": x["file"], "line": x["line"], "name": x["name"],
+                 "cyclomatic": x["cyclomatic"], "cognitive": x["cognitive"], "why": why})
+
+    worst_cc = max((x["cyclomatic"] for x in unjustified_cc), default=0)
     if worst_cc > f["cyclomatic_abs_fail"]:
         add("cyclomatic_complexity.max(new)", worst_cc, f["cyclomatic_abs_fail"], "fail", "new code",
             "Visual Studio CA1502 warns at this value")
@@ -355,7 +403,7 @@ def evaluate(report: dict, th: dict) -> list[dict]:
         add("cyclomatic_complexity.max(new)", worst_cc, f["cyclomatic_justify"], "warn", "new code",
             "NIST allows up to 15 only with a written justification")
 
-    worst_cog = max((x["cognitive"] for x in new_funcs), default=0)
+    worst_cog = max((x["cognitive"] for x in unjustified_cog), default=0)
     if worst_cog > f["cognitive_fail"]:
         add("cognitive_complexity.max(new)", worst_cog, f["cognitive_fail"], "fail", "new code",
             "understandability gate (Sonar S3776 default, threshold source unverified)")
@@ -522,6 +570,14 @@ def main() -> int:
     for w in worst:
         lines.append(f"  {w['file']}:{w['line']} {w['name']} — CC {w['cyclomatic']}, "
                      f"CoC {w['cognitive']} ({w['scope']})")
+    just_list = report.get("justified") or []
+    if just_list:
+        lines.append("")
+        lines.append("## Justified over-limit functions (registered debt — see [justifications])")
+        for j in sorted(just_list, key=lambda j: -j["cyclomatic"]):
+            lines.append(f"  {j['file']}:{j['line']} {j['name']} — CC {j['cyclomatic']}, "
+                         f"CoC {j['cognitive']} — {j['why'][:110]}"
+                         + ("…" if len(j["why"]) > 110 else ""))
     lines.append("")
     lines.append(f"RESULT: {'FAIL' if failed else 'PASS'}")
     text = "\n".join(lines) + "\n"
