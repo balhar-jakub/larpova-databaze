@@ -403,6 +403,13 @@ def evaluate(report: dict, th: dict) -> list[dict]:
         add("cyclomatic_complexity.max(new)", worst_cc, f["cyclomatic_justify"], "warn", "new code",
             "NIST allows up to 15 only with a written justification")
 
+    # W4 calibration: the warn band (cognitive_warn, cognitive_fail] is the
+    # early-warning window — an UNJUSTIFIED function there does not fail the
+    # gate yet, it warns: refactor it before it hardens, or register a
+    # justification. Measured 2026-10-27: 0 unjustified functions in the band.
+    cog_warn_band = [x for x in new_funcs
+                     if f["cognitive_warn"] < x["cognitive"] <= f["cognitive_fail"]
+                     and justification_for(x) is None]
     worst_cog = max((x["cognitive"] for x in unjustified_cog), default=0)
     if worst_cog > f["cognitive_fail"]:
         add("cognitive_complexity.max(new)", worst_cog, f["cognitive_fail"], "fail", "new code",
@@ -410,6 +417,12 @@ def evaluate(report: dict, th: dict) -> list[dict]:
     elif worst_cog > f["cognitive_warn"]:
         add("cognitive_complexity.max(new)", worst_cog, f["cognitive_warn"], "warn", "new code",
             "refactor candidates before they harden")
+    if cog_warn_band and not worst_cog > f["cognitive_fail"]:
+        worst_band = max(x["cognitive"] for x in cog_warn_band)
+        add("cognitive_complexity.warn_band(new)", len(cog_warn_band), f["cognitive_fail"], "warn",
+            "new code",
+            f"unjustified functions at CoC {f['cognitive_warn']}..{f['cognitive_fail']} "
+            f"(worst {worst_band}) — refactor before they harden, or register a justification")
 
     d = th["duplication"]
     dup = report["duplication"]
@@ -423,10 +436,14 @@ def evaluate(report: dict, th: dict) -> list[dict]:
             "drift tripwire (GitClear: industry block duplication rising since 2023)")
 
     h = th["hotspots"]
-    if len(report["hotspots"]) > h["hotspot_warn_count"]:
-        add("hotspots(churn x complexity)", len(report["hotspots"]),
-            h["hotspot_warn_count"], "warn", "window",
-            "hotspots are where defects cluster (churn x complexity); refactor them first")
+    # W4 calibration: count only SIGNIFICANT hotspots (score above the floor) —
+    # the raw top-N list is always ~top_n long, so counting it whole would keep
+    # the warn permanently red. Floor measured 2026-10-27 from the window:
+    # a clear gap between 8294 (externalImporters, campaign churn) and 4620.
+    significant = [x for x in report["hotspots"] if x["score"] > h["hotspot_score_floor"]]
+    if len(significant) > h["hotspot_warn_count"]:
+        add("hotspots(churn x complexity)", len(significant), h["hotspot_warn_count"], "warn", "window",
+            f"significant hotspots (score>{h['hotspot_score_floor']}) are where defects cluster; refactor them first")
 
     g = th["repo"]
     if report["legacy_touch_pct"] > g["legacy_touch_warn_pct"]:
@@ -600,7 +617,7 @@ def default_thresholds() -> dict:
                      "cyclomatic_abs_fail": 25, "cognitive_warn": 10,
                      "cognitive_fail": 15},
         "duplication": {"duplication_fail_pct": 3.0, "duplication_warn_pct": 5.0},
-        "hotspots": {"hotspot_warn_count": 3, "hotspot_top_n": 10},
+        "hotspots": {"hotspot_warn_count": 10, "hotspot_top_n": 15, "hotspot_score_floor": 8000},
         "repo": {"legacy_touch_warn_pct": 50.0},
     }
 
