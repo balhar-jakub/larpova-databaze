@@ -22,7 +22,6 @@ const cs = JSON.parse(
 
 const mutationCalls: Array<{ variables?: Record<string, unknown> }> = []
 const toasts: Array<{ text: string; type: string }> = []
-let pushedRoute = ''
 let mutateResult: Promise<unknown> = Promise.resolve({})
 let resetStoreCalls = 0
 const routerPushes: Array<{ href: string; as: string }> = []
@@ -79,7 +78,6 @@ beforeEach(() => {
     cleanup()
     mutationCalls.length = 0
     toasts.length = 0
-    pushedRoute = ''
     resetStoreCalls = 0
     routerPushes.length = 0
     mutateResult = Promise.resolve({})

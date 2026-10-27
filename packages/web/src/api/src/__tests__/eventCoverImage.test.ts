@@ -40,7 +40,7 @@ let ownImageId: number;
 let fallbackEventId: number;
 let noImageEventId: number;
 let createdEventId: number | null = null;
-let uploadedImageIds: number[] = [];
+const uploadedImageIds: number[] = [];
 
 async function createEvent(name: string, gameIds: number[]): Promise<number> {
   const event = await prisma.event.create({

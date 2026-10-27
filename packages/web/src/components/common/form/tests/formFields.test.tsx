@@ -242,12 +242,10 @@ describe('common/form fields', () => {
 
     describe('FormTextInputField', () => {
         it('renders, tracks input and shows the validation error after blur', () => {
-            const seen: Array<string | undefined> = []
             render(
                 <Form
                     onSubmit={() => undefined}
-                    render={({ values }) => {
-                        seen.push((values as Record<string, unknown>).name as string | undefined)
+                    render={() => {
                         return (
                             <FormTextInputField
                                 name="name"

@@ -197,7 +197,7 @@ describe('rememberMeMiddleware', () => {
 
   it('non-numeric payload fields are rejected (NaN guard)', async () => {
     const mod = await import('../auth/rememberMe.js');
-    const { db, findUnique } = dbWithUser(USER_ROW);
+    const {db} = dbWithUser(USER_ROW);
     const sig = signWithKey('seven:tomorrow');
     const req = middlewareReq(makeToken(Number('seven'), 12345, sig) || '');
 

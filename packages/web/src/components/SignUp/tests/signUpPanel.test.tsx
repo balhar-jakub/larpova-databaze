@@ -8,7 +8,7 @@
  * already used, and submits the create-user mutation.
  */
 import React from 'react'
-import { render, screen, fireEvent, act, cleanup, waitFor } from '@testing-library/react'
+import {render, screen, fireEvent, cleanup, waitFor} from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'

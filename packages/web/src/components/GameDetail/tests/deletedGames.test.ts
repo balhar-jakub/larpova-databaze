@@ -33,19 +33,27 @@ function authUser(id: number, role: number) {
   };
 }
 
+/** A game row fixture — only what the resolvers/mappers under test read. */
+type GameRow = {
+  id: number;
+  name: string;
+  deleted: boolean;
+  [key: string]: unknown;
+};
+
 interface FakeDb {
-  writes: Array<{ table: string; args: any }>;
-  db: any;
+  writes: Array<{ table: string; args: Record<string, unknown> }>;
+  db: Record<string, unknown>;
 }
 
 /** Only what `restoreGameResolver` touches: the game row, its comments. */
-function fakeDb(game: any): FakeDb {
-  const writes: Array<{ table: string; args: any }> = [];
+function fakeDb(game: GameRow | null): FakeDb {
+  const writes: Array<{ table: string; args: Record<string, unknown> }> = [];
 
-  const db: any = {
+  const db = {
     csld_game: {
       findUnique: async () => game,
-      update: async (args: any) => {
+      update: async (args: Record<string, unknown>) => {
         writes.push({ table: 'csld_game.update', args });
         // The resolver re-reads the game after the write, so the fake has to
         // remember it the way the database would.
@@ -54,7 +62,7 @@ function fakeDb(game: any): FakeDb {
       },
     },
     csld_comment: {
-      updateMany: async (args: any) => {
+      updateMany: async (args: Record<string, unknown>) => {
         writes.push({ table: 'csld_comment.updateMany', args });
         return { count: 0 };
       },
@@ -66,7 +74,7 @@ function fakeDb(game: any): FakeDb {
   return { writes, db };
 }
 
-const context = (user: any, db: any) => ({ user, db, files: null } as any);
+const context = (user: unknown, db: unknown) => ({ user, db, files: null } as unknown as Parameters<typeof restoreGame>[1]);
 
 const allowedActions = resolvers.Game.allowedActions;
 const restoreGame = resolvers.GameMutation.restoreGame;
@@ -158,7 +166,7 @@ describe('mappers hide a deleted game', () => {
         { csld_game_similar_games_id_game2Tocsld_game: live },
       ],
     });
-    expect(game.similarGames.map((g: any) => g.id)).toEqual([8]);
+    expect(game.similarGames.map((g: { id: number }) => g.id)).toEqual([8]);
   });
 
   test('a profile hides the deleted games an ordinary visitor may not see', () => {
@@ -179,10 +187,10 @@ describe('mappers hide a deleted game', () => {
 
     const profile = normalizeUser(row);
 
-    expect(profile.authoredGames.map((g: any) => g.id)).toEqual([8]);
-    expect(profile.playedGames.map((p: any) => p.game.id)).toEqual([8]);
-    expect(profile.wantedGames.map((g: any) => g.id)).toEqual([]);
-    expect(profile.commentsPaged({ offset: 0, limit: 10 }).comments.map((c: any) => c.id)).toEqual([2]);
+    expect(profile.authoredGames.map((g: { id: number }) => g.id)).toEqual([8]);
+    expect(profile.playedGames.map((p: { game: { id: number } }) => p.game.id)).toEqual([8]);
+    expect(profile.wantedGames.map((g: { id: number }) => g.id)).toEqual([]);
+    expect(profile.commentsPaged({ offset: 0, limit: 10 }).comments.map((c: { id: number }) => c.id)).toEqual([2]);
     expect(profile.commentsPaged({ offset: 0, limit: 10 }).totalAmount).toBe(1);
   });
 
@@ -200,9 +208,9 @@ describe('mappers hide a deleted game', () => {
 
     const profile = normalizeUser(row, true);
 
-    expect(profile.authoredGames.map((g: any) => g.id)).toEqual([7, 8]);
-    expect(profile.playedGames.map((p: any) => p.game.id)).toEqual([7]);
-    expect(profile.wantedGames.map((g: any) => g.id)).toEqual([7]);
+    expect(profile.authoredGames.map((g: { id: number }) => g.id)).toEqual([7, 8]);
+    expect(profile.playedGames.map((p: { game: { id: number } }) => p.game.id)).toEqual([7]);
+    expect(profile.wantedGames.map((g: { id: number }) => g.id)).toEqual([7]);
     expect(profile.commentsPaged({ offset: 0, limit: 10 }).totalAmount).toBe(1);
   });
 });

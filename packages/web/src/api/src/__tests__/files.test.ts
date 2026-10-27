@@ -245,7 +245,7 @@ describe('LocalFiles save paths', () => {
     const result = await files.saveImageAndReturnPath(upload, strategy);
 
     expect(result.path).toMatch(/^[0-9a-f]\//);
-    const { existsSync, readFileSync } = await import('node:fs');
+    const {existsSync} = await import('node:fs');
     expect(existsSync(join(tmpDir, result.path))).toBe(true);
     expect(result.width).toBe(strategy.outputWidth ?? 0);
     expect(result.height).toBe(strategy.outputHeight ?? 0);

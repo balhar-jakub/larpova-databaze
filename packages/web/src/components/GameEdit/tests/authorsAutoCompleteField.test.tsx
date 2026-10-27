@@ -55,7 +55,7 @@ jest.unstable_mockModule('../../common/form/FormAutoCompleteField', () => ({
     ),
 }))
 jest.unstable_mockModule('../NewAuthorModal', () => ({
-    formatAuthorLabel: ({ name, nickname }: { name: string; nickname?: string | null }) => `${name}${nickname ? ` (${nickname})` : ''}`,
+    formatAuthorLabel: ({ name, nickname }: { name: string; nickname?: string | null }) => `${name}${nickname ? ' (' + nickname + ')' : ''}`,
     default: ({ onAddAuthor, onHide }: { onAddAuthor: (a: unknown) => void; onHide: () => void }) => (
         <div data-testid="new-author-modal">
             <button type="button" onClick={() => onAddAuthor({ id: 'u9', name: 'Nový Autor', nickname: undefined, itemLabel: 'Nový Autor' })}>add</button>

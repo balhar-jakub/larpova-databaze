@@ -3,8 +3,8 @@ import { jest, describe, test, expect } from '@jest/globals'
 // ESM mock — must be called before dynamic import
 jest.unstable_mockModule('next/router', () => ({ useRouter: () => undefined }))
 jest.unstable_mockModule('react', () => {
-    const actual = jest.requireActual('react') as any
-    return { ...actual, useMemo: (fn: any) => fn() }
+    const actual = jest.requireActual('react') as typeof import('react')
+    return { ...actual, useMemo: (fn: () => unknown) => fn() }
 })
 
 const { useRoutes } = await import('../useRoutes')

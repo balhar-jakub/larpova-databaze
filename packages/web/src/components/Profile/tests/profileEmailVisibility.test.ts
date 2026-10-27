@@ -19,8 +19,8 @@ const email = resolvers.User.email;
 
 const owner = { id: 42, email: 'wulf@example.com', name: 'Radovan Vlk' };
 
-function ctx(user: any) {
-  return { user } as any;
+function ctx(user: unknown) {
+  return { user } as { user: unknown };
 }
 
 describe('User.email visibility', () => {

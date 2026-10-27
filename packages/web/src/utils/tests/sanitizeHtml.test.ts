@@ -24,23 +24,24 @@ type SanitizeFn = (html: string | null | undefined) => string;
 async function loadSanitizer(): Promise<SanitizeFn> {
   // jsdom needs TextEncoder/TextDecoder from node when imported under jest's jsdom env.
   const nodeUtil = (await import('node:util')) as typeof import('node:util');
-  if (typeof (globalThis as any).TextEncoder === 'undefined') {
-    (globalThis as any).TextEncoder = nodeUtil.TextEncoder;
+  const g = globalThis as { TextEncoder?: unknown; TextDecoder?: unknown; document?: Document };
+  if (typeof g.TextEncoder === 'undefined') {
+    g.TextEncoder = nodeUtil.TextEncoder;
   }
-  if (typeof (globalThis as any).TextDecoder === 'undefined') {
-    (globalThis as any).TextDecoder = nodeUtil.TextDecoder;
+  if (typeof g.TextDecoder === 'undefined') {
+    g.TextDecoder = nodeUtil.TextDecoder;
   }
-  const { JSDOM } = (await import('jsdom')) as typeof import('jsdom');
+  await import('jsdom');
 
   // The document sanitizeHtml will see in this test environment.
-  const realDoc = (globalThis as any).document;
+  const realDoc = g.document;
   if (!realDoc) throw new Error('no document in test environment');
   // Stay within ONE DOM realm: create the "iframe document" from the SAME jsdom
   // implementation object jest uses, so appendChild never sees cross-realm nodes.
   const inner = realDoc.implementation.createHTMLDocument('iframe');
 
   const origCreate = realDoc.createElement.bind(realDoc);
-  (realDoc as any).createElement = (tag: string, opts?: any) => {
+  ;(realDoc as Document & { createElement: (tag: string, opts?: unknown) => HTMLElement }).createElement = (tag: string, opts?: unknown) => {
     const el = origCreate(tag, opts);
     if (tag === 'iframe') {
       Object.defineProperty(el, 'sandbox', { value: { add: () => undefined } });

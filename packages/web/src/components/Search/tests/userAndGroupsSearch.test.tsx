@@ -20,7 +20,6 @@ const cs = JSON.parse(
 
 let usersPage: { users: unknown[]; totalAmount: number } | undefined
 let groupsPage: { groups: unknown[]; totalAmount: number } | undefined
-const queryVariables: Array<Record<string, unknown>> = []
 const suggestionsUsed: string[] = []
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
@@ -33,7 +32,6 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
 const seenKeys = new Set<string>()
 jest.unstable_mockModule('@apollo/client', () => ({
     useQuery: (gql: unknown, opts: { variables?: Record<string, unknown>; onCompleted?: (d: unknown) => void }) => {
-        queryVariables.push(opts.variables ?? {})
         // Fire onCompleted once per unique variables set (like a real fetch).
         const key = JSON.stringify(opts.variables ?? {})
         if (!seenKeys.has(key)) {
@@ -76,7 +74,6 @@ beforeAll(async () => {
 beforeEach(() => {
     cleanup()
     seenKeys.clear()
-    queryVariables.length = 0
     suggestionsUsed.length = 0
     usersPage = {
         users: [

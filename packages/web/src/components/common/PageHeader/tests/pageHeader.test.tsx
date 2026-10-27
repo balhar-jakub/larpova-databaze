@@ -18,8 +18,6 @@ const cs = JSON.parse(
 
 ;(globalThis as unknown as { require: (p: string) => unknown }).require = () => ({})
 
-let pushedRoute = ''
-const hiddenInPlaceLogins: boolean[] = []
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
     useTranslation: () => ({
@@ -35,7 +33,7 @@ jest.unstable_mockModule('@apollo/client', () => ({
 }))
 jest.unstable_mockModule('is-in-browser', () => ({ __esModule: true, default: true }))
 jest.unstable_mockModule('next/router', () => ({
-    useRouter: () => ({ push: (url: string) => { pushedRoute = url }, pathname: '/', query: {} }),
+    useRouter: () => ({ push: () => undefined, pathname: '/', query: {} }),
     Router: { push: () => undefined, events: { on: () => undefined, off: () => undefined } },
 }))
 jest.unstable_mockModule('next/link', () => ({
@@ -60,12 +58,12 @@ jest.unstable_mockModule('src/hooks/useRoutes', () => ({
             changePassword: () => '/zmena-hesla',
             adminIntro: () => '/admin',
         }
-        return { ...routes, push: (url: string) => { pushedRoute = url } }
+        return { ...routes, push: () => undefined }
     },
 }))
 jest.unstable_mockModule('src/hooks/useLoggedInUser', () => ({ useLoggedInUser: () => undefined }))
 jest.unstable_mockModule('src/hooks/useHideInPlaceLogin', () => ({
-    useHideInPlaceLogin: () => (hide: boolean) => { hiddenInPlaceLogins.push(hide) },
+    useHideInPlaceLogin: () => () => undefined,
 }))
 jest.unstable_mockModule('src/context/UserContext/UserContext', () => ({
     UserContext: { _currentValue: undefined, Provider: ({ children }: { children: React.ReactNode }) => <>{children}</> },
@@ -87,7 +85,7 @@ jest.unstable_mockModule('../HeaderSearchForm', () => ({
     HeaderSearchForm: () => <div data-testid="header-search" />,
 }))
 jest.unstable_mockModule('../HeaderUser', () => ({
-    default: ({ onInPlaceSignIn }: { onInPlaceSignIn: () => void }) => <div data-testid="header-user" />,
+    default: () => <div data-testid="header-user" />,
 }))
 jest.unstable_mockModule('../../Icons/Icons', () => ({
     IconMenu: () => <svg data-testid="icon-menu" />,
@@ -110,8 +108,6 @@ beforeAll(async () => {
 
 beforeEach(() => {
     cleanup()
-    pushedRoute = ''
-    hiddenInPlaceLogins.length = 0
 })
 
 describe('PageHeader', () => {

@@ -26,7 +26,6 @@ let mutationResult: Promise<{ data?: unknown }> = Promise.resolve({ data: {} })
 let resetStoreCalls = 0
 let pathname = '/prihlaseni'
 let onSuccessCalls = 0
-let inPlaceLoginHidden = 0
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
     useTranslation: () => ({
@@ -62,7 +61,7 @@ jest.unstable_mockModule('src/hooks/useShowToast', () => ({
     useShowToast: () => (text: string, type: string) => { toasts.push({ text, type }) },
 }))
 jest.unstable_mockModule('src/hooks/useHideInPlaceLogin', () => ({
-    useHideInPlaceLogin: () => () => { inPlaceLoginHidden += 1 },
+    useHideInPlaceLogin: () => () => {},
 }))
 jest.unstable_mockModule('../../common/FormPageRow/FormPageRow', () => ({
     default: ({ children, headerText }: { children: React.ReactNode; headerText?: string }) => (
@@ -93,7 +92,6 @@ beforeEach(() => {
     pushedRoute = ''
     resetStoreCalls = 0
     onSuccessCalls = 0
-    inPlaceLoginHidden = 0
     pathname = '/prihlaseni'
     mutationResult = Promise.resolve({ data: {} })
 })

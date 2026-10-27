@@ -7,6 +7,7 @@ import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { translate } from 'src/lib/translationLookup'
+import { RegistrationStatus, type CalendarEventDataFragment } from 'src/graphql/__generated__/typescript-operations'
 
 /**
  * CalendarPanel is the calendar's orchestrator: URL state via the router,
@@ -24,7 +25,6 @@ type QueryAnswer = { data: Record<string, unknown> }
 
 let eventsAnswer: Promise<QueryAnswer> = Promise.resolve({ data: {} })
 let statsAnswer: Promise<QueryAnswer> = Promise.resolve({ data: {} })
-let queryCount = 0
 const replaceMock = jest.fn()
 let routePush: ((url: string) => void) | undefined
 
@@ -38,7 +38,6 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
 jest.unstable_mockModule('@apollo/client', () => ({
     useApolloClient: () => ({
         query: (options: { variables?: Record<string, unknown> }) => {
-            queryCount += 1
             // The stats query carries `to`; the events queries carry `limit`.
             if (options.variables && 'to' in options.variables && !('limit' in options.variables)) {
                 return statsAnswer
@@ -91,7 +90,7 @@ beforeAll(async () => {
     HistoryView = (await import('../HistoryView')).default
 })
 
-const event = (id: string, over: Record<string, unknown> = {}): any => ({
+const event = (id: string, over: Partial<CalendarEventDataFragment> = {}): CalendarEventDataFragment => ({
     __typename: 'Event',
     id,
     name: `Událost ${id}`,
@@ -110,11 +109,11 @@ const event = (id: string, over: Record<string, unknown> = {}): any => ({
     ...over,
 })
 
-const eventsData = (events: any[], totalAmount = events.length) => ({
+const eventsData = (events: Array<Record<string, unknown>>, totalAmount = events.length) => ({
     data: { eventCalendar: { __typename: 'EventCalendarPaged', events, totalAmount } },
 })
 
-const statsData = (byMonth: any[] = []) => ({
+const statsData = (byMonth: Array<{ count: number; year?: number; month?: number }> = []) => ({
     data: { eventCalendarStats: { __typename: 'EventCalendarStats', totalAmount: byMonth.reduce((s, m) => s + m.count, 0), byMonth } },
 })
 
@@ -123,7 +122,6 @@ const flush = () => act(async () => { await Promise.resolve(); await Promise.res
 describe('CalendarPanel', () => {
     beforeEach(() => {
         jest.clearAllMocks()
-        queryCount = 0
         routePush = undefined
         routerQuery = {}
         eventsAnswer = Promise.resolve(eventsData([event('1'), event('2')]))
@@ -499,7 +497,7 @@ describe('CalendarEventCard', () => {
     })
     it('renders the registration pills for the upcoming, open and closed states', () => {
         // Upcoming: a future sign-up link announced before it opens.
-        render(<CalendarEventCard event={event('u', { registrationStatus: 'UPCOMING', registrationUrl: 'https://reg.test', from: '2027-06-04', to: '2027-06-04' })} />)
+        render(<CalendarEventCard event={event('u', { registrationStatus: RegistrationStatus.Upcoming, registrationUrl: 'https://reg.test', from: '2027-06-04', to: '2027-06-04' })} />)
         expect(screen.getByText(translate(cs, 'Calendar.registrationUpcomingPill'))).toBeTruthy()
         cleanup()
 
@@ -581,7 +579,7 @@ describe('CalendarPanel: sidebar filters', () => {
         // A duration checkbox writes dd= into the URL.
         const checkboxes = screen.getByTestId('calendar.filters').querySelectorAll('input[type="checkbox"]')
         fireEvent.click(checkboxes[3])
-        let last = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as unknown as { query: Record<string, string> }
+        const last = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as unknown as { query: Record<string, string> }
         expect(JSON.stringify(last[0].query)).toMatch(/dd|dk|web|reg/)
 
         // The chip appears and clicking it removes the filter again.

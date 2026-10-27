@@ -234,7 +234,6 @@ describe('allComments — the listing behind "všechny komentáře"', () => {
       expect(shorts.errors).toBeUndefined();
       expect(longs.errors).toBeUndefined();
 
-      const allIds = (unfiltered.data.allComments.comments as any[]).map((c) => c.id);
       const shortIds = (shorts.data.allComments.comments as any[]).map((c) => c.id);
       const longIds = (longs.data.allComments.comments as any[]).map((c) => c.id);
 
@@ -316,7 +315,6 @@ describe('allComments — the listing behind "všechny komentáře"', () => {
   });
 
   test('length and year compose, and the stats agree with what the filters list', async () => {
-    const thisYear = new Date().getUTCFullYear();
 
     const stats: any = await executeQuery(
       server,

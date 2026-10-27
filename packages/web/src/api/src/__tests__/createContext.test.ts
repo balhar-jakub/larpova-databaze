@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { mkdirSync, rmSync } from 'node:fs';
+import {mkdirSync} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 

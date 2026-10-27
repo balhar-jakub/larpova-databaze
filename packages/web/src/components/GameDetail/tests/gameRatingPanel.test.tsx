@@ -20,7 +20,6 @@ const cs = JSON.parse(
 ;(globalThis as unknown as { require: (p: string) => unknown }).require = () => ({})
 
 let loggedInUser: { id: string } | undefined | null = null
-const inPlaceSignInShown: boolean[] = []
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
     useTranslation: () => ({
@@ -34,7 +33,7 @@ jest.unstable_mockModule('src/hooks/useLoggedInUser', () => ({
 }))
 jest.unstable_mockModule('src/context/InPlaceSignInContext/InPlaceSignInContext', () => ({
     InPlaceSignInContext: {
-        _currentValue: { setValue: (v: boolean) => { inPlaceSignInShown.push(v) } },
+        _currentValue: { setValue: () => undefined },
         Provider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     },
 }))
@@ -65,13 +64,13 @@ beforeAll(async () => {
     GameRatingPanel = (await import('../GameRatingPanel')).GameRatingPanel
 })
 
-const gameProps: any = {
+const gameProps: React.ComponentProps<typeof GameRatingPanel>['game'] = {
     id: 'g1',
     ratingStats: [
-        { __typename: 'RatingStats', rating: 10, count: 3 },
-        { __typename: 'RatingStats', rating: 9, count: 1 },
+        { __typename: 'RatingCount', rating: 10, count: 3 },
+        { __typename: 'RatingCount', rating: 9, count: 1 },
     ],
-    authors: [{ __typename: 'User', id: 'a1' }],
+    authors: [{ id: 'a1' }],
     averageRating: 98,
     amountOfRatings: 4,
 }
@@ -79,7 +78,6 @@ const gameProps: any = {
 beforeEach(() => {
     cleanup()
     loggedInUser = null
-    inPlaceSignInShown.length = 0
 })
 
 describe('GameRatingPanel', () => {
@@ -95,7 +93,7 @@ describe('GameRatingPanel', () => {
         loggedInUser = { id: 'u1' }
         render(
             <GameRatingPanel
-                game={{ ...gameProps, currentUsersRating: { __typename: 'Rating', rating: 8, state: 2, user: { __typename: 'User', id: 'u1' } } }}
+                game={{ ...gameProps, currentUsersRating: { rating: 8, state: 2 } }}
             />,
         )
         expect(screen.getByTestId('rating-box')).toBeTruthy()
@@ -134,9 +132,9 @@ describe('GameRatingPanel', () => {
                 game={{
                     ...gameProps,
                     ratingStats: [
-                        { __typename: 'RatingStats', rating: 10, count: 2 },
-                        { __typename: 'RatingStats', rating: 10, count: 3 },
-                        { __typename: 'RatingStats', rating: 9, count: null },
+                        { __typename: 'RatingCount', rating: 10, count: 2 },
+                        { __typename: 'RatingCount', rating: 10, count: 3 },
+                        { __typename: 'RatingCount', rating: 9, count: null },
                     ],
                 }}
             />,

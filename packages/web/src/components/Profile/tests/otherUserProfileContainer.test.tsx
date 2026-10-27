@@ -7,7 +7,7 @@
  * answers when the user id changes mid-flight.
  */
 import React from 'react'
-import { render, screen, waitFor, cleanup, act } from '@testing-library/react'
+import {render, screen, cleanup, act} from '@testing-library/react'
 import { jest } from '@jest/globals'
 
 const loadedUsers: Array<{ userId: string; commentsLimit: number }> = []

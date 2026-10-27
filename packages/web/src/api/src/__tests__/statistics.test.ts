@@ -44,7 +44,7 @@ describe('statistics resolver', () => {
   let server: ReturnType<typeof createTestServer>;
   let gameIdA: number;
   let gameIdB: number;
-  let userIds: number[] = [];
+  const userIds: number[] = [];
 
   const cleanUp = async () => {
     await prisma.csld_rating.deleteMany({ where: { game_id: { in: [gameIdA, gameIdB] } } });
@@ -241,7 +241,7 @@ describe('statistics resolver edge arms', () => {
   const IMPORT_YEAR = 2014; // the IMPORT_DATE regex matches 2014-06-01
 
   let edgeServer: ReturnType<typeof createTestServer>;
-  let edgeUserIds: number[] = [];
+  const edgeUserIds: number[] = [];
   let edgeGameId: number;
   let deletedTopGameId: number;
   let edgeEventId: number;

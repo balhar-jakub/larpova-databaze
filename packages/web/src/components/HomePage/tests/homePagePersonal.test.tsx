@@ -253,7 +253,7 @@ test('the newest community comments show to a signed-in visitor too', () => {
 
 test('a signed-in visitor sees no comment block when the database has none', () => {
     const quiet = personalAnswer()
-    ;(quiet.data as any).homepage.lastComments = []
+    ;(quiet.data as { homepage: { lastComments: unknown[] } }).homepage.lastComments = []
 
     queryResult = quiet
     render(<Panel />)
@@ -266,7 +266,7 @@ test('a signed-in visitor sees no comment block when the database has none', () 
 
 test('an account with nothing gets the first steps and the anonymous content', () => {
     const empty = personalAnswer()
-    const home = (empty.data as any).homepage
+    const home = (empty.data as { homepage: Record<string, unknown> & { myHome: Record<string, unknown> } }).homepage
     home.myHome = {
         ...home.myHome,
         playedCount: 0,

@@ -53,7 +53,7 @@ jest.unstable_mockModule('src/hooks/useRoutes', () => ({
         userSettings: () => ({ href: '/profile?id=settings', as: '/profile/settings' }),
         changePassword: () => ({ href: '/profile?id=changePassword', as: '/profile/changePassword' }),
         userProfile: (id: string) => ({ href: `/profile?id=${id}`, as: `/profil/${id}` }),
-        gameDetail: (id: string, name?: string | null) => ({ href: `/gameDetail?id=${id}`, as: `/larp/${id}` }),
+        gameDetail: (id: string, _name?: string | null) => ({ href: `/gameDetail?id=${id}`, as: `/larp/${id}` }),
         push: (r: { as: string }) => { tabClicks.push(r.as) },
     }),
 }))

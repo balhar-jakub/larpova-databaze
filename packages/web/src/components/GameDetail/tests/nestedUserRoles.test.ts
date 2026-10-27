@@ -78,6 +78,15 @@ describe('normalizeUserRef', () => {
   });
 });
 
+/** What normalizeGame answers for this fixture — only the fields read. */
+type NestedGame = {
+  authors: Array<{ role: string }>;
+  comments: Array<{ user: NestedUser }>;
+  ratings: Array<{ user: NestedUser }>;
+};
+
+type NestedUser = { role: string; image: unknown };
+
 describe('normalizeGame normalizes every nested user', () => {
   const game = normalizeGame({
     id: 7,
@@ -86,18 +95,18 @@ describe('normalizeGame normalizes every nested user', () => {
     csld_game_has_author: [{ id_user: 42, csld_csld_user: userRow(42, EDITOR) }],
     csld_comment: [{ id: 1, comment: 'Ahoj', csld_csld_user: userRow(43, USER, 9) }],
     csld_rating: [{ id: 2, rating: 8, state: 2, csld_csld_user: userRow(43, USER, 9) }],
-  }) as any;
+  }) as NestedGame;
 
   test('authors, comment authors and rating authors all carry enum roles', () => {
-    expect(game.authors.map((a: any) => a.role)).toEqual(['EDITOR']);
-    expect(game.comments.map((c: any) => c.user.role)).toEqual(['USER']);
-    expect(game.ratings.map((r: any) => r.user.role)).toEqual(['USER']);
+    expect(game.authors.map((a) => a.role)).toEqual(['EDITOR']);
+    expect(game.comments.map((c) => c.user.role)).toEqual(['USER']);
+    expect(game.ratings.map((r) => r.user.role)).toEqual(['USER']);
   });
 
   test('no nested user leaks a numeric role or a scalar image', () => {
-    const users = [...game.authors, ...game.comments.map((c: any) => c.user), ...game.ratings.map((r: any) => r.user)];
+    const users: NestedUser[] = [...game.comments.map((c) => c.user), ...game.ratings.map((r) => r.user)];
 
-    users.forEach((user: any) => {
+    users.forEach((user) => {
       expect(typeof user.role).toBe('string');
       expect(user.image === null || typeof user.image === 'object').toBe(true);
     });
@@ -120,7 +129,7 @@ describe('the deployed HomepageQuery.lastComments resolver', () => {
         csld_game: null,
       },
     ];
-    const ctx: any = {
+    const ctx = {
       db: {
         csld_comment: { findMany: async () => rows },
       },

@@ -25,7 +25,7 @@ function game(id: number, name: string) {
   };
 }
 
-function userRow(ratings: any[]) {
+function userRow(ratings: unknown[]) {
   return {
     id: 42,
     role: 1,
@@ -46,6 +46,13 @@ function userRow(ratings: any[]) {
   };
 }
 
+/** What normalizeUser answers for these fixtures — only the fields read. */
+type Profile = {
+  playedGames: Array<{ game: { name: string }; rating: number | null }>;
+  wantedGames: Array<{ name: string }>;
+  amountOfPlayed: number;
+};
+
 const PLAYED = 2;
 const WANT_TO_PLAY = 1;
 const NONE = 0;
@@ -57,9 +64,9 @@ describe('profile game lists follow the play state', () => {
         { game_id: 1, user_id: 42, rating: 7, state: PLAYED, csld_game: game(1, 'Played') },
         { game_id: 2, user_id: 42, rating: null, state: WANT_TO_PLAY, csld_game: game(2, 'Wanted') },
       ]),
-    ) as any;
+    ) as Profile;
 
-    expect(user.playedGames.map((pg: any) => pg.game.name)).toEqual(['Played']);
+    expect(user.playedGames.map((pg) => pg.game.name)).toEqual(['Played']);
     expect(user.playedGames[0].rating).toBe(7);
   });
 
@@ -69,10 +76,10 @@ describe('profile game lists follow the play state', () => {
         { game_id: 2, user_id: 42, rating: null, state: WANT_TO_PLAY, csld_game: game(2, 'Wanted') },
         { game_id: 5, user_id: 42, rating: null, state: WANT_TO_PLAY, csld_game: game(5, 'Wanted 2') },
       ]),
-    ) as any;
+    ) as Profile;
 
     expect(user.playedGames).toHaveLength(0);
-    expect(user.wantedGames.map((g: any) => g.name)).toEqual(['Wanted', 'Wanted 2']);
+    expect(user.wantedGames.map((g) => g.name)).toEqual(['Wanted', 'Wanted 2']);
   });
 
   test('a rated row without a play state stays out of both lists', () => {
@@ -82,9 +89,9 @@ describe('profile game lists follow the play state', () => {
         { game_id: 4, user_id: 42, rating: 4, state: null, csld_game: game(4, 'Legacy null') },
         { game_id: 1, user_id: 42, rating: 7, state: PLAYED, csld_game: game(1, 'Played') },
       ]),
-    ) as any;
+    ) as Profile;
 
-    expect(user.playedGames.map((pg: any) => pg.game.name)).toEqual(['Played']);
+    expect(user.playedGames.map((pg) => pg.game.name)).toEqual(['Played']);
     expect(user.wantedGames).toEqual([]);
   });
 
@@ -95,16 +102,16 @@ describe('profile game lists follow the play state', () => {
         { game_id: 6, user_id: 42, rating: 3, state: PLAYED, csld_game: game(6, 'Played 2') },
         { game_id: 2, user_id: 42, rating: null, state: WANT_TO_PLAY, csld_game: game(2, 'Wanted') },
       ]),
-    ) as any;
+    ) as Profile;
 
     expect(user.amountOfPlayed).toBe(2);
   });
 
   test('amountOfPlayed falls back to the column when ratings are not loaded', () => {
     const row = userRow([]);
-    delete (row as any).csld_rating;
+    delete (row as Partial<Record<string, unknown>>).csld_rating;
 
-    const user = normalizeUser(row) as any;
+    const user = normalizeUser(row) as Profile;
 
     expect(user.amountOfPlayed).toBe(999);
     expect(user.playedGames).toEqual([]);

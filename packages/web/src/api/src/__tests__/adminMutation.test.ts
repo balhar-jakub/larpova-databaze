@@ -23,7 +23,6 @@ const stamp = Date.now();
 let server: ApolloServer;
 let adminId: number;
 let labelId: number;
-let editorId: number;
 let targetId: number;
 let ratedGameId: number;
 
@@ -69,10 +68,9 @@ beforeAll(async () => {
   });
   targetId = target.id;
 
-  const editor = await prisma.csld_csld_user.create({
+  await prisma.csld_csld_user.create({
     data: { email: `admin-mut-${stamp}-editor@integration.test`, password: 'x', role: 2, name: 'admin-mut-editor', is_author: false },
   });
-  editorId = editor.id;
 
   // the target's footprint: a game they added, a rating, a comment (+upvote
   // by the admin) — everything the cascade must unlink/delete

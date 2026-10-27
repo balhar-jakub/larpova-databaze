@@ -4,7 +4,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import { prisma } from '../context';
-import { createTestServer, executeQuery } from './testHelpers';
 import { LocalFiles } from '../files/fileService';
 import { saveProfilePicture, removeProfilePictureIfUnused } from '../resolvers/profilePicture';
 import { allCommentsPage } from '../resolvers/homepage';

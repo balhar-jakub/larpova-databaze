@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react'
-import { render, screen, fireEvent, act, cleanup, waitFor, within } from '@testing-library/react'
+import {render, screen, fireEvent, cleanup, waitFor, within} from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -27,11 +27,6 @@ let mutateResult: Promise<{ data?: unknown }> = Promise.resolve({ data: {} })
 const mutationVariables: Array<Record<string, unknown>> = []
 let currentUserRole: string | undefined = 'ADMIN'
 let pushedRoute = ''
-let useQueryResult: { data?: unknown; loading: boolean; refetch: () => void } = {
-    data: {},
-    loading: false,
-    refetch: () => undefined,
-}
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
     useTranslation: () => ({
@@ -100,7 +95,6 @@ let AdminUsersPanel: typeof import('../AdminUsersPanel').default
 let AdminStatsPanel: typeof import('../AdminStatsPanel').default
 let AdminSelfRatedPanel: typeof import('../AdminSelfRatedPanel').default
 let AdminMenuPanel: typeof import('../AdminMenuPanel').default
-let UserRole: typeof import('../../../graphql/__generated__/typescript-operations').UserRole
 
 beforeAll(async () => {
     AdminTabs = (await import('../AdminTabs')).default
@@ -109,7 +103,6 @@ beforeAll(async () => {
     AdminStatsPanel = (await import('../AdminStatsPanel')).default
     AdminSelfRatedPanel = (await import('../AdminSelfRatedPanel')).default
     AdminMenuPanel = (await import('../AdminMenuPanel')).default
-    UserRole = (await import('../../../graphql/__generated__/typescript-operations')).UserRole
 })
 
 const label = (id: string, over: Record<string, unknown> = {}) => ({
@@ -183,7 +176,6 @@ describe('AdminLabelsPanel', () => {
                 allLabels: [label('1', { name: 'Alpha' }), label('2', { name: 'Beta', isRequired: true })],
             },
         }
-        useQueryResult = { data: queryResult, loading: false, refetch: () => undefined }
         mutateResult = Promise.resolve({ data: { ok: true } })
     })
 
@@ -338,7 +330,6 @@ describe('AdminUsersPanel', () => {
                 allUsers: [user('1', { role: 'USER', name: 'Alice' }), user('2', { role: 'ADMIN', name: 'Bob', nickname: 'bobik' })],
             },
         }
-        useQueryResult = { data: queryResult, loading: false, refetch: () => undefined }
         mutateResult = Promise.resolve({ data: { ok: true } })
     })
 
@@ -475,7 +466,6 @@ describe('AdminStatsPanel', () => {
                 ],
             },
         }
-        useQueryResult = { data: queryResult, loading: false, refetch: () => undefined }
         render(<AdminStatsPanel />)
 
         // Sorted newest first: October's row (12 ratings) comes before September's.
@@ -517,7 +507,6 @@ describe('AdminSelfRatedPanel', () => {
                 ],
             },
         }
-        useQueryResult = { data: queryResult, loading: false, refetch: () => undefined }
         render(<AdminSelfRatedPanel />)
 
         expect(screen.getByText('Alice')).toBeTruthy()

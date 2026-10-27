@@ -47,7 +47,7 @@ class StubResponse {
 let fetchAnswer: () => Promise<StubResponse> = () => Promise.resolve(new StubResponse('{}'))
 
 const realFetch = globalThis.fetch
-;(globalThis as unknown as { fetch: unknown }).fetch = ((...args: unknown[]) => fetchAnswer()) as unknown
+;(globalThis as unknown as { fetch: unknown }).fetch = ((..._args: unknown[]) => fetchAnswer()) as unknown
 
 let apolloClientModule: typeof import('../apolloClient')
 

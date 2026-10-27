@@ -1,5 +1,5 @@
 import { ApolloServer } from '@apollo/server';
-import { jest, describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import {describe, it, expect, beforeAll, afterAll} from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
 import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';

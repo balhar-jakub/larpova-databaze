@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
 import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
-import { linkGoogleIdentity, googleSignInConfigured, type GoogleEnv } from '../auth/googleLink';
+import { linkGoogleIdentity, googleSignInConfigured } from '../auth/googleLink';
 import { generatePbkdf2Hash } from '../auth/password';
 
 /**

@@ -23,7 +23,6 @@ describe('Event/RecommendedEvent registration field fallbacks (resolvers/index.t
   let openEventId: number;
   let upcomingEventId: number;
   let closedEventId: number;
-  let noRegistrationEventId: number;
   let nullLegacyEventId: number;
 
   beforeAll(async () => {
@@ -58,7 +57,6 @@ describe('Event/RecommendedEvent registration field fallbacks (resolvers/index.t
     const noRegistration = await prisma.event.create({
       data: { ...base, name: `${marker} none`, registration_status: null, registration_url: null },
     });
-    noRegistrationEventId = noRegistration.id;
     nullLegacyEventId = noRegistration.id;
   });
 
@@ -226,11 +224,8 @@ describe('User.commentsPaged guards (resolvers/index.ts)', () => {
   let server: ApolloServer;
   const marker = `UsrPaged${Date.now()}`;
   let userId: number;
-  let editorId: number;
   let gameId: number;
-  let hiddenCommentId: number;
   let deletedGameId: number;
-  let deletedGameCommentId: number;
 
   beforeAll(async () => {
     server = createTestServer();
@@ -245,10 +240,9 @@ describe('User.commentsPaged guards (resolvers/index.ts)', () => {
     // while some OTHER parallel suite happens to hold its editor fixtures
     // in the database — on an isolated database the test failed with
     // "Received: null".
-    const editor = await prisma.csld_csld_user.create({
+    await prisma.csld_csld_user.create({
       data: { password: 'x', role: 2, name: `${marker} editor`, email: `${marker}-editor@integration.test` },
     });
-    editorId = editor.id;
 
     const game = await prisma.csld_game.create({ data: { name: `${marker} hra`, deleted: false } });
     gameId = game.id;
@@ -259,14 +253,12 @@ describe('User.commentsPaged guards (resolvers/index.ts)', () => {
     await prisma.csld_comment.create({
       data: { game_id: gameId, user_id: userId, comment: 'Běžný', is_hidden: false, amount_of_upvotes: 0 },
     });
-    const hidden = await prisma.csld_comment.create({
+    await prisma.csld_comment.create({
       data: { game_id: gameId, user_id: userId, comment: 'Skrytý', is_hidden: true, amount_of_upvotes: null },
     });
-    hiddenCommentId = hidden.id;
-    const deletedGameComment = await prisma.csld_comment.create({
+    await prisma.csld_comment.create({
       data: { game_id: deletedGameId, user_id: userId, comment: 'Na smazané', is_hidden: false, amount_of_upvotes: 0 },
     });
-    deletedGameCommentId = deletedGameComment.id;
   });
 
   afterAll(async () => {

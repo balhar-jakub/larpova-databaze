@@ -63,7 +63,7 @@ describe('SeriesAutoCompleteField', () => {
 
     /** Renders the field in a form and reports every value the form received. */
     const renderField = (initial?: unknown) => {
-        const seen: any[] = []
+        const seen: Array<Record<string, unknown> | undefined> = []
         render(
             <Form
                 onSubmit={() => undefined}

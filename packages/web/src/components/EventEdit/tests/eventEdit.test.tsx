@@ -36,7 +36,10 @@ jest.unstable_mockModule('react-datepicker', () => ({
 jest.unstable_mockModule('html-to-draftjs', () => ({
     default: (html: string) => {
         const texts = Array.from(html.matchAll(/<p[^>]*>(.*?)<\/p>/g)).map((m) => m[1])
-        const draft = draftRequire('draft-js') as never as Record<string, any>
+        const draft = draftRequire('draft-js') as never as {
+            ContentBlock: new (init: Record<string, unknown>) => unknown
+            CharacterMetadata: { create: (init: Record<string, unknown>) => unknown }
+        }
         const Immutable = draftRequire('immutable')
         const contentBlocks = (texts.length ? texts : [html]).map(
             (text: string) =>

@@ -15,7 +15,8 @@ import { normalizeUser } from '../../../api/src/resolvers/user'
  * it re-reads the row after writing, so the fake has to remember the write.
  */
 
-const updateLoggedInUser = resolvers.UserMutation.updateLoggedInUser as any
+const updateLoggedInUser = resolvers.UserMutation.updateLoggedInUser as unknown as
+    (parent: unknown, args: { input: Record<string, unknown> }, ctx: unknown) => Promise<unknown>
 
 function authUser(id = 42) {
     return {
@@ -33,7 +34,7 @@ function authUser(id = 42) {
 }
 
 function fakeDb() {
-    const row: any = {
+    const row: Record<string, unknown> = {
         id: 42,
         email: 'gender-test-42@integration.test',
         name: 'Test',
@@ -47,12 +48,12 @@ function fakeDb() {
         image: null,
         csld_image: null,
     }
-    const writes: any[] = []
-    const db: any = {
+    const writes: Array<{ data?: Record<string, unknown> } & Record<string, unknown>> = []
+    const db = {
         csld_csld_user: {
             findUnique: async () => row,
             findMany: async () => [row],
-            update: async (args: any) => {
+            update: async (args: { data?: Record<string, unknown> } & Record<string, unknown>) => {
                 writes.push(args)
                 Object.assign(row, args.data)
                 return row
@@ -73,7 +74,8 @@ function fakeDb() {
     return { row, writes, db }
 }
 
-const context = (db: any, user: any = authUser()) => ({ user, db, files: null } as any)
+const context = (db: unknown, user: unknown = authUser()) =>
+    ({ user, db, files: null } as unknown as Parameters<typeof updateLoggedInUser>[2])
 
 const input = (extra: Record<string, unknown> = {}) => ({
     email: 'gender-test-42@integration.test',
@@ -120,7 +122,7 @@ describe('the deployed settings mutation stores the gender', () => {
     test('the returned user carries the enum name, not the database number', async () => {
         const fake = fakeDb()
 
-        const user = await updateLoggedInUser({}, { input: input({ gender: 'FEMALE' }) }, context(fake.db))
+        const user = await updateLoggedInUser({}, { input: input({ gender: 'FEMALE' }) }, context(fake.db)) as { gender: string }
 
         expect(user.gender).toBe('FEMALE')
     })

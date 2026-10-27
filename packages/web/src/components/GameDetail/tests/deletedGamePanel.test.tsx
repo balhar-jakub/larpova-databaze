@@ -62,7 +62,7 @@ jest.unstable_mockModule('src/hooks/useRoutes', () => ({
 jest.unstable_mockModule('src/hooks/useShowToast', () => ({ useShowToast: () => () => {} }))
 
 /** Whoever the test signs in; the panel only reads it for the edit link. */
-let loggedInUser: unknown = null
+const loggedInUser: unknown = null
 
 const stub = (name: string) => ({ [name]: () => <div /> })
 const stubDefault = () => ({ default: () => <div /> })
