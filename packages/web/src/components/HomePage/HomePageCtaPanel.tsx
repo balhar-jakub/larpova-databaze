@@ -99,11 +99,9 @@ export const HomePageCtaPanel = ({
                 <p className={classes.text}>{t(textKey)}</p>
                 <div className={classes.buttons}>
                     <Link href={primaryHref} legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a className={classes.primary} href={primaryHref}>{t(primaryKey)}</a>
                     </Link>
                     <Link href={secondaryHref} legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a className={classes.secondary} href={secondaryHref}>{t(secondaryKey)}</a>
                     </Link>
                 </div>

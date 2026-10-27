@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import type { Request, Response, NextFunction } from 'express';
 import type { PrismaClient } from '@prisma/client';
-import { toAuthUser, type AuthUser } from './appUsers.js';
+import { toAuthUser } from './appUsers.js';
 import { requireRememberMeKey } from './rememberMeKey.js';
 
 // Fail-fast gate (same playbook as SESSION_SECRET): in production this throws

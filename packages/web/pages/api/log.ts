@@ -17,15 +17,12 @@ export default (req: NextApiRequest, res: NextApiResponse) => {
 
     switch (payload.severity) {
         case 'error':
-            // eslint-disable-next-line no-console
             console.error.apply({}, data ? [message, data] : [message])
             break
         case 'warn':
-            // eslint-disable-next-line no-console
             console.warn.apply({}, data ? [message, data] : [message])
             break
         default:
-            // eslint-disable-next-line no-console
             console.log.apply({}, data ? [message, data] : [message])
     }
 

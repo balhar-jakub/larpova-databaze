@@ -35,7 +35,6 @@ const EditCommentModal = ({ gameId, oldText, onHide, onLoad, onCommentSaved }: P
     const showToast = useShowToast()
 
     // Since we are lazy-load, call back (only!) when we are ready
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(onLoad, [])
 
     const handleSave = async ({ comment }: FormValues) => {

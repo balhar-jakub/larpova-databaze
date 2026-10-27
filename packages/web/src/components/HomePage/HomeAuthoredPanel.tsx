@@ -147,7 +147,6 @@ export const HomeAuthoredPanel = ({ authored = [], authoredCount }: Props) => {
             {authoredCount != null && authoredCount > authored.length && (
                 <div className={classes.more}>
                     <Link href="/profile/current" legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a className={classes.moreLink} href="/profile/current">
                             {t('HomePage.authoredMore', { count: authoredCount - authored.length })}
                         </a>

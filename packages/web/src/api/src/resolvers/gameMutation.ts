@@ -3,11 +3,17 @@ import { isSignedIn, isAtLeastEditor } from '../auth/appUsers.js';
 import { GraphQLError } from 'graphql';
 import { isGameAuthor } from './gamePermissions.js';
 import { normalizeGame } from './mappers.js';
-import type { Prisma } from '@prisma/client';
 import { Base64UploadedFile } from '../files/fileService.js';
 import { getCoverImageStrategy } from '../files/imageStrategies.js';
 
 // ── Helpers ──────────────────────────────────────────────
+/** Shared error messages: the GraphQL field name is the API contract
+ * (tests assert on these strings), so they live here once. */
+const INVALID_GAME_ID = 'Invalid gameId';
+const INVALID_COMMENT_ID = 'Invalid commentId';
+const GAME_NOT_FOUND = 'Game not found';
+const NOT_FOUND = 'NOT_FOUND';
+const notFoundError = () => new GraphQLError(GAME_NOT_FOUND, { extensions: { code: NOT_FOUND } });
 
 function requireAuth(ctx: Context) {
   if (!isSignedIn(ctx)) {
@@ -43,7 +49,7 @@ export async function rateGameResolver(
 ) {
   requireAuth(ctx);
   const gameId = parseInt(args.gameId, 10);
-  if (isNaN(gameId)) throw new GraphQLError('Invalid gameId');
+  if (isNaN(gameId)) throw new GraphQLError(INVALID_GAME_ID);
 
   // A game with ratings disabled is not rateable through the API — the UI
   // hides the rating widget, the API must not rely on that.
@@ -123,7 +129,7 @@ export async function deleteGameRatingResolver(
   requireEditor(ctx); // editor+, not admin-only
   const gameId = parseInt(args.gameId, 10);
   const userId = args.userId ? parseInt(args.userId, 10) : null;
-  if (isNaN(gameId)) throw new GraphQLError('Invalid gameId');
+  if (isNaN(gameId)) throw new GraphQLError(INVALID_GAME_ID);
 
   await ctx.db.csld_rating.deleteMany({
     where: {
@@ -170,7 +176,7 @@ export async function setGamePlayedStateResolver(
 ) {
   requireAuth(ctx);
   const gameId = parseInt(args.gameId, 10);
-  if (isNaN(gameId)) throw new GraphQLError('Invalid gameId');
+  if (isNaN(gameId)) throw new GraphQLError(INVALID_GAME_ID);
 
   if (args.state === 0) {
     // Remove play state entirely
@@ -273,7 +279,7 @@ export async function createOrUpdateCommentResolver(
 ) {
   requireAuth(ctx);
   const gameId = parseInt(args.gameId, 10);
-  if (isNaN(gameId)) throw new GraphQLError('Invalid gameId');
+  if (isNaN(gameId)) throw new GraphQLError(INVALID_GAME_ID);
 
   if (!args.comment || args.comment.trim().length === 0) {
     throw new GraphQLError('Comment cannot be empty', {
@@ -313,7 +319,7 @@ export async function setCommentVisibleResolver(
 ) {
   requireEditor(ctx);
   const commentId = parseInt(args.commentId, 10);
-  if (isNaN(commentId)) throw new GraphQLError('Invalid commentId');
+  if (isNaN(commentId)) throw new GraphQLError(INVALID_COMMENT_ID);
 
   const comment = await ctx.db.csld_comment.update({
     where: { id: commentId },
@@ -336,7 +342,7 @@ export async function setCommentLikedResolver(
 ) {
   requireAuth(ctx);
   const commentId = parseInt(args.commentId, 10);
-  if (isNaN(commentId)) throw new GraphQLError('Invalid commentId');
+  if (isNaN(commentId)) throw new GraphQLError(INVALID_COMMENT_ID);
 
   if (args.liked) {
     // Check for existing upvote
@@ -383,7 +389,7 @@ export async function deleteCommentResolver(
 ) {
   requireAuth(ctx);
   const commentId = parseInt(args.commentId, 10);
-  if (isNaN(commentId)) throw new GraphQLError('Invalid commentId');
+  if (isNaN(commentId)) throw new GraphQLError(INVALID_COMMENT_ID);
 
   // Verify the comment exists and belongs to current user (or user is editor)
   const comment = await ctx.db.csld_comment.findUnique({
@@ -476,7 +482,7 @@ export async function setGameSeriesResolver(
     include: { csld_game_has_author: true },
   });
   if (!game) {
-    throw new GraphQLError('Game not found', { extensions: { code: 'NOT_FOUND' } });
+    throw notFoundError();
   }
   if (!(await isGameAuthor(game, ctx)) && !isAtLeastEditor(ctx)) {
     throw new GraphQLError('Not authorized to edit this game', {
@@ -513,16 +519,14 @@ export async function deleteGameResolver(
 ) {
   requireAuth(ctx);
   const gameId = parseInt(args.gameId, 10);
-  if (isNaN(gameId)) throw new GraphQLError('Invalid gameId');
+  if (isNaN(gameId)) throw new GraphQLError(INVALID_GAME_ID);
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },
     include: { csld_game_has_author: true },
   });
   if (!game) {
-    throw new GraphQLError('Game not found', {
-      extensions: { code: 'NOT_FOUND' },
-    });
+    throw notFoundError();
   }
 
   // The game's authors may delete the game they wrote, editors and admins
@@ -580,9 +584,7 @@ export async function restoreGameResolver(
     ? await ctx.db.csld_game.findUnique({ where: { id: gameId } })
     : null;
   if (!game) {
-    throw new GraphQLError('Game not found', {
-      extensions: { code: 'NOT_FOUND' },
-    });
+    throw notFoundError();
   }
 
   await ctx.db.$transaction([
@@ -726,7 +728,7 @@ async function loadEditableGame(ctx: Context, gameId: number) {
     where: { id: gameId },
     include: { csld_game_has_author: true },
   });
-  if (!game) throw new GraphQLError('Game not found');
+  if (!game) throw new GraphQLError(GAME_NOT_FOUND);
   return game;
 }
 

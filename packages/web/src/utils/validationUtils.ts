@@ -1,6 +1,9 @@
 import { type Translator } from 'src/lib/i18n'
 import type { EditorState } from 'draft-js'
 
+/** Shared failure key — the UI maps it to the translated error text. */
+const REQUIRED_ERROR = 'Errors.required'
+
 const emailRe = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
 
 const integerRe = /^(0|([1-9][0-9]*))$/
@@ -19,22 +22,20 @@ interface ResultMap {
     [key: string]: string | undefined
 }
 
-const isStringOrUndefined = (input: any): input is string | undefined =>
+const isStringOrUndefined = (input: unknown): input is string | undefined =>
     input === undefined || typeof input === 'string'
 
-export const validateRequired = (input?: string | Date) => (input ? undefined : 'Errors.required')
+export const validateRequired = (input?: string | Date) => (input ? undefined : REQUIRED_ERROR)
 
-export const validateRequiredArray = (input?: unknown[]) => (input?.length ? undefined : 'Errors.required')
+export const validateRequiredArray = (input?: unknown[]) => (input?.length ? undefined : REQUIRED_ERROR)
 
 export const validateRequiredRichText = (input?: EditorState | string | undefined) => {
     if (!input) {
-        return 'Errors.required'
+        return REQUIRED_ERROR
     }
 
-    if (typeof input === 'object') {
-        if (!input.getCurrentContent().hasText()) {
-            return 'Errors.required'
-        }
+    if (typeof input === 'object' && !input.getCurrentContent().hasText()) {
+        return REQUIRED_ERROR
     }
 
     return undefined
@@ -127,7 +128,6 @@ export const validateWithValidators = <T extends object, K extends keyof T>(
                 const result = Array.isArray(val)
                     ? val.reduce<string | undefined>((error, validator) => error || validator(input), undefined)
                     : val(input)
-                // eslint-disable-next-line no-param-reassign
                 map[key] = result ? t(result) : undefined
             }
         }

@@ -4,8 +4,6 @@
 // Uses the API's existing code (imported from ../api/src/...)
 // with Next.js 14 as the fallback page handler.
 
-import { createServer } from 'node:http';
-import { parse } from 'node:url';
 import next from 'next';
 import express, { type Request, type Response } from 'express';
 import session from 'express-session';
@@ -20,9 +18,8 @@ import { fileURLToPath } from 'node:url';
 // API imports
 import { PrismaClient } from '@prisma/client';
 import pgSession from 'connect-pg-simple';
-import passport from 'passport';
-import { resolvers } from './src/api/src/resolvers/index.js';
 import { configurePassport } from './src/api/src/auth/passport.js';
+import { resolvers } from './src/api/src/resolvers/index.js';
 import { rememberMeMiddleware } from './src/api/src/auth/rememberMe.js';
 import { setRememberMeCookie } from './src/api/src/auth/rememberMe.js';
 import { createGoogleRouter } from './src/api/src/auth/googleRoutes.js';
@@ -177,16 +174,30 @@ const BLOCKED_CRAWLERS = [
   'Barkrowler',
 ];
 
+/** Extension → Content-Type for the image table's files, with a safe default. */
+const IMAGE_MIME_TYPES: Record<string, string> = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+  gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
+};
+
+/** Public, one-hour caching for the crawler-served text files. */
+const CRAWLER_CACHE = 'public, max-age=3600';
+const CONTENT_TYPE_HEADER = 'Content-Type';
+const CACHE_CONTROL_HEADER = 'Cache-Control';
+const TEXT_CONTENT_TYPE = 'text/plain; charset=utf-8';
+const XML_CONTENT_TYPE = 'application/xml; charset=utf-8';
+const CALENDAR_CONTENT_TYPE = 'text/calendar; charset=utf-8';
+
 const requestHost = (req: { headers: { host?: string } }) =>
   (req.headers.host ?? '').split(':')[0].toLowerCase();
 
 app.get('/robots.txt', (req, res) => {
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader(CONTENT_TYPE_HEADER, TEXT_CONTENT_TYPE);
   const host = requestHost(req);
   if (!INDEXABLE_HOSTS.includes(host)) {
     return res.send('User-agent: *\nDisallow: /\n');
   }
-  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.setHeader(CACHE_CONTROL_HEADER, CRAWLER_CACHE);
   res.send(
     [
       'User-agent: *',
@@ -204,8 +215,8 @@ app.get('/robots.txt', (req, res) => {
 app.get('/sitemap.xml', async (req, res) => {
   try {
     const xml = await buildSitemapXml(prisma, `https://${requestHost(req)}`);
-    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader(CONTENT_TYPE_HEADER, XML_CONTENT_TYPE);
+    res.setHeader(CACHE_CONTROL_HEADER, CRAWLER_CACHE);
     res.send(xml);
   } catch (err) {
     console.error('sitemap error:', err);
@@ -217,13 +228,9 @@ app.get('/data/*', async (req, res) => {
   const relativePath: string = req.params[0];
   if (!relativePath || relativePath.includes('..')) return res.status(400).end();
   const ext = relativePath.split('.').pop()?.toLowerCase();
-  const mimeTypes: Record<string, string> = {
-    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-    gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
-  };
   if (!res.headersSent) {
-    res.setHeader('Content-Type', mimeTypes[ext ?? ''] ?? 'application/octet-stream');
-    res.setHeader('Cache-Control', 'public, max-age=31536000');
+    res.setHeader(CONTENT_TYPE_HEADER, IMAGE_MIME_TYPES[ext ?? ''] ?? 'application/octet-stream');
+    res.setHeader(CACHE_CONTROL_HEADER, 'public, max-age=31536000');
   }
   await fileService.streamToResponse(relativePath, res);
 });
@@ -234,18 +241,12 @@ app.get('/ical', async (req, res) => {
   if (id && id !== 'all') { userId = parseInt(id, 10); if (isNaN(userId)) userId = undefined; }
   try {
     const cal = await generateIcal(prisma, userId);
-    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader(CONTENT_TYPE_HEADER, CALENDAR_CONTENT_TYPE);
     res.send(cal);
   } catch { res.status(500).end(); }
 });
 
 // ── Image serving (resolves image IDs to file paths) ─────
-
-/** Extension → Content-Type for the image table's files, with a safe default. */
-const IMAGE_MIME_TYPES: Record<string, string> = {
-  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-  gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml',
-};
 
 /** Stream a csld_image row's file out with the right Content-Type and a
  * long-lived Cache-Control (paths are content-addressed by id). Shared by the
@@ -259,8 +260,8 @@ async function streamImageById(req: Request, res: Response, missingStatus: 400 |
     if (!img?.path) return res.status(404).end();
     if (!res.headersSent) {
       const ext = img.path.split('.').pop()?.toLowerCase();
-      res.setHeader('Content-Type', IMAGE_MIME_TYPES[ext ?? ''] ?? 'application/octet-stream');
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      res.setHeader(CONTENT_TYPE_HEADER, IMAGE_MIME_TYPES[ext ?? ''] ?? 'application/octet-stream');
+      res.setHeader(CACHE_CONTROL_HEADER, 'public, max-age=31536000');
     }
     await fileService.streamToResponse(img.path, res);
   } catch {

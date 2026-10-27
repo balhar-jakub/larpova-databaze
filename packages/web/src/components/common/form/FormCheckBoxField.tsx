@@ -22,7 +22,7 @@ const useStyles = createUseStyles({
  */
 const FormCheckBoxField = ({ name, label, hint, showErrorPlaceholder }: FormCheckBoxFieldProps) => {
     const {
-        input: { value, ...inputRest },
+        input: { value, type: _inputType, ...inputRest },
         meta,
     } = useField<boolean>(name, {
         type: 'checkbox',
@@ -34,12 +34,11 @@ const FormCheckBoxField = ({ name, label, hint, showErrorPlaceholder }: FormChec
             {isInvalid => (
                 <Form.Check
                     isInvalid={isInvalid}
-                    type={'checkbox' as any}
+                    type={'checkbox' as const}
                     label={label}
                     id={name}
                     className={classes.checkBox}
                     checked={value}
-                    /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...inputRest}
                 />
             )}

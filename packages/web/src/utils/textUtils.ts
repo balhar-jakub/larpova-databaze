@@ -27,7 +27,6 @@ export const htmlToText = (html: string | null | undefined) => {
         .replace(/(<([^>]+)>)/gi, '')
         .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
         .replace(/&([^;]+);/g, (match, code: string) => {
-            // @ts-ignore
             const entity = entities[code]
             if (entity) {
                 return entity

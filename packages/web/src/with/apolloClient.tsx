@@ -25,27 +25,28 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, response })
         toastContextValue.actions.showToast(<GraphQLErrorContent errorClass="NETWORK" />, 'alert')
     }
 
-    if (!hasCustomErrorHandling) {
-        if (graphQLErrors && graphQLErrors.length > 0) {
-            const { errorClass, valuePath } = PropsFromGraphQLError(graphQLErrors[0])
-            if (response) {
-                response.errors = undefined
-            }
-            const isMutation = (operation.query.definitions as any[]).some(
-                (def: any) => def.kind === 'OperationDefinition' && def.operation === 'mutation'
+    if (!hasCustomErrorHandling && graphQLErrors && graphQLErrors.length > 0) {
+        const { errorClass, valuePath } = PropsFromGraphQLError(graphQLErrors[0])
+        if (response) {
+            response.errors = undefined
+        }
+        const isMutation = (
+            operation.query.definitions as readonly { kind: string; operation?: string }[]
+        ).some((def) => def.kind === 'OperationDefinition' && def.operation === 'mutation')
+        if (isMutation) {
+            toastContextValue.actions.showToast(
+                <GraphQLErrorContent errorClass={errorClass} valuePath={valuePath} />,
+                'alert',
             )
-            if (isMutation) {
-                toastContextValue.actions.showToast(
-                    <GraphQLErrorContent errorClass={errorClass} valuePath={valuePath} />,
-                    'alert',
-                )
-            }
         }
     }
 })
 
-const simpleMerge = { merge: (existing: any, incoming: any) => ({ ...existing, ...incoming }) }
-const overwriteMerge = { merge: (existing: any, incoming: any) => incoming }
+// Field policy shorthand: shallow-merge the written object over the cached one
+// (partial writes must not wipe sibling fields the query did not select).
+type MergeableField = { merge: (existing: Record<string, unknown> | null, incoming: Record<string, unknown>) => Record<string, unknown> }
+const simpleMerge: MergeableField = { merge: (existing, incoming) => ({ ...existing, ...incoming }) }
+const overwriteMerge: MergeableField = { merge: (_existing, incoming) => incoming }
 
 const cacheConfig: InMemoryCacheConfig = {
     typePolicies: {

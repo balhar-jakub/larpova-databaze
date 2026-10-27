@@ -332,6 +332,7 @@ describe('AdminUsersPanel', () => {
     beforeEach(() => {
         jest.clearAllMocks()
         currentUserRole = 'ADMIN'
+        mutationVariables.length = 0
         queryResult = {
             admin: {
                 allUsers: [user('1', { role: 'USER', name: 'Alice' }), user('2', { role: 'ADMIN', name: 'Bob', nickname: 'bobik' })],
@@ -423,6 +424,34 @@ describe('AdminUsersPanel', () => {
         // Alice (USER) drops out, Bob (ADMIN) stays.
         expect(screen.queryByText('Alice')).toBeNull()
         expect(screen.getByText('Bob')).toBeTruthy()
+    })
+
+    it('combines the name filter with privileged-only', async () => {
+        render(<AdminUsersPanel />)
+
+        fireEvent.click(screen.getByText(translate(cs, 'AdminUsers.showPrivileged')))
+        const filterBox = screen.getByPlaceholderText(translate(cs, 'AdminUsers.filterPlaceholder'))
+        fireEvent.change(filterBox, { target: { value: 'Bob' } })
+        await new Promise((r) => setTimeout(r, 550))
+
+        // Alice is a USER and does not match the name box on top of that —
+        // both filter arms reject her, Bob survives them both.
+        expect(screen.queryByText('Alice')).toBeNull()
+        expect(screen.getByText('Bob')).toBeTruthy()
+    })
+
+    it('switches a user role via the dropdown and refetches', async () => {
+        render(<AdminUsersPanel />)
+
+        // Open Alice's role dropdown, pick Editor; the mutation must receive
+        // her id and the new role, and a successful answer refetches.
+        fireEvent.click(screen.getAllByText(translate(cs, 'UserRole.USER'))[0])
+        const editorItem = await screen.findByText(translate(cs, 'UserRole.EDITOR'))
+        fireEvent.click(editorItem)
+
+        await waitFor(() => {
+            expect(mutationVariables.at(-1)).toEqual({ userId: '1', role: 'EDITOR' })
+        })
     })
 
     it('switches a user role via the dropdown and shows all users past the cap', async () => {

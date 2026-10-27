@@ -78,7 +78,6 @@ const UserProfilePanel = ({ userId, user, profileOnly }: Props) => {
         () =>
             user
                 ? user.playedGames.reduce((map, playedGame) => {
-                      // eslint-disable-next-line no-param-reassign
                       map[playedGame.game.id] = playedGame.rating ?? undefined
                       return map
                   }, {} as { [key: string]: number | undefined })

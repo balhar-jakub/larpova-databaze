@@ -2,6 +2,8 @@ import { Styles } from 'react-jss'
 import { darkTheme } from '../theme/darkTheme'
 import { breakPoints } from '../theme/breakPoints'
 
+const FORM_ROW_MARGIN = '0 -15px 12px -18px'
+
 export const formSectionHeaderStyles: Styles<'header' | 'headerRight'> = {
     header: {
         backgroundColor: darkTheme.backgroundRealWhite,
@@ -9,10 +11,10 @@ export const formSectionHeaderStyles: Styles<'header' | 'headerRight'> = {
         color: darkTheme.textOnLight,
         borderBottom: '1px solid rgba(0,0,0,.1)',
         padding: '8px 8px 8px 18px',
-        margin: '0 -15px 12px -18px',
+        margin: FORM_ROW_MARGIN,
     },
     headerRight: {
-        margin: '0 -15px 12px -18px',
+        margin: FORM_ROW_MARGIN,
     },
 }
 
@@ -23,7 +25,7 @@ export const formSectionHeaderStylesMd: Styles<'header' | 'headerRight'> = {
         },
     },
     headerRight: {
-        margin: '0 -15px 12px -18px',
+        margin: FORM_ROW_MARGIN,
     },
 }
 

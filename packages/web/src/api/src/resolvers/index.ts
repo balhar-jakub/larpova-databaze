@@ -22,7 +22,7 @@ import {
   usersByQueryWithTotalResolver,
   searchResolver,
 } from './search.js';
-import { normalizeGame, normalizeUserRef } from './mappers.js';
+import { normalizeGame } from './mappers.js';
 import { groupByIdResolver, groupsByQueryResolver } from './group.js';
 import { eventByIdResolver, eventCalendarResolver, eventCalendarStatsResolver } from './event.js';
 import {

@@ -340,11 +340,8 @@ const SearchPanel = ({ initialQuery, initialType }: Props) => {
                                         {t('Search.searchButton')}
                                     </Button>
                                 </div>
-                                {/* eslint-disable-next-line react/no-danger */}
                                 <p className={classes.example} dangerouslySetInnerHTML={{ __html: t('Search.example1') }} />
-                                {/* eslint-disable-next-line react/no-danger */}
                                 <p className={classes.example} dangerouslySetInnerHTML={{ __html: t('Search.example2') }} />
-                                {/* eslint-disable-next-line react/no-danger */}
                                 <p className={classes.example} dangerouslySetInnerHTML={{ __html: t('Search.example3') }} />
                             </WidthFixer>
                         </form>

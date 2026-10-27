@@ -58,7 +58,6 @@ export const HomePageGamesPanel = ({ titleKey, noteKey, games = gamesLoading, hr
             {href && (
                 <div className={classes.more}>
                     <Link href={href} legacyBehavior>
-                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                         <a className={classes.moreLink} href={href}>{t('HomePage.seeAll')}</a>
                     </Link>
                 </div>

@@ -15,6 +15,8 @@ import { YearReviewPageQuery } from '../../graphql/__generated__/typescript-oper
 
 import * as yearReviewDocument from './graphql/yearReviewPage.graphql'
 
+const PAGE_TITLE_KEY = 'YearReview.pageTitle'
+
 // The webpack loader exports the document as CommonJS; an ESM import of a stub
 // (tests) arrives empty — unwrap whichever shape turned up.
 const documentOf = (value: unknown) => ((value as { default?: unknown })?.default ?? value) as DocumentNode
@@ -348,7 +350,7 @@ const YearReviewPanel = ({ year }: Props) => {
             <WidthFixer>
                 <div className={classes.row} data-testid={componentTestIds.yearReview.page}>
                     <div className={classes.container}>
-                        <h1 className={classes.title}>{t('YearReview.pageTitle', { year })}</h1>
+                        <h1 className={classes.title}>{t(PAGE_TITLE_KEY, { year })}</h1>
                         <p className={classes.subtitle}>{error}</p>
                     </div>
                 </div>
@@ -376,12 +378,12 @@ const YearReviewPanel = ({ year }: Props) => {
         <WidthFixer>
             <div className={classes.row} data-testid={componentTestIds.yearReview.page}>
                 <OpenGraphMeta
-                    title={t('YearReview.pageTitle', { year })}
+                    title={t(PAGE_TITLE_KEY, { year })}
                     description={t('YearReview.pageDescription')}
                 />
                 <div className={classes.container}>
                     <div className={classes.brand}>{t('YearReview.brand')}</div>
-                    <h1 className={classes.title}>{t('YearReview.pageTitle', { year })}</h1>
+                    <h1 className={classes.title}>{t(PAGE_TITLE_KEY, { year })}</h1>
                     <p className={classes.subtitle}>{t('YearReview.pageDescription')}</p>
                     <div className={classes.ticker}>
                         <span>

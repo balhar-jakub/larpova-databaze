@@ -27,7 +27,6 @@ const FormSelectField = ({ name, label, hint, options, showErrorPlaceholder }: F
             {isInvalid => (
                 <>
                     {label && <Form.Label htmlFor={name}>{label}</Form.Label>}
-                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                     <Form.Control as="select" id={name} isInvalid={isInvalid} {...input}>
                         {options.map(option => (
                             <option key={option.value} value={option.value}>

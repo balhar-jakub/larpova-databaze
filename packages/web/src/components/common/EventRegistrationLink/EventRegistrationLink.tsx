@@ -14,6 +14,8 @@ interface Props {
     readonly onDarkBackground?: boolean
 }
 
+const INLINE_BLOCK = 'inline-block'
+
 const useStyles = createUseStyles({
     link: {
         color: darkTheme.textOnLightDark,
@@ -30,7 +32,7 @@ const useStyles = createUseStyles({
         },
     },
     open: {
-        display: 'inline-block',
+        display: INLINE_BLOCK,
         padding: '6px 10px',
         borderRadius: 4,
         backgroundColor: darkTheme.textGreen,
@@ -45,7 +47,7 @@ const useStyles = createUseStyles({
         },
     },
     closedBadge: {
-        display: 'inline-block',
+        display: INLINE_BLOCK,
         padding: '6px 10px',
         borderRadius: 4,
         backgroundColor: darkTheme.red,
@@ -53,7 +55,7 @@ const useStyles = createUseStyles({
         fontWeight: 700,
     },
     upcomingBadge: {
-        display: 'inline-block',
+        display: INLINE_BLOCK,
         padding: '6px 10px',
         borderRadius: 4,
         border: `1px solid ${darkTheme.text}`,

@@ -5,6 +5,7 @@ import {
     Menu,
     MenuItem,
     type RenderMenuProps as TypeaheadRenderMenuProps,
+    type TypeaheadRef,
 } from 'react-bootstrap-typeahead'
 import { createUseStyles } from 'react-jss'
 import { useTranslation } from 'src/lib/i18n'
@@ -14,7 +15,7 @@ import { darkTheme } from '../../../theme/darkTheme'
 import { IconExternalLink } from '../Icons/Icons'
 import FieldWithError from './FieldWithError'
 
-type ModelBase = { readonly id?: string; readonly itemLabel: string } & Record<string, any>
+type ModelBase = { readonly id?: string; readonly itemLabel: string }
 
 interface Props<T extends ModelBase> {
     readonly name: string
@@ -27,13 +28,6 @@ interface Props<T extends ModelBase> {
     readonly loading?: boolean
     readonly onCreateNew: () => void
     readonly onSearch: (query: string) => Promise<T[]>
-}
-
-interface RenderMenuProps<T> {
-    readonly createUrl?: (item: T) => string
-    readonly createNewText?: ReactNode
-    readonly entityLinkText?: ReactNode
-    readonly onCreateNew: () => void
 }
 
 interface RenderMenuHofProps<T extends ModelBase> {
@@ -90,7 +84,6 @@ const OptionsMenu = <T extends ModelBase>({
     const searching = results.length === 0
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <Menu {...menuProps}>
             {searching && <div className={classes.message}>{t('AutoComplete.searching')}</div>}
             {noResults && <div className={classes.message}>{t('AutoComplete.noResults')}</div>}
@@ -141,7 +134,7 @@ const FormAutoCompleteField = <T extends ModelBase>({
     onSearch,
 }: Props<T>) => {
     const [options, setOptions] = useState<T[]>([])
-    const typeaheadRef = useRef<any>(null)
+    const typeaheadRef = useRef<TypeaheadRef>(null)
     const { input, meta } = useField<T[]>(name, {
         validate,
     })

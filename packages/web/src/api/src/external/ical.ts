@@ -1,4 +1,4 @@
-import ical, { type ICalCalendarMethod } from 'ical-generator';
+import ical from 'ical-generator';
 import type { PrismaClient } from '@prisma/client';
 
 /**

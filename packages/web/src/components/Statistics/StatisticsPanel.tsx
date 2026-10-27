@@ -46,7 +46,7 @@ const FROM_YEAR = 2015
 
 const fmt = (n: number) => new Intl.NumberFormat('cs-CZ').format(n)
 
-interface Props {}
+// Takes no props; kept as a type so the component keeps a uniform shape.
 
 const useStyles = createUseStyles({
     row: {
@@ -495,7 +495,7 @@ const NewGamesChart: React.FC<{ years: StatsYearRow[]; classes: Record<string, s
  * chart library, and the data's honesty rules (unique events, the 2014 import)
  * are baked into the API, not re-derived here.
  */
-const StatisticsPanel = (_props: Props) => {
+const StatisticsPanel = () => {
     const classes = useStyles()
     const { t } = useTranslation('common')
     const client = useApolloClient()

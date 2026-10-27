@@ -69,12 +69,12 @@ const FormLabelListField = ({ name, labels, validate, onChange, columns }: Props
                 <Form.Check
                     key={label.id}
                     isInvalid={hasError}
-                    type={'checkbox' as any}
+                    type={'checkbox' as const}
                     id={`${name}_${label.id}`}
                     className={classes.checkBox}
                 >
                     <Form.Check.Input
-                        type={'checkbox' as any}
+                        type={'checkbox' as const}
                         isInvalid={hasError}
                         checked={value.includes(label.id)}
                         onChange={handleChange(label.id)}

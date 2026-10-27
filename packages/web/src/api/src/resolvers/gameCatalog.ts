@@ -117,15 +117,17 @@ const NAME_ORDER: Prisma.csld_gameOrderByWithRelationInput = { name: orderByInpu
  * (pageGameIds falls back to `Recommended`).
  */
 export function catalogOrderBy(order: CatalogOrder): Prisma.csld_gameOrderByWithRelationInput[] {
+  // Average, not the sum: total_rating rewards games that simply have more
+  // ratings, and nulls last keeps unrated games out of the top.
+  const bestRated = [
+    { average_rating: orderByInput('desc') },
+    { amount_of_ratings: orderByInput('desc') },
+    NAME_ORDER,
+  ];
+
   switch (order) {
     case 'Best':
-      // Average, not the sum: total_rating rewards games that simply have more
-      // ratings, and nulls last keeps unrated games out of the top.
-      return [
-        { average_rating: orderByInput('desc') },
-        { amount_of_ratings: orderByInput('desc') },
-        NAME_ORDER,
-      ];
+      return bestRated;
     case 'MostPlayed':
       // Games people actually marked as played — ordering by amount_of_ratings
       // made this list identical to the best rated one.
@@ -137,11 +139,7 @@ export function catalogOrderBy(order: CatalogOrder): Prisma.csld_gameOrderByWith
     case 'NameAsc':
       return [NAME_ORDER];
     default:
-      return [
-        { average_rating: orderByInput('desc') },
-        { amount_of_ratings: orderByInput('desc') },
-        NAME_ORDER,
-      ];
+      return bestRated;
   }
 }
 

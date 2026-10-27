@@ -28,15 +28,15 @@ export function csPluralSuffix(count: number): string {
 /** Walks the dotted path; returns the parent object and the leaf value (which
  * must be a string for a translation to exist), or null when the path ends
  * early. */
-function resolvePath(obj: NestedRecord, path: string): { parent: any; leaf: any } | null {
-  let current: any = obj
-  let parent: any = null
+function resolvePath(obj: NestedRecord, path: string): { parent: Record<string, unknown>; leaf: unknown } | null {
+  let current: unknown = obj
+  let parent: Record<string, unknown> | null = null
   for (const p of path.split('.')) {
     if (current == null || typeof current !== 'object') return null
-    parent = current
-    current = current[p]
+    parent = current as Record<string, unknown>
+    current = (current as Record<string, unknown>)[p]
   }
-  return { parent, leaf: current }
+  return { parent: parent as Record<string, unknown>, leaf: current }
 }
 
 /** The keys to try, most specific first: context+plural, context, the

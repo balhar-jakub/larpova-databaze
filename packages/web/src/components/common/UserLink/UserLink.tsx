@@ -22,7 +22,6 @@ const UserLink: React.FC<Props> = ({ userId, className, children }) => {
 
     return (
         <Link href={route.as} legacyBehavior>
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a className={className}>{children}</a>
         </Link>
     )

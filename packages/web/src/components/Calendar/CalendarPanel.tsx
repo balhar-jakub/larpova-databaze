@@ -4,6 +4,7 @@ import { useApolloClient } from '@apollo/client'
 import { DocumentNode } from 'graphql'
 import { useRouter } from 'next/router'
 import { ParsedUrlQuery } from 'querystring'
+const FETCH_POLICY = 'cache-first' as const
 import { createUseStyles } from 'react-jss'
 import { useTranslation } from 'src/lib/i18n'
 import { darkTheme } from '../../theme/darkTheme'
@@ -25,7 +26,6 @@ import SeasonStrip, { SeasonMonth } from './SeasonStrip'
 import WeekendAgenda from './WeekendAgenda'
 import MonthGrid from './MonthGrid'
 import HistoryView from './HistoryView'
-import CalendarEventCard from './CalendarEventCard'
 import {
     CALENDAR_DURATIONS,
     CALENDAR_PLACES,
@@ -46,7 +46,6 @@ import {
     togglePlace,
 } from './calendarState'
 import {
-    eventLabelNames,
     eventPlace,
     eventSpan,
     durationBucket,
@@ -303,7 +302,7 @@ const CalendarPanel = ({ initialQuery }: Props) => {
             .query<CalendarEventsQuery, CalendarEventsQueryVariables>({
                 query: calendarEventsGql,
                 variables: { from: todayIso, offset: 0, limit: PAGE_SIZE },
-                fetchPolicy: 'cache-first',
+                fetchPolicy: FETCH_POLICY,
             })
             .then((response) => {
                 if (cancelled) return
@@ -329,7 +328,7 @@ const CalendarPanel = ({ initialQuery }: Props) => {
             .query<CalendarStatsQuery>({
                 query: calendarStatsGql,
                 variables: { from: STATS_FROM, to: STATS_TO },
-                fetchPolicy: 'cache-first',
+                fetchPolicy: FETCH_POLICY,
             })
             .then((response) => {
                 if (!cancelled) setStats(response.data.eventCalendarStats)
@@ -362,7 +361,7 @@ const CalendarPanel = ({ initialQuery }: Props) => {
                     offset: 0,
                     limit: PAGE_SIZE,
                 },
-                fetchPolicy: 'cache-first',
+                fetchPolicy: FETCH_POLICY,
             })
             .then((response) => {
                 if (cancelled) return

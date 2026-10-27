@@ -128,7 +128,6 @@ const UserDetailPanel = ({ userData }: Props) => {
                             {age > 0 ? t('UserDetail.age', { age }) : ''}
                         </div>
                         {sanitizedDescription && (
-                            // eslint-disable-next-line react/no-danger
                             <div
                                 className={classes.description}
                                 dangerouslySetInnerHTML={{ __html: sanitizedDescription }}

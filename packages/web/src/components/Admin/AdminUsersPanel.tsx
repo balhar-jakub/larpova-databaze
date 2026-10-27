@@ -114,22 +114,11 @@ const useStyles = createUseStyles({
 
 const filterUsers = (users: AdminUserFieldsFragment[], filterPrivileged: boolean, filterName: string) =>
     users
-        .filter(user => {
-            if (filterPrivileged && user.role !== UserRole.Admin && user.role !== UserRole.Editor) {
-                return false
-            }
-
-            if (filterName) {
-                if (
-                    !user.name.toLocaleLowerCase().includes(filterName) &&
-                    !user.nickname?.toLocaleLowerCase().includes(filterName)
-                ) {
-                    return false
-                }
-            }
-
-            return true
-        })
+        .filter(user =>
+            !(filterPrivileged && user.role !== UserRole.Admin && user.role !== UserRole.Editor) &&
+            !(filterName && !user.name.toLocaleLowerCase().includes(filterName) &&
+                !user.nickname?.toLocaleLowerCase().includes(filterName))
+        )
         .sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10))
 
 const limitUsers = (users: AdminUserFieldsFragment[], limit: number) => {
@@ -262,13 +251,13 @@ const AdminUserPanel = () => {
                                             variant="dark"
                                             title={<div className={classes.dropDown}>{t(`UserRole.${user.role}`)}</div>}
                                         >
-                                            <Dropdown.Item onSelect={handleChangeRole(user.id, UserRoleIn.User)}>
+                                            <Dropdown.Item onClick={handleChangeRole(user.id, UserRoleIn.User)}>
                                                 {t('UserRole.USER')}
                                             </Dropdown.Item>
-                                            <Dropdown.Item onSelect={handleChangeRole(user.id, UserRoleIn.Editor)}>
+                                            <Dropdown.Item onClick={handleChangeRole(user.id, UserRoleIn.Editor)}>
                                                 {t('UserRole.EDITOR')}
                                             </Dropdown.Item>
-                                            <Dropdown.Item onSelect={handleChangeRole(user.id, UserRoleIn.Admin)}>
+                                            <Dropdown.Item onClick={handleChangeRole(user.id, UserRoleIn.Admin)}>
                                                 {t('UserRole.ADMIN')}
                                             </Dropdown.Item>
                                         </DropdownButton>

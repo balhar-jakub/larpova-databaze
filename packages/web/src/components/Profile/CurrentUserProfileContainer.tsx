@@ -1,6 +1,5 @@
 import React from 'react'
 import { useQuery } from '@apollo/client'
-import isInBrowser from 'is-in-browser'
 import {
     LoadCurrentUserProfileQuery,
     LoadCurrentUserProfileQueryVariables,

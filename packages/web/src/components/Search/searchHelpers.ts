@@ -4,6 +4,9 @@ import { matchTextQuery } from '../../utils/textUtils'
 import { GameCatalogOrder } from '../../graphql/__generated__/typescript-operations'
 import { CatalogState, CATALOG_ORDERS, catalogStateToQuery, parseCatalogState } from '../Catalog/catalogState'
 
+const ISO_DATE = 'yyyy-MM-dd'
+const FULL_DATE = 'd. M. yyyy'
+
 /**
  * The shapes the search page works with. They are structural on purpose: the
  * helpers below are unit-tested without a GraphQL document, and the rows pass
@@ -242,10 +245,10 @@ export const eventDateLabel = (from?: string | null, to?: string | null): string
     const start = parseDateTime(from)
     if (!start) return ''
     const end = parseDateTime(to)
-    if (!end || format(start, 'yyyy-MM-dd') === format(end, 'yyyy-MM-dd')) return format(start, 'd. M. yyyy')
-    if (start.getFullYear() !== end.getFullYear()) return `${format(start, 'd. M. yyyy')}–${format(end, 'd. M. yyyy')}`
-    if (start.getMonth() !== end.getMonth()) return `${format(start, 'd. M.')}–${format(end, 'd. M. yyyy')}`
-    return `${format(start, 'd.')}–${format(end, 'd. M. yyyy')}`
+    if (!end || format(start, ISO_DATE) === format(end, ISO_DATE)) return format(start, FULL_DATE)
+    if (start.getFullYear() !== end.getFullYear()) return `${format(start, FULL_DATE)}–${format(end, FULL_DATE)}`
+    if (start.getMonth() !== end.getMonth()) return `${format(start, 'd. M.')}–${format(end, FULL_DATE)}`
+    return `${format(start, 'd.')}–${format(end, FULL_DATE)}`
 }
 
 export const isUpcoming = (event: Pick<EventRowData, 'from' | 'to'>, today = new Date()): boolean => {
