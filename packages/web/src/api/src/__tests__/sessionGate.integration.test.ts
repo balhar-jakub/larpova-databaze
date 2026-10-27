@@ -12,7 +12,7 @@
  * gate gets its own fail-fast case: with the other key present, so the test
  * proves WHICH gate fired.
  */
-import { jest, describe, it, expect } from '@jest/globals';
+import {describe, it, expect} from '@jest/globals';
 import { spawn } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';

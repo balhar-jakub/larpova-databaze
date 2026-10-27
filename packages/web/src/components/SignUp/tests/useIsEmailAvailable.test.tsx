@@ -7,7 +7,7 @@
  * again (or belongs to the current user).
  */
 import React from 'react'
-import { render, renderHook, act, cleanup } from '@testing-library/react'
+import {renderHook, act, cleanup} from '@testing-library/react'
 import { jest } from '@jest/globals'
 
 ;(globalThis as unknown as { require: (p: string) => unknown }).require = () => ({})

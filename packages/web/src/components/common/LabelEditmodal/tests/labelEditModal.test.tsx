@@ -19,7 +19,6 @@ const cs = JSON.parse(
 ;(globalThis as unknown as { require: (p: string) => unknown }).require = () => ({})
 
 const createdLabels: Array<{ name?: string; description?: string }> = []
-const hidden: boolean[] = []
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
     useTranslation: () => ({
@@ -56,7 +55,6 @@ beforeAll(async () => {
 beforeEach(() => {
     cleanup()
     createdLabels.length = 0
-    hidden.length = 0
 })
 
 const renderModal = (over: Record<string, unknown> = {}) =>
@@ -65,7 +63,7 @@ const renderModal = (over: Record<string, unknown> = {}) =>
             titleKey="LabelEditModal.titleEdit"
             existingNewLabels={[{ name: 'Nová existující' }]}
             existingLabelNames={['Existující']}
-            onHide={() => { hidden.push(true) }}
+            onHide={() => undefined}
             onCreateLabel={(label) => { createdLabels.push(label) }}
             {...over}
         />,

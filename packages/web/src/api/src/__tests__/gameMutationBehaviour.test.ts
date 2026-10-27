@@ -1,5 +1,5 @@
 import { ApolloServer } from '@apollo/server';
-import { jest, describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import {describe, it, expect, beforeAll, afterAll} from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
 import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
@@ -27,10 +27,6 @@ const CREATE_GAME = `
 const UPDATE_GAME = `
   mutation U($input: UpdateGameInput!) {
     game { updateGame(input: $input) { id name description } }
-  }`;
-const COMMENT = `
-  mutation CM($g: ID!, $c: String!) {
-    game { createOrUpdateComment(gameId: $g, comment: $c) { id commentsPaged(offset: 0, limit: 50) { comments { id comment } } } }
   }`;
 const SET_VISIBLE = `
   mutation V($c: ID!, $v: Boolean!) { game { setCommentVisible(commentId: $c, visible: $v) { id } } }`;

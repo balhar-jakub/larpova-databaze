@@ -23,7 +23,6 @@ let queryData: Record<string, unknown> | undefined
 let loggedInUser: { id: string; role?: string } | undefined | null = null
 const mutationCalls: Array<{ variables?: Record<string, unknown> }> = []
 const toasts: Array<{ text: string; type: string }> = []
-let refetchCalls = 0
 let pushedRoute = ''
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
@@ -34,7 +33,7 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
     }),
 }))
 jest.unstable_mockModule('@apollo/client', () => ({
-    useQuery: () => ({ data: queryData, loading: false, refetch: () => { refetchCalls += 1; return Promise.resolve() } }),
+    useQuery: () => ({ data: queryData, loading: false, refetch: () => Promise.resolve() }),
     useMutation: () => [(opts: { variables?: Record<string, unknown> }) => {
         mutationCalls.push(opts)
         return Promise.resolve({ data: { group: { createGroup: { id: 'new-g' }, updateGroup: { id: 'g1' } } } })
@@ -84,7 +83,6 @@ beforeEach(() => {
     cleanup()
     mutationCalls.length = 0
     toasts.length = 0
-    refetchCalls = 0
     pushedRoute = ''
     loggedInUser = null
     queryData = {

@@ -22,8 +22,8 @@ describe('game field resolvers', () => {
     let userId: number;
     let otherUserId: number;
     let gameId: number;
-    let gameIds: number[] = [];
-    let commentIds: number[] = [];
+    const gameIds: number[] = [];
+    const commentIds: number[] = [];
 
     const ctx = (user?: { id: number }) => ({ db, user } as never);
 

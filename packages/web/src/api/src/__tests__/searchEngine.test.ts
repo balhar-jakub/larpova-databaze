@@ -3,7 +3,6 @@ import {
   MIN_QUERY_LENGTH,
   SCORE_EXACT_TITLE,
   SCORE_SUBSTRING,
-  SCORE_TITLE_START,
   SCORE_WORD_START,
   editDistance,
   foldSearchText,

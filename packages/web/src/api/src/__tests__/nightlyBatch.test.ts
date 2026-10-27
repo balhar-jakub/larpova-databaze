@@ -228,7 +228,6 @@ describe('similarityEngine: the 5-factor Java-parity computation', () => {
 
   it('a deleted game never enters anybody’s top-9', async () => {
     const { recalculateSimilarity } = await import('../scheduled/similarityEngine.js');
-    const alive = await makeGame({ name: 'alive', labels: [labelA] });
     const dead = await makeGame({ name: 'dead', labels: [labelA] });
     await db.csld_game.update({ where: { id: dead.id }, data: { deleted: true } });
 

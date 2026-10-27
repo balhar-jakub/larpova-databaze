@@ -6,7 +6,6 @@
  */
 import React from 'react'
 import { render, screen, cleanup } from '@testing-library/react'
-import { jest } from '@jest/globals'
 
 let FormPanel: typeof import('../FormPanel').default
 

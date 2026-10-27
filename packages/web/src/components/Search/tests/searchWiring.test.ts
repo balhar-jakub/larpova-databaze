@@ -170,7 +170,7 @@ describe('the games of the search page bring the catalog facets and rankings', (
         expect(engine).not.toMatch(/queryIds\.slice\(offset, offset \+ limit\)/)
         // Without a query there is nothing to be relevant to.
         expect(engine).toMatch(/pageGameIds\(ctx, where, 'Recommended', offset, limit, null\)/)
-        expect(web('src/api/src/schema.graphql')).toMatch(/\n    Relevance\n/)
+        expect(web('src/api/src/schema.graphql')).toMatch(/\n {4}Relevance\n/)
     })
 
     it('reuses the catalog filter panel instead of writing a second filter', () => {

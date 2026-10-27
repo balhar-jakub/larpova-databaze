@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import {describe, it, expect, beforeAll} from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 import session from 'express-session';

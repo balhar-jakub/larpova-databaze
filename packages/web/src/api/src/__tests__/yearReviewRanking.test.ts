@@ -33,12 +33,12 @@ const REVIEW_QUERY = `
 `;
 
 let voterIds: number[] = [];
-let gameIds: number[] = [];
+const gameIds: number[] = [];
 let unrankedId = 0;
-let commentIds: number[] = [];
-let articleIds: number[] = [];
-let imageIds: number[] = [];
-let extraUserIds: number[] = [];
+const commentIds: number[] = [];
+const articleIds: number[] = [];
+const imageIds: number[] = [];
+const extraUserIds: number[] = [];
 
 beforeAll(async () => {
   server = createTestServer();

@@ -78,7 +78,7 @@ describe('rememberMe token lifecycle', () => {
     // And the module's own sign() with the configured key must differ from it.
     // We assert via the middleware: a cookie signed with the OLD key must be
     // rejected (req.user stays unset) when REMEMBER_ME_KEY is configured.
-    const { rememberMeMiddleware } = mod;
+    await mod;
     // Repo test pattern: jest.fn with an explicit implementation (typed by
     // inference) — mockResolvedValue degenerates to `never` under this
     // ts-jest/tsconfig combination.

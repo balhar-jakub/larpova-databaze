@@ -24,7 +24,10 @@ jest.unstable_mockModule('draft-js', () => draftRequire('draft-js'))
 jest.unstable_mockModule('html-to-draftjs', () => ({
     default: (html: string) => {
         const texts = Array.from(html.matchAll(/<p[^>]*>(.*?)<\/p>/g)).map((m) => m[1])
-        const draft = draftRequire('draft-js') as never as Record<string, any>
+        const draft = draftRequire('draft-js') as never as {
+            ContentBlock: new (init: Record<string, unknown>) => unknown
+            CharacterMetadata: { create: (init: Record<string, unknown>) => unknown }
+        }
         const { ContentBlock, CharacterMetadata } = draft
         const Immutable = draftRequire('immutable')
         const List = Immutable.List

@@ -6,7 +6,7 @@
  * very first render, InPlaceSignIn carries the sign-in flag and its
  * setter.
  */
-import React, { useContext, useState, useCallback } from 'react'
+import React, {useContext, useState} from 'react'
 import { render, fireEvent, cleanup, act } from '@testing-library/react'
 
 const observed: boolean[] = []
@@ -29,7 +29,7 @@ describe('FirstRenderContextProvider', () => {
         }
 
         const App = () => {
-            const [tick, setTick] = useState(0)
+            const [, setTick] = useState(0)
             return (
                 <Provider>
                     <Probe />

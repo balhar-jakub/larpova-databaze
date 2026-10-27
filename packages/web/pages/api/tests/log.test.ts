@@ -1,9 +1,10 @@
 import { jest, describe, test, expect, beforeEach } from '@jest/globals'
+import { NextApiRequest, NextApiResponse } from 'next'
 import logHandler, { ApiLogRequest } from '../log'
 
 const mockResponse = {
     json: jest.fn(),
-} as any
+} as unknown as NextApiResponse
 
 describe('Log handler tests', () => {
     const logSpy = jest.spyOn(console, 'log')
@@ -28,7 +29,7 @@ describe('Log handler tests', () => {
                     data,
                 } as ApiLogRequest,
                 connection,
-            } as any,
+            } as unknown as NextApiRequest,
             mockResponse,
         )
 
@@ -46,7 +47,7 @@ describe('Log handler tests', () => {
                     message,
                 } as ApiLogRequest,
                 connection,
-            } as any,
+            } as unknown as NextApiRequest,
             mockResponse,
         )
 
@@ -64,7 +65,7 @@ describe('Log handler tests', () => {
                     message,
                 } as ApiLogRequest,
                 connection,
-            } as any,
+            } as unknown as NextApiRequest,
             mockResponse,
         )
 

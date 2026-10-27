@@ -167,7 +167,6 @@ describe('larpCzArticlesImport.parseDetail', () => {
 // ---------------------------------------------------------------------------
 
 describe('larpCzArticlesImport.importLarpCzArticles', () => {
-  const createdIds: number[] = [];
   const originalFetch = global.fetch;
 
   beforeAll(() => {
@@ -229,7 +228,6 @@ describe('larpCzArticlesImport.importLarpCzArticles', () => {
       });
       expect(row).not.toBeNull();
       expect(row!.title).toBe('Nový článek z larp.cz');
-      createdIds.push(row!.id);
     } finally {
       global.fetch = originalFetch;
     }

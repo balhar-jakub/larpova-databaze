@@ -140,13 +140,9 @@ describe('createCalendarEvent', () => {
   it('returns null when the insert response carries no id', async () => {
     const mod = await import('../external/googleCalendar.js');
     // A client whose insert answers with an EMPTY data object.
-    const calls: { op: string }[] = [];
     const client = {
       events: {
-        insert: async () => {
-          calls.push({ op: 'insert' });
-          return { data: {} };
-        },
+        insert: async () => ({ data: {} }),
         update: async () => ({ data: {} }),
         delete: async () => ({ data: {} }),
       },

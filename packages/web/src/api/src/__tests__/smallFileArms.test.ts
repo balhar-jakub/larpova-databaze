@@ -1,4 +1,4 @@
-import { jest, describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import {describe, it, expect, beforeAll, afterAll} from '@jest/globals';
 import { mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -7,7 +7,7 @@ import { prisma } from '../context';
 import { LocalFiles, Base64UploadedFile } from '../files/fileService';
 import { getCuttingSquareStrategy } from '../files/imageStrategies';
 import { gameAllowedActions } from '../resolvers/gamePermissions';
-import { articlesResolver, mapArticleRow } from '../resolvers/article';
+import {articlesResolver} from '../resolvers/article';
 
 /**
  * A direct-call sweep of the small-file cold arms: imageStrategies'
@@ -23,7 +23,6 @@ let dataDir: string;
 let files: LocalFiles;
 let userId: number;
 let gameId: number;
-const articleIds: number[] = [];
 
 async function pngB64(w: number, h: number): Promise<string> {
   const buffer = await sharp({ create: { width: w, height: h, channels: 3, background: { r: 20, g: 80, b: 140 } } })
@@ -96,7 +95,7 @@ describe('gamePermissions matrix arms', () => {
 
 describe('article null mapping and defaults', () => {
   it('maps published_at null, answers the offset/limit defaults, and matches a null perex', async () => {
-    const bare = await prisma.csld_article.create({
+    await prisma.csld_article.create({
       data: {
         source: 'LARPY_CZ',
         source_id: `${marker}-bare`,
@@ -108,7 +107,6 @@ describe('article null mapping and defaults', () => {
         tags: [],
       },
     });
-    articleIds.push(bare.id);
 
     const page = await articlesResolver({}, {} as never, { db: prisma } as never);
     const found = (page as any).articles.find((a: any) => a.sourceId === `${marker}-bare`);

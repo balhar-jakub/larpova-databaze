@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import {describe, it, expect, jest} from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 import session from 'express-session';
@@ -166,7 +166,7 @@ describe('the callback completes a real sign-in', () => {
   function stubOAuth2(payload: { sub: string; email?: string; email_verified?: boolean; name?: string }) {
     const proto = Object.getPrototypeOf(new google.auth.OAuth2('id', 'secret')) as Record<
       string,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       any
     >;
     const tokenSpy: { mockRestore: () => void } = jest
@@ -466,8 +466,7 @@ describe('the callback completes a real sign-in', () => {
   it('rejects a callback when the client was switched off after the flow started', async () => {
     const app = buildApp(CONFIGURED);
     const agent = request.agent(app);
-    const started = await agent.get('/auth/google');
-    const state = stateFrom(started.headers.location);
+    await agent.get('/auth/google');
     // Swap the router for an unconfigured one mid-flow (the env moved under us).
     const off = buildApp({} as GoogleEnv);
     const offAgent = request.agent(off);
@@ -499,7 +498,7 @@ describe('the callback completes a real sign-in', () => {
   it('reports a token exchange failure as google_failed', async () => {
     const proto = Object.getPrototypeOf(new google.auth.OAuth2('id', 'secret')) as Record<
       string,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       any
     >;
     const tokenSpy: { mockRestore: () => void } = jest

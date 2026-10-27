@@ -40,7 +40,7 @@ jest.unstable_mockModule('../../form/FormLabelListField', () => ({
             ))}
         </div>
     ),
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+     
     LabelInList: {} as unknown,
 }))
 

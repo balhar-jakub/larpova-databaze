@@ -1,5 +1,5 @@
 import { ApolloServer } from '@apollo/server';
-import { jest, describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import {describe, it, expect, beforeAll, afterAll} from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
 import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
@@ -21,7 +21,6 @@ const ALL_LABELS = `query { admin { allLabels { id name } } }`;
 const STATS = `query { admin { stats { id year month } } }`;
 const SELF_RATED = `query { admin { selfRated { id } } }`;
 
-const DENIED_FIELDS = [ALL_USERS, ALL_LABELS, STATS, SELF_RATED];
 
 function asUser(id: number, role: number) {
   return {

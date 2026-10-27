@@ -26,7 +26,7 @@ describe('useBreakpoint', () => {
     const removeEventListener = jest.fn()
 
     test('resolving to small breakpoint', () => {
-        matchMediaMock.mockReturnValueOnce({ matches: false, addEventListener, removeEventListener } as any)
+        matchMediaMock.mockReturnValueOnce({ matches: false, addEventListener, removeEventListener } as unknown as MediaQueryList)
         const hook = renderHook(useBreakpoint)
 
         expect(hook.result.current).toBe('sm')
@@ -35,18 +35,18 @@ describe('useBreakpoint', () => {
     beforeEach(jest.resetAllMocks)
 
     test('changing from medium to small breakpoint', () => {
-        matchMediaMock.mockReturnValueOnce({ matches: true, addEventListener, removeEventListener } as any)
+        matchMediaMock.mockReturnValueOnce({ matches: true, addEventListener, removeEventListener } as unknown as MediaQueryList)
         const hook = renderHook(useBreakpoint)
 
         expect(hook.result.current).toBe('md')
         expect(eventListener).not.toBeNull()
 
-        act(() => eventListener?.({ matches: false } as any))
+        act(() => eventListener?.({ matches: false } as MediaQueryListEvent))
         expect(hook.result.current).toBe('sm')
     })
 
     it('should remove event on unmount', () => {
-        matchMediaMock.mockReturnValueOnce({ matches: true, addEventListener, removeEventListener } as any)
+        matchMediaMock.mockReturnValueOnce({ matches: true, addEventListener, removeEventListener } as unknown as MediaQueryList)
         const hook = renderHook(useBreakpoint)
 
         hook.unmount()

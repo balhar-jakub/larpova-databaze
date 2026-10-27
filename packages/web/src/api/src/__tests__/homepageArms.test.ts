@@ -17,7 +17,6 @@ const marker = `hparm-${stamp}`;
 let server: ReturnType<typeof createTestServer>;
 let userId: number;
 const recentGameIds: number[] = [];
-const recentEventIds: number[] = [];
 let authoredNoRatingsId: number;
 let authoredRatedId: number;
 const gameIds: number[] = [];
@@ -52,7 +51,6 @@ beforeAll(async () => {
         to: new Date(base - i * 3600_000 + 3600_000),
       },
     });
-    recentEventIds.push(event.id);
     eventIds.push(event.id);
     await prisma.csld_game_has_event.create({ data: { game_id: game.id, event_id: event.id } });
   }

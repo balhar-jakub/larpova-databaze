@@ -21,7 +21,6 @@ const cs = JSON.parse(
 
 const toasts: Array<{ text: string; type: string }> = []
 const mutations: Array<{ name: string; variables?: Record<string, unknown> }> = []
-const pushedRoutes: string[] = []
 let queryData: Record<string, unknown> | undefined = undefined
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
@@ -54,7 +53,7 @@ jest.unstable_mockModule('src/hooks/useRoutes', () => ({
         gameEdit: () => ({ href: '/hra/edit', as: '/hra/edit' }),
         search: () => ({ href: '/search', as: '/search' }),
         homepage: () => ({ href: '/', as: '/' }),
-        push: (r: { href: string }) => { pushedRoutes.push(r.href) },
+        push: () => undefined,
     }),
 }))
 jest.unstable_mockModule('../../common/WidthFixer/WidthFixer', () => ({ WidthFixer: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
@@ -95,7 +94,6 @@ beforeEach(() => {
     loggedInRole = 'EDITOR'
     toasts.length = 0
     mutations.length = 0
-    pushedRoutes.length = 0
     queryData = undefined
 })
 

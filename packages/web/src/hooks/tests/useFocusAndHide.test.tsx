@@ -6,7 +6,7 @@
  * interval because the form can be lazy-loaded. useHideInPlaceLogin:
  * hides the in-place sign-in through the context.
  */
-import React, { useRef } from 'react'
+import React, {} from 'react'
 import { render, waitFor, cleanup } from '@testing-library/react'
 import { useFocusInput } from '../useFocusInput'
 import { useHideInPlaceLogin } from '../useHideInPlaceLogin'

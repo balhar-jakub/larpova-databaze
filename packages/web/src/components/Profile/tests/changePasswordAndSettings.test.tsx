@@ -24,7 +24,6 @@ const toasts: Array<{ text: unknown; type: string }> = []
 let pushedRoute = ''
 let mutateResult: Promise<unknown> = Promise.resolve({})
 let queryData: Record<string, unknown> | undefined
-let queryError: unknown
 let usedByUser: { id: string; name?: string } | undefined
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
@@ -105,7 +104,6 @@ beforeEach(() => {
     toasts.length = 0
     pushedRoute = ''
     mutateResult = Promise.resolve({})
-    queryError = undefined
     usedByUser = undefined
     queryData = {
         loggedInUser: {

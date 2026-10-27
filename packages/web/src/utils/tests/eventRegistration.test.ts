@@ -166,7 +166,7 @@ const createContext = () => {
           deleteMany: jest.fn(),
         },
       },
-    } as any,
+    } as unknown as Parameters<typeof createEventResolver>[2],
   };
 };
 

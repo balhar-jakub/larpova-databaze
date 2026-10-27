@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
-import { createTestServer, executeQuery } from './testHelpers';
 import { toAuthUser, isEditor } from '../auth/appUsers';
 import { articlesResolver, mapArticleRow } from '../resolvers/article';
 import { normalizeSeries } from '../resolvers/series';
@@ -18,11 +17,9 @@ import { linkGoogleIdentity } from '../auth/googleLink';
 const stamp = Date.now();
 const marker = `tailarms-${stamp}`;
 
-let server: ReturnType<typeof createTestServer>;
 let userId: number;
 
 beforeAll(async () => {
-  server = createTestServer();
   const user = await prisma.csld_csld_user.create({
     data: { password: 'x', role: 1, name: marker, email: `${marker}@integration.test` },
   });

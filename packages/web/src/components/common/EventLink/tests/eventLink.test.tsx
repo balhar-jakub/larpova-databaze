@@ -6,7 +6,7 @@
  * well-formed route instead of "null" in the URL.
  */
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import {render} from '@testing-library/react'
 import { jest } from '@jest/globals'
 
 jest.unstable_mockModule('next/link', () => ({

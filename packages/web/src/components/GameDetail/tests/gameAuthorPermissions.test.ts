@@ -37,33 +37,39 @@ function authUser(id: number, role: number) {
   };
 }
 
+/** A game row fixture — only what the resolvers under test read. */
+type GameRow = {
+  id: number;
+  [key: string]: unknown;
+};
+
 interface FakeDb {
-  writes: Array<{ table: string; args: any }>;
-  authorLookups: Array<any>;
-  db: any;
+  writes: Array<{ table: string; args: { data?: Record<string, unknown> } & Record<string, unknown> }>;
+  authorLookups: Array<Record<string, unknown>>;
+  db: Record<string, unknown>;
 }
 
 /** A game row as `findUnique` with `include: { csld_game_has_author: true }` returns it. */
-function fakeDb(game: any, authorIds: number[] = []): FakeDb {
-  const writes: Array<{ table: string; args: any }> = [];
-  const authorLookups: Array<any> = [];
+function fakeDb(game: GameRow, authorIds: number[] = []): FakeDb {
+  const writes: FakeDb['writes'] = [];
+  const authorLookups: Array<Record<string, unknown>> = [];
 
   /** `deleteMany`/`create` on a relation table, recorded in `writes`. */
   const relationTable = (table: string) => ({
-    deleteMany: async (args: any) => {
+    deleteMany: async (args: Record<string, unknown>) => {
       writes.push({ table: `${table}.deleteMany`, args });
       return { count: 0 };
     },
-    create: async (args: any) => {
+    create: async (args: Record<string, unknown>) => {
       writes.push({ table: `${table}.create`, args });
       return args.data;
     },
   });
 
-  const db: any = {
+  const db = {
     csld_game: {
       findUnique: async () => game,
-      update: async (args: any) => {
+      update: async (args: Record<string, unknown>) => {
         writes.push({ table: 'csld_game.update', args });
         // deleteGame re-reads the game after the write, so the fake has to
         // remember it the way the database would.
@@ -72,13 +78,13 @@ function fakeDb(game: any, authorIds: number[] = []): FakeDb {
       },
     },
     csld_comment: {
-      updateMany: async (args: any) => {
+      updateMany: async (args: Record<string, unknown>) => {
         writes.push({ table: 'csld_comment.updateMany', args });
         return { count: 0 };
       },
     },
     csld_game_has_author: {
-      findFirst: async (args: any) => {
+      findFirst: async (args: { where: { id_user: number; id_game: number } }) => {
         authorLookups.push(args.where);
         return authorIds.includes(args.where.id_user) ? { id_user: args.where.id_user, id_game: args.where.id_game } : null;
       },
@@ -93,7 +99,7 @@ function fakeDb(game: any, authorIds: number[] = []): FakeDb {
   return { writes, authorLookups, db };
 }
 
-const context = (user: any, db: any) => ({ user, db, files: null } as any);
+const context = (user: unknown, db: unknown) => ({ user, db, files: null } as unknown as Parameters<typeof updateGame>[1]);
 
 const allowedActions = resolvers.Game.allowedActions;
 const deleteGame = resolvers.GameMutation.deleteGame;

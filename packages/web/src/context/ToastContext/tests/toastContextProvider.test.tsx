@@ -7,8 +7,7 @@
  * context value.
  */
 import React from 'react'
-import { render, screen, fireEvent, act, waitFor, cleanup } from '@testing-library/react'
-import { jest } from '@jest/globals'
+import {render, screen, fireEvent, waitFor, cleanup} from '@testing-library/react'
 
 ;(globalThis as unknown as { require: (p: string) => unknown }).require = () => ({})
 

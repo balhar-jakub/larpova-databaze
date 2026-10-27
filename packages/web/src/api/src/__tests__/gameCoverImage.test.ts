@@ -7,7 +7,7 @@
  * asserts that the uploaded cover image lands on disk, in csld_image, and
  * linked on the game row.
  */
-import { jest, describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import {describe, it, expect, beforeAll, afterAll} from '@jest/globals';
 import { ApolloServer } from '@apollo/server';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';

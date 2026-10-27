@@ -172,7 +172,7 @@ test('the comment block is one row of three that leads to the catalog', () => {
 
 test('with nothing written yet the comment block is not rendered at all', () => {
     const empty = answer()
-    ;(empty.data as any).homepage.lastComments = []
+    ;(empty.data as { homepage: { lastComments: unknown[] } }).homepage.lastComments = []
 
     queryResult = empty
     render(<Panel />)
@@ -201,7 +201,7 @@ test('the open-registration block lists the events with the sign-up link right i
 
 test('with no open registration the block leaves no hole in the row', () => {
     const empty = answer()
-    ;(empty.data as any).homepage.openRegistrationEvents = []
+    ;(empty.data as { homepage: { openRegistrationEvents: unknown[] } }).homepage.openRegistrationEvents = []
 
     queryResult = empty
     render(<Panel />)

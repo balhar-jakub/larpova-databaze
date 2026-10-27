@@ -527,10 +527,6 @@ describe('homepage — the anonymous blocks', () => {
       server,
       `{ homepage { lastComments(offset: 0, limit: 1) { id } } }`,
     );
-    const second: any = await executeQuery(
-      server,
-      `{ homepage { lastComments(offset: 1, limit: 1) { id } } }`,
-    );
 
     // Parallel suites may hold newer comments; page through enough rows to
     // find both fixtures and assert their relative order.

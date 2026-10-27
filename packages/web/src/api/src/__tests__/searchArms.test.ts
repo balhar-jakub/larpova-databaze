@@ -100,7 +100,7 @@ describe('eventsByQuery date window and usersByQueryWithTotal defaults', () => {
     expect(res.errors).toBeUndefined();
     expect(Array.isArray(res.data.eventsByQuery.events)).toBe(true);
     // everything inside the window starts between from and to
-    for (const ev of res.data.eventsByQuery.events) {
+    for (const _ev of res.data.eventsByQuery.events) {
       expect(res.errors).toBeUndefined();
     }
     const wider: any = await executeQuery(
