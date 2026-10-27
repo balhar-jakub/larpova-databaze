@@ -134,6 +134,17 @@ jobs:
         working-directory: packages/web
         run: npx tsc --noEmit -p tsconfig.json
 
+      - name: Lint (hard gate — eslint must be zero, production code)
+        # W3: the production baseline was driven to zero (PR #137, #138:
+        # 147 findings → 0, incl. no-explicit-any). From here a NEW eslint
+        # error fails the build — the rule set and its exceptions are in
+        # packages/web/eslint.config.mjs (every disabled rule carries a
+        # comment). Tests are still out of scope (172 findings: any 90,
+        # unused-vars 55 — a separate wave); `lint:prod` ignores them,
+        # and the full `yarn lint` becomes the gate when they reach zero.
+        working-directory: packages/web
+        run: yarn lint:prod
+
       - name: Apply DB migrations (web)
         # Migrations are the reviewable DB change record (prisma/migrations);
         # applying them on a clean container also proves a fresh database
