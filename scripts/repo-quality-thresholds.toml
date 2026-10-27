@@ -25,6 +25,43 @@ cyclomatic_abs_fail = 25  # CA1502: at this point it is simply excessive
 cognitive_warn    = 10    # calibrate: start warning early, tune after 4 weeks
 cognitive_fail    = 15    # S3776 default
 
+[justifications]
+# NIST SP 500-235: above 10 needs a WRITTEN justification. Each entry is
+# 'path/prefix::functionName' = reason. A justified function over the limit
+# stays INFO (visible debt), the gate FAILS only on unjustified violations —
+# this is what lets the gate flip to blocking (W4) without reding forever on
+# the documented frontier. Remove an entry the moment its function is refactored
+# below the limit (stale entries are reported).
+#
+# The authoritative complexity scan is ESLint sonarjs (S3776) — a BLOCKING CI
+# gate at zero findings repo-wide. Numbers here are the local keyword
+# approximation (~approx), which inflates factories and mappers.
+
+# ── OAuth / auth bootstrap: security-sensitive, deliberately not restructured ──
+"src/api/src/auth/googleRoutes.ts::createGoogleRouter" = "OAuth router factory: the ~approx counter attributes every inline route handler's keywords to the factory name (closure artifact). The authoritative sonarjs CoC scan passes this file; splitting the OAuth flow for the metric would touch security-sensitive code for no real gain (W3 frontier decision)."
+"src/api/src/index.ts::main" = "Server bootstrap (Prisma, Apollo, Next, schedulers) — one wiring function; extraction would scatter startup order. Frontier: bootstrap stays."
+"src/api/src/auth/rememberMe.ts::userIdFromToken" = "Timing-safe token verification chain (crypto.timingSafeEqual lengths, signature, expiry) — W1 refactor deliberately declined: security-sensitive."
+
+# ── Resolvers: flat snake->camel mappers, ~approx artifacts ──
+"src/api/src/resolvers/mappers.ts::normalizeGame" = "Flat row mapper: the ~approx counter reads every ?? / ?. / ternary as a branch; real cyclomatic complexity is a fraction. sonarjs passes. Splitting the object literal polishes the artifact."
+"src/api/src/resolvers/search.ts::matchCandidate" = "Search filter cascade, natural minimum after the CC 23->17 extraction batch (#132); further splits hurt readability."
+"src/api/src/resolvers/gameCatalog.ts::buildCatalogWhere" = "Catalog where-builder, extracted 24->15 in #132; remaining branches are one guard per catalog filter — a natural minimum."
+"src/api/src/resolvers/gameMutation.ts::gameFieldData" = "Column-map builder shared by create/update (#132/#135 dedup); flat literal, ~approx artifact."
+
+# ── Client state: query/filter mappers, one boolean arm per filter ──
+"src/components/Catalog/catalogState.ts::catalogStateToQuery" = "Query-string serializer: one ?? per serialized field, ~approx artifact (sonarjs passes)."
+"src/components/Catalog/catalogState.ts::catalogStateToFilter" = "Filter parser, twin of the serializer — same artifact."
+"src/components/Catalog/catalogState.ts::catalogActiveFilters" = "Active-filter tally: one guard per filter facet, natural minimum."
+"src/components/Catalog/catalogState.ts::catalogActiveFilterText" = "Filter label builder, same family as catalogActiveFilters."
+"src/components/Catalog/catalogState.ts::hasCatalogFilters" = "One || per filter facet — a count, not branching logic."
+"src/components/Calendar/calendarState.ts::calendarStateToQuery" = "Calendar query serializer, same mapper family as the catalog one."
+
+# ── Test fixtures: reported, not refactored (fixtures, not product) ──
+"src/api/src/__tests__/auth.test.ts::ctxWithRole" = "Test helper: builds a context fixture per role — fixtures are not refactor targets (skill doctrine)."
+"src/api/src/__tests__/nightlyBatch.test.ts::makeGame" = "Test fixture factory: one field per game row shape."
+"src/api/src/__tests__/googleCalendar.test.ts::fakeCalendar" = "Test fixture: calendar client fake with one arm per method."
+"src/api/src/__tests__/yearReviewRanking.test.ts::yearReview" = "Test fixture builder for ranking rows."
+
 [duplication]
 # Sonar way applies <= 3% to NEW code; repo-wide duplication is a trend signal
 duplication_fail_pct = 3.0   # SONAR (new code)
