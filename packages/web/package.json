@@ -12,6 +12,7 @@
     "test:api": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --config jest.api.config.json src/api/src/__tests__",
     "codegen": "graphql-codegen --config codegen.yml",
     "lint": "eslint .",
+    "lint:prod": "eslint . --ignore-pattern '**/__tests__/**' --ignore-pattern '**/*.test.*' --ignore-pattern '**/tests/**'",
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
