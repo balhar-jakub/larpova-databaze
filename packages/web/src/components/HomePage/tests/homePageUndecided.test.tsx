@@ -29,6 +29,8 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
 jest.unstable_mockModule('@apollo/client', () => ({
     useQuery: (_document: unknown, options?: { skip?: boolean }) =>
         options?.skip ? { loading: false, data: undefined } : queryResult,
+    // The Pager of the "finish it" block pages through the client.
+    useApolloClient: () => ({ query: () => Promise.resolve({ data: { homepage: { myHome: { toComment: [] } } } }) }),
 }))
 jest.unstable_mockModule('next/router', () => ({ useRouter: () => ({ push: () => {}, query: {} }) }))
 jest.unstable_mockModule('next/link', () => ({
@@ -39,7 +41,7 @@ jest.unstable_mockModule('next/head', () => ({
 }))
 // `{}` while still asking: the state the provider hands over before it knows.
 jest.unstable_mockModule('src/hooks/useLoggedInUser', () => ({ useLoggedInUser: () => loggedInUser }))
-jest.unstable_mockModule('src/hooks/useMediaQuery', () => ({ useIsLgOrLarger: () => true }))
+jest.unstable_mockModule('src/hooks/useMediaQuery', () => ({ useIsLgOrLarger: () => true, useIsMdOrLarger: () => true }))
 jest.unstable_mockModule('../../common/OpenGraphMeta/OpenGraphMeta', () => ({ default: () => null }))
 jest.unstable_mockModule('../../common/GameLink/GameLink', () => ({
     GameLink: ({ children }: { children: React.ReactNode }) => <a href="/larp/test">{children}</a>,

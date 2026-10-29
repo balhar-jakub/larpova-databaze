@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -28,10 +28,21 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
 }))
 // The personal query is skipped for an anonymous visitor, so the mock has to
 // answer "no data" for a skipped call — otherwise the page would render the
-// personal blocks for somebody who is not signed in.
+// personal blocks for somebody who is not signed in. `useApolloClient` backs
+// the "finish it" block's Pager: its `query` answers the review-backlog page.
+let pageRows: Record<string, unknown>[] = []
+let pageVariables: Record<string, unknown> | undefined = undefined
 jest.unstable_mockModule('@apollo/client', () => ({
     useQuery: (_document: unknown, options?: { skip?: boolean }) =>
         options?.skip ? { loading: false, data: undefined } : queryResult,
+    useApolloClient: () => ({
+        query: (call: { variables?: Record<string, unknown> }) => {
+            pageVariables = call.variables
+            return Promise.resolve({
+                data: { homepage: { myHome: { toComment: pageRows } } },
+            })
+        },
+    }),
 }))
 jest.unstable_mockModule('src/hooks/useLoggedInUser', () => ({
     useLoggedInUser: () => loggedInUser,
@@ -47,6 +58,7 @@ jest.unstable_mockModule('next/head', () => ({
 }))
 jest.unstable_mockModule('src/hooks/useMediaQuery', () => ({
     useIsLgOrLarger: () => true,
+    useIsMdOrLarger: () => true,
 }))
 jest.unstable_mockModule('../../common/OpenGraphMeta/OpenGraphMeta', () => ({ default: () => null }))
 jest.unstable_mockModule('../../common/GameLink/GameLink', () => ({
@@ -105,10 +117,12 @@ const personalAnswer = () => ({
                     },
                 ],
                 toRate: [{ game: game('40', 'Země snů: Sen ve stínech'), since: '2020-02-02T00:00:00.000Z' }],
+                toRateCount: 1,
                 toComment: [
                     { game: game('45', 'Dance Macabre'), since: '2012-05-05T00:00:00.000Z' },
                     { game: game('46', 'Fallen'), since: '2022-09-16T00:00:00.000Z' },
                 ],
+                toCommentCount: 2,
                 oldestWanted: [{ game: game('41', 'Camlann'), since: '2007-05-05T00:00:00.000Z' }],
                 authored: [
                     {
@@ -152,6 +166,8 @@ const personalAnswer = () => ({
 beforeEach(() => {
     queryResult = personalAnswer()
     loggedInUser = { id: '1', name: 'Balda' }
+    pageRows = []
+    pageVariables = undefined
 })
 
 test('a signed-in visitor gets their own numbers, not the anonymous hero', () => {
@@ -207,6 +223,43 @@ test('the page names what to finish and what the visitor\'s own games are doing'
     // The voter's name is nowhere: not in the block, not in the header.
     expect(screen.queryByText('Triss')).toBeNull()
     expect(screen.queryByText('Od koho')).toBeNull()
+})
+
+test('the review backlog walks its pages through the Pager', async () => {
+    // A backlog bigger than the three rows the block lists: the header must
+    // count all of it, and the Pager must reach past the first page.
+    const big = personalAnswer()
+    const home = (big.data as { homepage: { myHome: Record<string, unknown> } }).homepage
+    const mine = home.myHome as { toComment: unknown[]; toCommentCount: number }
+    mine.toComment = [
+        { game: game('45', 'Dance Macabre'), since: null },
+        { game: game('46', 'Fallen'), since: null },
+        { game: game('47', 'Ferry'), since: null },
+    ]
+    mine.toCommentCount = 8
+    queryResult = big
+
+    render(<Panel />)
+
+    // The whole backlog, not the slice: 1 to rate + 8 to review.
+    expect(screen.getByText('Chybí váš hlas u 9 her')).toBeTruthy()
+    expect(screen.getByText('110 hraných her · 15 vašich her · 51 komentářů · 9 her čeká na váš hlas')).toBeTruthy()
+    // The range label says where the visitor is in the backlog.
+    expect(screen.getByText('1.–3. z 8')).toBeTruthy()
+
+    // Ask for the second page through the Pager's next button.
+    pageRows = [{ game: game('48', 'Gatecrashers'), since: null }]
+    const next = screen.getByText('>')
+    await act(async () => {
+        fireEvent.click(next)
+        await Promise.resolve()
+    })
+    expect(pageVariables).toEqual({ offset: 3, limit: 3 })
+    expect(await screen.findByText('Gatecrashers')).toBeTruthy()
+    // The first page is gone — the block holds one page at a time.
+    expect(screen.queryByText('Dance Macabre')).toBeNull()
+    // The Pager moved with the data.
+    expect(screen.getByText('4.–6. z 8')).toBeTruthy()
 })
 
 test('the newest comments under the visitor\'s own games have their own block', () => {

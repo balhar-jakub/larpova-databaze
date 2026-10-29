@@ -770,7 +770,7 @@ describe('homepage — the personal blocks', () => {
 
   test('"finish" also offers the rated games the visitor never reviewed', async () => {
     const result: any = await personal(
-      `{ homepage { myHome { toComment { game { id name } since } } } }`,
+      `{ homepage { myHome { toRateCount toCommentCount toComment { game { id name } since } } } }`,
     );
 
     expect(result.errors).toBeUndefined();
@@ -783,6 +783,71 @@ describe('homepage — the personal blocks', () => {
     expect(ids).toContain(String(alreadyKnownId));
     expect(ids).not.toContain(String(ratedHighId));
     expect(mine.toComment[0].since).toBeTruthy();
+    // The counts say how much work there is, not how many rows the block lists:
+    // the header must not cap at the slice size.
+    expect(mine.toCommentCount).toBe(2);
+    expect(mine.toRateCount).toBe(1);
+  });
+
+  test('the review backlog pages: the offset asks for the games after the first page', async () => {
+    // Five rated games without a review — enough for the block's first page
+    // (three) plus a second one.
+    const pagedIds: number[] = [];
+    for (let i = 0; i < 5; i++) {
+      const game = await prisma.csld_game.create({
+        data: {
+          name: `${marker} stránka ${i}`,
+          description: 'x',
+          deleted: false,
+          added_by: userId,
+          average_rating: 50,
+          amount_of_ratings: 5,
+          total_rating: 250,
+        },
+      });
+      gameIds.push(game.id);
+      pagedIds.push(game.id);
+      await prisma.csld_rating.create({
+        data: {
+          game_id: game.id,
+          user_id: userId,
+          state: 2,
+          rating: 5,
+          // Newest first: page 0 holds the highest i, page 1 the rest.
+          added: new Date(Date.now() - (100 + i) * 864e5),
+        },
+      });
+    }
+
+    const result: any = await personal(
+      `{ homepage { myHome {
+        count: toCommentCount
+        firstPage: toComment { game { id } }
+        secondPage: toComment(offset: 3, limit: 3) { game { id } }
+      } } }`,
+    );
+
+    expect(result.errors).toBeUndefined();
+    const mine = result.data.homepage.myHome;
+    // Two rated games from the shared fixtures plus the five paged ones.
+    expect(mine.count).toBe(7);
+    expect(mine.firstPage).toHaveLength(3);
+    expect(mine.secondPage).toHaveLength(3);
+    // The first page and the second page are disjoint, and the second page
+    // holds exactly the three games after the first one (the list is newest
+    // first: the paged fixtures carry the oldest `added`, so the shared
+    // fixtures lead and the paged ones follow in reverse-creation order).
+    const firstIds = mine.firstPage.map((row: any) => Number(row.game.id));
+    const secondIds = mine.secondPage.map((row: any) => Number(row.game.id));
+    expect(firstIds).not.toEqual(expect.arrayContaining(secondIds));
+    const expectedSecond = [pagedIds[1], pagedIds[2], pagedIds[3]];
+    expect(secondIds).toEqual(expectedSecond);
+    // The last game of the backlog is reachable from the last page.
+    const lastPage: any = await personal(
+      `{ homepage { myHome { lastPage: toComment(offset: 6, limit: 3) { game { id } } } } }`,
+    );
+    expect(lastPage.data.homepage.myHome.lastPage).toHaveLength(1);
+    expect(Number(lastPage.data.homepage.myHome.lastPage[0].game.id)).toBe(pagedIds[4]);
   });
 
   test('games with ratings or comments turned off stay out of the "finish" block', async () => {

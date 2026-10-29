@@ -1,7 +1,8 @@
 import React from 'react'
 import Head from 'next/head'
+import { useCallback, useState } from 'react'
 import { createUseStyles } from 'react-jss'
-import { useQuery } from '@apollo/client'
+import { useQuery, useApolloClient } from '@apollo/client'
 import { Row } from 'react-bootstrap'
 import { useTranslation } from 'src/lib/i18n'
 import { useLoggedInUser } from 'src/hooks/useLoggedInUser'
@@ -27,9 +28,12 @@ import {
     GetHomePageDataQueryVariables,
     GetHomePageUserQuery,
     GetHomePageUserQueryVariables,
+    GetHomePageToCommentQuery,
+    GetHomePageToCommentQueryVariables,
 } from '../../graphql/__generated__/typescript-operations'
 import * as getHomePageDataDocument from './graphql/getHomePageData.graphql'
 import * as getHomePageUserDocument from './graphql/homePageUser.graphql'
+import * as getHomePageToCommentDocument from './graphql/homePageToComment.graphql'
 import type { DocumentNode } from 'graphql'
 import OpenGraphMeta from '../common/OpenGraphMeta/OpenGraphMeta'
 
@@ -38,6 +42,7 @@ import OpenGraphMeta from '../common/OpenGraphMeta/OpenGraphMeta'
 const documentOf = (value: unknown) => ((value as { default?: unknown })?.default ?? value) as DocumentNode
 const getHomePageDataQuery = documentOf(getHomePageDataDocument)
 const getHomePageUserQuery = documentOf(getHomePageUserDocument)
+const getHomePageToCommentQuery = documentOf(getHomePageToCommentDocument)
 
 /** The catalog's own deep links: the homepage shows a slice, the catalog the list. */
 const CATALOG_BEST_RATED = '/games?order=Best&minr=5'
@@ -46,6 +51,9 @@ const CATALOG_NEWEST = '/games?order=Newest'
 const COMMENTS_PAGE = '/komentare'
 /** The calendar with only the open registrations showing. */
 const CALENDAR_OPEN_REGISTRATION = '/kalendar?reg=1'
+/** How many review rows one page of the "finish it" block holds — the size of
+ * the slice `myHome.toComment` ships, and the Pager's step below it. */
+const MY_HOME_COMMENTS_PAGE = 3
 
 const useStyles = createUseStyles({
     gamesAndEvents: {
@@ -101,7 +109,7 @@ const HomeMainPanel = ({
                 playedCount={my?.playedCount}
                 authoredCount={my?.authoredCount}
                 commentsCount={my?.commentsCount}
-                toFinishCount={(my?.toRate?.length ?? 0) + (my?.toComment?.length ?? 0)}
+                toFinishCount={(my?.toRateCount ?? my?.toRate?.length ?? 0) + (my?.toCommentCount ?? my?.toComment?.length ?? 0)}
             />
         )
     ) : anonymous ? (
@@ -144,6 +152,37 @@ export const HomePagePanel = () => {
     const emptyState = Boolean(signedIn && my && !my.hasData)
     const anonymous = !signedIn && settled
 
+    // Which page of the review backlog the block shows. The first page ships
+    // with `myHome`; the Pager asks for another window and this state holds
+    // which one the rows render (so the panel is reproducible while data reloads).
+    const [commentOffset, setCommentOffset] = useState(0)
+    const [commentPage, setCommentPage] = useState<GetHomePageToCommentQuery['homepage']['myHome'] | undefined>(undefined)
+    const apolloClient = useApolloClient()
+    const loadingPageRef = React.useRef(false)
+    const onCommentPage = useCallback(
+        (offset: number) => {
+            if (loadingPageRef.current || !signedIn) return
+            loadingPageRef.current = true
+            apolloClient
+                .query<GetHomePageToCommentQuery, GetHomePageToCommentQueryVariables>({
+                    query: getHomePageToCommentQuery,
+                    variables: { offset, limit: MY_HOME_COMMENTS_PAGE },
+                })
+                .then((result) => {
+                    setCommentPage(result.data.homepage.myHome ?? undefined)
+                    setCommentOffset(offset)
+                })
+                .catch(() => {
+                    // The block keeps the page it has; a failed page fetch is
+                    // not a reason to blank the block.
+                })
+                .finally(() => {
+                    loadingPageRef.current = false
+                })
+        },
+        [apolloClient, signedIn],
+    )
+
     return (
         <>
             <Head><title>{t('HomePage.pageTitle')}</title></Head>
@@ -173,9 +212,13 @@ export const HomePagePanel = () => {
                             />
                             <HomeToFinishPanel
                                 toRate={my.toRate}
-                                toComment={my.toComment}
+                                toRateCount={my.toRateCount}
+                                toComment={commentPage?.toComment ?? my.toComment}
+                                toCommentCount={my.toCommentCount}
                                 oldestWanted={my.oldestWanted}
                                 wantedCount={my.wantedCount}
+                                commentOffset={commentOffset}
+                                onCommentPage={my.toCommentCount > MY_HOME_COMMENTS_PAGE ? onCommentPage : undefined}
                             />
                             <HomeAuthoredPanel authored={my.authored} authoredCount={my.authoredCount} />
                             <HomeAuthoredCommentsPanel comments={my.authoredComments} />

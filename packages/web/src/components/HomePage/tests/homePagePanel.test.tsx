@@ -28,6 +28,8 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
 }))
 jest.unstable_mockModule('@apollo/client', () => ({
     useQuery: () => queryResult,
+    // The Pager of the "finish it" block pages through the client.
+    useApolloClient: () => ({ query: () => Promise.resolve({ data: { homepage: { myHome: { toComment: [] } } } }) }),
 }))
 jest.unstable_mockModule('next/router', () => ({
     useRouter: () => ({ push: pushMock, query: {} }),
@@ -45,6 +47,7 @@ jest.unstable_mockModule('src/hooks/useLoggedInUser', () => ({
 }))
 jest.unstable_mockModule('src/hooks/useMediaQuery', () => ({
     useIsLgOrLarger: () => true,
+    useIsMdOrLarger: () => true,
 }))
 jest.unstable_mockModule('../../common/OpenGraphMeta/OpenGraphMeta', () => ({ default: () => null }))
 // The real card links through the Next router and the comment body pulls in its

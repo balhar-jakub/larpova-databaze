@@ -449,8 +449,7 @@ function gamesToComment(played: readonly any[], commentedGameIds: Set<number>): 
     .filter((row: any) => row.rating != null)
     .filter((row: any) => !commentedGameIds.has(row.game_id))
     .filter((row: any) => !row.csld_game?.commentsdisabled)
-    .sort((a: any, b: any) => new Date(b.added).getTime() - new Date(a.added).getTime())
-    .slice(0, MY_HOME_COMMENTS);
+    .sort((a: any, b: any) => new Date(b.added).getTime() - new Date(a.added).getTime());
 }
 
 /** Played but unrated games: a played game with the ratings turned off keeps
@@ -601,8 +600,11 @@ export async function myHomepage(ctx: Context, userId: number) {
   // Games the visitor rated but never wrote about: the review is the half of
   // the work that helps the next visitor. Rated-but-uncommented is three times
   // more common in the database than played-but-unrated, so this list is the
-  // bigger half of "finish it".
-  const toComment = gamesToComment(played, commentedGameIds).map(personal);
+  // bigger half of "finish it". The block lists the first page; the counts and
+  // the page arguments answer "how much is left" and "what comes next", so the
+  // header never says three when fifty await.
+  const toCommentRows = gamesToComment(played, commentedGameIds);
+  const toComment = toCommentRows.slice(0, MY_HOME_COMMENTS).map(personal);
 
   // The taste-based signable events: future open-registration events of games
   // whose labels overlap the visitor's 8+ taste. Wishlist games are excluded
@@ -626,7 +628,9 @@ export async function myHomepage(ctx: Context, userId: number) {
     myEvents: myEvents.map((event: any) => mapEventRow(event, ctx)),
     wantedWithoutEvent: wantedIds.filter((id: number) => !linkedWantedIds.has(id)).length,
     toRate: gamesToRate(knownGames).map(personal),
+    toRateCount: gamesToRate(knownGames).length,
     toComment,
+    toCommentCount: toCommentRows.length,
     oldestWanted: wantedOldestFirst.slice(0, 2).map(personal),
     authored: authoredByRecency.slice(0, MY_HOME_AUTHORED).map((game: any) => {
       const rating = lastRatingByGame.get(game.id);
@@ -845,4 +849,47 @@ export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Co
     lastComments,
     myHome,
   };
+}
+
+/**
+ * A page of the visitor's rated-but-never-reviewed games — the "load more" arm
+ * of the homepage's "finish it" block. The same definition, ordering and
+ * exclusions as the `toComment` the first page ships, so paging cannot show
+ * what the block's contract excludes.
+ *
+ * Returns null for an anonymous caller, like `myHomepage` itself.
+ */
+export async function myHomeToCommentPage(
+  ctx: Context,
+  offset: number,
+  limit: number,
+) {
+  if (!ctx.user) return null;
+  const userId = ctx.user.id;
+
+  // The visitor's played ratings and their own comments — the same two reads
+  // `myHomepage` builds the first page from.
+  const [ratingRows, myCommentGameIds] = await Promise.all([
+    ctx.db.csld_rating.findMany({
+      where: { user_id: userId, csld_game: { deleted: false } },
+      include: { csld_game: { include: GAME_LIST_INCLUDE } },
+      orderBy: { added: 'desc' },
+    }),
+    ctx.db.csld_comment.findMany({
+      where: { user_id: userId, is_hidden: false },
+      select: { game_id: true },
+    }),
+  ]);
+
+  const played = ratingRows.filter((row: any) => row.state === STATE_PLAYED);
+  const commentedGameIds = new Set(
+    (myCommentGameIds as any[]).map((row: any) => row.game_id).filter(Boolean),
+  );
+
+  return gamesToComment(played, commentedGameIds)
+    .slice(offset, offset + limit)
+    .map((row: any) => ({
+      game: normalizeGame(row.csld_game),
+      since: row.added ? new Date(row.added).toISOString() : null,
+    }));
 }
