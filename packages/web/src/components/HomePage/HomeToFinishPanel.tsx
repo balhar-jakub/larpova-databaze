@@ -9,6 +9,7 @@ import { parseDateTime } from '../../utils/dateUtils'
 import { GameBaseData } from '../common/GameBaseDataPanel/GameBaseDataPanel'
 import { GameLink } from '../common/GameLink/GameLink'
 import { GridHeader } from './GridHeader'
+import Pager from '../common/Pager/Pager'
 
 interface PersonalGame {
     readonly game?: GameBaseData
@@ -17,9 +18,14 @@ interface PersonalGame {
 
 interface Props {
     readonly toRate?: PersonalGame[]
+    readonly toRateCount?: number
     readonly toComment?: PersonalGame[]
+    readonly toCommentCount?: number
     readonly oldestWanted?: PersonalGame[]
     readonly wantedCount?: number
+    /** The offset of the review page `toComment` holds; the Pager highlights it. */
+    readonly commentOffset?: number
+    readonly onCommentPage?: (offset: number) => void
 }
 
 const useStyles = createUseStyles({
@@ -99,12 +105,19 @@ const useStyles = createUseStyles({
  * three times more common in the database than played-but-unrated, so without
  * the second list the block would hide the bigger half of the work. The
  * "want to play" list is not work — it stays a one-line link to the profile.
+ *
+ * The counts are the *whole* backlog, never the slices rendered here: the block
+ * lists three rows, but the header must say fifty when fifty games await the
+ * review — and the Pager below the review rows walks the rest of the list, so
+ * the oldest debt is reachable too.
  */
-export const HomeToFinishPanel = ({ toRate = [], toComment = [], oldestWanted = [], wantedCount }: Props) => {
+export const HomeToFinishPanel = ({ toRate = [], toRateCount = toRate.length, toComment = [], toCommentCount = toComment.length, oldestWanted = [], wantedCount, commentOffset = 0, onCommentPage }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
 
     const wantedSince = oldestWanted[0]?.since ? parseDateTime(oldestWanted[0].since) : null
+
+    const missingVoices = Math.max(toRateCount, toRate.length) + Math.max(toCommentCount, toComment.length)
 
     const items = [
         ...toRate.map((row, index) => ({
@@ -126,8 +139,8 @@ export const HomeToFinishPanel = ({ toRate = [], toComment = [], oldestWanted = 
     return (
         <Col xl={6}>
             <GridHeader>
-                {items.length > 0
-                    ? t('HomePage.toFinishVoice', { count: items.length })
+                {missingVoices > 0
+                    ? t('HomePage.toFinishVoice', { count: missingVoices })
                     : t('HomePage.toFinish')}
             </GridHeader>
             {items.map((item, index) =>
@@ -141,6 +154,15 @@ export const HomeToFinishPanel = ({ toRate = [], toComment = [], oldestWanted = 
                         <GameLink game={item.game} className={classes.itemAction}>{item.action}</GameLink>
                     </div>
                 ) : null,
+            )}
+            {onCommentPage && toCommentCount > 3 && (
+                <Pager
+                    currentOffset={commentOffset}
+                    totalAmount={toCommentCount}
+                    pageSize={3}
+                    rangeLabel
+                    onOffsetChanged={onCommentPage}
+                />
             )}
             {wantedCount != null && wantedCount > 0 && (
                 <p className={classes.wantedNote}>

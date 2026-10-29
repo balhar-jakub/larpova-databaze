@@ -42,7 +42,7 @@ const inline = (absolute: string, seen: Set<string> = new Set()): string => {
 
 const schema = buildSchema(readFileSync(path.join(webRoot, 'src/graphql/schema.graphql'), 'utf-8'))
 
-const documents = ['getHomePageData.graphql', 'homePageUser.graphql']
+const documents = ['getHomePageData.graphql', 'homePageUser.graphql', 'homePageToComment.graphql']
 
 describe('homepage GraphQL documents', () => {
     it.each(documents)('%s passes the validation the server runs', (name) => {

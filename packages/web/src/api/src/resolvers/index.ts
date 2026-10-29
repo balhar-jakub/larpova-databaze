@@ -8,7 +8,7 @@ import {
   commentsPagedResolver,
 } from './game.js';
 import { catalogResolver } from './gameCatalog.js';
-import { homepageResolver, lastCommentsPage, allCommentsPage, commentsStats } from './homepage.js';
+import { homepageResolver, lastCommentsPage, allCommentsPage, commentsStats, myHomeToCommentPage, MY_HOME_COMMENTS } from './homepage.js';
 import { commentAsText } from './textUtils.js';
 import { configResolver } from './config.js';
 import {
@@ -162,6 +162,24 @@ export const resolvers: any = {
       args: { offset?: number; limit?: number },
       ctx: any,
     ) => lastCommentsPage(ctx, args),
+  },
+
+  MyHomepage: {
+    // The "finish it" block pages the review backlog the same way the comments
+    // block pages its list: the first page ships with `myHome` (computed by
+    // `myHomepage`, no extra reads), the rest asks with an offset.
+    toComment: (
+      parent: { toComment: unknown[] },
+      args: { offset?: number; limit?: number },
+      ctx: Context,
+    ) =>
+      args.offset == null && args.limit == null
+        ? parent.toComment
+        : myHomeToCommentPage(
+            ctx,
+            Math.max(0, args.offset ?? 0),
+            Math.min(Math.max(1, args.limit ?? MY_HOME_COMMENTS), 100),
+          ),
   },
 
   Game: {

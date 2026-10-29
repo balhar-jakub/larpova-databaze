@@ -31,12 +31,14 @@ query GetHomePageUser {
                 }
                 since
             }
+            toRateCount
             toComment {
                 game {
                     ...baseGameData
                 }
                 since
             }
+            toCommentCount
             oldestWanted {
                 game {
                     ...baseGameData

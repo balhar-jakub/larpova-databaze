@@ -1,0 +1,19 @@
+#import "src/graphql/fragments/baseGameData.graphql"
+
+# The "load more" arm of the "finish it" block: a page of the visitor's
+# rated-but-never-reviewed games, newest first. The first page ships with
+# GetHomePageUser; this answers the Pager below it. The fragment is spread, not
+# merely imported — an imported-but-unused fragment makes the server refuse
+# the whole document with `Fragment "..." is never used.`
+query GetHomePageToComment($offset: Int, $limit: Int) {
+    homepage {
+        myHome {
+            toComment(offset: $offset, limit: $limit) {
+                game {
+                    ...baseGameData
+                }
+                since
+            }
+        }
+    }
+}

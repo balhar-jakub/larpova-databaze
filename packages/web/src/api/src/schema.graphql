@@ -181,8 +181,12 @@ type MyHomepage {
     wantedWithoutEvent: Int!
     "Played games the visitor has not rated, newest first."
     toRate: [PersonalGame!]!
-    "Games the visitor rated but never reviewed, newest first."
-    toComment: [PersonalGame!]!
+    "How many played games await the visitor's rating — the full backlog, not the two the block lists."
+    toRateCount: Int!
+    "Games the visitor rated but never reviewed, newest first. `offset`/`limit` page it, so the block can offer the rest of the backlog too."
+    toComment(offset: Int, limit: Int): [PersonalGame!]!
+    "How many rated games await the visitor's review — the full backlog, not the slice the block lists."
+    toCommentCount: Int!
     "The oldest rows of the \"want to play\" list."
     oldestWanted: [PersonalGame!]!
     "The visitor's own games, the newest rating first."

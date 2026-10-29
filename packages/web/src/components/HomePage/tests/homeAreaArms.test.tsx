@@ -9,7 +9,7 @@
  * optional-chain arms when the comment shape is missing pieces.
  */
 import React from 'react'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -24,6 +24,7 @@ jest.unstable_mockModule('src/lib/i18n', () => ({
 }))
 jest.unstable_mockModule('src/hooks/useMediaQuery', () => ({
     useIsLgOrLarger: () => true,
+    useIsMdOrLarger: () => true,
 }))
 jest.unstable_mockModule('next/link', () => ({
     default: ({ children, href }: { children: React.ReactNode; href?: string }) => <a href={href ?? '#'}>{children}</a>,
@@ -111,6 +112,48 @@ describe('HomeToFinishPanel arms', () => {
         expect(screen.getByText('Chybí váš hlas u jedné hry')).toBeTruthy()
         expect(screen.queryByText('Dance Macabre')).toBeNull()
         expect(screen.queryByText(translate(cs, 'HomePage.toFinishReview'))).toBeNull()
+    })
+
+    it('counts the whole backlog and pages the reviews when the count outruns the rows', () => {
+        // The header counts the counts, not the rendered rows; the Pager shows
+        // up only when the review backlog is longer than one page, and hands the
+        // visitor's page choice to the parent.
+        let askedOffset = -1
+        render(
+            <HomeToFinishPanel
+                toComment={[{ game: game('45', 'Dance Macabre'), since: null }]}
+                toCommentCount={11}
+                commentOffset={0}
+                onCommentPage={(offset) => { askedOffset = offset }}
+            />,
+        )
+
+        expect(screen.getByText('Chybí váš hlas u 11 her')).toBeTruthy()
+        expect(screen.getByText('1.–3. z 11')).toBeTruthy()
+        fireEvent.click(screen.getByText('>'))
+        expect(askedOffset).toBe(3)
+        // Without the callback the Pager stays away even for a big backlog.
+        cleanup()
+        render(
+            <HomeToFinishPanel
+                toComment={[{ game: game('45', 'Dance Macabre'), since: null }]}
+                toCommentCount={11}
+            />,
+        )
+        expect(screen.queryByText(/z 11/)).toBeNull()
+    })
+
+    it('keeps the Pager away when the backlog fits one page', () => {
+        render(
+            <HomeToFinishPanel
+                toComment={[{ game: game('45', 'Dance Macabre'), since: null }]}
+                toCommentCount={1}
+                onCommentPage={() => {}}
+            />,
+        )
+
+        expect(screen.getByText('Chybí váš hlas u jedné hry')).toBeTruthy()
+        expect(screen.queryByText(/z 1/)).toBeNull()
     })
 })
 
