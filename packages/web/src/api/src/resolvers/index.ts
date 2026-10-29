@@ -6,6 +6,7 @@ import {
   gamesQueryResolver,
   gamesOfAuthorsResolver,
   commentsPagedResolver,
+  currentUsersCommentResolver,
 } from './game.js';
 import { catalogResolver } from './gameCatalog.js';
 import { homepageResolver, lastCommentsPage, allCommentsPage, commentsStats, myHomeToCommentPage, MY_HOME_COMMENTS } from './homepage.js';
@@ -187,6 +188,7 @@ export const resolvers: any = {
     articles: gameArticlesResolver,
     series: gameSeriesResolver,
     commentsPaged: commentsPagedResolver,
+    currentUsersComment: currentUsersCommentResolver,
     currentUsersRating: (parent: any, _args: unknown, ctx: Context) => {
       if (!ctx.user) return null;
       const ratings = parent.csld_rating ?? [];
