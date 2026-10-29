@@ -19,6 +19,7 @@ let userId: number;
 const recentGameIds: number[] = [];
 let authoredNoRatingsId: number;
 let authoredRatedId: number;
+let mutedGameId: number;
 const gameIds: number[] = [];
 const eventIds: number[] = [];
 const labelIds: number[] = [];
@@ -150,6 +151,7 @@ beforeAll(async () => {
     data: { name: `${marker} ztlumená`, deleted: false, added_by: userId, lang: 'cs', commentsdisabled: true },
   });
   gameIds.push(mutedGame.id);
+  mutedGameId = mutedGame.id;
   ratingIds.push(
     (await prisma.csld_rating.create({
       data: { user_id: userId, game_id: mutedGame.id, rating: 8, state: 2, added: new Date() },
@@ -166,6 +168,18 @@ beforeAll(async () => {
   ratingIds.push(
     (await prisma.csld_rating.create({
       data: { user_id: userId, game_id: twinTasteGame.id, rating: 9, state: 2, added: new Date() },
+    })).id,
+  );
+
+  // A rated-but-unreviewed game whose rating row has NO date: the paged arm
+  // must serve it with since: null, exactly like the first page does.
+  const undatedReviewGame = await prisma.csld_game.create({
+    data: { name: `${marker} recenze bez data`, deleted: false, added_by: userId, lang: 'cs' },
+  });
+  gameIds.push(undatedReviewGame.id);
+  ratingIds.push(
+    (await prisma.csld_rating.create({
+      data: { user_id: userId, game_id: undatedReviewGame.id, rating: 7, state: 2, added: null },
     })).id,
   );
 });
@@ -251,8 +265,42 @@ describe('homepage.myHome author and finish arms', () => {
     const result: any = await executeQuery(server, MY_HOME, undefined, me());
     expect(result.errors).toBeUndefined();
     const mine = result.data.homepage.myHome;
-    const mutedId = gameIds[gameIds.length - 2];
+    const mutedId = mutedGameId;
     expect(mine.toComment.some((r: any) => Number(r.game.id) === mutedId)).toBe(false);
+  });
+
+  it('serves the paged review backlog with the same rows and nulls as the first page', async () => {
+    // A limit-only call walks the "no offset given" arm of the resolver and
+    // must behave like offset 0; the undated rating must come back with
+    // since: null there, exactly like the first page maps it.
+    const paged: any = await executeQuery(
+      server,
+      `{ homepage { myHome {
+        count: toCommentCount
+        page: toComment(limit: 50) { game { id } since }
+      } } }`,
+      undefined,
+      me(),
+    );
+    expect(paged.errors).toBeUndefined();
+    const mine = paged.data.homepage.myHome;
+    expect(mine.count).toBeGreaterThan(0);
+    const rows = mine.page;
+    expect(rows).toHaveLength(mine.count);
+    // The muted game never pages in, the undated one pages with since null.
+    const mutedId = mutedGameId;
+    expect(rows.some((r: any) => Number(r.game.id) === mutedId)).toBe(false);
+    const undated = rows.find((r: any) => r.since === null);
+    expect(undated).toBeDefined();
+    // The paged arm agrees with the first page about what belongs in the list.
+    const firstPage: any = await executeQuery(
+      server,
+      `{ homepage { myHome { toComment { game { id } } } } }`,
+      undefined,
+      me(),
+    );
+    const firstIds = firstPage.data.homepage.myHome.toComment.map((r: any) => Number(r.game.id)).sort();
+    expect(rows.map((r: any) => Number(r.game.id)).sort().slice(0, firstIds.length)).toEqual(firstIds);
   });
 
 

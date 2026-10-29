@@ -169,12 +169,12 @@ export const resolvers: any = {
     // block pages its list: the first page ships with `myHome` (computed by
     // `myHomepage`, no extra reads), the rest asks with an offset.
     toComment: (
-      parent: { toComment?: unknown },
+      parent: { toComment: unknown[] },
       args: { offset?: number; limit?: number },
       ctx: Context,
     ) =>
       args.offset == null && args.limit == null
-        ? parent.toComment ?? []
+        ? parent.toComment
         : myHomeToCommentPage(
             ctx,
             Math.max(0, args.offset ?? 0),

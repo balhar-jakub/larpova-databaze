@@ -857,15 +857,15 @@ export async function homepageResolver(_parent: unknown, _args: unknown, ctx: Co
  * exclusions as the `toComment` the first page ships, so paging cannot show
  * what the block's contract excludes.
  *
- * Returns null for an anonymous caller, like `myHomepage` itself.
+ * Only reachable under `myHome`, which is null for an anonymous caller — so
+ * `ctx.user` is always present here; the null arm would be dead code.
  */
 export async function myHomeToCommentPage(
   ctx: Context,
   offset: number,
   limit: number,
 ) {
-  if (!ctx.user) return null;
-  const userId = ctx.user.id;
+  const userId = ctx.user!.id;
 
   // The visitor's played ratings and their own comments — the same two reads
   // `myHomepage` builds the first page from.
