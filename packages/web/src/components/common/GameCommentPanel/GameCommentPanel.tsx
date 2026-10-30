@@ -10,7 +10,7 @@ import { parseDateTime } from '../../../utils/dateUtils'
 import { GameRatingBox } from '../GameRatingBox/GameRatingBox'
 import { GameLink } from '../GameLink/GameLink'
 import UserLink from '../UserLink/UserLink'
-import { IconEye } from '../Icons/Icons'
+import { IconEdit, IconEye, IconTrash } from '../Icons/Icons'
 import { sanitizeHtml } from '../../../utils/sanitizeHtml'
 
 interface Props {
@@ -23,7 +23,21 @@ interface Props {
     readonly loading?: boolean
     readonly showVisibilityButton: boolean
     readonly onChangeCommentVisibility: (commentId: string, isHidden: boolean) => void
+    /** The viewer owns this comment — the row offers edit/delete actions. */
+    readonly canManage?: boolean
+    readonly onEditComment?: (commentId: string) => void
+    readonly onDeleteComment?: (commentId: string) => void
 }
+
+const circleButton = {
+    display: 'inline-block',
+    minWidth: 30,
+    height: 30,
+    textAlign: 'center',
+    paddingTop: 3,
+    borderRadius: 15,
+    padding: 5,
+} as const
 
 const useStyles = createUseStyles({
     wrapper: {
@@ -83,13 +97,7 @@ const useStyles = createUseStyles({
         textAlign: 'right',
     },
     commentHiddenButton: {
-        display: 'inline-block',
-        minWidth: 30,
-        height: 30,
-        textAlign: 'center',
-        paddingTop: 3,
-        borderRadius: 15,
-        padding: 5,
+        ...circleButton,
         marginRight: 8,
         border: 0,
         backgroundColor: darkTheme.backgroundWhite,
@@ -103,14 +111,19 @@ const useStyles = createUseStyles({
         backgroundColor: darkTheme.backgroundControl,
         color: darkTheme.text,
     },
+    manageButton: {
+        ...circleButton,
+        marginRight: 8,
+        border: 0,
+        backgroundColor: darkTheme.backgroundWhite,
+        color: darkTheme.textOnLight,
+        '&:hover': {
+            backgroundColor: darkTheme.textGreen,
+            color: darkTheme.textOnLight,
+        },
+    },
     likesCircle: {
-        display: 'inline-block',
-        textAlign: 'center',
-        minWidth: 30,
-        height: 30,
-        paddingTop: 3,
-        borderRadius: 15,
-        padding: 5,
+        ...circleButton,
         backgroundColor: darkTheme.backgroundWhite,
         color: darkTheme.textOnLight,
     },
@@ -141,7 +154,7 @@ const firstWordOf = (name: string) => {
     return sidx < 0 ? name : name.substr(0, sidx)
 }
 
-const GameCommentPanel = ({ comment, loading, showVisibilityButton, onChangeCommentVisibility }: Props) => {
+const GameCommentPanel = ({ comment, loading, showVisibilityButton, onChangeCommentVisibility, canManage, onEditComment, onDeleteComment }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
     const added = format(parseDateTime(comment.added) || 0, 'dd.MM.yyyy')
@@ -170,6 +183,28 @@ const GameCommentPanel = ({ comment, loading, showVisibilityButton, onChangeComm
                     </div>
                 </div>
                 <div className={classes.headerLikes}>
+                    {canManage && onEditComment && (
+                        <button
+                            type="button"
+                            className={classes.manageButton}
+                            title={t('GameDetail.updateComment')}
+                            aria-label={t('GameDetail.updateComment')}
+                            onClick={() => onEditComment(comment.id)}
+                        >
+                            <IconEdit />
+                        </button>
+                    )}
+                    {canManage && onDeleteComment && (
+                        <button
+                            type="button"
+                            className={classes.manageButton}
+                            title={t('GameDetail.deleteComment')}
+                            aria-label={t('GameDetail.deleteComment')}
+                            onClick={() => onDeleteComment(comment.id)}
+                        >
+                            <IconTrash />
+                        </button>
+                    )}
                     {showVisibilityButton && (
                         <button
                             type="button"

@@ -37,6 +37,8 @@ interface Props {
     readonly userId?: string
     readonly user?: UserProfileUser
     readonly profileOnly?: boolean
+    /** Own profile page — the comments list offers edit/delete on the viewer's comments. */
+    readonly manageableComments?: boolean
 }
 
 const useStyles = createUseStyles({
@@ -68,7 +70,7 @@ const useStyles = createUseStyles({
     },
 })
 
-const UserProfilePanel = ({ userId, user, profileOnly }: Props) => {
+const UserProfilePanel = ({ userId, user, profileOnly, manageableComments }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
     const [iCal, setICal] = useState('')
@@ -125,6 +127,7 @@ const UserProfilePanel = ({ userId, user, profileOnly }: Props) => {
                                 <UserPagedCommentsPanel
                                     userId={user.id}
                                     firstPage={user.commentsPaged as CommentsPaged}
+                                    manageable={manageableComments}
                                 />
                             )}
                         </Col>

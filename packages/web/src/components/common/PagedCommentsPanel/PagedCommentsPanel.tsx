@@ -20,9 +20,13 @@ interface Props {
     readonly onOffsetChanged: (newOffset: number) => void
     /** Show `1.–25. z 121` next to the buttons — the catalog's pager does. */
     readonly rangeLabel?: boolean
+    /** Offer edit/delete on comments authored by the logged-in user (own profile page). */
+    readonly manageable?: boolean
+    readonly onEditComment?: (commentId: string) => void
+    readonly onDeleteComment?: (commentId: string) => void
 }
 
-const PagedCommentsPanel = ({ offset, loading, page, pageSize, onOffsetChanged, rangeLabel = false }: Props) => {
+const PagedCommentsPanel = ({ offset, loading, page, pageSize, onOffsetChanged, rangeLabel = false, manageable, onEditComment, onDeleteComment }: Props) => {
     const client = useApolloClient()
     const loggedInUser = useLoggedInUser()
 
@@ -45,6 +49,9 @@ const PagedCommentsPanel = ({ offset, loading, page, pageSize, onOffsetChanged, 
                         loading={loading}
                         showVisibilityButton={showVisibilityButton}
                         onChangeCommentVisibility={handleChangeCommentVisibility}
+                        canManage={manageable && comment.user.id === loggedInUser?.id}
+                        onEditComment={onEditComment}
+                        onDeleteComment={onDeleteComment}
                     />
                 ))}
             <Pager
