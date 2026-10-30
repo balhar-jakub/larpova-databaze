@@ -27,7 +27,7 @@ let mutationShouldFail = false
 let refetchCalls: unknown[] = []
 let toastCalls: Array<{ message: string; kind: string }> = []
 let pagedProps: Record<string, unknown> = {}
-let modalProps: Array<{ gameId: string; oldText: string; onHide: () => void; onCommentSaved: () => void }> = []
+let modalProps: Array<{ gameId: string; oldText: string; onHide: () => void; onLoad: () => void; onCommentSaved: () => void }> = []
 
 jest.unstable_mockModule('src/lib/i18n', () => ({
     useTranslation: () => ({
@@ -70,7 +70,7 @@ jest.unstable_mockModule('../../common/PagedCommentsPanel/PagedCommentsPanel', (
     },
 }))
 jest.unstable_mockModule('../../GameDetail/EditCommentModal', () => ({
-    default: (props: { gameId: string; oldText: string; onHide: () => void; onCommentSaved: () => void }) => {
+    default: (props: { gameId: string; oldText: string; onHide: () => void; onLoad: () => void; onCommentSaved: () => void }) => {
         modalProps.push(props)
         return <div data-testid="edit-modal" data-game={props.gameId} data-text={props.oldText} />
     },
@@ -178,6 +178,10 @@ describe('UserPagedCommentsPanel', () => {
         expect(screen.getByTestId('edit-modal').dataset.text).toBe('<p>text</p>')
         // A null comment body still opens the editor with an empty string.
         expect(modalProps[0].oldText).toBe('<p>text</p>')
+
+        // The modal's onLoad callback fires without side effects.
+        act(() => modalProps[0].onLoad())
+        expect(screen.getByTestId('edit-modal')).toBeTruthy()
 
         // Saving closes the modal and refetches the comment lists.
         act(() => modalProps[0].onCommentSaved())
