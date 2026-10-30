@@ -189,6 +189,7 @@
         "deleteGameConfirmation": "Opravdu smazat hru?",
         "commentAdded": "Váš komentář byl přidán",
         "commentUpdated": "Váš komentář byl aktualizován",
+        "commentDeleted": "Váš komentář byl smazán",
         "gameDeleted": "Hra byla vymazána",
         "restoreGame": "Obnovit hru",
         "gameRestored": "Hra byla obnovena",

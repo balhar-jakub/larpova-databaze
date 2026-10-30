@@ -42,6 +42,8 @@ jest.unstable_mockModule('../../GameLink/GameLink', () => ({
 }))
 jest.unstable_mockModule('../../Icons/Icons', () => ({
     IconEye: () => <span>eye</span>,
+    IconEdit: () => <span>edit</span>,
+    IconTrash: () => <span>trash</span>,
 }))
 
 let GameCommentPanel: typeof import('../GameCommentPanel').default
@@ -117,5 +119,71 @@ describe('GameCommentPanel', () => {
         // The nickname slot shows the first word of the full name.
         expect(screen.getByText('Jozef')).toBeTruthy()
         expect(screen.getByText('Jozef Novák')).toBeTruthy()
+    })
+
+    it('hides the manage buttons unless the viewer can manage the comment', () => {
+        const { rerender } = render(
+            <GameCommentPanel
+                comment={comment as never}
+                loading={false}
+                showVisibilityButton={false}
+                onChangeCommentVisibility={() => undefined}
+                canManage={false}
+                onEditComment={() => undefined}
+                onDeleteComment={() => undefined}
+            />,
+        )
+        expect(screen.queryByText('edit')).toBeNull()
+        expect(screen.queryByText('trash')).toBeNull()
+
+        rerender(
+            <GameCommentPanel
+                comment={comment as never}
+                loading={false}
+                showVisibilityButton={false}
+                onChangeCommentVisibility={() => undefined}
+                canManage
+                onEditComment={() => undefined}
+                onDeleteComment={() => undefined}
+            />,
+        )
+        expect(screen.getByText('edit')).toBeTruthy()
+        expect(screen.getByText('trash')).toBeTruthy()
+    })
+
+    it('fires edit and delete with the comment id', () => {
+        const events: string[] = []
+        render(
+            <GameCommentPanel
+                comment={comment as never}
+                loading={false}
+                showVisibilityButton={false}
+                onChangeCommentVisibility={() => undefined}
+                canManage
+                onEditComment={id => events.push(`edit:${id}`)}
+                onDeleteComment={id => events.push(`delete:${id}`)}
+            />,
+        )
+
+        fireEvent.click(screen.getByText('edit'))
+        fireEvent.click(screen.getByText('trash'))
+        expect(events).toEqual(['edit:c1', 'delete:c1'])
+    })
+
+    it('labels the manage buttons with the translated tooltips', () => {
+        render(
+            <GameCommentPanel
+                comment={comment as never}
+                loading={false}
+                showVisibilityButton={false}
+                onChangeCommentVisibility={() => undefined}
+                canManage
+                onEditComment={() => undefined}
+                onDeleteComment={() => undefined}
+            />,
+        )
+
+        expect(screen.getByTitle('Upravit váš komentář')).toBeTruthy()
+        expect(screen.getByTitle('Smazat váš komentář')).toBeTruthy()
     })
 })

@@ -18,7 +18,7 @@ const CurrentUserProfileContainer = () => {
     })
     const user = userDataQuery.data?.loggedInUser
 
-    return <UserProfilePanel userId={user?.id} user={user} />
+    return <UserProfilePanel userId={user?.id} user={user} manageableComments />
 }
 
 export default CurrentUserProfileContainer

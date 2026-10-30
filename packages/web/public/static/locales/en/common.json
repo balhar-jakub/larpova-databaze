@@ -57,6 +57,7 @@
     "updateComment": "Update your comment",
     "deleteComment": "Delete your comment",
     "addComment": "Add your comment",
+    "commentDeleted": "Your comment was deleted",
     "restoreGame": "Restore game",
     "series": "Series",
     "seriesInstalment": "This game",
