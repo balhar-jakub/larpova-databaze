@@ -29,7 +29,6 @@ export const PAGE_SIZE = 10
 const UserPagedCommentsPanel = ({ userId, firstPage, manageable }: Props) => {
     const [offset, setOffset] = useState(0)
     const [editingCommentId, setEditingCommentId] = useState<string | undefined>(undefined)
-    const [editModalLoaded, setEditModalLoaded] = useState(false)
     const lastPageRef = useRef<CommentsPaged | undefined>(firstPage)
     const client = useApolloClient()
     const { t } = useTranslation('common')
@@ -57,7 +56,6 @@ const UserPagedCommentsPanel = ({ userId, firstPage, manageable }: Props) => {
 
     const handleEditComment = (commentId: string) => {
         setEditingCommentId(commentId)
-        setEditModalLoaded(false)
     }
 
     const handleDeleteComment = async (commentId: string) => {
@@ -93,7 +91,7 @@ const UserPagedCommentsPanel = ({ userId, firstPage, manageable }: Props) => {
                         gameId={editingComment.game.id}
                         oldText={editingComment.comment || ''}
                         onHide={() => setEditingCommentId(undefined)}
-                        onLoad={() => setEditModalLoaded(true)}
+                        onLoad={() => undefined}
                         onCommentSaved={handleCommentSaved}
                     />
                 </React.Suspense>

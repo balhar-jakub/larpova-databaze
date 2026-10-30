@@ -29,6 +29,16 @@ interface Props {
     readonly onDeleteComment?: (commentId: string) => void
 }
 
+const circleButton = {
+    display: 'inline-block',
+    minWidth: 30,
+    height: 30,
+    textAlign: 'center',
+    paddingTop: 3,
+    borderRadius: 15,
+    padding: 5,
+} as const
+
 const useStyles = createUseStyles({
     wrapper: {
         borderBottom: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
@@ -87,13 +97,7 @@ const useStyles = createUseStyles({
         textAlign: 'right',
     },
     commentHiddenButton: {
-        display: 'inline-block',
-        minWidth: 30,
-        height: 30,
-        textAlign: 'center',
-        paddingTop: 3,
-        borderRadius: 15,
-        padding: 5,
+        ...circleButton,
         marginRight: 8,
         border: 0,
         backgroundColor: darkTheme.backgroundWhite,
@@ -108,13 +112,7 @@ const useStyles = createUseStyles({
         color: darkTheme.text,
     },
     manageButton: {
-        display: 'inline-block',
-        minWidth: 30,
-        height: 30,
-        textAlign: 'center',
-        paddingTop: 3,
-        borderRadius: 15,
-        padding: 5,
+        ...circleButton,
         marginRight: 8,
         border: 0,
         backgroundColor: darkTheme.backgroundWhite,
@@ -125,13 +123,7 @@ const useStyles = createUseStyles({
         },
     },
     likesCircle: {
-        display: 'inline-block',
-        textAlign: 'center',
-        minWidth: 30,
-        height: 30,
-        paddingTop: 3,
-        borderRadius: 15,
-        padding: 5,
+        ...circleButton,
         backgroundColor: darkTheme.backgroundWhite,
         color: darkTheme.textOnLight,
     },
