@@ -186,4 +186,76 @@ describe('GameCommentPanel', () => {
         expect(screen.getByTitle('Upravit váš komentář')).toBeTruthy()
         expect(screen.getByTitle('Smazat váš komentář')).toBeTruthy()
     })
+
+    it('keeps the whole name in the nickname slot when there is no space', () => {
+        render(
+            <GameCommentPanel
+                comment={{ ...comment, user: { ...comment.user, nickname: null, name: 'Bezmezery' } } as never}
+                showVisibilityButton={false}
+                onChangeCommentVisibility={() => undefined}
+            />,
+        )
+
+        // A single-word name has no first word to cut — it renders whole in both slots.
+        expect(screen.getAllByText('Bezmezery').length).toBe(2)
+    })
+
+    it('renders with an unparseable added date', () => {
+        render(
+            <GameCommentPanel
+                comment={{ ...comment, added: 'not-a-date' } as never}
+                showVisibilityButton={false}
+                onChangeCommentVisibility={() => undefined}
+            />,
+        )
+
+        // The date falls back to the epoch formatting instead of crashing.
+        expect(screen.getByText('01.01.1970')).toBeTruthy()
+    })
+
+    it('renders with and without an image id on the user', () => {
+        const { rerender } = render(
+            <GameCommentPanel
+                comment={{ ...comment, user: { ...comment.user, image: { __typename: 'Image', id: 'img1' } } } as never}
+                showVisibilityButton={false}
+                onChangeCommentVisibility={() => undefined}
+            />,
+        )
+        expect(screen.getByTestId('profile-image')).toBeTruthy()
+
+        rerender(
+            <GameCommentPanel
+                comment={{ ...comment, user: { ...comment.user, image: null } } as never}
+                showVisibilityButton={false}
+                onChangeCommentVisibility={() => undefined}
+            />,
+        )
+        expect(screen.getByTestId('profile-image')).toBeTruthy()
+    })
+
+    it('renders a hidden comment with the visibility button active', () => {
+        render(
+            <GameCommentPanel
+                comment={{ ...comment, isHidden: true } as never}
+                showVisibilityButton
+                onChangeCommentVisibility={() => undefined}
+            />,
+        )
+
+        // The eye button renders for the editor; clicking toggles to visible.
+        fireEvent.click(screen.getByText('eye'))
+    })
+
+    it('renders without the game footer when the comment has no game', () => {
+        render(
+            <GameCommentPanel
+                comment={{ ...comment, game: undefined } as never}
+                showVisibilityButton={false}
+                onChangeCommentVisibility={() => undefined}
+            />,
+        )
+
+        expect(screen.queryByText('Dračí doupě')).toBeNull()
+        expect(screen.getByText('Skvělá hra!')).toBeTruthy()
+    })
 })
