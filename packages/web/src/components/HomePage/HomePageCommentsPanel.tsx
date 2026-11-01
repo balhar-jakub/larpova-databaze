@@ -4,6 +4,7 @@ import { useTranslation } from 'src/lib/i18n'
 import { Row, Col } from 'react-bootstrap'
 import Link from 'next/link'
 import { BaseCommentData, BaseCommentPanel } from './BaseCommentPanel'
+import { componentTestIds } from '../componentTestIds'
 import { darkTheme } from '../../theme/darkTheme'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
 import { toChunks } from '../../utils/chunkUtils'
@@ -17,11 +18,11 @@ interface Props {
 
 export const HPC_COLUMNS = 3
 /**
- * One row of three. The block used to show six comments and grow to fifteen on
- * a click, which made it claim half of the page for the least visited content
- * on it (one comment a week); three are enough next to the link.
+ * Rows of the block: two rows of three hold six comments — the window the
+ * audit (2026-11-01) asked the homepage to show when comments revive, without
+ * the old grow-to-fifteen that claimed half the page for a comment a week.
  */
-export const HPC_ROWS = 1
+export const HPC_ROWS = 2
 
 const useStyles = createUseStyles({
     outerWrapper: {
@@ -68,11 +69,13 @@ export const HomePageCommentsPanel = ({ comments, href }: Props) => {
     return (
         <WidthFixer className={classes.outerWrapper}>
             <div className={classes.commentsTitle}>{t('HomePage.recentComments')}</div>
-            <Row className={classes.commentsWrapper} style={{ height }}>
+            <Row className={classes.commentsWrapper} style={{ height }} data-testid={componentTestIds.homeComments.panel}>
                 {commentsInColumns.map((column, n) => (
                     <Col lg={4} className={classes.commentsColumn} key={`col_${n}`}>
                         {column.map((comment, i) => (
-                            <BaseCommentPanel key={comment ? comment.id : `c_${n}_${i}`} comment={comment} />
+                            <div key={comment ? comment.id : `c_${n}_${i}`} data-testid={componentTestIds.homeComments.row(comment?.id ?? `${n}_${i}`)}>
+                                <BaseCommentPanel comment={comment} />
+                            </div>
                         ))}
                     </Col>
                 ))}

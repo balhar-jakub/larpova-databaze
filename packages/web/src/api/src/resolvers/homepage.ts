@@ -46,9 +46,12 @@ export const HOMEPAGE_OPEN_REGISTRATION = 6;
 
 /**
  * Comments per block. The block used to take 6 comments and claim half of
- * the page; three are enough next to a link into the catalog.
+ * the page; three are enough next to a link into the catalog. The audit
+ * (2026-11-01) found comments reviving — 27 in October — so the window is
+ * widened to six: two rows of three keep the flywheel visible without
+ * letting the least-visited block take half the page again.
  */
-export const HOMEPAGE_COMMENTS = 3;
+export const HOMEPAGE_COMMENTS = 6;
 
 /**
  * Comments per page of the all-comments listing. The same page size the game

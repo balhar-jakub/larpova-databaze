@@ -295,9 +295,11 @@ describe('homepage — the anonymous blocks', () => {
     });
     pastOpenRegEventId = pastOpenReg.id;
 
-    // Four comments, stamped in the future so they are the newest in the
-    // database — the block's own three are then the first three of these.
-    for (let index = 4; index >= 1; index -= 1) {
+    // Seven comments, stamped in the future so they are the newest in the
+    // database — the block's own six are then the first six of these, with
+    // one spare so parallel suites seeding future-stamped comments into the
+    // same DB still leave our six on top.
+    for (let index = 7; index >= 1; index -= 1) {
       const comment = await prisma.csld_comment.create({
         data: {
           game_id: rankedGameIds[0],
@@ -491,7 +493,7 @@ describe('homepage — the anonymous blocks', () => {
     }
   });
 
-  test('the comment block holds three comments, newest first and decoded', async () => {
+  test('the comment block holds six comments, newest first and decoded', async () => {
     const result: any = await executeQuery(
       server,
       `{ homepage { lastComments { id commentAsText added } } }`,
@@ -500,9 +502,9 @@ describe('homepage — the anonymous blocks', () => {
     expect(result.errors).toBeUndefined();
     const comments = result.data.homepage.lastComments;
 
-    expect(comments).toHaveLength(3);
+    expect(comments).toHaveLength(6);
     // Parallel suites (allComments, yearReview) seed future-stamped comments
-    // into the same database while this suite runs, so "the three newest in
+    // into the same database while this suite runs, so "the six newest in
     // the DB" is contested. Ours to assert: wherever our fixtures appear, they
     // keep their own newest-first order, and the block decodes them.
     const ids = comments.map((comment: any) => comment.id);
