@@ -28,6 +28,7 @@ import { LocalFiles } from './src/api/src/files/fileService.js';
 import { setFileService } from './src/api/src/files/index.js';
 import { generateIcal } from './src/api/src/external/ical.js';
 import { buildSitemapXml } from './src/utils/sitemap.js';
+import { buildFeedXml } from './src/utils/feed.js';
 import { buildRobotsTxt, isIndexableHost } from './src/utils/robotsTxt.js';
 import { scannerGuardMiddleware } from './src/utils/scannerGuard.js';
 
@@ -194,6 +195,21 @@ app.get('/sitemap.xml', async (req, res) => {
     res.send(xml);
   } catch (err) {
     console.error('sitemap error:', err);
+    res.status(500).end();
+  }
+});
+
+// RSS 2.0 feed of the newest games + articles, for feed readers. Same
+// one-hour crawler cache as the sitemap — the content changes at most a few
+// times a day.
+app.get('/feed', async (req, res) => {
+  try {
+    const xml = await buildFeedXml(prisma, `https://${requestHost(req)}`);
+    res.setHeader(CONTENT_TYPE_HEADER, XML_CONTENT_TYPE);
+    res.setHeader(CACHE_CONTROL_HEADER, CRAWLER_CACHE);
+    res.send(xml);
+  } catch (err) {
+    console.error('feed error:', err);
     res.status(500).end();
   }
 });

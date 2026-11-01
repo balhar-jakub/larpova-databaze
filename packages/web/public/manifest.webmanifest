@@ -1,0 +1,19 @@
+{
+  "name": "Larpová databáze",
+  "short_name": "LarpDB",
+  "description": "Databáze českých larpů — hry, akce, skupiny, statistiky a články.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a1a",
+  "lang": "cs",
+  "icons": [
+    {
+      "src": "/images/favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

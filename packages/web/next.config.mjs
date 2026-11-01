@@ -66,6 +66,10 @@ const nextConfig = {
       // homepage and calendar logos, the default avatar and the favicon all 404.
       { source: '/images/:path*', destination: '/static/images/:path*' },
 
+      // Browsers request /favicon.ico by default (465 hits in 14 days of access
+      // logs, all 404); the HTML already points at /images/favicon.png.
+      { source: '/favicon.ico', destination: '/static/images/favicon.png' },
+
       // Event detail: /event/:slug/:id → /eventDetail?id=:id
       { source: '/event/:slug/:id', destination: '/eventDetail?id=:id' },
 
