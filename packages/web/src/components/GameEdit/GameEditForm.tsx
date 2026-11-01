@@ -9,7 +9,7 @@ import FormRichTextInputField, { RichTextFieldValue } from '../common/form/FormR
 import {
     fieldValidator,
     validatePositiveInteger,
-    validateRequired,
+    validateGameNameField,
     validateRequiredArray,
     validateRequiredRichText,
 } from '../../utils/validationUtils'
@@ -298,7 +298,7 @@ const GameEditForm = ({
                                 <FormTextInputField
                                     name="name"
                                     placeholder={t('GameEdit.name')}
-                                    validate={fieldValidator(t, validateRequired)}
+                                    validate={fieldValidator(t, validateGameNameField)}
                                 />
                                 <Row>
                                     <Col md={6}>

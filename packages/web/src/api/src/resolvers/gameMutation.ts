@@ -5,6 +5,7 @@ import { isGameAuthor } from './gamePermissions.js';
 import { normalizeGame } from './mappers.js';
 import { Base64UploadedFile } from '../files/fileService.js';
 import { getCoverImageStrategy } from '../files/imageStrategies.js';
+import { validateGameName } from '../../../utils/gameNameValidation.js';
 
 // ── Helpers ──────────────────────────────────────────────
 /** Shared error messages: the GraphQL field name is the API contract
@@ -14,6 +15,30 @@ const INVALID_COMMENT_ID = 'Invalid commentId';
 const GAME_NOT_FOUND = 'Game not found';
 const NOT_FOUND = 'NOT_FOUND';
 const notFoundError = () => new GraphQLError(GAME_NOT_FOUND, { extensions: { code: NOT_FOUND } });
+
+/** Defense in depth behind the form validation: a game name must be
+ * non-empty after trim, at least 3 chars, and not a UI button label — the
+ * game form used to store its own "Uložit změny?" submit label as the name
+ * when the field was left empty (prod ids 3112-3115, audit 2026-11-01).
+ * The rule is shared with the client in utils/gameNameValidation. */
+function requireValidGameName(name: unknown) {
+  const rejection = validateGameName(name);
+  if (rejection === 'empty') {
+    throw new GraphQLError('Game name is required', {
+      extensions: { code: 'VALIDATION_FAILED' },
+    });
+  }
+  if (rejection === 'tooShort') {
+    throw new GraphQLError('Game name is too short (minimum 3 characters)', {
+      extensions: { code: 'VALIDATION_FAILED' },
+    });
+  }
+  if (rejection === 'buttonLabel') {
+    throw new GraphQLError('Game name cannot be a button label', {
+      extensions: { code: 'VALIDATION_FAILED' },
+    });
+  }
+}
 
 function requireAuth(ctx: Context) {
   if (!isSignedIn(ctx)) {
@@ -621,6 +646,8 @@ export async function createGameResolver(
   requireAuth(ctx);
   const { input } = args;
 
+  requireValidGameName(input.name);
+
   const game = await ctx.db.csld_game.create({
     data: {
       ...gameFieldData(input),
@@ -838,6 +865,8 @@ export async function updateGameResolver(
   const { input } = args;
   const gameId = parseInt(input.id);
   if (isNaN(gameId)) throw new GraphQLError('Invalid game ID');
+
+  requireValidGameName(input.name);
 
   // The game's authors may edit the game they wrote, editors and admins any game.
   const game = await loadEditableGame(ctx, gameId);
