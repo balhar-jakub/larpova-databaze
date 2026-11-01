@@ -13,6 +13,7 @@ import { breakPoints } from '../../theme/breakPoints'
 import { WidthFixer } from '../common/WidthFixer/WidthFixer'
 import BigLoading from '../common/BigLoading/BigLoading'
 import OpenGraphMeta from '../common/OpenGraphMeta/OpenGraphMeta'
+import ICalSubscription from '../common/ICalSubscription/ICalSubscription'
 import { componentTestIds } from '../componentTestIds'
 import { useRoutes } from '../../hooks/useRoutes'
 import { formatISODate } from '../../utils/dateUtils'
@@ -134,11 +135,6 @@ const useStyles = createUseStyles({
         fontWeight: 700,
         fontSize: '0.78rem',
         cursor: 'pointer',
-    },
-    buttonGhost: {
-        backgroundColor: 'transparent',
-        border: `1px solid ${darkTheme.backgroundAlmostNearWhite}`,
-        color: darkTheme.textOnLight,
     },
     side: {
         backgroundColor: darkTheme.backgroundRealWhite,
@@ -570,9 +566,7 @@ const CalendarPanel = ({ initialQuery }: Props) => {
                             >
                                 {t('Calendar.addEvent')}
                             </button>
-                            <a className={`${classes.button} ${classes.buttonGhost}`} href="/ical" target="_blank" rel="noreferrer">
-                                {t('Calendar.subscribe')}
-                            </a>
+                            <ICalSubscription />
                         </div>
                     </div>
 

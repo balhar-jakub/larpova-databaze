@@ -26,6 +26,7 @@ import { breakPoints } from '../../theme/breakPoints'
 import { htmlToText } from '../../utils/textUtils'
 import OpenGraphMeta from '../common/OpenGraphMeta/OpenGraphMeta'
 import EventRegistrationLink from '../common/EventRegistrationLink/EventRegistrationLink'
+import ICalSubscription from '../common/ICalSubscription/ICalSubscription'
 
 const loadEventGql = require('./graphql/loadEvent.graphql')
 const deleteEventGql = require('./graphql/deleteEvent.graphql')
@@ -180,6 +181,9 @@ const EventDetailPanel = ({ eventId }: Props) => {
                                         {toFormatted}
                                     </>
                                 )}
+                            </div>
+                            <div className={classes.text}>
+                                <ICalSubscription onDarkBackground />
                             </div>
                             {event.description && (
                                 <div

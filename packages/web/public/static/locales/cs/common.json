@@ -392,6 +392,11 @@
         "eventDeleted": "Událost byla vymazána",
         "deleteEventConfirmation": "Opravdu smazat událost?"
     },
+    "ICal": {
+        "subscribe": "Přidat do kalendáře",
+        "copy": "Kopírovat odkaz",
+        "copied": "Odkaz do kalendáře byl zkopírován"
+    },
     "GameEdit": {
         "help1": "Je záměrem, aby každý larp měl více štítků.",
         "help2": "Každý larp musí mít alespoň jeden štítek ze sekce povinné.",
@@ -553,7 +558,6 @@
         "nearestEvent": "nejbližší akce {{date}}",
         "loading": "Načítám…",
         "addEvent": "+ Přidat akci",
-        "subscribe": "Přidat si kalendář (ICS)",
         "subscribeHint": "Odebírat se dá i jen to, co tě zajímá: v profilu si vyber hry, které chceš hrát, a získej vlastní odkaz do kalendáře.",
         "stripHint": "Klikni na měsíc a uvidíš jen jeho akce.",
         "views": {
