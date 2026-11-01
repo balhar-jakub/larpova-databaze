@@ -12,7 +12,7 @@ import { translate } from 'src/lib/translationLookup'
  * The anonymous homepage: what the visitor reads before they have an account.
  * These tests pin the decisions of the redesign — the hero states the size of
  * the database, the label tiles lead into the catalog with the filter already
- * applied, "Nejoblíbenější" is gone, the comment block is one row of three and
+ * applied, "Nejoblíbenější" is gone, the comment block is two rows of three and
  * nothing on the page renders an HTML entity as text.
  */
 
@@ -117,6 +117,9 @@ const answer = () => ({
                 comment('1', 'Komentář na Blackhillu .'),
                 comment('2', 'Druhý komentář'),
                 comment('3', 'Třetí komentář'),
+                comment('4', 'Čtvrtý komentář'),
+                comment('5', 'Pátý komentář'),
+                comment('6', 'Šestý komentář'),
             ],
         },
     },
@@ -162,12 +165,20 @@ test('a game card names its numbers instead of stacking bare digits', () => {
     expect(document.body.textContent).not.toContain('6 x')
 })
 
-test('the comment block is one row of three that leads to the catalog', () => {
+test('the comment block is two rows of three that leads to the comments page', () => {
     render(<Panel />)
 
+    expect(screen.getByTestId('homeComments.panel')).toBeTruthy()
     expect(screen.getByText('Komentář na Blackhillu .')).toBeTruthy()
     expect(screen.getByText('Druhý komentář')).toBeTruthy()
     expect(screen.getByText('Třetí komentář')).toBeTruthy()
+    expect(screen.getByText('Čtvrtý komentář')).toBeTruthy()
+    expect(screen.getByText('Pátý komentář')).toBeTruthy()
+    expect(screen.getByText('Šestý komentář')).toBeTruthy()
+    // Every comment row carries its own test id, keyed by the comment id.
+    for (const id of ['1', '2', '3', '4', '5', '6']) {
+        expect(screen.getByTestId(`homeComments.row.${id}`)).toBeTruthy()
+    }
     expect(screen.getByText('všechny komentáře »').getAttribute('href')).toBe('/komentare')
     // The block no longer grows in place — "+ Více…" is what made it half the page.
     expect(screen.queryByText('+ Více...')).toBeNull()

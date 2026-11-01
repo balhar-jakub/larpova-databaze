@@ -18,6 +18,10 @@ export const componentTestIds = {
         panel: 'homeOpenRegistration.panel',
         row: (eventId: string) => `homeOpenRegistration.row.${eventId}`,
     },
+    homeComments: {
+        panel: 'homeComments.panel',
+        row: (commentId: string) => `homeComments.row.${commentId}`,
+    },
     catalog: {
         panel: 'catalog.panel',
         card: (gameId: string) => `catalogCard.${gameId}`,
