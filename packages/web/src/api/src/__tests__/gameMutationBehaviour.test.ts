@@ -222,6 +222,53 @@ describe('createGame / updateGame behaviour', () => {
     );
     expect(res.errors?.[0]?.extensions?.code).toBe('AUTHENTICATION_REQUIRED');
   });
+
+  it('createGame rejects empty, too-short and button-label names (VALIDATION_FAILED, nothing stored)', async () => {
+    const baseInput = {
+      description: 'x',
+      authors: [String(meId)],
+      newAuthors: [],
+      groupAuthors: [],
+      newGroupAuthors: [],
+      labels: [],
+      newLabels: [],
+    };
+    for (const name of ['', '   ', 'D8', 'ab', 'Uložit změny?', 'uložit', 'Save']) {
+      const res = await executeQuery(server, CREATE_GAME, { input: { ...baseInput, name } }, meCtx());
+      expect(res.errors?.[0]?.extensions?.code).toBe('VALIDATION_FAILED');
+      expect((res.data as any)?.game?.createGame ?? null).toBeNull();
+    }
+    const stored = await prisma.csld_game.count({
+      where: { name: { in: ['Uložit změny?', 'uložit', 'Save', 'D8', 'ab'] }, added_by: meId },
+    });
+    expect(stored).toBe(0);
+  });
+
+  it('updateGame rejects a button-label name without touching the row', async () => {
+    const before = await prisma.csld_game.findUnique({ where: { id: gameId } });
+    const res = await executeQuery(
+      server,
+      UPDATE_GAME,
+      {
+        input: {
+          id: String(gameId),
+          name: 'Uložit změny?',
+          description: 'should not persist',
+          authors: [String(meId)],
+          newAuthors: [],
+          groupAuthors: [],
+          newGroupAuthors: [],
+          labels: [],
+          newLabels: [],
+        },
+      },
+      editorCtx(),
+    );
+    expect(res.errors?.[0]?.extensions?.code).toBe('VALIDATION_FAILED');
+    const after = await prisma.csld_game.findUnique({ where: { id: gameId } });
+    expect(after!.name).toBe(before!.name);
+    expect(after!.description).toBe(before!.description);
+  });
 });
 
 describe('comment moderation trio', () => {

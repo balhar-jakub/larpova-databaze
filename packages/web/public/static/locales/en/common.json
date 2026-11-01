@@ -11,7 +11,9 @@
   "loading": "Loading data...",
   "Errors": {
     "invalidUrl": "The address must be a complete link beginning with http:// or https://",
-    "richTextTooLong": "The text is too long — 1500 characters at most"
+    "richTextTooLong": "The text is too long — 1500 characters at most",
+    "gameNameTooShort": "The game name must be at least 3 characters long",
+    "gameNameButtonLabel": "The game name cannot be a button label — enter a real game name"
   },
   "SignIn": {
     "emailPlaceholder": "you@email.com",

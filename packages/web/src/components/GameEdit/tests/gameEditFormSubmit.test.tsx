@@ -285,4 +285,42 @@ describe('GameEditForm submit flow', () => {
         fireEvent.click(screen.getByText(translate(cs, 'GameEdit.back')))
         expect(canceled).toBe(true)
     })
+
+    it('rejects an empty name and never sends the mutation', async () => {
+        renderForm()
+
+        fireEvent.change(screen.getByTestId('field-authors'), { target: { value: 'Autor' } })
+        fireEvent.change(screen.getByTestId('richtext-description'), { target: { value: 'Popis hry' } })
+        fireEvent.click(screen.getByLabelText('svět'))
+        fireEvent.submit(document.querySelector('form')!)
+
+        await waitFor(() =>
+            expect(screen.getByText(translate(cs, 'Errors.required'))).toBeTruthy(),
+        )
+        expect(mutationCalls.length).toBe(0)
+        expect(savedGames.length).toBe(0)
+    })
+
+    it('rejects a name shorter than 3 characters with the Czech message', async () => {
+        renderForm()
+
+        submitValid('D8')
+
+        await waitFor(() =>
+            expect(screen.getByText(translate(cs, 'Errors.gameNameTooShort'))).toBeTruthy(),
+        )
+        expect(mutationCalls.length).toBe(0)
+    })
+
+    it('rejects the save-button label as a game name with the Czech message', async () => {
+        renderForm()
+
+        submitValid('Uložit změny?')
+
+        await waitFor(() =>
+            expect(screen.getByText(translate(cs, 'Errors.gameNameButtonLabel'))).toBeTruthy(),
+        )
+        expect(mutationCalls.length).toBe(0)
+        expect(savedGames.length).toBe(0)
+    })
 })

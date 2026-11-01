@@ -249,7 +249,9 @@
         "invalidTimeFormat": "Formát času musí být HH:MM",
         "invalidTime": "Neplatný čas",
         "invalidUrl": "Adresa musí být úplný odkaz začínající http:// nebo https://",
-        "richTextTooLong": "Text je příliš dlouhý — maximálně 1500 znaků"
+        "richTextTooLong": "Text je příliš dlouhý — maximálně 1500 znaků",
+        "gameNameTooShort": "Název hry musí mít alespoň 3 znaky",
+        "gameNameButtonLabel": "Název hry nemůže být popisek tlačítka — zadejte skutečný název hry"
     },
     "RecoverPassword": {
         "header": "Zapomenuté heslo",

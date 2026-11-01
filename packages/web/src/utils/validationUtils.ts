@@ -1,8 +1,29 @@
 import { type Translator } from 'src/lib/i18n'
 import type { EditorState } from 'draft-js'
+import { validateGameName } from './gameNameValidation'
 
 /** Shared failure key — the UI maps it to the translated error text. */
 const REQUIRED_ERROR = 'Errors.required'
+
+/**
+ * Game-name validator for the game create/edit form: non-empty after trim,
+ * at least 3 characters, and not a UI button label (the form used to save
+ * "Uložit změny?" as a game name when the field was left empty). The rule
+ * itself lives in gameNameValidation so the server mutations apply the same
+ * check.
+ */
+export const validateGameNameField = (input?: string) => {
+    switch (validateGameName(input)) {
+        case 'empty':
+            return REQUIRED_ERROR
+        case 'tooShort':
+            return 'Errors.gameNameTooShort'
+        case 'buttonLabel':
+            return 'Errors.gameNameButtonLabel'
+        default:
+            return undefined
+    }
+}
 
 const emailRe = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
 
