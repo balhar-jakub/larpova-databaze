@@ -425,5 +425,14 @@
     "yearAll": "All",
     "yearCount": "{{amount}} comments",
     "emptyFiltered": "No comments match this filter combination."
+  },
+  "AdminUsers": {
+    "filterPlaceholder": "Part of name or nickname...",
+    "showPrivileged": "Show only editors and admins",
+    "delete": "Delete",
+    "deleteConfirm": "Do you really want to delete this user? This operation is irreversible!",
+    "showAll": "Show all {{recordCount}} matching records",
+    "lastLogin": "Last sign-in",
+    "neverLoggedIn": "Never signed in"
   }
 }

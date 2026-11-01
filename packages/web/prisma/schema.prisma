@@ -49,6 +49,7 @@ model csld_csld_user {
   nickname                  String?
   birth_date                DateTime?                   @db.Date
   email                     String?                     @unique(map: "unique_email") @db.VarChar(200)
+  last_login                DateTime?                   @db.Timestamp(6)
   image                     Int?
   address                   String?
   description               String?

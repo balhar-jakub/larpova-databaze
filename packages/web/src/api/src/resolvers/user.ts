@@ -52,6 +52,8 @@ export function normalizeUser(row: any, includeDeleted = false) {
     image: row.csld_image?.id ? row.csld_image : null,
     lastRating: row.last_rating,
     birthDate: row.birth_date?.toISOString().split('T')[0] ?? null,
+    // Account activity, staff-only at the resolver (same gate as `email`).
+    lastLogin: row.last_login ? row.last_login.toISOString() : null,
     // The database column is `address`, the GraphQL field is `city`. Without
     // this mapping the settings form loads an empty city and saving wipes it.
     city: row.address ?? null,

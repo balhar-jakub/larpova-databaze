@@ -707,7 +707,9 @@
         "showPrivileged": "Zobrazit pouze editory a administrátory",
         "delete": "Smazat",
         "deleteConfirm": "Opravdu si přejete uživatele smazat? Tato operace je nevratná!",
-        "showAll": "Zobrazit všech {{recordCount}} vyhovujících záznamů"
+        "showAll": "Zobrazit všech {{recordCount}} vyhovujících záznamů",
+        "lastLogin": "Poslední přihlášení",
+        "neverLoggedIn": "Nikdy se nepřihlásil"
     },
     "UserRole": {
         "ADMIN": "Admin",
