@@ -37,6 +37,7 @@ import {
     searchTypeFromParam,
 } from './searchHelpers'
 import { CatalogState, clearCatalogFilters } from '../Catalog/catalogState'
+import { registerGTagEvent } from '../../utils/gtag'
 import {
     SearchOverviewQuery,
     SearchOverviewQueryVariables,
@@ -246,6 +247,14 @@ const SearchPanel = ({ initialQuery, initialType }: Props) => {
         const nextQuery = (values.query || '').trim()
         setQuery(nextQuery)
         updateUrl(nextQuery, selectedType)
+        if (nextQuery.length >= MIN_MATCH_QUERY_LENGTH) {
+            registerGTagEvent({
+                action: 'search_executed',
+                category: 'engagement',
+                label: nextQuery,
+                value: 1,
+            })
+        }
     }
 
     const handleSelectType = (type?: SearchType) => {
