@@ -454,6 +454,23 @@ describe('AdminUsersPanel', () => {
         fireEvent.click(screen.getByText(translate(cs, 'AdminUsers.showAll', { recordCount: 60 })))
         expect(screen.getByText('U59')).toBeTruthy()
     })
+
+    it('shows each user’s last sign-in, or the never-signed-in note', () => {
+        queryResult = {
+            admin: {
+                allUsers: [
+                    user('1', { name: 'Alice', lastLogin: '2026-10-31T18:42:00.000Z' }),
+                    user('2', { name: 'Bob', nickname: 'bobik', lastLogin: null }),
+                ],
+            },
+        }
+        render(<AdminUsersPanel />)
+
+        // Alice signed in on 31 Oct 2026 at 18:42 UTC = 19:42 Prague time (CET).
+        expect(screen.getByText(`${translate(cs, 'AdminUsers.lastLogin')}: 31.10.2026 19:42`)).toBeTruthy()
+        // Bob never did: the null arm renders the fallback note.
+        expect(screen.getByText(translate(cs, 'AdminUsers.neverLoggedIn'))).toBeTruthy()
+    })
 })
 
 describe('AdminStatsPanel', () => {
