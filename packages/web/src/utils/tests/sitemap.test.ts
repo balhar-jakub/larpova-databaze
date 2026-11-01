@@ -40,6 +40,22 @@ describe('buildSitemapXml', () => {
         expect(prisma.event.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { deleted: false } }))
     })
 
+    test('covers every public game-detail URL shape the router renders', async () => {
+        const prisma = fakePrisma({
+            games: [{ id: 534, name: 'Ve znamení zla', added: null }],
+        })
+
+        const xml = await buildSitemapXml(prisma as unknown as SitemapPrisma, BASE)
+
+        // The canonical pretty shape /larp/<slug>/cs/<id> is what the app links
+        // and what next.config.mjs rewrites to /gameDetail — the sitemap must
+        // list exactly that shape (measured 1 634 such URLs live on 2026-11-01).
+        expect(xml).toContain(`<loc>${BASE}/larp/ve-znameni-zla/cs/534</loc>`)
+        // The legacy short shape /larp/:slug/:id is an alias rewrite, not a
+        // second URL to index — it must NOT appear as its own entry.
+        expect(xml).not.toContain(`<loc>${BASE}/larp/ve-znameni-zla/534</loc>`)
+    })
+
     test('escapes the host so a crafted Host header cannot break the XML', async () => {
         const prisma = fakePrisma({})
 
