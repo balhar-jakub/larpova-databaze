@@ -1,6 +1,6 @@
 import { describe, test, expect } from '@jest/globals'
 import { readFileSync, existsSync } from 'node:fs'
-import { join, dirname, relative } from 'node:path'
+import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
