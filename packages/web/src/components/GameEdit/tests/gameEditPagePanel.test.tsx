@@ -151,6 +151,7 @@ describe('GameEditPagePanel', () => {
                 web: 'https://web.example.test',
                 photoAuthor: 'Foto autor',
                 galleryURL: 'https://gallery.example.test',
+                coverImage: { __typename: 'Image', id: 'img1' },
                 series: { __typename: 'Series', id: 's1', name: 'Série', amountOfGames: 3 },
                 year: 2020,
                 players: 30,
@@ -164,6 +165,26 @@ describe('GameEditPagePanel', () => {
             },
         }
         render(<GameEditPagePanel gameId="g9" />)
+
+        await waitFor(() => expect(screen.getByTestId('game-edit-form').dataset.hasInitials).toBe('true'))
+    })
+
+    it('marks a game without a cover via hasCoverImage=false in the initial values', async () => {
+        // The form reads initialValues.hasCoverImage to decide whether to show
+        // the cover nudge; coverImage: null must map to false, not undefined.
+        queryData = {
+            gameById: {
+                __typename: 'Game',
+                id: 'g10',
+                name: 'Hra bez fotky',
+                description: null,
+                authors: [],
+                groupAuthor: [],
+                labels: [],
+                coverImage: null,
+            },
+        }
+        render(<GameEditPagePanel gameId="g10" />)
 
         await waitFor(() => expect(screen.getByTestId('game-edit-form').dataset.hasInitials).toBe('true'))
     })

@@ -86,10 +86,11 @@ describe('GameEditForm sections', () => {
         cleanup()
     })
 
-    const renderForm = (gameId?: string) =>
+    const renderForm = (gameId?: string, initialValues?: Record<string, unknown>) =>
         render(
             <GameEditForm
                 gameId={gameId}
+                initialValues={initialValues as never}
                 authorizedRequiredLabels={requiredLabels}
                 authorizedOptionalLabels={optionalLabels}
                 onGameSaved={() => undefined}
@@ -97,6 +98,14 @@ describe('GameEditForm sections', () => {
         )
 
     const expand = (label: string) => fireEvent.click(screen.getByText(label))
+
+    const baseValues = {
+        authors: [],
+        groupAuthors: [],
+        requiredLabels: [],
+        optionalLabels: [],
+        newLabels: [],
+    }
 
     it('adding a game shows only the fields the game cannot be saved without', () => {
         renderForm()
@@ -166,5 +175,30 @@ describe('GameEditForm sections', () => {
         // validated field of the collapsed state must be able to show its error.
         expect(screen.getAllByText('Povinná hodnota').length).toBeGreaterThan(0)
         expect(screen.queryByPlaceholderText('Hráčů')).toBeNull()
+    })
+
+    it('nudges toward a cover image when the game has none (create and edit)', () => {
+        // Adding a game: no initial values at all -> the nudge is visible once
+        // the presentation section is expanded.
+        const { unmount } = renderForm()
+        expand('Zobrazit rozšiřující údaje')
+        expect(screen.getByTestId('gameEdit.coverNudge').textContent).toBe(
+            translate(cs, 'GameEdit.coverNudge'),
+        )
+        unmount()
+
+        // Editing a game without a cover: hasCoverImage is false -> nudge shows.
+        renderForm('7', { ...baseValues, hasCoverImage: false })
+        expect(screen.getByTestId('gameEdit.coverNudge').textContent).toBe(
+            translate(cs, 'GameEdit.coverNudge'),
+        )
+    })
+
+    it('hides the cover nudge when the game already has a cover image', () => {
+        renderForm('7', { ...baseValues, hasCoverImage: true })
+
+        expect(screen.queryByTestId('gameEdit.coverNudge')).toBeNull()
+        // The upload field itself stays regardless (its hint renders under it).
+        expect(screen.getByText(translate(cs, 'GameEdit.coverImageHint'))).toBeTruthy()
     })
 })

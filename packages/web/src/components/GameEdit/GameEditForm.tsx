@@ -48,6 +48,7 @@ import BigLoading from '../common/BigLoading/BigLoading'
 import SubmitButton from '../common/SubmitButton/SubmitButton'
 import { NewLabel } from '../common/form/NewLabelsField'
 import ExpandButton from './ExpandButton'
+import { darkTheme } from '../../theme/darkTheme'
 import { registerGTagEvent } from '../../utils/gtag'
 
 import * as setGameSeriesDocument from './graphql/setGameSeries.graphql'
@@ -79,6 +80,7 @@ export interface FormValues {
     hours?: string
     days?: string
     coverImage?: string
+    hasCoverImage?: boolean
     web?: string
     photoAuthor?: string
     galleryUrl?: string
@@ -127,6 +129,12 @@ const useStyles = createUseStyles({
     },
     helpBlock: {
         marginBottom: 24,
+    },
+    coverNudge: {
+        fontSize: '0.8rem',
+        color: darkTheme.textGreenDark,
+        marginTop: '-8px',
+        marginBottom: 12,
     },
 })
 
@@ -428,6 +436,13 @@ const GameEditForm = ({
                                                     hint={t('GameEdit.coverImageHint')}
                                                     sizeLimit={2000000}
                                                 />
+                                                {/* A gentle nudge, shown exactly when the game has no cover yet:
+                                                    covered games stand out in lists and cards, uncovered ones do not. */}
+                                                {!initialValues?.hasCoverImage && (
+                                                    <p className={classes.coverNudge} data-testid="gameEdit.coverNudge">
+                                                        {t('GameEdit.coverNudge')}
+                                                    </p>
+                                                )}
                                             </Col>
                                             <Col md={6}>
                                                 <FormTextInputField name="web" placeholder={t('GameEdit.web')} />
