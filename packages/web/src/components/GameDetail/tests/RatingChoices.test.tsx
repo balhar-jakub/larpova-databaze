@@ -5,7 +5,16 @@ import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { jest } from '@jest/globals'
 
-const mutate = jest.fn()
+const mutate = jest.fn((_opts?: unknown) => Promise.resolve({ data: {} }))
+
+// GA events are recorded instead of touching window.gtag; the real gating
+// (GA_ENABLED, consent) is covered by src/utils/tests/gtag.test.ts.
+const gtagEvents: Array<{ action: string; category: string; label: string; value: number }> = []
+jest.unstable_mockModule('src/utils/gtag', () => ({
+    registerGTagEvent: (event: { action: string; category: string; label: string; value: number }) => {
+        gtagEvents.push(event)
+    },
+}))
 
 const translations: Record<string, string> = {
     'GameDetail.rate': 'Vaše hodnocení je:',
@@ -40,6 +49,7 @@ beforeAll(async () => {
 describe('RatingChoices', () => {
     beforeEach(() => {
         mutate.mockClear()
+        gtagEvents.length = 0
     })
 
     it('offers the five levels instead of stars', async () => {
@@ -91,6 +101,12 @@ describe('RatingChoices', () => {
         await waitFor(() => expect(mutate).toHaveBeenCalledTimes(1))
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         expect((mutate.mock.calls[0] as any)[0].variables).toEqual({ gameId: '42', rating: 10 })
+        // A stored rating reports a GA4 event with the game id and the value.
+        await waitFor(() =>
+            expect(gtagEvents).toEqual([
+                { action: 'rating_added', category: 'contribution', label: '42', value: 10 },
+            ]),
+        )
     })
 
     it('stores the middle value of the milder levels', async () => {
@@ -119,5 +135,7 @@ describe('RatingChoices', () => {
             setTimeout(resolve, 0)
         })
         expect(mutate).not.toHaveBeenCalled()
+        // No mutation, no event.
+        expect(gtagEvents).toEqual([])
     })
 })

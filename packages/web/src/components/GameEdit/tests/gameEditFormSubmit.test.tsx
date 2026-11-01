@@ -59,6 +59,14 @@ jest.unstable_mockModule('@apollo/client', () => ({
 jest.unstable_mockModule('src/hooks/useShowToast', () => ({
     useShowToast: () => (text: string, type: string) => { toasts.push({ text, type }) },
 }))
+// GA events are recorded instead of touching window.gtag; the real gating
+// (GA_ENABLED, consent) is covered by src/utils/tests/gtag.test.ts.
+const gtagEvents: Array<{ action: string; category: string; label: string; value: number }> = []
+jest.unstable_mockModule('src/utils/gtag', () => ({
+    registerGTagEvent: (event: { action: string; category: string; label: string; value: number }) => {
+        gtagEvents.push(event)
+    },
+}))
 jest.unstable_mockModule('src/components/common/form/richTextInputUtils', () => ({ editorStateToHtml: () => '' }))
 jest.unstable_mockModule('../../common/form/FormRichTextInputField', () => ({
     default: ({ name }: { name: string }) => {
@@ -122,6 +130,7 @@ beforeEach(() => {
     mutationCalls.length = 0
     toasts.length = 0
     savedGames.length = 0
+    gtagEvents.length = 0
     currentResponse = { data: undefined }
     failSeries = false
 })
@@ -161,6 +170,12 @@ describe('GameEditForm submit flow', () => {
         // No series chosen -> no setGameSeries call.
         await waitFor(() => expect(toasts[0]).toEqual({ text: translate(cs, 'GameEdit.gameCreated'), type: 'success' }))
         expect(savedGames).toEqual([{ id: 'g9', name: 'Nová hra', year: 2027 }])
+        // The create also reports a GA4 event carrying the game name.
+        await waitFor(() =>
+            expect(gtagEvents).toEqual([
+                { action: 'game_added', category: 'contribution', label: 'Nová hra', value: 1 },
+            ]),
+        )
     })
 
     it('shows the big loading indicator while the game data loads', () => {
@@ -187,6 +202,8 @@ describe('GameEditForm submit flow', () => {
         await waitFor(() => expect(toasts[0]).toEqual({ text: translate(cs, 'GameEdit.gameUpdated'), type: 'success' }))
         expect(mutationCalls.filter((c) => c.name === 'setGameSeries').length).toBe(0)
         expect(savedGames[0]?.id).toBe('g1')
+        // An edit is not a create — no game_added event fires.
+        expect(gtagEvents).toEqual([])
     })
 
     const chooseSeries = (choice: Record<string, unknown> | null) => {

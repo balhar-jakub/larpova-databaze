@@ -42,6 +42,14 @@ jest.unstable_mockModule('@apollo/client', () => ({
 jest.unstable_mockModule('next/router', () => ({
     useRouter: () => ({ pathname: '/search', query: {}, replace: replaceSpy }),
 }))
+// GA events are recorded instead of touching window.gtag; the real gating
+// (GA_ENABLED, consent) is covered by src/utils/tests/gtag.test.ts.
+const gtagEvents: Array<{ action: string; category: string; label: string; value: number }> = []
+jest.unstable_mockModule('src/utils/gtag', () => ({
+    registerGTagEvent: (event: { action: string; category: string; label: string; value: number }) => {
+        gtagEvents.push(event)
+    },
+}))
 // The real hook returns a ref that keeps its identity across renders — a mock
 // handing back a fresh object each render would re-run the panel's "props
 // changed" effect on every render and undo every click.
@@ -95,6 +103,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
     replaceSpy.mockClear()
+    gtagEvents.length = 0
     queryAnswer = { loading: false, data: overviewAnswer() }
 })
 
@@ -260,6 +269,25 @@ describe('the page says what it was asked', () => {
             undefined,
             { shallow: true },
         )
+        // … and the search itself is reported to GA4 with the trimmed query.
+        expect(gtagEvents).toEqual([
+            { action: 'search_executed', category: 'engagement', label: 'legie', value: 1 },
+        ])
+    })
+
+    test('a too-short query is not reported as a search', () => {
+        renderPanel()
+
+        const input = screen.getByPlaceholderText(translate(cs, 'Search.query'))
+        fireEvent.change(input, { target: { value: 'a' } })
+        fireEvent.submit(input.closest('form')!)
+
+        expect(replaceSpy).toHaveBeenCalledWith(
+            { pathname: '/search', query: { q: 'a' } },
+            undefined,
+            { shallow: true },
+        )
+        expect(gtagEvents).toEqual([])
     })
 
     test('the did-you-mean suggestion becomes the query', async () => {

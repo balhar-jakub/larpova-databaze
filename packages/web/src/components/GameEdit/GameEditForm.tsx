@@ -48,6 +48,7 @@ import BigLoading from '../common/BigLoading/BigLoading'
 import SubmitButton from '../common/SubmitButton/SubmitButton'
 import { NewLabel } from '../common/form/NewLabelsField'
 import ExpandButton from './ExpandButton'
+import { registerGTagEvent } from '../../utils/gtag'
 
 import * as setGameSeriesDocument from './graphql/setGameSeries.graphql'
 import * as createGameDocument from './graphql/createGame.graphql'
@@ -251,6 +252,12 @@ const GameEditForm = ({
             createGame({ variables: { input } }).then(response => {
                 const createdGame = response.data?.game.createGame
                 if (createdGame) {
+                    registerGTagEvent({
+                        action: 'game_added',
+                        category: 'contribution',
+                        label: createdGame.name ?? input.name ?? '',
+                        value: 1,
+                    })
                     syncSeries(createdGame.id, data.series, false)
                         .then(() => showToast(t(data.series ? 'GameEdit.seriesSaved' : 'GameEdit.gameCreated'), 'success'))
                         .catch(() => showToast(t('GameEdit.seriesFailed'), 'alert'))

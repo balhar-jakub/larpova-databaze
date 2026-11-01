@@ -9,6 +9,7 @@ import {
 } from '../../graphql/__generated__/typescript-operations'
 import { darkTheme } from '../../theme/darkTheme'
 import { RATING_BANDS, getRecommendationForTenPointRating, recommendationKey } from '../../utils/ratingUtils'
+import { registerGTagEvent } from '../../utils/gtag'
 import { bandClassName, ratingIcon, ratingStyles } from '../common/GameRatingBox/GameRatingBox'
 
 const updateGameRatingGql = require('./graphql/updateGameRating.graphql')
@@ -70,10 +71,19 @@ const RatingChoices = ({ gameId, rating }: Props) => {
     const handleChange = (newRating: number) => {
         if (newRating !== rating) {
             setTmpValue(newRating)
-            client.mutate<UpdateGameRatingMutation, UpdateGameRatingMutationVariables>({
-                mutation: updateGameRatingGql,
-                variables: { gameId, rating: newRating },
-            })
+            client
+                .mutate<UpdateGameRatingMutation, UpdateGameRatingMutationVariables>({
+                    mutation: updateGameRatingGql,
+                    variables: { gameId, rating: newRating },
+                })
+                .then(() =>
+                    registerGTagEvent({
+                        action: 'rating_added',
+                        category: 'contribution',
+                        label: gameId,
+                        value: newRating,
+                    }),
+                )
         }
     }
     const currentRating = tmpValue !== undefined ? tmpValue : rating
