@@ -106,14 +106,20 @@ describe('classifyRequestPath', () => {
 })
 
 describe('scannerGuardMiddleware', () => {
+  interface FakeRes {
+    status: jest.Mock;
+    end: jest.Mock;
+  }
   const run = (url: string) => {
-    const next = jest.fn()
-    const res = {
-      status: jest.fn(function (this: any, code: number) { return this }),
+    const next = jest.fn();
+    const res: FakeRes = {
+      status: jest.fn((_code: number) => res),
       end: jest.fn(),
-    }
-    scannerGuardMiddleware()({ url, method: 'GET' }, res as any, next)
-    return { next, res }
+    };
+    scannerGuardMiddleware()({ url, method: 'GET' }, res as unknown as Parameters<
+      ReturnType<typeof scannerGuardMiddleware>
+    >[1], next);
+    return { next, res };
   }
 
   test('passes real routes to next()', () => {
