@@ -10,6 +10,7 @@ import { WidthFixer } from '../common/WidthFixer/WidthFixer'
 import {
     Game,
     Group,
+    Image,
     Label,
     LoadGameForEditQuery,
     LoadGameForEditQueryVariables,
@@ -46,6 +47,7 @@ type LoadedGame = Pick<
 > & {
     authors: Array<{ __typename?: 'User' } & Pick<User, 'id' | 'name' | 'nickname'>>
     groupAuthor: Array<{ __typename?: 'Group' } & Pick<Group, 'id' | 'name'>>
+    coverImage?: Maybe<{ __typename?: 'Image' } & Pick<Image, 'id'>>
     video?: Maybe<{ __typename?: 'Video' } & Pick<Video, 'id' | 'path'>>
     labels: Array<{ __typename?: 'Label' } & Pick<Label, 'id' | 'isRequired'>>
     series?: Maybe<{ __typename?: 'Series' } & Pick<Series, 'id' | 'name' | 'amountOfGames'>>
@@ -91,6 +93,7 @@ const toInitialValues = (game: LoadedGame): FormValues => ({
     web: game.web ?? undefined,
     photoAuthor: game.photoAuthor ?? undefined,
     galleryUrl: game.galleryURL ?? undefined,
+    hasCoverImage: !!game.coverImage,
     ratingsDisabled: game.ratingsDisabled === true,
     commentsDisabled: game.commentsDisabled === true,
     series: game.series

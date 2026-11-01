@@ -400,6 +400,7 @@
     "formLead": "You can save the game with the minimum (name, authors, description and at least one required label) and add the rest whenever you like.",
     "showFields": "Show more fields",
     "mediaFields": "Photo gallery, video and photo credit",
+    "coverNudge": "Games with a photo are more visible in lists and cards.",
     "settingsToggle": "Disable ratings and comments"
   },
   "LabelsEditColumn": {
