@@ -512,6 +512,8 @@ type User {
     nickname: String
     birthDate: String
     city: String
+    "ISO timestamp of the last successful sign-in (magic link, password or Google), null for never-signed-in accounts. Staff only."
+    lastLogin: String
 }
 
 type GameWithRating {

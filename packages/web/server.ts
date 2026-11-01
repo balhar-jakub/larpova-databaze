@@ -21,9 +21,8 @@ import pgSession from 'connect-pg-simple';
 import { configurePassport } from './src/api/src/auth/passport.js';
 import { resolvers } from './src/api/src/resolvers/index.js';
 import { rememberMeMiddleware } from './src/api/src/auth/rememberMe.js';
-import { setRememberMeCookie } from './src/api/src/auth/rememberMe.js';
 import { createGoogleRouter } from './src/api/src/auth/googleRoutes.js';
-import { toAuthUser } from './src/api/src/auth/appUsers.js';
+import { createEmailLoginRouter } from './src/api/src/auth/emailLoginRoute.js';
 import { requireSessionSecret } from './src/api/src/auth/sessionSecret.js';
 import { LocalFiles } from './src/api/src/files/fileService.js';
 import { setFileService } from './src/api/src/files/index.js';
@@ -274,52 +273,17 @@ app.use(
 
 // ── Email magic-link callback ────────────────────────────
 
-app.get('/auth/email-login', async (req, res) => {
-  const token = req.query.token as string;
-  if (!token) return res.redirect('/signIn?error=invalid_token');
-
-  try {
-    // Find token (newest first)
-    const auth = await prisma.csld_email_authentication.findFirst({
-      where: { auth_token: token },
-      include: { csld_csld_user: { include: { csld_image: true } } },
-      orderBy: { id: 'desc' },
-    });
-
-    if (!auth || !auth.csld_csld_user) {
-      return res.redirect('/signIn?error=invalid_token');
-    }
-
-    // Check token expiry (15 minutes)
-    const FIFTEEN_MINUTES = 15 * 60 * 1000;
-    if (Date.now() - auth.created_at.getTime() > FIFTEEN_MINUTES) {
-      await prisma.csld_email_authentication.delete({ where: { id: auth.id } });
-      return res.redirect('/signIn?error=expired_token');
-    }
-
-    const authUser = toAuthUser(auth.csld_csld_user);
-
-    // Log in via Passport
-    await new Promise<void>((resolve, reject) => {
-      (req as any).login(authUser, (err: Error | null) => {
-        if (err) reject(err); else resolve();
+app.use(
+  '/auth/email-login',
+  createEmailLoginRouter({
+    prisma,
+    login: async (req, user) => {
+      await new Promise<void>((resolve, reject) => {
+        (req as any).login(user, (err: Error | null) => (err ? reject(err) : resolve()));
       });
-    });
-
-    // Set remember-me cookie
-    setRememberMeCookie(res, authUser.id);
-
-    // Delete used token
-    await prisma.csld_email_authentication.delete({
-      where: { id: auth.id },
-    });
-
-    res.redirect('/');
-  } catch (err) {
-    console.error('Email login error:', err);
-    res.redirect('/signIn?error=login_failed');
-  }
-});
+    },
+  }),
+);
 
 // ── Next.js ─────────────────────────────────────────────
 

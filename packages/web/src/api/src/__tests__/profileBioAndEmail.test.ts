@@ -225,3 +225,73 @@ describe('account email', () => {
     expect(result.data?.userByEmail.email).toBeNull();
   });
 });
+
+describe('lastLogin is staff-only account activity, like email', () => {
+  const STAMP = new Date('2026-10-31T18:42:00.000Z');
+
+  beforeAll(async () => {
+    await prisma.csld_csld_user.update({
+      where: { id: userId },
+      data: { last_login: STAMP },
+    });
+  });
+
+  afterAll(async () => {
+    await prisma.csld_csld_user.update({
+      where: { id: userId },
+      data: { last_login: null },
+    });
+  });
+
+  it('is not handed to an anonymous reader of a profile', async () => {
+    const result = await executeQuery(server, `{ userById(userId: "${userId}") { id lastLogin } }`);
+
+    expect(result.errors).toBeUndefined();
+    expect(result.data?.userById.lastLogin).toBeNull();
+  });
+
+  it('is returned to the user themselves', async () => {
+    const result = await executeQuery(
+      server,
+      `{ userById(userId: "${userId}") { id lastLogin } }`,
+      undefined,
+      asUser(userId),
+    );
+
+    expect(result.data?.userById.lastLogin).toBe(STAMP.toISOString());
+  });
+
+  it('is returned to staff', async () => {
+    const result = await executeQuery(
+      server,
+      `{ userById(userId: "${userId}") { id lastLogin } }`,
+      undefined,
+      asUser(999999, 2), // an editor looking at someone else's profile
+    );
+
+    expect(result.data?.userById.lastLogin).toBe(STAMP.toISOString());
+  });
+
+  it('is not returned to another plain user', async () => {
+    const result = await executeQuery(
+      server,
+      `{ userById(userId: "${userId}") { id lastLogin } }`,
+      undefined,
+      asUser(999998, 1),
+    );
+
+    expect(result.data?.userById.lastLogin).toBeNull();
+  });
+
+  it('is null for an account that never signed in since the column existed', async () => {
+    const result = await executeQuery(
+      server,
+      `{ userByEmail(email: "${otherEmail}") { id lastLogin } }`,
+      undefined,
+      asUser(999999, 3), // admin reading the other fixture account
+    );
+
+    expect(result.errors).toBeUndefined();
+    expect(result.data?.userByEmail.lastLogin).toBeNull();
+  });
+});

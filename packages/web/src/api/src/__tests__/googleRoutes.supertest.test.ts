@@ -249,6 +249,14 @@ describe('the callback completes a real sign-in', () => {
     expect(link).not.toBeNull();
     expect(link!.user_id).toBe(userId);
 
+    // Google sign-in is a real login: last_login is stamped on the account.
+    const stamped = await prisma.csld_csld_user.findUnique({
+      where: { id: userId },
+      select: { last_login: true },
+    });
+    expect(stamped?.last_login).not.toBeNull();
+    expect(Math.abs(Date.now() - stamped!.last_login!.getTime())).toBeLessThan(60_000);
+
     spies.tokenSpy.mockRestore();
     spies.verifySpy.mockRestore();
   });

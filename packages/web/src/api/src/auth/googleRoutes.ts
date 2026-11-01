@@ -5,6 +5,7 @@ import type { PrismaClient } from '@prisma/client';
 import { linkGoogleIdentity, googleSignInConfigured, type GoogleEnv, type GoogleIdentity, type GoogleLinkOutcome } from './googleLink.js';
 import { toAuthUser, type AuthUser, type SessionUserRow } from './appUsers.js';
 import { setRememberMeCookie } from './rememberMe.js';
+import { recordLastLogin } from './recordLastLogin.js';
 
 /**
  * "Pokračovat přes Google" — the OAuth 2.0 authorisation-code flow, server side.
@@ -225,6 +226,9 @@ export function createGoogleRouter(deps: GoogleRouterDeps): Router {
       const user = toAuthUser(row);
       await deps.login(req, user);
       setRememberMeCookie(res, user.id);
+
+      // Google sign-in is a real login too — record it on the account.
+      await recordLastLogin(deps.prisma, user.id);
 
       if (linked.kind === 'registered') {
         console.warn(`[google] registered account ${user.id} from sub ${identity.sub}`);

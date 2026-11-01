@@ -138,3 +138,39 @@ describe('legacy MD5 hashes are upgraded on the login path that runs', () => {
     expect(await storedPassword(shellId)).toBe('');
   });
 });
+
+describe('last_login is recorded on the password login path', () => {
+  async function storedLastLogin(id: number): Promise<Date | null> {
+    const row = await prisma.csld_csld_user.findUnique({
+      where: { id },
+      select: { last_login: true },
+    });
+    return row?.last_login ?? null;
+  }
+
+  it('stamps last_login after a successful password login', async () => {
+    // Reset the stamp the earlier login tests in this file already wrote.
+    await prisma.csld_csld_user.update({
+      where: { id: legacyId },
+      data: { last_login: null },
+    });
+    expect(await storedLastLogin(legacyId)).toBeNull();
+
+    const result = await logIn(legacyEmail, PASSWORD);
+
+    expect(result.errors).toBeUndefined();
+    expect(result.data?.user?.logIn?.id).toBe(String(legacyId));
+    const stampedAt = await storedLastLogin(legacyId);
+    expect(stampedAt).not.toBeNull();
+    expect(Math.abs(Date.now() - stampedAt!.getTime())).toBeLessThan(60_000);
+  });
+
+  it('leaves last_login untouched when the password is wrong', async () => {
+    const before = await storedLastLogin(mixedId);
+
+    const result = await logIn(mixedCaseEmail, 'not-the-password');
+
+    expect(result.errors?.[0].message).toBe('Invalid email or password');
+    expect(await storedLastLogin(mixedId)).toEqual(before);
+  });
+});

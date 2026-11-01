@@ -291,6 +291,21 @@ export const resolvers: any = {
       }
       return null;
     },
+
+    /**
+     * `lastLogin` is account activity (when did this account last sign in),
+     * not public profile data — the same gate as `email`: only the user
+     * themselves and staff may read it. Admin sees it in /admin/users to
+     * measure the returning-user rate the audit could not (see the
+     * 2026-11-01 site-usage audit).
+     */
+    lastLogin: (parent: any, _args: unknown, ctx: Context) => {
+      if (!parent?.lastLogin) return null;
+      if (ctx.user && (String(ctx.user.id) === String(parent.id) || isAtLeastEditor(ctx))) {
+        return parent.lastLogin;
+      }
+      return null;
+    },
   },
 
   // Mutations — stubs for now

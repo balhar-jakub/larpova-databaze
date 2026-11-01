@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@apollo/client'
 import isInBrowser from 'is-in-browser'
 import { createUseStyles } from 'react-jss'
 import { Button, Dropdown, DropdownButton, Form } from 'react-bootstrap'
+import { format } from 'date-fns-tz'
 import { useTranslation } from 'src/lib/i18n'
 import classNames from 'classnames'
 import {
@@ -75,6 +76,11 @@ const useStyles = createUseStyles({
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         margin: '10px 0',
+    },
+    lastLogin: {
+        flexBasis: '100%',
+        fontSize: 12,
+        opacity: 0.7,
     },
     dropDown: {
         minWidth: 70,
@@ -245,6 +251,11 @@ const AdminUserPanel = () => {
                                     <div className={classes.nick}>{user.nickname || ''}</div>
                                     <div className={classes.name}>
                                         <UserLink userId={user.id}>{user.name}</UserLink>
+                                    </div>
+                                    <div className={classes.lastLogin}>
+                                        {user.lastLogin
+                                            ? `${t('AdminUsers.lastLogin')}: ${format(new Date(user.lastLogin), 'd.M.yyyy HH:mm')}`
+                                            : t('AdminUsers.neverLoggedIn')}
                                     </div>
                                     <div className={classes.controls}>
                                         <DropdownButton

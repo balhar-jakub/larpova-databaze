@@ -3,6 +3,7 @@ import { validatePassword, isLegacyMd5, generatePbkdf2Hash } from '../auth/passw
 import { findUserByEmail, findUserCandidatesByEmail, normalizeEmail } from '../auth/emailLookup.js';
 import type { AuthUser } from '../auth/appUsers.js';
 import { setRememberMeCookie, clearRememberMeCookie } from '../auth/rememberMe.js';
+import { recordLastLogin } from '../auth/recordLastLogin.js';
 import { GraphQLError } from 'graphql';
 import crypto from 'node:crypto';
 import { verifyRecaptcha } from '../external/recaptcha.js';
@@ -118,6 +119,9 @@ export async function logInResolver(
 
   // Log the user in via Passport
   await ctx.login(user);
+
+  // Password sign-in is a real login too — record it like the magic link does.
+  await recordLastLogin(ctx.db, user.id);
 
   // Set remember-me cookie
   setRememberMeCookie(ctx.res as any, user.id);
