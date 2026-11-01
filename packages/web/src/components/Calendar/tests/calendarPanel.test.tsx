@@ -7,6 +7,7 @@ import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { translate } from 'src/lib/translationLookup'
+import { componentTestIds } from 'src/components/componentTestIds'
 import { RegistrationStatus, type CalendarEventDataFragment } from 'src/graphql/__generated__/typescript-operations'
 
 /**
@@ -296,6 +297,20 @@ describe('CalendarPanel', () => {
 
         fireEvent.click(screen.getByTestId('calendar.addEvent'))
         expect(target).toBe('/akce/vytvor')
+    })
+
+    it('shows the iCal subscription affordance with a copyable /ical URL in the toolbar', async () => {
+        render(<CalendarPanel initialQuery={{}} />)
+        await flush()
+
+        const link = screen.getByTestId(componentTestIds.icalSubscription.link)
+        expect(link.getAttribute('href')).toBe('/ical')
+        expect(link.textContent).toBe(translate(cs, 'ICal.subscribe'))
+
+        // The absolute URL and the copy button appear after mount.
+        await waitFor(() => expect(screen.getByTestId(componentTestIds.icalSubscription.copy)).toBeTruthy())
+        const expectedUrl = `${window.location.protocol}//${window.location.host}/ical`
+        expect(screen.getByTestId(componentTestIds.icalSubscription.wrapper).getAttribute('data-url')).toBe(expectedUrl)
     })
     it('aggregates a month twice in the stats into one season count and answers an empty free-weekend line', async () => {
         // Two byMonth entries for the SAME month (the `?? 0` + accumulation arm).

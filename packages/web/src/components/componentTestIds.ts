@@ -41,6 +41,11 @@ export const componentTestIds = {
         loadMore: 'calendar.loadMore',
         addEvent: 'calendar.addEvent',
     },
+    icalSubscription: {
+        wrapper: 'icalSubscription.wrapper',
+        link: 'icalSubscription.link',
+        copy: 'icalSubscription.copy',
+    },
     carousel: {
         leftButton: 'carouselLeftButton',
         rightButton: 'carouselRightButton',

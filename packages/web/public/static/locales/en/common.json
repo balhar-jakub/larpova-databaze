@@ -406,6 +406,11 @@
     "requiredLabelsSection": "Required labels",
     "optionalLabelsSection": "Optional labels"
   },
+  "ICal": {
+    "subscribe": "Add to calendar",
+    "copy": "Copy link",
+    "copied": "Calendar link copied to clipboard"
+  },
   "Comments": {
     "pageTitle": "All comments",
     "pageDescription": "Every comment in the larp database, newest first \u2014 what the community is saying about games.",

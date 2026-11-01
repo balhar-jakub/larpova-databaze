@@ -13,6 +13,7 @@ import { jest } from '@jest/globals'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { translate } from 'src/lib/translationLookup'
+import { componentTestIds } from 'src/components/componentTestIds'
 
 const cs = JSON.parse(
     readFileSync(fileURLToPath(new URL('../../../../public/static/locales/cs/common.json', import.meta.url)), 'utf-8'),
@@ -209,5 +210,18 @@ describe('EventDetailPanel', () => {
         expect(screen.queryByText('Festival LARPu')).toBeNull()
         expect(screen.queryByText(translate(cs, 'EventDetail.edit'))).toBeNull()
         expect(screen.queryByText(translate(cs, 'EventDetail.delete'))).toBeNull()
+    })
+
+    it('shows the iCal subscription affordance with the copyable /ical URL', async () => {
+        render(<EventDetailPanel eventId="e1" />)
+
+        const link = screen.getByTestId(componentTestIds.icalSubscription.link)
+        expect(link.getAttribute('href')).toBe('/ical')
+        expect(link.textContent).toBe(translate(cs, 'ICal.subscribe'))
+
+        // The absolute URL and the copy button appear after mount (client-side only).
+        await waitFor(() => expect(screen.getByTestId(componentTestIds.icalSubscription.copy)).toBeTruthy())
+        const expectedUrl = `${window.location.protocol}//${window.location.host}/ical`
+        expect(screen.getByTestId(componentTestIds.icalSubscription.wrapper).getAttribute('data-url')).toBe(expectedUrl)
     })
 })
