@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
 import { createTestServer, executeQuery } from './testHelpers';
+import { fixtureStamp } from './cleanupFixtures';
 import {
   foldSearchText,
   searchCandidates,
@@ -15,7 +16,7 @@ import {
  * title localeCompare), matchCandidate's substring-only miss, and the
  * usersByQuery offset/limit defaults (args omitted).
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `searcharms-${stamp}`;
 
 let server: ReturnType<typeof createTestServer>;

@@ -3,7 +3,7 @@ import request from 'supertest';
 import express from 'express';
 import { createEmailLoginRouter } from '../auth/emailLoginRoute';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 
 /**
  * The magic-link callback (`GET /auth/email-login?token=…`) exercised through a
@@ -16,7 +16,7 @@ import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
  * invalid or expired token never touches the account.
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const email = `email-login-${stamp}@integration.test`;
 
 let userId: number;

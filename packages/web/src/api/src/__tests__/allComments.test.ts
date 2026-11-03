@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * `Query.allComments` — the listing the homepage's „všechny komentáře“ link
@@ -10,7 +11,7 @@ import { prisma } from '../context';
  * under a game whose `deleted` column is NULL is visible, because NULL means
  * "not deleted" for a hundred-plus legacy games that were never touched.
  */
-const marker = `hermes-allcomments-${Date.now()}`;
+const marker = `hermes-allcomments-${fixtureStamp()}`;
 
 // The fixtures are stamped into a dedicated far-future year (current + 10):
 // parallel suites (e.g. yearReview) seed their own future rows into the same

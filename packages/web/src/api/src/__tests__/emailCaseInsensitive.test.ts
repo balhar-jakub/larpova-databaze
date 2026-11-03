@@ -1,7 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 import { generatePbkdf2Hash } from '../auth/password';
 import { findUserByEmail, findUserCandidatesByEmail, normalizeEmail } from '../auth/emailLookup';
 
@@ -19,7 +19,7 @@ import { findUserByEmail, findUserCandidatesByEmail, normalizeEmail } from '../a
  * resolver that uses it.
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const PASSWORD = 'Passw0rd!1';
 
 /** An account stored WITH capitals, like the 232 real ones in production. */

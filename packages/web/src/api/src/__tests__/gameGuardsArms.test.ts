@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 import {
   gameByIdResolver,
   ladderResolver,
@@ -18,7 +19,7 @@ import {
  * (The ladder config's `?? RecentAndMostPlayed` fallback is defensive —
  * GraphQL validates LadderType enum values before the resolver runs.)
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `gfield-${stamp}`;
 
 let gameId: number;

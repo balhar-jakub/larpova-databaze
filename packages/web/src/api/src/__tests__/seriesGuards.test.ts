@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 import {
   seriesByIdResolver,
   seriesByQueryResolver,
@@ -15,7 +16,7 @@ import {
   Game.series guards (no series, string id, bad id), and normalizeSeries's
   aggregate arms (no games → null years, missing counters).
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `srms-${stamp}`;
 
 const ctxFor = (role: number | null) => ({ user: role == null ? null : { id: 1, role }, db: prisma } as any);

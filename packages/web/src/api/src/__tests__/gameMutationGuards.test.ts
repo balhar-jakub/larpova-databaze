@@ -2,7 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 
 /**
  * Guard and edge arms of resolvers/gameMutation.ts that the behaviour suites
@@ -16,7 +16,7 @@ import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
  * Every test asserts the resolver's own error contract (code) or the
  * persisted state — never just "no errors".
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `gmut-guard-${stamp}`;
 
 const RATE = `mutation R($g: ID!, $r: Int) { game { rateGame(gameId: $g, rating: $r) { id amountOfRatings } } }`;

@@ -5,9 +5,10 @@ import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
 import { commentAsText, decodeHtmlEntities } from '../resolvers/textUtils';
+import { fixtureStamp } from './cleanupFixtures';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const marker = `hermes-home-${Date.now()}`;
+const marker = `hermes-home-${fixtureStamp()}`;
 /** Rows the personal block's fixtures add outside its own lists. */
 const commentIds: number[] = [];
 const eventIds: number[] = [];
@@ -586,7 +587,7 @@ describe('homepage — the personal blocks', () => {
   let recommendedId: number;
   let alreadyKnownId: number;
 
-  const marker = `hermes-my-${Date.now()}`;
+  const marker = `hermes-my-${fixtureStamp()}`;
 
   const personal = (query: string) =>
     executeQuery(server, query, undefined, { user: { id: userId, email: 'x@integration.test' } });

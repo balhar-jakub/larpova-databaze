@@ -7,7 +7,7 @@ import { LocalFiles } from '../files/fileService';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 
 /**
  * Field-mapping and guard arms of resolvers/eventMutation.ts that the
@@ -19,7 +19,7 @@ import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
  * The permission matrix itself (author/editor/stranger/anonymous) is pinned
  * in eventAuthorPermissions.test.ts and is NOT repeated here.
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `evmut-map-${stamp}`;
 
 const CREATE = `

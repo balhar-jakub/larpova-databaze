@@ -2,7 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 
 /**
  * AdminMutation coverage (31% at the Phase 1 baseline; the only test touching
@@ -18,7 +18,7 @@ import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
  *   otherwise violate their RESTRICT/NoAction FKs.
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 
 let server: ApolloServer;
 let adminId: number;

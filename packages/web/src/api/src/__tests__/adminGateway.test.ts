@@ -2,7 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import {describe, it, expect, beforeAll, afterAll} from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 
 /**
  * The admin gateway and every AdminQuery sub-resolver must refuse anyone who
@@ -14,7 +14,7 @@ import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
  * someone re-mounts one outside the `admin` gateway.
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 
 const ALL_USERS = `query { admin { allUsers { id name role } } }`;
 const ALL_LABELS = `query { admin { allLabels { id name } } }`;

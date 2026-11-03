@@ -3,7 +3,7 @@ import { jest, describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createHash, randomBytes } from 'node:crypto';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 import { generatePbkdf2Hash, isLegacyMd5, validatePassword } from '../auth/password';
 
 /**
@@ -18,7 +18,7 @@ import { generatePbkdf2Hash, isLegacyMd5, validatePassword } from '../auth/passw
  * upgrade that must never be allowed to fail a sign-in it already authorised.
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const PASSWORD = 'guard-pass-1234';
 
 const sessionEmail = `guard-session-${stamp}@integration.test`;

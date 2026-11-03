@@ -7,6 +7,7 @@ import { getCuttingSquareStrategy } from '../files/imageStrategies';
 import sharp from 'sharp';
 import { prisma } from '../context';
 import { LocalFiles } from '../files/fileService';
+import { fixtureStamp } from './cleanupFixtures';
 import {
   saveProfilePicture,
   removeProfilePictureIfUnused,
@@ -21,7 +22,7 @@ import {
  * removeProfilePictureIfUnused (null id, still-shared image kept, orphan
  * row+file removed, the error path that must not fail a replacement).
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `ppedge-${stamp}`;
 
 let dataDir: string;

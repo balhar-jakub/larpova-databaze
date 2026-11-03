@@ -2,6 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Regression test for the lost `Game.currentUsersComment` wiring.
@@ -24,7 +25,7 @@ import { prisma } from '../context';
  */
 describe('Game.currentUsersComment wiring (resolvers/index.ts)', () => {
   let server: ApolloServer;
-  const marker = `CucWiring${Date.now()}`;
+  const marker = `CucWiring${fixtureStamp()}`;
 
   let userId: number;
   let otherUserId: number;

@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Uploading a profile picture used to be a no-op: both `createUser` and
@@ -19,7 +20,7 @@ let server: ApolloServer;
 let dataDir: string;
 let files: LocalFiles;
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const signupEmail = `picture-signup-${stamp}@integration.test`;
 const editEmail = `picture-edit-${stamp}@integration.test`;
 

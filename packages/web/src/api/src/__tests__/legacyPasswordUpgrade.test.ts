@@ -2,7 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import { createHash } from 'node:crypto';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 import { validatePassword, isLegacyMd5 } from '../auth/password';
 
 /**
@@ -17,7 +17,7 @@ import { validatePassword, isLegacyMd5 } from '../auth/password';
  * a password (magic-link / OAuth users).
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const PASSWORD = 'legacy-pass-1234';
 const legacyEmail = `legacy-md5-${stamp}@integration.test`;
 const mixedCaseEmail = `Legacy-Mixed-${stamp}@integration.test`;

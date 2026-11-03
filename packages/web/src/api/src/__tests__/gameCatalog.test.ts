@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 import {
   BAYES_WEIGHT,
   bayesRating,
@@ -88,7 +89,7 @@ describe('game catalog — pure helpers', () => {
 
 describe('game catalog — against the database', () => {
   let server: ApolloServer;
-  const marker = `KatalogTest${Date.now()}`;
+  const marker = `KatalogTest${fixtureStamp()}`;
   let userId: number;
   let labelId: number;
   let ratedGameId: number;

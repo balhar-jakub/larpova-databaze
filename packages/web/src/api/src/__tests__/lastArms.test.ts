@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
 import { createTestServer, executeQuery } from './testHelpers';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * The last default-argument and mapping arms: eventCalendar with NO paging
@@ -8,7 +9,7 @@ import { createTestServer, executeQuery } from './testHelpers';
  * field resolved for a signed-in visitor who rated the game, and a user
  * profile WITH a birth date (the non-null mapping arm).
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `lastarms-${stamp}`;
 
 let server: ReturnType<typeof createTestServer>;

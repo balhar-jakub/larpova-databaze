@@ -5,6 +5,7 @@ import { articlesResolver, mapArticleRow } from '../resolvers/article';
 import { normalizeSeries } from '../resolvers/series';
 import { eventCalendarStatsResolver } from '../resolvers/event';
 import { linkGoogleIdentity } from '../auth/googleLink';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * The last tail of cold arms, direct calls where the HTTP/GraphQL layer is
@@ -14,7 +15,7 @@ import { linkGoogleIdentity } from '../auth/googleLink';
  * null-ish reduce arms, eventCalendarStats on an event with no date, and
  * linkGoogleIdentity's non-P2002 rethrow.
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `tailarms-${stamp}`;
 
 let userId: number;

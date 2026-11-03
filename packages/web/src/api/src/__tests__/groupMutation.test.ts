@@ -2,7 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 
 /**
  * groupMutation.ts coverage (55% at the Phase 1 baseline — the guard was
@@ -20,7 +20,7 @@ import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
  * - a non-numeric group id is rejected with 'Invalid group ID'
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 
 let server: ApolloServer;
 let editorId: number;

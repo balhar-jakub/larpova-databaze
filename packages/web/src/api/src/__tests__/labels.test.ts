@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Label.isRequired / Label.isAuthorized reach GraphQL from raw csld_label rows
@@ -24,7 +25,7 @@ const GAME_LABELS_QUERY = `
 type LabelRow = { id: string; name: string | null; isRequired: boolean | null; isAuthorized: boolean | null };
 
 describe('a game\'s labels carry their required and authorized flags', () => {
-  const marker = `LabelTest${Date.now()}`;
+  const marker = `LabelTest${fixtureStamp()}`;
   let server: ApolloServer;
 
   let userId: number;

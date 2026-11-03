@@ -1,5 +1,6 @@
 import { prisma } from '../context';
 import { createTestServer, executeQuery } from './testHelpers';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * The ranking and quote arms of the year review that the happy-path suite
@@ -13,7 +14,7 @@ import { createTestServer, executeQuery } from './testHelpers';
  * A second fixture year keeps every assertion local to this suite.
  */
 const MARK = 'yrrich';
-const stamp = Date.now();
+const stamp = fixtureStamp();
 
 let server: ReturnType<typeof createTestServer>;
 

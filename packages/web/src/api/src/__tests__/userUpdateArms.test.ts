@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
 import { createTestServer, executeQuery } from './testHelpers';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Field-mapping arms of updateLoggedInUser and createUser that the profile
@@ -8,7 +9,7 @@ import { createTestServer, executeQuery } from './testHelpers';
  * kept, city absent → null, nickname absent → null, and the
  * "no previous picture to clean up" arms of the update path.
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `umut-${stamp}`;
 
 let server: ReturnType<typeof createTestServer>;

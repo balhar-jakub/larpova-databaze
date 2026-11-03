@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Registration only asks for email + password: every other profile field
@@ -8,7 +9,7 @@ import { prisma } from '../context';
  * signing in. These tests pin the resolver contract of that form.
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const minimalEmail = `minimal-signup-${stamp}@integration.test`;
 const trimmedEmail = `trimmed-signup-${stamp}@integration.test`;
 const missingPasswordEmail = `no-password-${stamp}@integration.test`;
