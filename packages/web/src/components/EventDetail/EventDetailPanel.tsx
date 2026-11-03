@@ -27,6 +27,8 @@ import { htmlToText } from '../../utils/textUtils'
 import OpenGraphMeta from '../common/OpenGraphMeta/OpenGraphMeta'
 import EventRegistrationLink from '../common/EventRegistrationLink/EventRegistrationLink'
 import ICalSubscription from '../common/ICalSubscription/ICalSubscription'
+import { DetailListHeader } from '../common/DetailListHeader/DetailListHeader'
+import { isAbsoluteHttpUrl } from '../../utils/urlUtils'
 
 const loadEventGql = require('./graphql/loadEvent.graphql')
 const deleteEventGql = require('./graphql/deleteEvent.graphql')
@@ -60,11 +62,28 @@ const useStyles = createUseStyles({
     labelsWrapper: {
         margin: '20px 0 15px',
     },
+    coverWrapper: {
+        marginBottom: '1rem',
+    },
+    cover: {
+        display: 'block',
+        width: '100%',
+        maxWidth: 675,
+        maxHeight: 320,
+        objectFit: 'cover',
+        borderRadius: 5,
+    },
+    registrationCta: {
+        margin: '0 0 1rem',
+    },
     gamesWrapper: {
         backgroundColor: darkTheme.backgroundNearWhite,
         minHeight: 200,
         paddingTop: 20,
         paddingBottom: 20,
+    },
+    gamesHeader: {
+        marginBottom: 12,
     },
     link: {
         color: darkTheme.textGreen,
@@ -132,24 +151,36 @@ const EventDetailPanel = ({ eventId }: Props) => {
     const textDescription = useMemo(() => htmlToText(description).substring(0, 300), [description])
 
     const amountOfPlayers = event?.amountOfPlayers
+    const coverImageUrl = event?.coverImage ? `/event-image/?imageId=${event.coverImage.id}` : undefined
+    const registrationUrl = isAbsoluteHttpUrl(event?.registrationUrl) ? event.registrationUrl : undefined
 
     return (
         <>
             <div className={classes.headerWrapper}>
-                <OpenGraphMeta title={event?.name ?? ''} description={textDescription} />
+                <OpenGraphMeta title={event?.name ?? ''} description={textDescription} image={coverImageUrl} />
                 <WidthFixer>
                     {event && (
                         <>
                             <h1 className={classes.header}>{event.name}</h1>
+                            {coverImageUrl && (
+                                <div className={classes.coverWrapper}>
+                                    <img
+                                        className={classes.cover}
+                                        src={coverImageUrl}
+                                        alt=""
+                                        data-testid="eventDetail.coverImage"
+                                    />
+                                </div>
+                            )}
                             {typeof amountOfPlayers === 'number' && (
                                 <div className={classes.text}>
                                     {t('EventDetail.players', { count: amountOfPlayers })}
                                 </div>
                             )}
-                            {event.registrationUrl && (
-                                <div className={classes.text}>
+                            {registrationUrl && (
+                                <div className={classes.registrationCta} data-testid="eventDetail.registration">
                                     <EventRegistrationLink
-                                        url={event.registrationUrl}
+                                        url={registrationUrl}
                                         open={event.registrationOpen}
                                         status={event.registrationStatus}
                                         opensAt={event.registrationOpensAt}
@@ -203,6 +234,11 @@ const EventDetailPanel = ({ eventId }: Props) => {
                     {event && (
                         <Row>
                             <Col md={9} className={games.length === 0 ? 'd-none d-md-block' : undefined}>
+                                {games.length > 0 && (
+                                    <div className={classes.gamesHeader} data-testid="eventDetail.gamesHeader">
+                                        <DetailListHeader>{t('EventDetail.games')}</DetailListHeader>
+                                    </div>
+                                )}
                                 <DetailGameList games={games} />
                             </Col>
                             <Col md={3}>

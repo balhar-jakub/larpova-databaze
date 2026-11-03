@@ -508,7 +508,28 @@ describe('CalendarEventCard', () => {
         render(
             <CalendarEventCard event={event('z', { coverImage: { __typename: 'Image', id: '9' } })} />,
         )
-        expect(screen.getByTestId('calendar.eventImage.z')).toBeTruthy()
+        const image = screen.getByTestId('calendar.eventImage.z')
+        expect(image.getAttribute('src')).toBe('/event-image/?imageId=9')
+        // The placeholder is the other arm of the same slot.
+        expect(screen.queryByTestId('calendar.eventImagePlaceholder.z')).toBeNull()
+    })
+
+    it('renders a placeholder in the cover slot when the event has no image', () => {
+        render(<CalendarEventCard event={event('noimg', { coverImage: null })} />)
+
+        // Without a placeholder the grid would collapse the cover column and the
+        // names would jump left on the 94 upcoming events that have no poster.
+        expect(screen.getByTestId('calendar.eventImagePlaceholder.noimg')).toBeTruthy()
+        expect(screen.queryByTestId('calendar.eventImage.noimg')).toBeNull()
+    })
+
+    it('renders an event whose linked games were not loaded', () => {
+        render(<CalendarEventCard event={event('nogames', { games: null })} />)
+
+        // `games` is nullable in the schema; the card must not crash on a row
+        // loaded without the relation.
+        expect(screen.getByTestId('calendar.event.nogames')).toBeTruthy()
+        expect(screen.queryByText(translate(cs, 'Calendar.game'))).toBeNull()
     })
     it('renders the registration pills for the upcoming, open and closed states', () => {
         // Upcoming: a future sign-up link announced before it opens.

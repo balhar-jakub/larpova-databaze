@@ -22,7 +22,7 @@ describe('buildSitemapXml', () => {
         const xml = await buildSitemapXml(prisma as unknown as SitemapPrisma, BASE)
 
         expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true)
-        expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+        expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"')
         expect(xml.trimEnd().endsWith('</urlset>')).toBe(true)
         expect(xml).toContain(`<loc>${BASE}/</loc>`)
         expect(xml).toContain(`<loc>${BASE}/kalendar</loc>`)
@@ -63,5 +63,93 @@ describe('buildSitemapXml', () => {
 
         expect(xml).toContain('<loc>https://larp.example?a=1&amp;b=&lt;2&gt;/</loc>')
         expect(xml).not.toContain('<2>')
+    })
+
+    test('declares the image namespace and adds no image entry without a cover', async () => {
+        const prisma = fakePrisma({ events: [{ id: 12, name: 'Bez obrázku', from: null }] })
+
+        const xml = await buildSitemapXml(prisma as unknown as SitemapPrisma, BASE)
+
+        // The namespace is declared unconditionally (a sitemap without images is
+        // still valid XML), but an event with no cover must not carry a broken
+        // <image:image> pointing at a 400.
+        expect(xml).toContain('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"')
+        expect(xml).not.toContain('<image:image>')
+    })
+
+    test('adds the event cover image as an image:image entry', async () => {
+        const prisma = fakePrisma({
+            events: [
+                {
+                    id: 2830,
+                    name: 'KCD larp — 1. běh',
+                    from: new Date('2027-05-13T00:00:00Z'),
+                    cover_image: 4711,
+                    csld_image: { id: 4711 },
+                },
+            ],
+        })
+
+        const xml = await buildSitemapXml(prisma as unknown as SitemapPrisma, BASE)
+
+        expect(xml).toContain(`<loc>${BASE}/event/kcd-larp-1-beh/2830</loc>`)
+        expect(xml).toContain(`<image:loc>${BASE}/event-image/?imageId=4711</image:loc>`)
+    })
+
+    test('falls back to the cover of a linked game when the event has none of its own', async () => {
+        const prisma = fakePrisma({
+            events: [
+                {
+                    id: 2831,
+                    name: 'KCD larp — 2. běh',
+                    from: null,
+                    cover_image: null,
+                    csld_image: null,
+                    csld_game_has_event: [
+                        { csld_game: { csld_image_csld_game_cover_imageTocsld_image: null } },
+                        { csld_game: { csld_image_csld_game_cover_imageTocsld_image: { id: 88 } } },
+                    ],
+                },
+            ],
+        })
+
+        const xml = await buildSitemapXml(prisma as unknown as SitemapPrisma, BASE)
+
+        // The first linked game without a cover is skipped; the second one wins —
+        // the same rule `resolveEventCoverImage` applies to `Event.coverImage`.
+        expect(xml).toContain(`<image:loc>${BASE}/event-image/?imageId=88</image:loc>`)
+    })
+
+    test('omits the image entry for an event whose cover FK was not resolved', async () => {
+        const prisma = fakePrisma({
+            events: [{ id: 2832, name: 'Bez obrázku', from: null, cover_image: 12, csld_image: null }],
+        })
+
+        const xml = await buildSitemapXml(prisma as unknown as SitemapPrisma, BASE)
+
+        // A raw scalar FK is not an image URL — serving it would 400 the crawler.
+        expect(xml).toContain(`<loc>${BASE}/event/bez-obrazku/2832</loc>`)
+        expect(xml).not.toContain('<image:image>')
+    })
+
+    test('survives a link row whose game was not resolved', async () => {
+        const prisma = fakePrisma({
+            events: [
+                {
+                    id: 2833,
+                    name: 'Prázdný odkaz',
+                    from: null,
+                    cover_image: null,
+                    csld_image: null,
+                    csld_game_has_event: [null as never, { csld_game: null }],
+                },
+            ],
+        })
+
+        const xml = await buildSitemapXml(prisma as unknown as SitemapPrisma, BASE)
+
+        // A half-loaded relation row must not throw the whole sitemap away.
+        expect(xml).toContain(`<loc>${BASE}/event/prazdny-odkaz/2833</loc>`)
+        expect(xml).not.toContain('<image:image>')
     })
 })

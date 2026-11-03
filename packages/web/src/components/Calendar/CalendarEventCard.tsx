@@ -19,7 +19,10 @@ interface Props {
 const useStyles = createUseStyles({
     card: {
         display: 'grid',
-        gridTemplateColumns: '1fr 170px',
+        // The cover column is always present: an event without a cover gets the
+        // placeholder, so the rows stay aligned instead of the text jumping left
+        // on the 94 of 119 upcoming events that have no image.
+        gridTemplateColumns: '64px 1fr 170px',
         gap: 12,
         alignItems: 'center',
         padding: '9px 12px',
@@ -28,15 +31,20 @@ const useStyles = createUseStyles({
         borderRadius: 5,
         borderLeft: `4px solid transparent`,
     },
-    cardWithImage: {
-        gridTemplateColumns: '64px 1fr 170px',
-    },
     coverImage: {
         width: 64,
         height: 64,
         borderRadius: 5,
         objectFit: 'cover',
         display: 'block',
+    },
+    coverPlaceholder: {
+        backgroundColor: darkTheme.backgroundNearWhite,
+        backgroundImage: 'url(/images/lk-logo.png)',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        backgroundSize: '70%',
+        opacity: 0.55,
     },
     next: {
         borderLeftColor: darkTheme.textGreenDark,
@@ -116,9 +124,6 @@ const useStyles = createUseStyles({
     },
     [`@media(max-width: ${breakPoints.md - 1}px)`]: {
         card: {
-            gridTemplateColumns: '1fr',
-        },
-        cardWithImage: {
             gridTemplateColumns: '48px 1fr',
         },
         coverImage: {
@@ -154,20 +159,28 @@ const CalendarEventCard = ({ event, isNext = false }: Props) => {
     return (
         <div
             className={classNames(classes.card, {
-                [classes.cardWithImage]: Boolean(coverImageUrl),
                 [classes.next]: isNext,
                 [classes.registrationOpen]: event.registrationOpen && Boolean(registrationUrl),
                 [classes.registrationClosed]: !event.registrationOpen && Boolean(registrationUrl),
             })}
             data-testid={`calendar.event.${event.id}`}
         >
-            {coverImageUrl && (
+            {coverImageUrl ? (
                 <img
                     className={classes.coverImage}
                     src={coverImageUrl}
                     alt=""
                     loading="lazy"
                     data-testid={`calendar.eventImage.${event.id}`}
+                />
+            ) : (
+                // No cover anywhere (neither the event's own nor a linked
+                // game's): a muted logo keeps the row's grid intact so the
+                // names stay in one column down the list.
+                <span
+                    className={classNames(classes.coverImage, classes.coverPlaceholder)}
+                    aria-hidden="true"
+                    data-testid={`calendar.eventImagePlaceholder.${event.id}`}
                 />
             )}
             <div>

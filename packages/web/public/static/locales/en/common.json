@@ -88,6 +88,17 @@
     "registrationOpensOn": "Registration opens {{date}}",
     "loc": "Location"
   },
+  "EventDetail": {
+    "players_0": "one player",
+    "players_1": "{{count}} players",
+    "players_2": "{{count}} players",
+    "date": "Date",
+    "games": "Games at this event",
+    "edit": "Edit event",
+    "delete": "Delete event",
+    "eventDeleted": "The event was deleted",
+    "deleteEventConfirmation": "Do you really want to delete this event?"
+  },
   "Calendar": {
     "pageTitle": "Event calendar",
     "pageDescription": "Every larp event in one calendar — weekends, a month grid and the archive.",
