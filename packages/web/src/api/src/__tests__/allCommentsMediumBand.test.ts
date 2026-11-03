@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
 import { createTestServer, executeQuery } from './testHelpers';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * The MEDIUM band of the /komentare filter (200–999 stripped characters).
@@ -13,7 +14,7 @@ import { createTestServer, executeQuery } from './testHelpers';
  * test FILES, and the suite creates its comment before its first query).
  */
 const FIXTURE_YEAR = new Date().getUTCFullYear() + 10;
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `cmedium-${stamp}`;
 
 let server: ReturnType<typeof createTestServer>;

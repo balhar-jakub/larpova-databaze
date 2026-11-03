@@ -7,6 +7,7 @@ import { createGoogleRouter, safeReturnTo } from '../auth/googleRoutes';
 import { google } from 'googleapis';
 import type { GoogleEnv } from '../auth/googleLink';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * The HTTP layer of "Pokračovat přes Google", exercised through real requests
@@ -158,7 +159,7 @@ describe('the callback refuses everything it should', () => {
 // ---------------------------------------------------------------------------
 
 describe('the callback completes a real sign-in', () => {
-  const stamp = Date.now();
+  const stamp = fixtureStamp();
   const email = `google-routes-${stamp}@integration.test`;
   let userId: number;
 

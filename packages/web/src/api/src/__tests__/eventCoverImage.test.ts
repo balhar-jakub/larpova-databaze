@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Event cover images. `Event.coverImage` is the event's own uploaded image when
@@ -19,7 +20,7 @@ let server: ApolloServer;
 let dataDir: string;
 let files: LocalFiles;
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const editorEmail = `event-cover-editor-${stamp}@integration.test`;
 let editorId: number;
 

@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * A soft-deleted game must disappear from everything but the screens of editors
@@ -20,7 +21,7 @@ import { prisma } from '../context';
  */
 describe('deleted games', () => {
   let server: ApolloServer;
-  const marker = `DeletedProbe${Date.now()}`;
+  const marker = `DeletedProbe${fixtureStamp()}`;
 
   const EDITOR = 2;
   const USER = 1;

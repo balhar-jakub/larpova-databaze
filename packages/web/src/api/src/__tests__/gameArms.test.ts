@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
 import { createTestServer, executeQuery } from './testHelpers';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Cold arms of resolvers/game.ts: the gamesByQuery/gamesByQueryWithTotal
@@ -8,7 +9,7 @@ import { createTestServer, executeQuery } from './testHelpers';
  * parent that did not include them (the ?? [] arms), and a null comment
  * string tolerated by the text extraction.
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `garm-${stamp}`;
 
 let server: ReturnType<typeof createTestServer>;

@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * The search resolvers on top of the engine.
@@ -15,7 +16,7 @@ import { prisma } from '../context';
 
 let server: ApolloServer;
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `Vyhled${stamp}`;
 
 const games = { noc: 0, bete: 0, deleted: 0 };

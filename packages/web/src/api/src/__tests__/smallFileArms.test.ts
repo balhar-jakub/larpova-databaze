@@ -8,6 +8,7 @@ import { LocalFiles, Base64UploadedFile } from '../files/fileService';
 import { getCuttingSquareStrategy } from '../files/imageStrategies';
 import { gameAllowedActions } from '../resolvers/gamePermissions';
 import {articlesResolver} from '../resolvers/article';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * A direct-call sweep of the small-file cold arms: imageStrategies'
@@ -16,7 +17,7 @@ import {articlesResolver} from '../resolvers/article';
  * mapping (published_at null, perex null in query matching), and the
  * articles offset/limit defaults.
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `smallearms-${stamp}`;
 
 let dataDir: string;

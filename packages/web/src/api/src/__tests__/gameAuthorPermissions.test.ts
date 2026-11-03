@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Games are authored by ordinary users, not by a role: the author of a game
@@ -43,7 +44,7 @@ const deleteGameMutation = `
 
 describe('a game can be edited and deleted by its author', () => {
   let server: ApolloServer;
-  const marker = `AuthorPerm${Date.now()}`;
+  const marker = `AuthorPerm${fixtureStamp()}`;
 
   let authorId: number;
   let strangerId: number;

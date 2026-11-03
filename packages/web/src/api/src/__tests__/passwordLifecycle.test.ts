@@ -1,7 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 import { generatePbkdf2Hash, validatePassword } from '../auth/password';
 
 /**
@@ -15,7 +15,7 @@ import { generatePbkdf2Hash, validatePassword } from '../auth/password';
  * that the 141 placeholder values left in the legacy column cannot authenticate.
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const PASSWORD = 'recover-pass-1234';
 const NEW_PASSWORD = 'recover-pass-5678';
 

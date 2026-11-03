@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
 import { createTestServer, executeQuery } from './testHelpers';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Cold arms of resolvers/homepage.ts that homepage.test.ts's fixtures leave
@@ -11,7 +12,7 @@ import { createTestServer, executeQuery } from './testHelpers';
  * label tile arms (an unauthorized label skipped, the name localeCompare
  * tiebreak, a label of a deleted game not counted).
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `hparm-${stamp}`;
 
 let server: ReturnType<typeof createTestServer>;

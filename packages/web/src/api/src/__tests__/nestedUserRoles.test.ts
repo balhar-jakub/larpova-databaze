@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * A `csld_csld_user` row reached through another type — a game author, the
@@ -23,7 +24,7 @@ import { prisma } from '../context';
  */
 describe('a nested user is served as a User, not as a raw row', () => {
   let server: ApolloServer;
-  const marker = `NestedUser${Date.now()}`;
+  const marker = `NestedUser${fixtureStamp()}`;
 
   let authorId: number;
   let editorId: number;

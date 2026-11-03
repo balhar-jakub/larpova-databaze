@@ -1,5 +1,6 @@
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * The statistics resolver aggregates the whole database, so a test cannot
@@ -38,7 +39,7 @@ const STATISTICS_QUERY = `
 `;
 
 describe('statistics resolver', () => {
-  const marker = `StatsTest${Date.now()}`;
+  const marker = `StatsTest${fixtureStamp()}`;
   const FIXTURE_YEAR = 2031;
 
   let server: ReturnType<typeof createTestServer>;

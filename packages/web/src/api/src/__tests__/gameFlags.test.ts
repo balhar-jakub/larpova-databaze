@@ -2,7 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import {describe, it, expect, beforeAll, afterAll} from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 
 /**
  * The per-game `ratingsDisabled` / `commentsDisabled` switches are set by the
@@ -19,7 +19,7 @@ import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
  *   possible, exactly like the UI keeps the edit button)
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 
 const RATE = `mutation R($g: ID!, $r: Int) { game { rateGame(gameId: $g, rating: $r) { id } } }`;
 const COMMENT = `mutation C($g: ID!, $c: String!) { game { createOrUpdateComment(gameId: $g, comment: $c) { id } } }`;

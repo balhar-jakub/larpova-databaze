@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Series: recurring games (Florie, Zlenice, Bezkrálí…) are grouped by a
@@ -71,7 +72,7 @@ const AUTHOR = 1;
 const EDITOR = 2;
 
 describe('series of recurring games', () => {
-  const marker = `SeriesTest${Date.now()}`;
+  const marker = `SeriesTest${fixtureStamp()}`;
   let server: ApolloServer;
 
   let authorId: number;

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 import { linkGoogleIdentity, googleSignInConfigured } from '../auth/googleLink';
 import { generatePbkdf2Hash } from '../auth/password';
 
@@ -12,7 +12,7 @@ import { generatePbkdf2Hash } from '../auth/password';
  * account holds it. Everything else refuses and leaves the database untouched.
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const PASSWORD = 'google-pass-1234';
 
 const linkedEmail = `google-linked-${stamp}@integration.test`;

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
 import { createTestServer, executeQuery } from './testHelpers';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Guard and filter arms of resolvers/event.ts that the other suites leave
@@ -9,7 +10,7 @@ import { createTestServer, executeQuery } from './testHelpers';
  * plain user but served to an editor), and eventCalendar's optional-argument
  * arms (offset/limit defaults, from/to window, requiredLabels, otherLabels).
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `evq-${stamp}`;
 
 let server: ReturnType<typeof createTestServer>;

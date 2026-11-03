@@ -15,9 +15,9 @@ import { join } from 'node:path';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
 import { LocalFiles } from '../files/fileService';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `gcover-${stamp}`;
 
 // A 1x1 transparent PNG.

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import type { calendar_v3 } from 'googleapis';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * googleCalendar.ts coverage (57% at the Phase 1 baseline — every
@@ -17,7 +18,7 @@ import { prisma } from '../context';
  * skip-when-no-date. No network access, no real Google credentials.
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 
 /** A fake calendar client recording every call. */
 function fakeCalendar(opts: {

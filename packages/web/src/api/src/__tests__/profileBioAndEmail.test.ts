@@ -2,6 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
 import { MAX_BIO_LENGTH } from '../resolvers/userMutation';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * The profile bio (`csld_csld_user.description`) is a legacy CSLD column: the
@@ -17,7 +18,7 @@ import { MAX_BIO_LENGTH } from '../resolvers/userMutation';
 
 let server: ApolloServer;
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const bioEmail = `bio-${stamp}@integration.test`;
 const otherEmail = `bio-other-${stamp}@integration.test`;
 const BIO = '<p>Hraju larpy od roku 2005 a <strong>rád</strong> je hodnotím.</p>';

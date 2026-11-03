@@ -1,4 +1,20 @@
+import { randomUUID } from 'node:crypto';
 import type { PrismaClient } from '@prisma/client';
+
+/**
+ * A per-suite fixture marker. Must be unique per suite FILE, not per run:
+ * the API suites share one database and run in parallel workers, and a
+ * `Date.now()` marker collides whenever two suites start in the same
+ * millisecond — one suite's cleanup then deletes the other's fixture
+ * accounts (or its `count(...) toBe(N)` assertion sees foreign rows),
+ * which is the flaky red that needed CI reruns. A UUID has no such
+ * collision window. Hyphens are stripped because markers are embedded in
+ * game/user names that search tests match word-wise (a `-` is a token
+ * separator there, so `foo-<uuid>` would not match `foo<uuid>`).
+ */
+export function fixtureStamp(): string {
+  return randomUUID().replace(/-/g, '');
+}
 
 /**
  * Removes a suite's fixture accounts without failing the suite.

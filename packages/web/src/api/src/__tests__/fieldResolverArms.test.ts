@@ -2,6 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Branch arms of `resolvers/index.ts` — the snake_case↔camelCase field
@@ -16,7 +17,7 @@ import { prisma } from '../context';
  */
 describe('Event/RecommendedEvent registration field fallbacks (resolvers/index.ts)', () => {
   let server: ApolloServer;
-  const marker = `RegFallback${Date.now()}`;
+  const marker = `RegFallback${fixtureStamp()}`;
 
   // Raw rows created straight into the DB carry snake_case columns; the
   // resolver map must serve every spelling. One event per arm.
@@ -132,7 +133,7 @@ describe('Event/RecommendedEvent registration field fallbacks (resolvers/index.t
 
 describe('Label flag fallbacks (resolvers/index.ts)', () => {
   let server: ApolloServer;
-  const marker = `LblFlag${Date.now()}`;
+  const marker = `LblFlag${fixtureStamp()}`;
   let labelId: number;
   let ownerId: number;
 
@@ -222,7 +223,7 @@ describe('Label flag fallbacks (resolvers/index.ts)', () => {
 
 describe('User.commentsPaged guards (resolvers/index.ts)', () => {
   let server: ApolloServer;
-  const marker = `UsrPaged${Date.now()}`;
+  const marker = `UsrPaged${fixtureStamp()}`;
   let userId: number;
   let gameId: number;
   let deletedGameId: number;

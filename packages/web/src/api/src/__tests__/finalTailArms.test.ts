@@ -7,6 +7,7 @@ import { prisma } from '../context';
 import { LocalFiles } from '../files/fileService';
 import { saveProfilePicture, removeProfilePictureIfUnused } from '../resolvers/profilePicture';
 import { allCommentsPage } from '../resolvers/homepage';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * The final tail of cold arms: profilePicture's extension-less name
@@ -16,7 +17,7 @@ import { allCommentsPage } from '../resolvers/homepage';
  * output-less resize strategy (outputWidth ?? 0), and allCommentsPage called
  * directly with no args (the default-parameter arms).
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `final-${stamp}`;
 
 let dataDir: string;

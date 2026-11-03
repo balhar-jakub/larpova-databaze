@@ -1,13 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { prisma } from '../context';
 import { createTestServer, executeQuery } from './testHelpers';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Cold arms of resolvers/user.ts: userById's NaN guard, userByEmail with an
  * absent argument, and the birthDate null mapping (a user without a birth
  * date must answer null, not crash on toISOString).
  */
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const marker = `uarms-${stamp}`;
 
 let server: ReturnType<typeof createTestServer>;

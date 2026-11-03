@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { PrismaClient } from '@prisma/client';
 import { execFileSync } from 'node:child_process';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * The nightly-batch cluster (similarityEngine + tasks.ts) consists of GLOBAL
@@ -24,7 +25,7 @@ import { execFileSync } from 'node:child_process';
  * deliberately out of scope — they need an HTTP-mock harness first.
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 const DB_NAME = `csld_nightly_${stamp}`;
 const PG_PORT = process.env.PG_PORT ?? '5433';
 const PG_USER = process.env.PG_USER ?? 'csld';

@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
+import { fixtureStamp } from './cleanupFixtures';
 
 /**
  * Events have no authors of their own: an event is managed by the authors of
@@ -46,7 +47,7 @@ const deleteEventMutation = `
 
 describe('an event can be managed by the authors of its linked games', () => {
   let server: ApolloServer;
-  const marker = `EventPerm${Date.now()}`;
+  const marker = `EventPerm${fixtureStamp()}`;
 
   let authorId: number;
   let strangerId: number;

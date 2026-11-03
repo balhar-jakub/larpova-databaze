@@ -2,7 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import {describe, it, expect, beforeAll, afterAll} from '@jest/globals';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
-import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
+import { deleteFixtureUsers, fixtureUserIds, fixtureStamp } from './cleanupFixtures';
 
 /**
  * Coverage for the gameMutation paths no other suite touches:
@@ -18,7 +18,7 @@ import { deleteFixtureUsers, fixtureUserIds } from './cleanupFixtures';
  * reset on every save, and full author/group/label re-sync on update).
  */
 
-const stamp = Date.now();
+const stamp = fixtureStamp();
 
 const CREATE_GAME = `
   mutation C($input: CreateGameInput!) {
