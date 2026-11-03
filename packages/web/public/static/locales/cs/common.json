@@ -389,6 +389,7 @@
         "players_1": "{{count}} hráči",
         "players_2": "{{count}} hráčů",
         "date": "Datum",
+        "games": "Hry na akci",
         "edit": "Upravit událost",
         "delete": "Smazat událost",
         "eventDeleted": "Událost byla vymazána",

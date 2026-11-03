@@ -57,7 +57,13 @@ jest.unstable_mockModule('src/hooks/useRoutes', () => ({
 jest.unstable_mockModule('../../common/WidthFixer/WidthFixer', () => ({
     WidthFixer: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
-jest.unstable_mockModule('../../common/OpenGraphMeta/OpenGraphMeta', () => ({ default: () => null }))
+const ogMetaProps: Array<{ title?: string; description?: string; image?: string }> = []
+jest.unstable_mockModule('../../common/OpenGraphMeta/OpenGraphMeta', () => ({
+    default: (props: { title?: string; description?: string; image?: string }) => {
+        ogMetaProps.push(props)
+        return null
+    },
+}))
 jest.unstable_mockModule('../../common/DetailGameList/DetailGameList', () => ({
     default: ({ games }: { games: Array<{ id: string; name?: string | null }> }) => (
         <div data-testid="game-list">{games.map((g) => g.name).join(', ')}</div>
@@ -100,6 +106,7 @@ beforeEach(() => {
     cleanup()
     mutationCalls.length = 0
     toasts.length = 0
+    ogMetaProps.length = 0
     pushedRoute = ''
     mutationResult = Promise.resolve({ data: {} })
     eventData = {
@@ -113,6 +120,7 @@ beforeEach(() => {
         description: '<p>Největší larpový festival</p>',
         registrationUrl: 'https://reg.example.test',
         registrationOpen: true,
+        coverImage: { __typename: 'Image', id: 'img42' },
         labels: [{ __typename: 'Label', id: 'l1', name: 'festival' }],
         games: [{ __typename: 'Game', id: 'g1', name: 'Hra na festivalu' }],
         allowedActions: [AllowedAction.Edit, AllowedAction.Delete],
@@ -130,6 +138,53 @@ describe('EventDetailPanel', () => {
         // The description is rendered sanitized (dangerouslySetInnerHTML).
         const html = document.body.innerHTML
         expect(html).toContain('Největší larpový festival')
+    })
+
+    it('renders the cover image and puts it into the OG tags', () => {
+        render(<EventDetailPanel eventId="e1" />)
+
+        const cover = screen.getByTestId('eventDetail.coverImage')
+        expect(cover.getAttribute('src')).toBe('/event-image/?imageId=img42')
+        // A shared event link must show the poster, not the site logo.
+        expect(ogMetaProps.at(-1)?.image).toBe('/event-image/?imageId=img42')
+    })
+
+    it('renders no cover and no OG image when the event has none', () => {
+        eventData = { ...eventData, coverImage: null }
+        render(<EventDetailPanel eventId="e1" />)
+
+        expect(screen.queryByTestId('eventDetail.coverImage')).toBeNull()
+        expect(ogMetaProps.at(-1)?.image).toBeUndefined()
+    })
+
+    it('heads the linked games section so the cards are not an unlabelled grid', () => {
+        render(<EventDetailPanel eventId="e1" />)
+
+        expect(screen.getByTestId('eventDetail.gamesHeader').textContent).toBe(translate(cs, 'EventDetail.games'))
+    })
+
+    it('omits the games heading when no game is linked', () => {
+        eventData = { ...eventData, games: [] }
+        render(<EventDetailPanel eventId="e1" />)
+
+        expect(screen.queryByTestId('eventDetail.gamesHeader')).toBeNull()
+    })
+
+    it('drops a registration link that is not an absolute http(s) URL', () => {
+        eventData = { ...eventData, registrationUrl: 'javascript:alert(1)' }
+        render(<EventDetailPanel eventId="e1" />)
+
+        // The CTA is the one click the whole page exists for; a malformed URL
+        // must not render as a dead button.
+        expect(screen.queryByTestId('eventDetail.registration')).toBeNull()
+        expect(screen.queryByTestId('registration-link')).toBeNull()
+    })
+
+    it('shows the player count when the event carries one', () => {
+        eventData = { ...eventData, amountOfPlayers: 120 }
+        render(<EventDetailPanel eventId="e1" />)
+
+        expect(document.body.textContent).toContain(translate(cs, 'EventDetail.players', { count: 120 }))
     })
 
     it('shows the edit and delete actions when allowed', () => {
