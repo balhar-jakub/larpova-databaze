@@ -30,10 +30,12 @@ import HistoryView from './HistoryView'
 import {
     CALENDAR_DURATIONS,
     CALENDAR_PLACES,
+    CALENDAR_SOURCES,
     CALENDAR_VIEWS,
     CALENDAR_WHENS,
     CalendarDuration,
     CalendarPlace,
+    CalendarSource,
     CalendarState,
     CalendarWhen,
     calendarActiveFilters,
@@ -45,9 +47,11 @@ import {
     toggleDuration,
     toggleLabel,
     togglePlace,
+    toggleSource,
 } from './calendarState'
 import {
     eventPlace,
+    eventSource,
     eventSpan,
     durationBucket,
     filterCalendarEvents,
@@ -57,6 +61,7 @@ import {
     monthShort,
     nextEventId,
 } from './calendarUtils'
+import OtherEventsPanel from './OtherEventsPanel'
 
 import * as calendarEventsDocument from './graphql/calendarEvents.graphql'
 import * as calendarStatsDocument from './graphql/calendarStats.graphql'
@@ -430,6 +435,18 @@ const CalendarPanel = ({ initialQuery }: Props) => {
     const filtered = useMemo(() => filterCalendarEvents(allEvents, state, today), [allEvents, state, today])
     const nextId = useMemo(() => nextEventId(allEvents, today), [allEvents, today])
 
+    // The weekend view splits the filtered list: larp events in the main
+    // agenda, the sermiri.cz catalogue in the secondary panel below it. The
+    // month grid and the history keep showing everything the filter passes.
+    const primaryEvents = useMemo(
+        () => filtered.filter((event) => eventSource(event) === 'larp'),
+        [filtered],
+    )
+    const otherEvents = useMemo(
+        () => filtered.filter((event) => eventSource(event) === 'other'),
+        [filtered],
+    )
+
     // Season strip: the next twelve months, counted from the whole database.
     const seasonMonths = useMemo<SeasonMonth[]>(() => {
         const counts = new Map<string, number>()
@@ -498,6 +515,8 @@ const CalendarPanel = ({ initialQuery }: Props) => {
                 return t('Calendar.filters.registrationOpen')
             case 'query':
                 return t('Calendar.active.query', { query: value })
+            case 'source':
+                return t(`Calendar.active.source_${value}`)
             default:
                 return t('Calendar.active.label', { name: value })
         }
@@ -660,6 +679,24 @@ const CalendarPanel = ({ initialQuery }: Props) => {
                                 </div>
 
                                 <div className={classes.filterGroup}>
+                                    <h4 className={classes.filterTitle}>{t('Calendar.filters.source')}</h4>
+                                    {CALENDAR_SOURCES.map((source: CalendarSource) => (
+                                        <label className={classes.filter} key={source}>
+                                            <input
+                                                type="checkbox"
+                                                checked={state.sources.includes(source)}
+                                                onChange={() => commitState(toggleSource(state, source))}
+                                            />
+                                            <span>{t(`Calendar.filters.source_${source}`)}</span>
+                                            <span className={classes.filterCount}>
+                                                {countFor((event) => eventSource(event) === source)}
+                                            </span>
+                                        </label>
+                                    ))}
+                                    <p className={classes.hint}>{t('Calendar.filters.sourceHint')}</p>
+                                </div>
+
+                                <div className={classes.filterGroup}>
                                     <h4 className={classes.filterTitle}>{t('Calendar.filters.status')}</h4>
                                     <label className={classes.filter}>
                                         <input
@@ -784,11 +821,16 @@ const CalendarPanel = ({ initialQuery }: Props) => {
                                 <>
                                     {state.view === 'vikendy' && filtered.length > 0 && (
                                         <WeekendAgenda
-                                            events={filtered}
+                                            events={primaryEvents}
+                                            allEvents={filtered}
                                             today={today}
                                             until={seasonEnd}
                                             nextEventId={nextId}
                                         />
+                                    )}
+
+                                    {state.view === 'vikendy' && state.sources.includes('other') && otherEvents.length > 0 && (
+                                        <OtherEventsPanel events={otherEvents} today={today} />
                                     )}
 
                                     {state.view === 'mesic' &&

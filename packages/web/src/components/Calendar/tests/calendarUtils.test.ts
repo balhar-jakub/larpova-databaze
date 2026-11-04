@@ -5,6 +5,7 @@ import {
     durationBucket,
     eventLabelNames,
     eventPlace,
+    eventSource,
     eventSpan,
     filterCalendarEvents,
     freeWeekends,
@@ -89,6 +90,22 @@ describe('eventPlace', () => {
     })
 })
 
+describe('eventSource', () => {
+    test('a sermiri.cz web link marks the event as "other", anything else as "larp"', () => {
+        const sermiri = event('s1', 'BRAN — koncert', at(2026, 10, 3), at(2026, 10, 3), {
+            web: 'https://www.sermiri.cz/akce/bran---etno-brno/43474',
+        })
+        const sermiriUpper = event('s2', 'Burza', at(2026, 10, 4), at(2026, 10, 4), { web: 'HTTPS://SERMIRI.CZ/akce/x/1' })
+        const plain = event('s3', 'Běh', at(2026, 10, 5), at(2026, 10, 5), { web: 'https://example.com' })
+        const noWeb = event('s4', 'Bez webu', at(2026, 10, 6), at(2026, 10, 6))
+
+        expect(eventSource(sermiri)).toBe('other')
+        expect(eventSource(sermiriUpper)).toBe('other')
+        expect(eventSource(plain)).toBe('larp')
+        expect(eventSource(noWeb)).toBe('larp')
+    })
+})
+
 describe('filterCalendarEvents', () => {
     const all = [the3rd, the8th, camlann, abroad, late]
     const of = (query: Parameters<typeof parseCalendarState>[0]) =>
@@ -114,6 +131,29 @@ describe('filterCalendarEvents', () => {
         expect(of({ web: '1' })).toEqual(['c'])
         expect(of({ dd: 'weekend' })).toEqual(['b', 'c', 'd'])
         expect(of({ dd: 'weekend', dk: 'noloc' })).toEqual(['b'])
+    })
+
+    test('the source filter keeps only the selected sources', () => {
+        const sermiri = event('s1', 'BRAN — koncert', at(2026, 10, 3), at(2026, 10, 3), {
+            web: 'https://www.sermiri.cz/akce/bran/43474',
+        })
+        const larpEvent = event('l1', 'Larpový běh', at(2026, 10, 3), at(2026, 10, 4), { web: 'https://example.com' })
+        const both = [sermiri, larpEvent, the3rd]
+
+        // Default (larp only): sermiri events are rejected.
+        expect(filterCalendarEvents(both, parseCalendarState({}), today).map((item) => item.id)).toEqual(['l1', 'a'])
+
+        // Only "other": just the sermiri event.
+        expect(filterCalendarEvents(both, parseCalendarState({ src: 'other' }), today).map((item) => item.id)).toEqual([
+            's1',
+        ])
+
+        // Both sources checked: everything passes, like no filter at all.
+        expect(filterCalendarEvents(both, parseCalendarState({ src: 'larp,other' }), today).map((item) => item.id)).toEqual([
+            's1',
+            'l1',
+            'a',
+        ])
     })
 
     test('the open-registration filter keeps only sign-up-able events', () => {

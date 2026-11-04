@@ -28,6 +28,14 @@ export type CalendarPlace = 'cz' | 'foreign' | 'noloc'
 
 export type CalendarLabelMode = 'all' | 'any'
 
+/**
+ * Where the event comes from. `other` is the sermiri.cz catalogue (swept in
+ * daily: concerts, markets, historical festivals) — real events, but usually
+ * not larps, so the weekend view renders them in a secondary panel instead of
+ * interleaved with the larp runs.
+ */
+export type CalendarSource = 'larp' | 'other'
+
 export interface CalendarState {
     readonly view: CalendarView
     readonly when: CalendarWhen
@@ -40,6 +48,8 @@ export interface CalendarState {
     readonly registrationOpen: boolean
     readonly labels: readonly string[]
     readonly labelMode: CalendarLabelMode
+    /** Selected event sources. `['larp']` is the default: only larp events. */
+    readonly sources: readonly CalendarSource[]
     /** Year selected in the history view. */
     readonly year?: number
     /**
@@ -54,6 +64,7 @@ export const CALENDAR_VIEWS: CalendarView[] = ['vikendy', 'mesic', 'historie']
 export const CALENDAR_WHENS: CalendarWhen[] = ['all', 'weekend', 'nextweekend', 'month', 'quarter']
 export const CALENDAR_DURATIONS: CalendarDuration[] = ['one', 'weekend', 'long']
 export const CALENDAR_PLACES: CalendarPlace[] = ['cz', 'foreign', 'noloc']
+export const CALENDAR_SOURCES: CalendarSource[] = ['larp', 'other']
 
 export const DEFAULT_CALENDAR_STATE: CalendarState = {
     view: 'vikendy',
@@ -64,6 +75,7 @@ export const DEFAULT_CALENDAR_STATE: CalendarState = {
     registrationOpen: false,
     labels: [],
     labelMode: 'all',
+    sources: ['larp'],
 }
 
 const first = (value?: string | string[]): string | undefined =>
@@ -116,6 +128,9 @@ export function parseCalendarState(query: ParsedUrlQuery): CalendarState {
         labels: parseIds(query.lb).length ? parseIds(query.lb) : legacyLabels,
         labelMode:
             first(query.lm) === 'any' || (!legacyRequired.length && legacyOptional.length) ? 'any' : 'all',
+        sources: parseList(query.src, CALENDAR_SOURCES).length
+            ? parseList(query.src, CALENDAR_SOURCES)
+            : [...DEFAULT_CALENDAR_STATE.sources],
         year: parseYear(query.r),
         query: first(query.q)?.trim() || undefined,
     }
@@ -134,6 +149,10 @@ export function calendarStateToQuery(state: CalendarState): { [key: string]: str
     if (state.registrationOpen) query.reg = '1'
     if (state.labels.length) query.lb = [...state.labels].sort().join(',')
     if (state.labelMode !== 'all') query.lm = state.labelMode
+    // The default (larp only) is omitted; every other selection — including
+    // both sources, which serialises explicitly so it round-trips — is kept,
+    // so the same state always produces the same URL.
+    if (!isDefaultSources(state)) query.src = [...state.sources].sort().join(',')
     if (state.year) query.r = String(state.year)
     // A blank query never reaches the state (parse drops it, the input clears to
     // undefined) — never serialise one either, so the URL stays canonical.
@@ -146,6 +165,11 @@ export function calendarStateToQuery(state: CalendarState): { [key: string]: str
 export function calendarStateKey(state: CalendarState): string {
     return JSON.stringify(calendarStateToQuery(state))
 }
+
+/** The default source selection (`['larp']`) is omitted from the URL. */
+const isDefaultSources = (state: CalendarState): boolean =>
+    state.sources.length === DEFAULT_CALENDAR_STATE.sources.length &&
+    DEFAULT_CALENDAR_STATE.sources.every((source) => state.sources.includes(source))
 
 export function toggleListValue<T extends string>(list: readonly T[], value: T): T[] {
     return list.includes(value) ? list.filter((item) => item !== value) : [...list, value].sort()
@@ -161,6 +185,13 @@ export function togglePlace(state: CalendarState, value: CalendarPlace): Calenda
 
 export function toggleLabel(state: CalendarState, labelId: string): CalendarState {
     return { ...state, labels: toggleListValue(state.labels, labelId) }
+}
+
+export function toggleSource(state: CalendarState, value: CalendarSource): CalendarState {
+    const sources = toggleListValue(state.sources, value)
+    // Unchecking the last checked source would show nothing at all — fall
+    // back to the default rather than an empty calendar.
+    return { ...state, sources: sources.length ? sources : [...DEFAULT_CALENDAR_STATE.sources] }
 }
 
 export function clearCalendarFilters(state: CalendarState): CalendarState {
@@ -180,6 +211,7 @@ export function hasCalendarFilters(state: CalendarState): boolean {
         state.withWeb ||
         state.registrationOpen ||
         state.labels.length > 0 ||
+        !isDefaultSources(state) ||
         Boolean(state.query)
     )
 }
@@ -188,7 +220,7 @@ export function hasCalendarFilters(state: CalendarState): boolean {
 
 export interface CalendarActiveFilter {
     readonly key: string
-    readonly kind: 'when' | 'duration' | 'place' | 'withWeb' | 'registrationOpen' | 'label' | 'query'
+    readonly kind: 'when' | 'duration' | 'place' | 'withWeb' | 'registrationOpen' | 'label' | 'source' | 'query'
     readonly value?: string
     readonly remove: Partial<CalendarState>
 }
@@ -246,6 +278,23 @@ export function calendarActiveFilters(
             remove: { labels: state.labels.filter((labelId) => labelId !== id) },
         })
     })
+
+    // Only the non-default sources get a chip: with the default `['larp']`
+    // nothing is shown, and both sources selected means "no filter" (the
+    // default for the panel, just spelled out).
+    state.sources
+        .filter((source) => !DEFAULT_CALENDAR_STATE.sources.includes(source))
+        .forEach((source) => {
+            const remaining = state.sources.filter((item) => item !== source)
+            filters.push({
+                key: `source:${source}`,
+                kind: 'source',
+                value: source,
+                // Removing the last source would mean "no filter" (everything
+                // interleaved again) — fall back to the default instead.
+                remove: { sources: remaining.length ? remaining : [...DEFAULT_CALENDAR_STATE.sources] },
+            })
+        })
 
     return filters
 }

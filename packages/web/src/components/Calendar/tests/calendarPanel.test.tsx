@@ -658,6 +658,87 @@ describe('CalendarPanel: sidebar filters', () => {
     })
 })
 
+describe('CalendarPanel: source filter and the sermiri.cz panel', () => {
+    beforeEach(() => {
+        jest.clearAllMocks()
+        routerQuery = {}
+        eventsAnswer = Promise.resolve(
+            eventsData([
+                event('1', { web: 'https://example.com/larp' }),
+                event('2', { web: 'https://www.sermiri.cz/akce/bran/43474' }),
+                event('3', { web: 'https://www.sermiri.cz/akce/burza/43475' }),
+                event('4', { web: 'https://sermiri.cz/akce/slavnost/43476' }),
+            ]),
+        )
+        statsAnswer = Promise.resolve(statsData())
+    })
+
+    it('keeps only larp events by default — no secondary panel, sermiri events hidden', async () => {
+        render(<CalendarPanel initialQuery={{}} />)
+        await screen.findAllByText('Událost 1')
+
+        expect(screen.queryByTestId('calendar.otherEvents')).toBeNull()
+        expect(screen.queryByText('Událost 2')).toBeNull()
+        expect(screen.queryByTestId('calendar.sourcePill.2')).toBeNull()
+    })
+
+    it('splits the list when both sources are selected: agenda + collapsed other panel', async () => {
+        routerQuery = { src: 'larp,other' }
+        render(<CalendarPanel initialQuery={{ src: 'larp,other' }} />)
+        await screen.findAllByText('Událost 1')
+
+        const panel = await screen.findByTestId('calendar.otherEvents')
+        // The main agenda holds the larp event, the panel the three sermiri ones.
+        expect(screen.queryByTestId('calendar.event.1')).toBeTruthy()
+        // Collapsed to two cards + the "… a dalších N" line.
+        expect(panel.querySelectorAll('[data-testid^="calendar.event."]')).toHaveLength(2)
+        expect(panel.textContent).toContain(translate(cs, 'Calendar.otherEventsMore', { count: 1 }))
+        // Each visible other card carries the sermiri.cz source pill.
+        expect(screen.getAllByTestId(/^calendar\.sourcePill\./).length).toBeGreaterThan(0)
+
+        // Expanding shows all of them.
+        fireEvent.click(screen.getByTestId('calendar.otherEventsToggle'))
+        expect(panel.querySelectorAll('[data-testid^="calendar.event."]')).toHaveLength(3)
+        expect(panel.textContent).toContain(translate(cs, 'Calendar.otherEventsCollapse'))
+    })
+
+    it('the Zdroj checkboxes write src into the URL and the chip removes it', async () => {
+        render(<CalendarPanel initialQuery={{}} />)
+        await screen.findAllByText('Událost 1')
+
+        const clickFilterInput = (labelText: string) => {
+            const label = screen.getByText(labelText).closest('label')
+            expect(label).toBeTruthy()
+            fireEvent.click(label!.querySelector('input')!)
+        }
+
+        clickFilterInput(translate(cs, 'Calendar.filters.source_other'))
+        let lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as unknown as { query: Record<string, string> }
+        expect(lastCall[0].query.src).toBe('larp,other')
+
+        // The source chip appears; clicking it returns to the default (no src).
+        routerQuery = lastCall[0].query as Record<string, string>
+        const chip = screen
+            .getAllByRole('button')
+            .find((el) => (el.textContent ?? '').includes(translate(cs, 'Calendar.active.source_other')))
+        expect(chip).toBeTruthy()
+        fireEvent.click(chip!)
+        lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as unknown as { query: Record<string, string> }
+        expect(lastCall[0].query.src).toBeUndefined()
+    })
+
+    it('shows only the sermiri events when just "other" is selected', async () => {
+        routerQuery = { src: 'other' }
+        render(<CalendarPanel initialQuery={{ src: 'other' }} />)
+
+        await waitFor(() => expect(screen.getByTestId('calendar.otherEvents')).toBeTruthy())
+        // No larp card in the agenda (the name still appears in the "nejbližší
+        // akce" subtitle, which is computed from all loaded events).
+        expect(screen.queryByTestId('calendar.event.1')).toBeNull()
+        expect(screen.getByTestId('calendar.event.2')).toBeTruthy()
+    })
+})
+
 describe('SeasonStrip', () => {
     it('marks the selected month and keeps the empty months clickable', () => {
         const months = [
