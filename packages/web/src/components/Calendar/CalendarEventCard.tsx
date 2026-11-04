@@ -9,11 +9,13 @@ import EventLink from '../common/EventLink/EventLink'
 import { GameLink } from '../common/GameLink/GameLink'
 import EventRegistrationLink from '../common/EventRegistrationLink/EventRegistrationLink'
 import { isAbsoluteHttpUrl } from '../../utils/urlUtils'
-import { eventLabelNames, eventSpan, googleCalendarUrl, isForeignLocation, isInternationalEvent } from './calendarUtils'
+import { eventLabelNames, eventSource, eventSpan, googleCalendarUrl, isForeignLocation, isInternationalEvent } from './calendarUtils'
 
 interface Props {
     readonly event: CalendarEventDataFragment
     readonly isNext?: boolean
+    /** Rendered in the secondary (sermiri.cz) panel: softer card, source pill. */
+    readonly muted?: boolean
 }
 
 const useStyles = createUseStyles({
@@ -48,6 +50,14 @@ const useStyles = createUseStyles({
     },
     next: {
         borderLeftColor: darkTheme.textGreenDark,
+    },
+    muted: {
+        backgroundColor: '#fafafa',
+        borderLeftColor: '#d8d8d8',
+    },
+    mutedName: {
+        color: '#6a6a6a',
+        fontWeight: 500,
     },
     registrationOpen: {
         boxShadow: `inset 0 0 0 1px ${darkTheme.textGreen}`,
@@ -99,6 +109,10 @@ const useStyles = createUseStyles({
         backgroundColor: darkTheme.blue,
         color: darkTheme.backgroundRealWhite,
     },
+    pillSource: {
+        backgroundColor: '#e8e0f5',
+        color: '#5e4b8b',
+    },
     meta: {
         marginTop: 3,
         fontSize: '0.72rem',
@@ -145,11 +159,12 @@ const useStyles = createUseStyles({
  * the 29 upcoming events do not have — so every row had a blank line and a
  * missing location vanished without a trace.
  */
-const CalendarEventCard = ({ event, isNext = false }: Props) => {
+const CalendarEventCard = ({ event, isNext = false, muted = false }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
 
     const span = eventSpan(event)
+    const source = eventSource(event)
     const labels = eventLabelNames(event)
     const registrationUrl = isAbsoluteHttpUrl(event.registrationUrl) ? event.registrationUrl : undefined
     const calendarUrl = googleCalendarUrl(event)
@@ -160,6 +175,7 @@ const CalendarEventCard = ({ event, isNext = false }: Props) => {
         <div
             className={classNames(classes.card, {
                 [classes.next]: isNext,
+                [classes.muted]: muted,
                 [classes.registrationOpen]: event.registrationOpen && Boolean(registrationUrl),
                 [classes.registrationClosed]: !event.registrationOpen && Boolean(registrationUrl),
             })}
@@ -184,10 +200,19 @@ const CalendarEventCard = ({ event, isNext = false }: Props) => {
                 />
             )}
             <div>
-                <span className={classes.name}>
+                <span className={classNames(classes.name, { [classes.mutedName]: muted })}>
                     <EventLink event={event}>{event.name}</EventLink>
                 </span>
                 <span className={classes.pills}>
+                    {source === 'other' && (
+                        <span
+                            className={classNames(classes.pill, classes.pillSource)}
+                            title={t('Calendar.sourcePillTitle')}
+                            data-testid={`calendar.sourcePill.${event.id}`}
+                        >
+                            {t('Calendar.sourcePill')}
+                        </span>
+                    )}
                     {isNext && <span className={classNames(classes.pill, classes.pillNext)}>{t('Calendar.next')}</span>}
                     {span && (
                         <span className={classes.pill}>

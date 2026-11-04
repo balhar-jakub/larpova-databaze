@@ -8,6 +8,7 @@ import {
     toggleDuration,
     toggleLabel,
     togglePlace,
+    toggleSource,
 } from '../calendarState'
 
 describe('parseCalendarState', () => {
@@ -23,6 +24,41 @@ describe('parseCalendarState', () => {
         expect(state.labels).toEqual([])
         expect(state.year).toBeUndefined()
         expect(hasCalendarFilters(state)).toBe(false)
+    })
+
+    test('the source parameter defaults to larp-only and parses a comma list sorted', () => {
+        expect(parseCalendarState({}).sources).toEqual(['larp'])
+
+        const both = parseCalendarState({ src: 'other,larp' })
+        expect(both.sources).toEqual(['larp', 'other'])
+        expect(hasCalendarFilters(both)).toBe(true)
+
+        // Invalid values are dropped; an all-invalid list falls back to the default.
+        expect(parseCalendarState({ src: 'nonsense' }).sources).toEqual(['larp'])
+        expect(parseCalendarState({ src: 'other,bogus' }).sources).toEqual(['other'])
+    })
+
+    test('the source selection round-trips through the URL, the default is omitted', () => {
+        const onlyOther = parseCalendarState({ src: 'other' })
+        expect(calendarStateToQuery(onlyOther)).toEqual({ src: 'other' })
+        expect(parseCalendarState(calendarStateToQuery(onlyOther))).toEqual(onlyOther)
+
+        // Both sources selected serialises explicitly (it means "no split
+        // filter"), the default ['larp'] does not.
+        const both = parseCalendarState({ src: 'larp,other' })
+        expect(calendarStateToQuery(both)).toEqual({ src: 'larp,other' })
+        expect(parseCalendarState(calendarStateToQuery(both))).toEqual(both)
+        expect(calendarStateToQuery(parseCalendarState({}))).toEqual({})
+    })
+
+    test('hasCalendarFilters notices a non-default source selection and reset restores it', () => {
+        expect(hasCalendarFilters(parseCalendarState({ src: 'other' }))).toBe(true)
+        expect(hasCalendarFilters(parseCalendarState({ src: 'larp,other' }))).toBe(true)
+        expect(hasCalendarFilters(parseCalendarState({}))).toBe(false)
+
+        const cleared = clearCalendarFilters(parseCalendarState({ src: 'other', reg: '1' }))
+        expect(cleared.sources).toEqual(['larp'])
+        expect(cleared.registrationOpen).toBe(false)
     })
 
     test('the open-registration parameter selects the open-registration filter', () => {
@@ -94,6 +130,14 @@ describe('changing the state', () => {
         expect(toggleLabel(base, '4').labels).toEqual(['4'])
     })
 
+    test('toggleSource adds and removes a source, never emptying the list', () => {
+        expect(toggleSource(base, 'other').sources).toEqual(['larp', 'other'])
+        expect(toggleSource(toggleSource(base, 'other'), 'larp').sources).toEqual(['other'])
+        // Unchecking the last source falls back to the default instead of
+        // showing an empty calendar.
+        expect(toggleSource(parseCalendarState({ src: 'other' }), 'other').sources).toEqual(['larp'])
+    })
+
     test('clearing the filters keeps the view and the selected year', () => {
         const state = parseCalendarState({ v: 'historie', r: '2019', kdy: 'weekend', dk: 'cz', reg: '1' })
         const cleared = clearCalendarFilters(state)
@@ -126,5 +170,21 @@ describe('changing the state', () => {
 
         const withoutRegistration = { ...state, ...filters.find((filter) => filter.kind === 'registrationOpen')!.remove }
         expect(withoutRegistration.registrationOpen).toBe(false)
+    })
+
+    test('a non-default source gets a removable chip of kind "source"', () => {
+        const state = parseCalendarState({ src: 'larp,other' })
+        const filters = calendarActiveFilters(state, {})
+
+        const sourceChip = filters.find((filter) => filter.kind === 'source')
+        expect(sourceChip).toBeTruthy()
+        expect(sourceChip?.value).toBe('other')
+
+        // Clicking the chip removes only the non-default source.
+        const withoutChip = { ...state, ...sourceChip!.remove }
+        expect(withoutChip.sources).toEqual(['larp'])
+
+        // The default state has no source chip at all.
+        expect(calendarActiveFilters(parseCalendarState({}), {}).some((filter) => filter.kind === 'source')).toBe(false)
     })
 })

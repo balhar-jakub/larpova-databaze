@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { CalendarEventDataFragment } from '../../graphql/__generated__/typescript-operations'
-import { CalendarDuration, CalendarPlace, CalendarState, CalendarWhen } from './calendarState'
+import { CalendarDuration, CalendarPlace, CalendarSource, CalendarState, CalendarWhen } from './calendarState'
 import { parseDateTime } from '../../utils/dateUtils'
 import { matchTextQuery } from '../../utils/textUtils'
 import { isAbsoluteHttpUrl } from '../../utils/urlUtils'
@@ -100,6 +100,14 @@ export const eventPlace = (event: Pick<CalendarEventDataFragment, 'loc' | 'name'
 export const eventLabelNames = (event: Pick<CalendarEventDataFragment, 'labels'>): string[] =>
     (event.labels ?? []).map((label) => label.name ?? label.id).filter(Boolean)
 
+/**
+ * The source of an event. The `source` column is free text and almost always
+ * empty, so the reliable marker is the web link: the daily sweep imports
+ * sermiri.cz catalogue rows with their sermiri.cz URL in `web`.
+ */
+export const eventSource = (event: Pick<CalendarEventDataFragment, 'web'>): CalendarSource =>
+    (event.web ?? '').toLowerCase().includes('sermiri.cz') ? 'other' : 'larp'
+
 // ── Time windows ──────────────────────────────────────────
 
 const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate())
@@ -170,17 +178,15 @@ const eventMatches = (
     state: CalendarState,
     window: { from: Date; to: Date } | undefined,
 ): boolean => {
-    if (window) {
-        const start = startOfDay(span.start).getTime()
-        const end = startOfDay(span.end).getTime()
-        if (end < window.from.getTime() || start > window.to.getTime()) return false
-    }
+    if (window && !inWindow(span, window)) return false
 
     if (state.durations.length && !state.durations.includes(durationBucket(span))) return false
 
     if (state.places.length && !state.places.includes(eventPlace(event))) return false
 
     if (state.withWeb && !event.web) return false
+
+    if (!sourceMatches(event, state)) return false
 
     // The same rule the homepage block uses: an open flag without a
     // sign-up link is nothing to filter on.
@@ -190,6 +196,19 @@ const eventMatches = (
 
     return state.labels.length === 0 || labelsMatch(event, state)
 }
+
+/** Does the event overlap the [from, to] window at all? */
+const inWindow = (span: EventSpan, window: { from: Date; to: Date }): boolean => {
+    const start = startOfDay(span.start).getTime()
+    const end = startOfDay(span.end).getTime()
+    return !(end < window.from.getTime() || start > window.to.getTime())
+}
+
+/** The source filter: an empty list is "no opinion" (everything passes —
+ * that is how the secondary panel gets populated when both boxes are
+ * checked), any non-empty list is a hard reject for the other source. */
+const sourceMatches = (event: CalendarEventDataFragment, state: CalendarState): boolean =>
+    state.sources.length === 0 || state.sources.includes(eventSource(event))
 
 /** The label filter: `any` mode passes when the event carries one of the
  * picked labels, `all` when it carries every one of them. */

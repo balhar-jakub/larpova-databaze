@@ -13,6 +13,12 @@ interface Props {
     /** Free weekends are listed until this date. */
     readonly until: Date
     readonly nextEventId?: string
+    /**
+     * Every event passing the filters, used only for the "volný víkend" rows —
+     * a weekend with only a secondary (sermiri.cz) event is still busy. When
+     * omitted, `events` is used.
+     */
+    readonly allEvents?: CalendarEventDataFragment[]
 }
 
 const useStyles = createUseStyles({
@@ -72,12 +78,12 @@ const useStyles = createUseStyles({
  * weekends collapse into a single muted row so the rhythm stays visible without
  * a screen full of nothing.
  */
-const WeekendAgenda = ({ events, today, until, nextEventId }: Props) => {
+const WeekendAgenda = ({ events, today, until, nextEventId, allEvents }: Props) => {
     const classes = useStyles()
     const { t } = useTranslation('common')
 
     const blocks = groupEventsByWeek(events)
-    const free = freeWeekends(events, today, until)
+    const free = freeWeekends(allEvents ?? events, today, until)
 
     const freeBetween = (from: Date, to?: Date) =>
         free.filter(

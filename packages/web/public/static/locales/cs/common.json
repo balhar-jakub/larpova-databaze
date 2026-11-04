@@ -643,7 +643,9 @@
         "filteredHint": "Filtr ořezává i volné víkendy, proto se v seznamu mohou objevit i týdny, které vypadají prázdné.",
         "active": {
             "label": "Štítek: {{name}}",
-            "query": "hledání: {{query}}"
+            "query": "hledání: {{query}}",
+            "source_larp": "Zdroj: larpové akce",
+            "source_other": "Zdroj: sermiri.cz"
         },
         "filters": {
             "when": "Kdy",
@@ -669,7 +671,11 @@
             "registrationOpen": "Přihlášky otevřené",
             "labelsNone": "Štítek nemá ani jedna z {{total}} budoucích akcí, filtr by vyšel naprázdno.",
             "labelsModeAny": "alespoň jeden vybraný štítek",
-            "placeHeuristic": "Země v datech není, „zahraničí“ se pozná z textu místa nebo z názvu akce."
+            "placeHeuristic": "Země v datech není, „zahraničí“ se pozná z textu místa nebo z názvu akce.",
+            "source": "Zdroj",
+            "source_larp": "Larpové akce",
+            "source_other": "Ostatní akce ze sermiri.cz",
+            "sourceHint": "sermiri.cz = katalog šermířů a akcí: koncerty, průvody, burzy, historické slavnosti (většinou ne larpy)."
         },
         "monthGrid": {
             "legend": "Tyrkysový pruh = jednodenní akce, šedý pruh s tyrkysovým okrajem = akce na více dní (táhne se přes dny).",
@@ -682,7 +688,17 @@
             "emptyYears": "Roky {{years}} ve datech chybí úplně — v databázi k nim není jediná akce.",
             "yearTitle": "Akce v roce {{year}}",
             "noEvents": "K tomuhle roku nejsou v databázi žádné akce."
-        }
+        },
+        "otherEvents": "Ostatní akce",
+        "otherEventsSubtitle": "ze sermiri.cz — koncerty, průvody, slavnosti, burzy (většinou ne larpy)",
+        "otherEventsExpand": "zobrazit všechny",
+        "otherEventsCollapse": "sbalit",
+        "otherEventsMore_0": "… a další {{count}} akce",
+        "otherEventsMore_1": "… a další {{count}} akce",
+        "otherEventsMore_2": "… a dalších {{count}} akcí",
+        "otherEventsShowAll": "zobrazit všechny ze sermiri.cz »",
+        "sourcePill": "sermiri.cz",
+        "sourcePillTitle": "převzato ze sermiri.cz"
     },
     "Admin": {
         "tabIntro": "Úvod",
