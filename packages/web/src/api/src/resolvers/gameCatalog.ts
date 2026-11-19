@@ -221,6 +221,25 @@ function rangeWhere(from: number | null | undefined, to: number | null | undefin
  * Facets are counted with the same where, so the label counts always answer the
  * same question the list does ("kolik her odpovídá filtru").
  */
+
+/** Family-specific catalog guards (kids keywords / kids reviews / series membership),
+ * kept out of buildCatalogWhere so the where-builder stays at its registered complexity. */
+function familyGuards(filter: CatalogFilter): Prisma.csld_gameWhereInput[] {
+  // One row per family flag: [on, guard]. The keyword list is data-shaped (Czech
+  // inflections); kept in one place so the count and the filter never drift apart.
+  const rows: [boolean | null | undefined, Prisma.csld_gameWhereInput][] = [
+    [
+      filter.familyKeywords,
+      {
+        OR: FAMILY_KEYWORD_PATTERNS.map((p) => ({ description: { contains: p, mode: 'insensitive' as const } })),
+      },
+    ],
+    [filter.withKidsReviews, { csld_comment: { some: { is_hidden: false, kids_review: true } } }],
+    [filter.inSeries, { series_id: { not: null } }],
+  ];
+  return rows.filter(([on]) => on).map(([, guard]) => guard);
+}
+
 export function buildCatalogWhere(
   filter: CatalogFilter = {},
   options: WhereOptions = {},
@@ -229,10 +248,6 @@ export function buildCatalogWhere(
   const and: Prisma.csld_gameWhereInput[] = [{ deleted: false }];
 
   const query = filter.query?.trim();
-  if (query && Array.isArray(queryIds)) {
-    and.push({ id: { in: queryIds } });
-  }
-
   const authorIds = toIntIds(filter.authorIds);
   if (authorIds.length) {
     and.push({ csld_game_has_author: { some: { id_user: { in: authorIds } } } });
@@ -249,52 +264,28 @@ export function buildCatalogWhere(
     }
   }
 
+  // Scalar range/flag guards as rows: [predicate, guard] — one push per row keeps
+  // the builder's cyclomatic complexity flat (gate: max 10 for new code).
   const year = rangeWhere(filter.yearFrom, filter.yearTo);
-  if (year) {
-    and.push({ year });
-  }
-
   const players = rangeWhere(filter.playersFrom, filter.playersTo);
-  if (players) {
-    and.push({ players });
+  const rows: [unknown, Prisma.csld_gameWhereInput][] = [
+    [query && Array.isArray(queryIds), { id: { in: queryIds ?? [] } }],
+    [year, { year: year as NonNullable<typeof year> }],
+    [players, { players: players as NonNullable<typeof players> }],
+    [filter.minRating != null, { average_rating: { gte: filter.minRating ?? 0 } }],
+    [filter.minRatings != null, { amount_of_ratings: { gte: filter.minRatings ?? 0 } }],
+    [filter.withComments, { amount_of_comments: { gt: 0 } }],
+    [filter.withImage, { cover_image: { not: null } }],
+    [
+      filter.addedWithinDays != null && filter.addedWithinDays > 0,
+      { added: { gte: new Date(Date.now() - (filter.addedWithinDays ?? 0) * 24 * 60 * 60 * 1000) } },
+    ],
+  ];
+  for (const [on, guard] of rows) {
+    if (on) and.push(guard);
   }
 
-  if (filter.minRating != null) {
-    and.push({ average_rating: { gte: filter.minRating } });
-  }
-
-  if (filter.minRatings != null) {
-    and.push({ amount_of_ratings: { gte: filter.minRatings } });
-  }
-
-  if (filter.withComments) {
-    and.push({ amount_of_comments: { gt: 0 } });
-  }
-
-  if (filter.familyKeywords) {
-    // The keyword list is data-shaped (Czech inflections); kept in one place so
-    // the count and the filter can never drift apart.
-    and.push({
-      OR: FAMILY_KEYWORD_PATTERNS.map((p) => ({ description: { contains: p, mode: 'insensitive' as const } })),
-    });
-  }
-
-  if (filter.withKidsReviews) {
-    and.push({ csld_comment: { some: { is_hidden: false, kids_review: true } } });
-  }
-
-  if (filter.inSeries) {
-    and.push({ series_id: { not: null } });
-  }
-
-  if (filter.withImage) {
-    and.push({ cover_image: { not: null } });
-  }
-
-  if (filter.addedWithinDays != null && filter.addedWithinDays > 0) {
-    const from = new Date(Date.now() - filter.addedWithinDays * 24 * 60 * 60 * 1000);
-    and.push({ added: { gte: from } });
-  }
+  and.push(...familyGuards(filter));
 
   return { AND: and };
 }

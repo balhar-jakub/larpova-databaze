@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { useApolloClient } from '@apollo/client'
 import { DocumentNode } from 'graphql'
 import { createUseStyles } from 'react-jss'
-import { useTranslation } from 'src/lib/i18n'
 import { darkTheme } from '../../theme/darkTheme'
 import { GameCatalogOrder } from '../../graphql/__generated__/typescript-operations'
 import * as familyGamesDocument from './graphql/familyGames.graphql'
@@ -42,6 +41,7 @@ type TopSeries = NonNullable<TopFamilySeriesQuery['games']>['topFamilySeries']['
 type SeriesComment = NonNullable<SeriesCommentsQuery['seriesComments']>['comments'][number]
 
 const PAGE_SIZE = 12
+const FETCH_POLICY = 'network-only' as const
 const todayIso = () => new Date().toISOString().slice(0, 10)
 
 const useStyles = createUseStyles({
@@ -250,7 +250,6 @@ type ChipKey = 'family' | 'kidsReviews' | 'small' | 'oneDay' | 'noAction'
 
 const FamilyKidsPanel = () => {
     const classes = useStyles()
-    const { t } = useTranslation('common')
     const client = useApolloClient()
     const [chips, setChips] = useState<Record<ChipKey, boolean>>({
         family: true,
@@ -283,12 +282,12 @@ const FamilyKidsPanel = () => {
             client.query<FamilyGamesQuery, FamilyGamesQueryVariables>({
                 query: familyGamesGql,
                 variables: { filter, order: GameCatalogOrder.Recommended, offset: 0, limit: PAGE_SIZE },
-                fetchPolicy: 'network-only',
+                fetchPolicy: FETCH_POLICY,
             }),
             client.query<FamilyEventsQuery, FamilyEventsQueryVariables>({
                 query: familyEventsGql,
                 variables: { from: todayIso(), kidsProgram: true, offset: 0, limit: 30 },
-                fetchPolicy: 'network-only',
+                fetchPolicy: FETCH_POLICY,
             }),
         ])
             .then(([g, e]) => {
@@ -313,7 +312,7 @@ const FamilyKidsPanel = () => {
             .query<TopFamilySeriesQuery, TopFamilySeriesQueryVariables>({
                 query: topFamilySeriesGql,
                 variables: { filter: { familyKeywords: true }, offset: 0, limit: 10 },
-                fetchPolicy: 'network-only',
+                fetchPolicy: FETCH_POLICY,
             })
             .then((r) => {
                 if (!cancelled) setTopSeries(r.data.games.topFamilySeries.series)
@@ -330,7 +329,7 @@ const FamilyKidsPanel = () => {
             .query<FamilySeriesGamesQuery, FamilySeriesGamesQueryVariables>({
                 query: familySeriesGql,
                 variables: { seriesId },
-                fetchPolicy: 'network-only',
+                fetchPolicy: FETCH_POLICY,
             })
             .then((r) => setSeries(r.data.seriesById))
             .catch(() => setSeries({ id: seriesId, name, games: [] } as unknown as SeriesDetail))
@@ -339,7 +338,7 @@ const FamilyKidsPanel = () => {
             .query<SeriesCommentsQuery, SeriesCommentsQueryVariables>({
                 query: seriesCommentsGql,
                 variables: { seriesId, offset: 0, limit: 30 },
-                fetchPolicy: 'network-only',
+                fetchPolicy: FETCH_POLICY,
             })
             .then((r) => setSeriesReviews(r.data.seriesComments.comments))
             .catch(() => setSeriesReviews([]))
