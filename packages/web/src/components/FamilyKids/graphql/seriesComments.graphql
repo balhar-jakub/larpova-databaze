@@ -1,0 +1,26 @@
+query SeriesComments($seriesId: ID!, $offset: Int!, $limit: Int!) {
+    seriesComments(seriesId: $seriesId, offset: $offset, limit: $limit) {
+        totalAmount
+        comments {
+            id
+            added
+            amountOfUpvotes
+            comment
+            isHidden
+            kidsReview
+            game {
+                id
+                name
+                year
+            }
+            user {
+                id
+                name
+                nickname
+                image {
+                    id
+                }
+            }
+        }
+    }
+}

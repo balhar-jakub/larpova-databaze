@@ -50,6 +50,12 @@ export interface CalendarState {
     readonly labelMode: CalendarLabelMode
     /** Selected event sources. `['larp']` is the default: only larp events. */
     readonly sources: readonly CalendarSource[]
+    /** Only events flagged as having a kids/family program (event.kidsProgram). */
+    readonly kidsProgram: boolean
+    /** Only camps — events whose name/place/labels mention tábor/kemp. */
+    readonly camps: boolean
+    /** Minimum series-wide average rating of the event's games (0-100). */
+    readonly minRating: number
     /** Year selected in the history view. */
     readonly year?: number
     /**
@@ -76,6 +82,9 @@ export const DEFAULT_CALENDAR_STATE: CalendarState = {
     labels: [],
     labelMode: 'all',
     sources: ['larp'],
+    kidsProgram: false,
+    camps: false,
+    minRating: 0,
 }
 
 const first = (value?: string | string[]): string | undefined =>
@@ -131,6 +140,9 @@ export function parseCalendarState(query: ParsedUrlQuery): CalendarState {
         sources: parseList(query.src, CALENDAR_SOURCES).length
             ? parseList(query.src, CALENDAR_SOURCES)
             : [...DEFAULT_CALENDAR_STATE.sources],
+        kidsProgram: ['1', 'true'].includes(first(query.deti) ?? ''),
+        camps: ['1', 'true'].includes(first(query.tabor) ?? ''),
+        minRating: Math.min(100, Math.max(0, Number(first(query.minRating)) || 0)),
         year: parseYear(query.r),
         query: first(query.q)?.trim() || undefined,
     }
@@ -147,6 +159,9 @@ export function calendarStateToQuery(state: CalendarState): { [key: string]: str
     if (state.places.length) query.dk = [...state.places].sort().join(',')
     if (state.withWeb) query.web = '1'
     if (state.registrationOpen) query.reg = '1'
+    if (state.kidsProgram) query.deti = '1'
+    if (state.camps) query.tabor = '1'
+    if (state.minRating > 0) query.minRating = String(state.minRating)
     if (state.labels.length) query.lb = [...state.labels].sort().join(',')
     if (state.labelMode !== 'all') query.lm = state.labelMode
     // The default (larp only) is omitted; every other selection — including

@@ -2,6 +2,13 @@ import type { Prisma } from '@prisma/client';
 import type { Context } from '../context.js';
 import { normalizeGame } from './mappers.js';
 import { gameIdsForQuery } from './search.js';
+import { normalizeSeries } from './series.js';
+import { isAtLeastEditor } from '../auth/appUsers.js';
+
+/** Visible instalments of a series for this viewer (mirrors series.ts). */
+function instalmentsWhere(ctx: Context) {
+  return isAtLeastEditor(ctx) ? {} : { deleted: false };
+}
 
 /**
  * Catalog = the browse surface of the games list (replaces the ladder there).
@@ -507,5 +514,65 @@ export async function catalogResolver(
       .map((game) => normalizeGame(game)),
     totalAmount,
     facets,
+  };
+}
+
+/**
+ * TOP series for children/families: series that contain at least one game
+ * matching the (optional) catalog filter — `familyKeywords` by default — ranked
+ * by the series-wide Bayesian average rating (see `normalizeSeries`), rated
+ * series first, unrated last. The /rodiny view's "Žebříček TOP larpů pro děti".
+ */
+export async function topFamilySeriesResolver(
+  _parent: unknown,
+  args: { filter?: CatalogFilter | null; offset?: number | null; limit?: number | null },
+  ctx: Context,
+) {
+  const offset = Math.max(0, args.offset ?? 0);
+  const limit = Math.min(Math.max(1, args.limit ?? 10), 50);
+  const filter: CatalogFilter = { familyKeywords: true, minRatings: 3, ...(args.filter ?? {}) };
+  const where = buildCatalogWhere(filter, {}, null);
+
+  const seriesIds = (
+    await ctx.db.csld_game.findMany({
+      where,
+      select: { series_id: true },
+      distinct: ['series_id'],
+    })
+  )
+    .map((g) => g.series_id)
+    .filter((id): id is number => id != null);
+
+  if (!seriesIds.length) return { totalAmount: 0, series: [] };
+
+  const rows = await ctx.db.csld_series.findMany({
+    where: { id: { in: seriesIds }, deleted: false },
+    include: {
+      csld_game: {
+        where: instalmentsWhere(ctx),
+        orderBy: [{ year: 'asc' }, { id: 'asc' }],
+        include: {
+          csld_game_has_label: { include: { csld_label: true } },
+          csld_game_has_author: { include: { csld_csld_user: true } },
+          csld_game_has_group: { include: { csld_csld_group: true } },
+          csld_image_csld_game_cover_imageTocsld_image: true,
+        },
+      },
+    },
+  });
+
+  const series = rows
+    .map((r) => normalizeSeries(r))
+    .filter(Boolean)
+    .map((s: any) => ({
+      series: s,
+      hasRatings: (s.amountOfRatings ?? 0) > 0 ? 1 : 0,
+      score: bayesRating(s.averageRating, s.amountOfRatings),
+    }))
+    .sort((a, b) => b.hasRatings - a.hasRatings || b.score - a.score || a.series.id - b.series.id);
+
+  return {
+    totalAmount: series.length,
+    series: series.slice(offset, offset + limit).map((s) => s.series),
   };
 }

@@ -8,6 +8,8 @@ import { GameCatalogOrder } from '../../graphql/__generated__/typescript-operati
 import * as familyGamesDocument from './graphql/familyGames.graphql'
 import * as familyEventsDocument from './graphql/familyEvents.graphql'
 import * as familySeriesDocument from './graphql/familySeriesGames.graphql'
+import * as topFamilySeriesDocument from './graphql/topFamilySeries.graphql'
+import * as seriesCommentsDocument from './graphql/seriesComments.graphql'
 import {
     FamilyGamesQuery,
     FamilyGamesQueryVariables,
@@ -15,19 +17,29 @@ import {
     FamilyEventsQueryVariables,
     FamilySeriesGamesQuery,
     FamilySeriesGamesQueryVariables,
+    TopFamilySeriesQuery,
+    TopFamilySeriesQueryVariables,
+    SeriesCommentsQuery,
+    SeriesCommentsQueryVariables,
 } from '../../graphql/__generated__/typescript-operations'
 import { GameRatingBox } from '../common/GameRatingBox/GameRatingBox'
 import { GameLink } from '../common/GameLink/GameLink'
+import { sanitizeHtml } from '../../utils/sanitizeHtml'
+import UserLink from '../common/UserLink/UserLink'
 
 const documentOf = (value: unknown) => ((value as { default?: unknown })?.default ?? value) as DocumentNode
 const familyGamesGql = documentOf(familyGamesDocument)
 const familyEventsGql = documentOf(familyEventsDocument)
 const familySeriesGql = documentOf(familySeriesDocument)
+const topFamilySeriesGql = documentOf(topFamilySeriesDocument)
+const seriesCommentsGql = documentOf(seriesCommentsDocument)
 
 type FamilyGamesQueryData = NonNullable<FamilyGamesQuery['games']>['catalog']
 type FamilyEvent = NonNullable<FamilyEventsQuery['eventCalendar']>['events'][number]
 type FamilyGame = FamilyGamesQueryData['games'][number]
 type SeriesDetail = NonNullable<FamilySeriesGamesQuery['seriesById']>
+type TopSeries = NonNullable<TopFamilySeriesQuery['games']>['topFamilySeries']['series'][number]
+type SeriesComment = NonNullable<SeriesCommentsQuery['seriesComments']>['comments'][number]
 
 const PAGE_SIZE = 12
 const todayIso = () => new Date().toISOString().slice(0, 10)
@@ -153,6 +165,63 @@ const useStyles = createUseStyles({
         borderTop: `1px solid ${darkTheme.backgroundNearWhite}`,
         paddingTop: 12,
     },
+    topList: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+    },
+    topRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '8px 10px',
+        borderRadius: 8,
+        background: darkTheme.backgroundRealWhite,
+        border: `1px solid ${darkTheme.backgroundNearWhite}`,
+        cursor: 'pointer',
+        '&:hover': { borderColor: darkTheme.textGreen },
+    },
+    topRank: {
+        fontSize: '1.1rem',
+        fontWeight: 800,
+        color: darkTheme.textGreenDark,
+        minWidth: 30,
+        textAlign: 'center',
+    },
+    topBody: { flex: 1, minWidth: 0 },
+    topName: { fontWeight: 600, fontSize: '0.92rem', color: darkTheme.textOnLightDark },
+    topMeta: { fontSize: '0.72rem', color: darkTheme.textOnLightLighter, marginTop: 2 },
+    reviewItem: {
+        borderTop: `1px solid ${darkTheme.backgroundNearWhite}`,
+        padding: '10px 4px',
+        fontSize: '0.85rem',
+        lineHeight: 1.5,
+    },
+    reviewHead: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        fontSize: '0.75rem',
+        color: darkTheme.textOnLightLighter,
+        marginBottom: 4,
+        flexWrap: 'wrap',
+    },
+    yearTag: {
+        background: darkTheme.backgroundNearWhite,
+        borderRadius: 4,
+        padding: '1px 7px',
+        fontWeight: 600,
+        color: darkTheme.textOnLightDark,
+    },
+    kidsTag: {
+        background: '#e2f3ee',
+        color: '#0b7a66',
+        borderRadius: 10,
+        padding: '1px 8px',
+        fontWeight: 700,
+        fontSize: '0.68rem',
+    },
+    reviewHtml: { color: darkTheme.textOnLightDark, '& p': { margin: '0 0 6px' } },
     seriesRow: {
         display: 'flex',
         alignItems: 'center',
@@ -193,6 +262,8 @@ const FamilyKidsPanel = () => {
     const [games, setGames] = useState<FamilyGamesQueryData | null>(null)
     const [events, setEvents] = useState<FamilyEventsQuery['eventCalendar'] | null>(null)
     const [series, setSeries] = useState<SeriesDetail | null>(null)
+    const [seriesReviews, setSeriesReviews] = useState<SeriesComment[] | null>(null)
+    const [topSeries, setTopSeries] = useState<TopSeries[] | null>(null)
     const [loading, setLoading] = useState(true)
 
     const toggle = (key: ChipKey) => setChips((c) => ({ ...c, [key]: !c[key] }))
@@ -235,7 +306,26 @@ const FamilyKidsPanel = () => {
         }
     }, [chips, client])
 
+    // TOP žebříček: rodinné série řazené podle série-celkového (bayes) hodnocení.
+    React.useEffect(() => {
+        let cancelled = false
+        client
+            .query<TopFamilySeriesQuery, TopFamilySeriesQueryVariables>({
+                query: topFamilySeriesGql,
+                variables: { filter: { familyKeywords: true }, offset: 0, limit: 10 },
+                fetchPolicy: 'network-only',
+            })
+            .then((r) => {
+                if (!cancelled) setTopSeries(r.data.games.topFamilySeries.series)
+            })
+            .catch(() => undefined)
+        return () => {
+            cancelled = true
+        }
+    }, [client])
+
     const loadSeries = (seriesId: string, name: string | null) => {
+        setSeriesReviews(null)
         client
             .query<FamilySeriesGamesQuery, FamilySeriesGamesQueryVariables>({
                 query: familySeriesGql,
@@ -244,6 +334,15 @@ const FamilyKidsPanel = () => {
             })
             .then((r) => setSeries(r.data.seriesById))
             .catch(() => setSeries({ id: seriesId, name, games: [] } as unknown as SeriesDetail))
+        // Jedním tahem i všechny recenze série (nejnovější první, každá se značkou ročníku).
+        client
+            .query<SeriesCommentsQuery, SeriesCommentsQueryVariables>({
+                query: seriesCommentsGql,
+                variables: { seriesId, offset: 0, limit: 30 },
+                fetchPolicy: 'network-only',
+            })
+            .then((r) => setSeriesReviews(r.data.seriesComments.comments))
+            .catch(() => setSeriesReviews([]))
     }
 
     const registrationPill = (e: FamilyEvent) => {
@@ -375,7 +474,7 @@ const FamilyKidsPanel = () => {
                         </h2>
                         <p className={classes.panelNote}>
                             {series.firstYear ? `${series.firstYear}–${series.lastYear ?? series.firstYear}` : ''} ·
-                            kliknutím na běh otevřeš detail hry s recenzemi
+                            kliknutím na běh otevřeš detail hry
                         </p>
                         {(series.games ?? []).map((g) => (
                             <div key={g.id} className={classes.seriesRow}>
@@ -389,8 +488,63 @@ const FamilyKidsPanel = () => {
                                 />
                             </div>
                         ))}
+                        <h3 className={classes.panelTitle} style={{ marginTop: 16 }}>
+                            Všechny recenze série najednou (nejnovější první, každá se značkou ročníku)
+                        </h3>
+                        {(seriesReviews ?? []).map((c) => (
+                            <div key={c.id} className={classes.reviewItem}>
+                                <div className={classes.reviewHead}>
+                                    <UserLink userId={c.user.id}>{c.user.nickname ?? c.user.name}</UserLink>
+                                    {c.added && <span>{new Date(Number(c.added)).toLocaleDateString('cs-CZ')}</span>}
+                                    {c.game?.year != null && <span className={classes.yearTag}>ročník {c.game.year}</span>}
+                                    {c.game?.id && (
+                                        <GameLink game={{ id: c.game.id, name: c.game.name ?? undefined }} />
+                                    )}
+                                    {c.kidsReview && <span className={classes.kidsTag}>recenze dětského programu</span>}
+                                </div>
+                                <div
+                                    className={classes.reviewHtml}
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(c.comment ?? '') }}
+                                />
+                            </div>
+                        ))}
+                        {seriesReviews && seriesReviews.length === 0 && (
+                            <p className={classes.panelNote}>Tato série zatím nemá žádné recenze.</p>
+                        )}
                     </div>
                 )}
+            </div>
+
+            <div className={classes.panel}>
+                <h2 className={classes.panelTitle}>Žebříček TOP larpů pro děti</h2>
+                <p className={classes.panelNote}>
+                    Série, jejichž hry jsou vhodné pro děti, seřazené podle celkového hodnocení napříč všemi
+                    ročníky (vážený průměr — jeden 10/10 ročník nepřeváží osvědčenou klasiku s mnoha hlasy).
+                </p>
+                <div className={classes.topList}>
+                    {(topSeries ?? []).map((s, i) => (
+                        <div
+                            key={s.id}
+                            className={classes.topRow}
+                            onClick={() => loadSeries(s.id, s.name)}
+                            title="Otevřít sérii se všemi běhy a recenzemi"
+                        >
+                            <span className={classes.topRank}>{i + 1}.</span>
+                            <div className={classes.topBody}>
+                                <div className={classes.topName}>{s.name}</div>
+                                <div className={classes.topMeta}>
+                                    {s.amountOfGames} běhů · {s.amountOfRatings} hlasů · {s.amountOfComments} recenzí
+                                    {s.firstYear ? ` · ${s.firstYear}–${s.lastYear ?? s.firstYear}` : ''}
+                                </div>
+                            </div>
+                            <GameRatingBox
+                                amountOfRatings={s.amountOfRatings}
+                                averageRating={s.averageRating}
+                                size="small"
+                            />
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <div className={classes.panel}>

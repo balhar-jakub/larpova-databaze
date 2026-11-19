@@ -194,7 +194,25 @@ const eventMatches = (
 
     if (!matchTextQuery([event.name, event.loc], state.query)) return false
 
+    if (state.kidsProgram && !event.kidsProgram) return false
+
+    if (state.camps && !isCampEvent(event)) return false
+
+    if (state.minRating > 0) {
+        const rated = (event.games ?? []).filter((g) => (g.amountOfRatings ?? 0) > 0 && g.averageRating != null)
+        const best = rated.length ? Math.max(...rated.map((g) => g.averageRating as number)) : 0
+        if (best < state.minRating) return false
+    }
+
     return state.labels.length === 0 || labelsMatch(event, state)
+}
+
+/** Camp marker: tábor/kemp in the name, place or label names (case- and
+ * diacritics-insensitive) — the same idea the fulltext search uses. */
+const CAMP_PATTERN = /t[áa]bor|kemp|camp/i
+export const isCampEvent = (event: Pick<CalendarEventDataFragment, 'name' | 'loc' | 'labels'>): boolean => {
+    const haystack = [event.name, event.loc, ...eventLabelNames(event)].join(' ')
+    return CAMP_PATTERN.test(haystack)
 }
 
 /** Does the event overlap the [from, to] window at all? */

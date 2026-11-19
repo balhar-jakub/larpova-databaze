@@ -570,8 +570,8 @@ describe('CalendarEventCard', () => {
                     loc: null,
                     amountOfPlayers: 120,
                     games: [
-                        { __typename: 'Game', id: 'g1', name: 'Krvavé časy' },
-                        { __typename: 'Game', id: 'g2', name: 'Země snů' },
+                        { __typename: 'Game', id: 'g1', name: 'Krvavé časy', year: 2024, averageRating: 80, amountOfRatings: 12 },
+                        { __typename: 'Game', id: 'g2', name: 'Země snů', year: 2025, averageRating: 0, amountOfRatings: 0 },
                     ],
                 })}
             />,

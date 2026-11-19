@@ -7,6 +7,8 @@ type Query {
     eventById(eventId: ID!): Event
     "A series of recurring games (Florie, Zlenice…) by id."
     seriesById(seriesId: ID!): Series
+    "Series-wide comments across all instalments, newest first — one flat review list for the whole series, each comment tagged with the year of the instalment it belongs to."
+    seriesComments(seriesId: ID!, offset: Int!, limit: Int!): CommentsPaged!
     "Series whose name matches the text query — the picker of the game edit form."
     seriesByQuery(query: String!, offset: Int, limit: Int): [Series!]!
     eventCalendar(offset: Int, limit: Int, from: String, to: String, requiredLabels: [ID!], otherLabels: [ID!], query: String, kidsProgram: Boolean): EventsPaged!
@@ -277,6 +279,8 @@ type GamesQuery {
     ladder(ladderType: LadderType!, offset: Int, limit: Int, requiredLabels: [ID!], otherLabels: [ID!]): GamesPaged!
     "Browsable catalog with filters and facet counts — the replacement for the ladder tabs."
     catalog(filter: GameCatalogFilter, order: GameCatalogOrder, offset: Int, limit: Int): GameCatalogPaged!
+    "TOP series for children/families: series whose games mention kids/family/age, ranked by series-wide Bayesian average rating. Family-first ladder for the /rodiny view."
+    topFamilySeries(filter: GameCatalogFilter, offset: Int, limit: Int): SeriesPaged!
 }
 
 enum LadderType {
@@ -340,6 +344,11 @@ type GameCatalogLabelFacet {
     name: String
     count: Int!
     isRequired: Boolean!
+}
+
+type SeriesPaged {
+    totalAmount: Int!
+    series: [Series!]!
 }
 
 type GameCatalogCount {
@@ -436,6 +445,8 @@ type Series {
     firstYear: Int
     "Latest instalment year, null when no instalment carries a year."
     lastYear: Int
+    "Bayesian average rating across all instalments — the series-wide score shown in the family view and TOP lists."
+    averageRating: Float
     added: String!
 }
 

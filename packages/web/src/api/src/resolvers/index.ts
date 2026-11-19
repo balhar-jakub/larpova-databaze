@@ -8,7 +8,7 @@ import {
   commentsPagedResolver,
   currentUsersCommentResolver,
 } from './game.js';
-import { catalogResolver } from './gameCatalog.js';
+import { catalogResolver, topFamilySeriesResolver } from './gameCatalog.js';
 import { homepageResolver, lastCommentsPage, allCommentsPage, commentsStats, myHomeToCommentPage, MY_HOME_COMMENTS } from './homepage.js';
 import { commentAsText } from './textUtils.js';
 import { configResolver } from './config.js';
@@ -30,6 +30,7 @@ import {
   seriesByIdResolver,
   seriesByQueryResolver,
   gameSeriesResolver,
+  seriesCommentsResolver,
 } from './series.js';
 import { statisticsResolver } from './stats.js';
 import { yearReviewResolver } from './yearReview.js';
@@ -106,6 +107,7 @@ export const resolvers: any = {
     eventById: eventByIdResolver,
     seriesById: seriesByIdResolver,
     seriesByQuery: seriesByQueryResolver,
+    seriesComments: seriesCommentsResolver,
     eventCalendar: eventCalendarResolver,
     eventCalendarStats: eventCalendarStatsResolver,
     statistics: statisticsResolver,
@@ -145,6 +147,7 @@ export const resolvers: any = {
     byQueryWithTotal: byQueryWithTotalResolver,
     ladder: ladderResolver,
     catalog: catalogResolver,
+    topFamilySeries: topFamilySeriesResolver,
   },
 
   AdminQuery: {

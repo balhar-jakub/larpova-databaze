@@ -216,7 +216,13 @@
             "registrationNone": "No event has an open registration filled in, so this filter has nothing to show.",
             "labelsNone": "None of the {{total}} upcoming events has a label, the filter would come up empty.",
             "labelsModeAny": "at least one selected label",
-            "placeHeuristic": "There is no country column, \"abroad\" is read from the location text or the event name."
+            "placeHeuristic": "There is no country column, \"abroad\" is read from the location text or the event name.",
+            "family": "For children & families",
+            "kidsProgram": "With kids/family program",
+            "camps": "Camps",
+            "minRating": "Overall rating",
+            "minRatingAny": "any",
+            "familyHint": "Kids program = a real program for children, not just childcare inside a larger LARP. Rating is averaged across all instalments of the game."
         },
         "monthGrid": {
             "legend": "A teal bar is a one-day event, a grey bar with a teal edge spans several days (it runs across the days).",
