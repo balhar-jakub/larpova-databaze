@@ -1,0 +1,29 @@
+query FamilySeriesGames($seriesId: ID!) {
+    seriesById(seriesId: $seriesId) {
+        id
+        name
+        amountOfGames
+        amountOfRatings
+        amountOfComments
+        firstYear
+        lastYear
+        games {
+            id
+            name
+            year
+            players
+            hours
+            days
+            amountOfRatings
+            amountOfComments
+            averageRating
+            coverImage {
+                id
+            }
+            labels {
+                id
+                name
+            }
+        }
+    }
+}

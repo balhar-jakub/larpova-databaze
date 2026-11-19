@@ -1,6 +1,6 @@
-mutation UpdateComment($gameId: ID!, $comment: String!) {
+mutation UpdateComment($gameId: ID!, $comment: String!, $kidsReview: Boolean) {
     game {
-        createOrUpdateComment(gameId: $gameId, comment: $comment) {
+        createOrUpdateComment(gameId: $gameId, comment: $comment, kidsReview: $kidsReview) {
             id
         }
     }

@@ -521,6 +521,7 @@ export function mapEventRow(event: any, ctx: Context) {
   return {
     ...event,
     amountOfPlayers: event.amountofplayers,
+    kidsProgram: (event as any).kids_program ?? false,
     location:
       event.latitude != null || event.longitude != null
         ? { lattitude: event.latitude, longtitude: event.longitude }

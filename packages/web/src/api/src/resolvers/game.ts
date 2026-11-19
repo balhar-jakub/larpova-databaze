@@ -252,6 +252,7 @@ export async function commentsPagedResolver(
         ...c,
         amountOfUpvotes: c.amount_of_upvotes ?? 0,
         amount_of_upvotes: c.amount_of_upvotes ?? 0,
+        kidsReview: (c as any).kids_review ?? false,
         commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
         user: normalizeUserRef(c.csld_csld_user),
         game: normalizeGame(c.csld_game),

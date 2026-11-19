@@ -197,6 +197,7 @@ export const PageHeader = () => {
                     </Link>
                     <div className={classNames(classes.part, classes.linksPart, { 'd-none d-md-flex': !showMenu })}>
                         <HeaderNavLink route={routes.games()}>{t('PageHeader.games')}</HeaderNavLink>
+                        <HeaderNavLink route={routes.family()}>{t('PageHeader.family')}</HeaderNavLink>
                         <HeaderNavLink route={routes.calendar()}>{t('PageHeader.calendar')}</HeaderNavLink>
                         <HeaderNavLink route={routes.statistics()}>{t('PageHeader.statistics')}</HeaderNavLink>
                         <HeaderNavLink route="https://larpy.cz" target="_blank">

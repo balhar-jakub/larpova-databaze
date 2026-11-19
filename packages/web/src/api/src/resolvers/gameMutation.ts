@@ -278,11 +278,12 @@ async function writeComment(
   userId: number,
   existing: { id: number } | null,
   processed: string,
+  kidsReview: boolean,
 ): Promise<void> {
   if (existing) {
     await db.csld_comment.update({
       where: { id: existing.id },
-      data: { comment: processed, added: new Date() },
+      data: { comment: processed, added: new Date(), kids_review: kidsReview },
     });
   } else {
     await db.csld_comment.create({
@@ -292,6 +293,7 @@ async function writeComment(
         comment: processed,
         is_hidden: false,
         amount_of_upvotes: 0,
+        kids_review: kidsReview,
       },
     });
   }
@@ -299,7 +301,7 @@ async function writeComment(
 
 export async function createOrUpdateCommentResolver(
   _parent: unknown,
-  args: { gameId: string; comment: string },
+  args: { gameId: string; comment: string; kidsReview?: boolean | null },
   ctx: Context,
 ) {
   requireAuth(ctx);
@@ -323,7 +325,7 @@ export async function createOrUpdateCommentResolver(
   if (!existing) {
     await requireCommentsEnabledForNew(ctx.db, gameId);
   }
-  await writeComment(ctx.db, gameId, ctx.user!.id, existing, processed);
+  await writeComment(ctx.db, gameId, ctx.user!.id, existing, processed, args.kidsReview ?? false);
 
   const game = await ctx.db.csld_game.findUnique({
     where: { id: gameId },

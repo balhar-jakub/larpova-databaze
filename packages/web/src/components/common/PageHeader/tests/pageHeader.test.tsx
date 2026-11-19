@@ -45,6 +45,7 @@ jest.unstable_mockModule('src/hooks/useRoutes', () => ({
     useRoutes: () => {
         const routes = {
             games: () => '/hry',
+            family: () => '/rodiny',
             calendar: () => '/kalendar',
             statistics: () => '/statistiky',
             eventCreate: () => '/pridat-udalost',

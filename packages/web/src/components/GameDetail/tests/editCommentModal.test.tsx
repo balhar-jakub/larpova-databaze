@@ -84,7 +84,7 @@ describe('EditCommentModal', () => {
         fireEvent.change(screen.getByTestId('comment-input'), { target: { value: '<p>Nový komentář</p>' } })
         fireEvent.submit(document.querySelector('form')!)
 
-        await waitFor(() => expect(mutationCalls[0]?.variables).toEqual({ gameId: 'g1', comment: '<p>Nový komentář</p>' }))
+        await waitFor(() => expect(mutationCalls[0]?.variables).toEqual({ gameId: 'g1', comment: '<p>Nový komentář</p>', kidsReview: false }))
         expect(toasts[0]).toEqual({ text: translate(cs, 'GameDetail.commentAdded'), type: 'success' })
         expect(savedCalls).toEqual([true])
     })

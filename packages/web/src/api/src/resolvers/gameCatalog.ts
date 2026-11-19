@@ -55,6 +55,12 @@ export interface CatalogFilter {
   withComments?: boolean | null;
   withImage?: boolean | null;
   addedWithinDays?: number | null;
+  /** Games whose description mentions children/family/age (full-text over `description`). */
+  familyKeywords?: boolean | null;
+  /** Games with at least one kids-scoped review (`csld_comment.kids_review`). */
+  withKidsReviews?: boolean | null;
+  /** Games belonging to a series (recurring games) — the family view groups by series. */
+  inSeries?: boolean | null;
 }
 
 export interface CatalogArgs {
@@ -72,6 +78,17 @@ export interface CatalogArgs {
  */
 export const DURATION_KEYS = ['short', 'day', 'weekend', 'long'] as const;
 export type DurationKey = (typeof DURATION_KEYS)[number];
+
+/**
+ * Substrings that mark a game description as child/family-relevant. Matched
+ * case-insensitively against `csld_game.description` — the only place the
+ * "vhodné pro děti / věkové omezení" information lives today (a name search for
+ * "děti" finds only 5 of the 326 games whose description mentions it).
+ */
+export const FAMILY_KEYWORD_PATTERNS = [
+  'dětsk', ' pro děti', 'dítě', 'děti', 'rodinn', 'mladistv',
+  ' od ', ' let', 'věk', 'dětský program', 'program pro děti', 'hlídání dětí',
+] as const;
 
 const NO_DAYS: Prisma.csld_gameWhereInput = { OR: [{ days: null }, { days: 0 }] };
 
@@ -245,6 +262,22 @@ export function buildCatalogWhere(
 
   if (filter.withComments) {
     and.push({ amount_of_comments: { gt: 0 } });
+  }
+
+  if (filter.familyKeywords) {
+    // The keyword list is data-shaped (Czech inflections); kept in one place so
+    // the count and the filter can never drift apart.
+    and.push({
+      OR: FAMILY_KEYWORD_PATTERNS.map((p) => ({ description: { contains: p, mode: 'insensitive' as const } })),
+    });
+  }
+
+  if (filter.withKidsReviews) {
+    and.push({ csld_comment: { some: { is_hidden: false, kids_review: true } } });
+  }
+
+  if (filter.inSeries) {
+    and.push({ series_id: { not: null } });
   }
 
   if (filter.withImage) {

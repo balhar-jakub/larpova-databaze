@@ -14,7 +14,7 @@ import { IconEdit, IconEye, IconTrash } from '../Icons/Icons'
 import { sanitizeHtml } from '../../../utils/sanitizeHtml'
 
 interface Props {
-    readonly comment: Pick<Comment, 'id' | 'comment' | 'added' | 'amountOfUpvotes' | 'isHidden'> & {
+    readonly comment: Pick<Comment, 'id' | 'comment' | 'added' | 'amountOfUpvotes' | 'isHidden' | 'kidsReview'> & {
         readonly user: Pick<User, 'id' | 'nickname' | 'name'> & {
             readonly image?: Pick<Image, 'id'> | null
         }
@@ -127,6 +127,17 @@ const useStyles = createUseStyles({
         backgroundColor: darkTheme.backgroundWhite,
         color: darkTheme.textOnLight,
     },
+    kidsBadge: {
+        display: 'inline-block',
+        marginLeft: 8,
+        padding: '3px 8px',
+        borderRadius: 10,
+        backgroundColor: '#e2f3ee',
+        color: '#0b7a66',
+        fontSize: '0.68rem',
+        fontWeight: 700,
+        verticalAlign: 'middle',
+    },
     game: {
         display: 'flex',
         fontSize: '0.75rem',
@@ -180,6 +191,9 @@ const GameCommentPanel = ({ comment, loading, showVisibilityButton, onChangeComm
                             <span className={classes.headerName}>{name}</span>
                         </UserLink>
                         {added}
+                        {comment.kidsReview && (
+                            <span className={classes.kidsBadge}>{t('GameCommentPanel.kidsReviewBadge')}</span>
+                        )}
                     </div>
                 </div>
                 <div className={classes.headerLikes}>

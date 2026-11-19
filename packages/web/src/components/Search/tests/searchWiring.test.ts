@@ -211,7 +211,7 @@ describe('the resolver tree the app runs exposes the new queries', () => {
 
         expect(schema).toMatch(/search\(query: String!, limit: Int\): SearchResults!/)
         expect(schema).toMatch(/usersByQueryWithTotal\(query: String!, offset: Int, limit: Int\): UsersPaged!/)
-        expect(schema).toMatch(/eventCalendar\([^)]*query: String\): EventsPaged!/)
+        expect(schema).toMatch(/eventCalendar\([^)]*query: String[^)]*\): EventsPaged!/)
         expect(schema).toMatch(/authorIds: \[ID!\]/)
         // The events list collapses identical rows and says how many it holds.
         expect(schema).toMatch(/duplicates: \[EventDuplicate!\]!/)

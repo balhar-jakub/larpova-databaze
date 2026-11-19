@@ -1,0 +1,16 @@
+#import "../Catalog/graphql/catalogGameData.graphql"
+
+query FamilyGames($filter: GameCatalogFilter, $order: GameCatalogOrder, $offset: Int!, $limit: Int!) {
+    games {
+        catalog(filter: $filter, order: $order, offset: $offset, limit: $limit) {
+            totalAmount
+            games {
+                ...catalogGameData
+                series {
+                    id
+                    name
+                }
+            }
+        }
+    }
+}

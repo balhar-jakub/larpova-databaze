@@ -18,6 +18,7 @@ import {
 } from '../../graphql/__generated__/typescript-operations'
 import { formClasses } from '../../utils/formClasses'
 import FormTextInputField from '../common/form/FormTextInputField'
+import FormCheckBoxField from '../common/form/FormCheckBoxField'
 import FormRichTextInputField from '../common/form/FormRichTextInputField'
 import FormFileInputField from '../common/form/FormFileInputField'
 import { createInputFromValues, FormValues, validate } from './formUtils'
@@ -206,6 +207,11 @@ const EventEditForm = ({
                                             sizeLimit={2000000}
                                         />
                                         <FormRichTextInputField name="description" hint={t('EventEdit.description')} />
+                                        <FormCheckBoxField
+                                            name="kidsProgram"
+                                            label={t('EventEdit.kidsProgram')}
+                                            hint={t('EventEdit.kidsProgramHint')}
+                                        />
                                         <GamesAutoCompleteField
                                             name="games"
                                             placeholder={t('EventEdit.games')}
