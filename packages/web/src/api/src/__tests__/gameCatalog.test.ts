@@ -2,6 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
 import { fixtureStamp } from './cleanupFixtures';
+import { isAtLeastEditor } from '../auth/appUsers';
 import {
   BAYES_WEIGHT,
   bayesRating,
@@ -527,6 +528,9 @@ describe('game catalog — against the database', () => {
     });
 
     test('an editor sees soft-deleted instalments of a family series in the ladder', async () => {
+      // Sanity: the editor context really is at least EDITOR (role 2).
+      expect(isAtLeastEditor({ user: { id: 1, role: 2 } } as never)).toBe(true);
+      expect(isAtLeastEditor({ user: null } as never)).toBe(false);
       // Soft-delete one instalment of the fixture series; the anonymous view
       // must drop it, an editor must keep it.
       const deletedId = await prisma.csld_game.update({
