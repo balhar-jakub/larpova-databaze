@@ -57,7 +57,7 @@ function requireEditor(ctx: Context) {
 }
 
 /** Convert URLs in plain text to HTML <a> links */
-function urlLinkify(text: string): string {
+export function urlLinkify(text: string): string {
   if (!text) return text;
   return text.replace(
     /(https?:\/\/[^\s<]+)/g,

@@ -194,7 +194,7 @@ function labelWheres(filter: CatalogFilter): Prisma.csld_gameWhereInput[] {
 }
 
 /** Duration-bucket conditions: an OR over the selected buckets' ranges. */
-function durationWhere(filter: CatalogFilter): Prisma.csld_gameWhereInput | null {
+export function durationWhere(filter: CatalogFilter): Prisma.csld_gameWhereInput | null {
   if (!filter.durations?.length) return null;
   const buckets = DURATION_KEYS.filter((key) => filter.durations?.includes(key)).map(
     (key) => DURATION_WHERE[key],

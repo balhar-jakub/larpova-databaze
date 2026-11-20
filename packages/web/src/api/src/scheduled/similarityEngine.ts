@@ -152,7 +152,7 @@ function labelSimilarity(a: GameVector, b: GameVector): number {
 /**
  * Jaccard similarity between two sets.
  */
-function jaccardSimilarity(setA: number[], setB: number[]): number {
+export function jaccardSimilarity(setA: number[], setB: number[]): number {
   const a = new Set(setA);
   const b = new Set(setB);
 

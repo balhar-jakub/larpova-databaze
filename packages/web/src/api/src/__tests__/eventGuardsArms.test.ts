@@ -17,6 +17,7 @@ let server: ReturnType<typeof createTestServer>;
 let authorId: number;
 let plainEventId: number;
 let geoEventId: number;
+let kidsEventId: number;
 let deletedGameId: number;
 let labelId: number;
 
@@ -66,6 +67,19 @@ beforeAll(async () => {
   });
   labelId = label.id;
   await prisma.event_has_labels.create({ data: { event_id: geoEventId, label_id: labelId } });
+
+  // A family-program event for the kidsProgram calendar filter arm.
+  const kids = await prisma.event.create({
+    data: {
+      name: `${marker} dětský program`,
+      from: new Date(Date.UTC(2033, 7, 1)),
+      to: new Date(Date.UTC(2033, 7, 2)),
+      deleted: false,
+      added_by: authorId,
+      kids_program: true,
+    },
+  });
+  kidsEventId = kids.id;
 });
 
 afterAll(async () => {
@@ -152,5 +166,18 @@ describe('eventCalendar optional-argument arms', () => {
     expect(byOther.map((e) => Number(e.id))).toEqual([geoEventId]);
     const none = await findAll({ requiredLabels: [String(999999)] });
     expect(none).toHaveLength(0);
+  });
+
+  it('filters by kidsProgram: only family-program events stay', async () => {
+    const res = await executeQuery(
+      server,
+      `query K($kidsProgram: Boolean) { eventCalendar(kidsProgram: $kidsProgram) { totalAmount events { id name } } }`,
+      { kidsProgram: true },
+    );
+    expect(res.errors).toBeUndefined();
+    const ids = (res.data as any).eventCalendar.events
+      .filter((e: any) => e.name.startsWith(marker))
+      .map((e: any) => Number(e.id));
+    expect(ids).toEqual([kidsEventId]);
   });
 });

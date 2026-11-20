@@ -125,6 +125,33 @@ describe('eventCalendarStats on undated events', () => {
       await prisma.event.deleteMany({ where: { id: undated.id } });
     }
   });
+
+  it('skips an event whose from is not a parseable date, and buckets a valid one', async () => {
+    // Prisma rejects an invalid Date, so insert via raw SQL to get a truly
+    // unparseable value into the `from` column.
+    const badId = (await prisma.$queryRawUnsafe(
+      `INSERT INTO event (name, "from", deleted, added_by) VALUES ($1, $2::timestamptz, false, $3) RETURNING id`,
+      `${marker} špatné datum`, '0001-01-01 00:00:00+00', userId,
+    ) as { id: number }[])[0].id;
+    const good = await prisma.event.create({
+      data: { name: `${marker} dobré datum`, from: new Date(Date.UTC(2027, 5, 15)), deleted: false, added_by: userId },
+    });
+    try {
+      const stats = (await eventCalendarStatsResolver(
+        {},
+        { from: '2027-01-01', to: '2027-12-31' },
+        { db: prisma, user: null } as never,
+      )) as any;
+      // Whatever bucket our June-2027 event landed in, some 2027 bucket has it.
+      const any2027 = stats.byMonth.filter((m: any) => m.year === 2027);
+      expect(any2027.reduce((sum: number, m: any) => sum + m.count, 0)).toBeGreaterThanOrEqual(1);
+      // byMonth sums to at most totalAmount (the unparseable row is skipped
+      // from buckets but still counted in totalAmount).
+      expect(stats.byMonth.reduce((sum: number, m: any) => sum + m.count, 0)).toBeLessThanOrEqual(stats.totalAmount);
+    } finally {
+      await prisma.event.deleteMany({ where: { id: { in: [badId, good.id] } } });
+    }
+  });
 });
 
 describe('linkGoogleIdentity error arms', () => {

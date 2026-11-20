@@ -65,11 +65,10 @@ export function normalizeSeries(row: any) {
  * series with one 10/10 instalment cannot outrank a proven classic with many
  * ratings. Instalments without ratings contribute nothing.
  */
-function seriesAverageRating(games: any[]): number | null {
+export function seriesAverageRating(games: any[]): number | null {
   const rated = games.filter((g) => (g?.amountOfRatings ?? 0) > 0 && g?.averageRating != null);
-  if (!rated.length) return null;
   const totalRatings = rated.reduce((s, g) => s + g.amountOfRatings, 0);
-  if (!totalRatings) return null;
+  if (!totalRatings) return null; // covers both "nothing rated" and "all weights zero"
   const prior = 5; // prior weight, same spirit as the catalog's Recommended order
   const globalAvg =
     rated.reduce((s, g) => s + g.averageRating * g.amountOfRatings, 0) / totalRatings;

@@ -24,11 +24,11 @@ const marker = `evmut-map-${stamp}`;
 
 const CREATE = `
   mutation C($input: CreateEventInput!) {
-    event { createEvent(input: $input) { id name description loc web amountOfPlayers location { lattitude longtitude } registrationUrl registrationStatus registrationOpensAt } }
+    event { createEvent(input: $input) { id name description loc web amountOfPlayers kidsProgram location { lattitude longtitude } registrationUrl registrationStatus registrationOpensAt } }
   }`;
 const UPDATE = `
   mutation U($input: UpdateEventInput!) {
-    event { updateEvent(input: $input) { id name description loc web amountOfPlayers location { lattitude longtitude } coverImage { id contentType } } }
+    event { updateEvent(input: $input) { id name description loc web amountOfPlayers kidsProgram location { lattitude longtitude } coverImage { id contentType } } }
   }`;
 
 let server: ApolloServer;
@@ -106,7 +106,40 @@ describe('createEvent field mapping', () => {
     expect(ev.location).toBeNull(); // both latitude and longitude absent
     expect(ev.registrationUrl).toBeNull();
     expect(ev.registrationStatus).toBeNull();
+    expect(ev.kidsProgram).toBe(false); // default when the input omits the flag
     eventId = parseInt(ev.id, 10);
+  });
+
+  it('kidsProgram round-trips through create and update', async () => {
+    const created = await executeQuery(
+      server, CREATE,
+      {
+        input: {
+          name: `${marker} dětská`,
+          fromDate: '2031-07-01',
+          toDate: '2031-07-02',
+          games: [],
+          labels: [],
+          newLabels: [],
+          kidsProgram: true,
+        },
+      },
+      ctx(),
+    );
+    expect(created.errors).toBeUndefined();
+    const createdEv = (created.data as any).event.createEvent;
+    expect(createdEv.kidsProgram).toBe(true);
+    const id = parseInt(createdEv.id, 10);
+    if (eventId) await prisma.event.deleteMany({ where: { id: eventId } });
+    eventId = id;
+
+    const updated = await executeQuery(
+      server, UPDATE,
+      { input: { id: String(id), name: `${marker} dětská`, fromDate: '2031-07-01', toDate: '2031-07-02', games: [], labels: [], newLabels: [], kidsProgram: false } },
+      ctx(),
+    );
+    expect(updated.errors).toBeUndefined();
+    expect((updated.data as any).event.updateEvent.kidsProgram).toBe(false);
   });
 
   it('a full event maps every optional and links games and labels', async () => {
