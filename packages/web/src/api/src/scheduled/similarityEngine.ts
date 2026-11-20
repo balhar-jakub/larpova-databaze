@@ -37,23 +37,9 @@ export async function recalculateSimilarity(db: PrismaClient): Promise<void> {
     return;
   }
 
-  const vectors: GameVector[] = games.map((g) => ({
-    id: g.id,
-    labelIds: g.csld_game_has_label.map((j) => j.id_label),
-    requiredLabelIds: g.csld_game_has_label
-      .filter((j) => j.csld_label?.is_required)
-      .map((j) => j.id_label),
-    totalRating: g.total_rating ?? 0,
-    authorIds: g.csld_game_has_author.map((j) => j.id_user),
-    year: g.year ?? new Date().getFullYear(),
-    players: g.players ?? 0,
-  }));
-
-  // Compute max differences for normalization
-  const years = vectors.map((v) => v.year);
-  const players = vectors.map((v) => v.players);
-  const maxYearDiff = Math.max(1, Math.max(...years) - Math.min(...years));
-  const maxPlayersDiff = Math.max(1, Math.max(...players) - Math.min(...players));
+  const vectors = games.map(toGameVector);
+  const maxYearDiff = maxDiff(vectors.map((v) => v.year));
+  const maxPlayersDiff = maxDiff(vectors.map((v) => v.players));
 
   console.log(`Similarity engine: computing for ${vectors.length} games...`);
 
@@ -66,38 +52,55 @@ export async function recalculateSimilarity(db: PrismaClient): Promise<void> {
     for (let j = 0; j < vectors.length; j++) {
       if (i === j) continue;
       const b = vectors[j];
-
-      const coefficient = computeSimilarity(a, b, maxYearDiff, maxPlayersDiff);
-      similarities.push({ gameId: b.id, coefficient });
+      similarities.push({ gameId: b.id, coefficient: computeSimilarity(a, b, maxYearDiff, maxPlayersDiff) });
     }
 
-    // Sort descending, take top 9
-    similarities.sort((x, y) => y.coefficient - x.coefficient);
-    const top9 = similarities.slice(0, 9);
-
-    // Upsert into similar_games
-    await db.$transaction(async (tx) => {
-      // Delete old similar games for this game
-      await tx.similar_games.deleteMany({
-        where: { id_game1: a.id },
-      });
-
-      // Insert top 9
-      for (const sim of top9) {
-        if (sim.coefficient > 0) {
-          await tx.similar_games.create({
-            data: {
-              id_game1: a.id,
-              id_game2: sim.gameId,
-              similarity_coefficient: sim.coefficient,
-            },
-          });
-        }
-      }
-    });
+    await persistTopSimilarities(db, a, similarities);
   }
 
   console.log(`Similarity engine: done (${vectors.length} games processed)`);
+}
+
+// ── Vector helpers (extracted to keep recalculateSimilarity small) ──
+
+function toGameVector(g: any): GameVector {
+  return {
+    id: g.id,
+    labelIds: g.csld_game_has_label.map((j: any) => j.id_label),
+    requiredLabelIds: g.csld_game_has_label
+      .filter((j: any) => j.csld_label?.is_required)
+      .map((j: any) => j.id_label),
+    totalRating: g.total_rating ?? 0,
+    authorIds: g.csld_game_has_author.map((j: any) => j.id_user),
+    year: g.year ?? new Date().getFullYear(),
+    players: g.players ?? 0,
+  };
+}
+
+/** Max difference between values, floored at 1 so normalization never divides by zero. */
+function maxDiff(values: number[]): number {
+  return Math.max(1, Math.max(...values) - Math.min(...values));
+}
+
+/** Replace one game's similar_games rows with its current top-9 positive matches. */
+async function persistTopSimilarities(
+  db: PrismaClient,
+  a: GameVector,
+  similarities: { gameId: number; coefficient: number }[],
+): Promise<void> {
+  similarities.sort((x, y) => y.coefficient - x.coefficient);
+  const top9 = similarities.slice(0, 9);
+
+  await db.$transaction(async (tx) => {
+    await tx.similar_games.deleteMany({ where: { id_game1: a.id } });
+    for (const sim of top9) {
+      if (sim.coefficient > 0) {
+        await tx.similar_games.create({
+          data: { id_game1: a.id, id_game2: sim.gameId, similarity_coefficient: sim.coefficient },
+        });
+      }
+    }
+  });
 }
 
 // ── Similarity computation ───────────────────────────────
