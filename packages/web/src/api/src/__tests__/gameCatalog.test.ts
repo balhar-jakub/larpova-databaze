@@ -526,6 +526,40 @@ describe('game catalog — against the database', () => {
       expect(paged.totalAmount).toBeGreaterThanOrEqual(0);
     });
 
+    test('an editor sees soft-deleted instalments of a family series in the ladder', async () => {
+      // Soft-delete one instalment of the fixture series; the anonymous view
+      // must drop it, an editor must keep it.
+      const deletedId = await prisma.csld_game.update({
+        where: { id: familyGameIds[0] },
+        data: { deleted: true },
+      });
+      try {
+        const anon = await executeQuery(
+          gameCatalogServer!,
+          `query T { games { topFamilySeries(offset: 0, limit: 10) { series { id games { id deleted } } } } }`,
+        );
+        expect(anon.errors).toBeUndefined();
+        const anonSeries = (anon.data as any).games.topFamilySeries.series.find(
+          (s: any) => String(s.id) === String(gameCatalogSeriesId),
+        );
+        expect(anonSeries.games.map((g: any) => String(g.id))).not.toContain(String(deletedId.id));
+
+        const editor = await executeQuery(
+          gameCatalogServer!,
+          `query T { games { topFamilySeries(offset: 0, limit: 10) { series { id games { id deleted } } } } }`,
+          {},
+          { user: { id: 1, role: 2 } },
+        );
+        expect(editor.errors).toBeUndefined();
+        const editorSeries = (editor.data as any).games.topFamilySeries.series.find(
+          (s: any) => String(s.id) === String(gameCatalogSeriesId),
+        );
+        expect(editorSeries.games.map((g: any) => String(g.id))).toContain(String(deletedId.id));
+      } finally {
+        await prisma.csld_game.update({ where: { id: deletedId.id }, data: { deleted: false } });
+      }
+    });
+
     test('a filter that matches no family game answers an empty ladder', async () => {
       // No game carries 999999 ratings: buildCatalogWhere matches nothing.
       const res = await executeQuery(
