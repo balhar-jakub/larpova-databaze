@@ -536,7 +536,7 @@ describe('game catalog — against the database', () => {
       try {
         const anon = await executeQuery(
           gameCatalogServer!,
-          `query T { games { topFamilySeries(offset: 0, limit: 10) { series { id games { id deleted } } } } }`,
+          `query T { games { topFamilySeries(offset: 0, limit: 10) { series { id games { id } } } } }`,
         );
         expect(anon.errors).toBeUndefined();
         const anonSeries = (anon.data as any).games.topFamilySeries.series.find(
@@ -546,7 +546,7 @@ describe('game catalog — against the database', () => {
 
         const editor = await executeQuery(
           gameCatalogServer!,
-          `query T { games { topFamilySeries(offset: 0, limit: 10) { series { id games { id deleted } } } } }`,
+          `query T { games { topFamilySeries(offset: 0, limit: 10) { series { id games { id } } } } }`,
           {},
           { user: { id: 1, role: 2 } },
         );
