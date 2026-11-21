@@ -1,4 +1,4 @@
-#import "../Catalog/graphql/catalogGameData.graphql"
+#import "src/components/Catalog/graphql/catalogGameData.graphql"
 
 query FamilyGames($filter: GameCatalogFilter, $order: GameCatalogOrder, $offset: Int!, $limit: Int!) {
     games {
