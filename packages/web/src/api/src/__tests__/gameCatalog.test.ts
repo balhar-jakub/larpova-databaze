@@ -10,6 +10,7 @@ import {
   durationWhere,
   catalogOrderBy,
   FAMILY_KEYWORD_PATTERNS,
+  labelFacets,
 } from '../resolvers/gameCatalog';
 
 // Shared with the topFamilySeries describe (fixtures are created in the
@@ -516,6 +517,36 @@ describe('game catalog — against the database', () => {
       expect(paged.series.length).toBeLessThanOrEqual(50);
     });
 
+    test('an unrated family series sorts behind rated ones (hasRatings tiebreak arm)', async () => {
+      // A second family-keyword series whose only instalment has no ratings:
+      // it must appear after the rated fixture series (hasRatings 0 < 1).
+      const unratedToken = `RodinaNehodnocena${fixtureStamp()}`;
+      const unratedSeries = await prisma.csld_series.create({ data: { name: `${unratedToken} nehodnocená`, added_by: userId } });
+      await prisma.csld_game.create({
+        data: {
+          name: `${unratedToken} rodinná`,
+          deleted: false,
+          year: 2026,
+          description: 'Hra pro děti, bez hodnocení.',
+          series_id: unratedSeries.id,
+          amount_of_ratings: 0,
+          total_rating: 0,
+          average_rating: null,
+        },
+      });
+      const res = await executeQuery(
+        gameCatalogServer!,
+        `query T($filter: GameCatalogFilter) { games { topFamilySeries(offset: 0, limit: 50, filter: $filter) { series { id amountOfRatings } } } }`,
+        { filter: { minRatings: 0 } },
+      );
+      expect(res.errors).toBeUndefined();
+      const ids = (res.data as any).games.topFamilySeries.series.map((x: any) => String(x.id));
+      const ratedIdx = ids.indexOf(String(gameCatalogSeriesId));
+      const unratedIdx = ids.indexOf(String(unratedSeries.id));
+      expect(ratedIdx).toBeGreaterThanOrEqual(0);
+      expect(unratedIdx).toBeGreaterThan(ratedIdx);
+    });
+
     test('an over-large offset past the whole ladder answers an empty page', async () => {
       const res = await executeQuery(
         gameCatalogServer!,
@@ -598,6 +629,13 @@ describe('game catalog — remaining order and filter branches', () => {
     expect(order[1]).toHaveProperty('amount_of_ratings');
   });
 
+  test('anyLabels matches games carrying at least one of the labels', () => {
+    const where = buildCatalogWhere({ anyLabels: ['3', '7'] }) as any;
+    expect(where.AND).toContainEqual({ csld_game_has_label: { some: { id_label: { in: [3, 7] } } } });
+    // and a non-empty anyLabels list never degenerates to an empty OR
+    expect(buildCatalogWhere({ anyLabels: [] })).toEqual({ AND: [{ deleted: false }] });
+  });
+
   test('noLabels excludes games carrying the label', () => {
     const where = buildCatalogWhere({ noLabels: ['5'] }) as any;
     expect(where.AND).toContainEqual({ csld_game_has_label: { none: { id_label: { in: [5] } } } });
@@ -651,5 +689,15 @@ describe('game catalog — remaining order and filter branches', () => {
     expect(where.AND).toContainEqual({ csld_comment: { some: { is_hidden: false, kids_review: true } } });
     expect(where.AND).toContainEqual({ amount_of_ratings: { gte: 5 } });
     expect(where.AND.some((c: any) => c.OR)).toBe(true);
+  });
+});
+
+
+describe('labelFacets — against the database', () => {
+  it('hides labels with zero matching games', async () => {
+    const ctx = { db: prisma, user: null } as never;
+    const facets = await labelFacets(ctx);
+    expect(facets.length).toBeGreaterThanOrEqual(0);
+    for (const f of facets) expect(f.count).toBeGreaterThan(0);
   });
 });
