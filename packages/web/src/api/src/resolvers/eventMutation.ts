@@ -51,6 +51,7 @@ interface EventInput {
   latitude?: number;
   longitude?: number;
   coverImage?: { fileName: string; contents: string };
+  kidsProgram?: boolean;
 }
 
 export const REGISTRATION_STATUSES = ['UPCOMING', 'OPEN', 'CLOSED'] as const;
@@ -128,6 +129,7 @@ function mapEvent(e: any) {
   return {
     ...e,
     amountOfPlayers: e.amountofplayers,
+    kidsProgram: (e as any).kids_program ?? false,
     location: (e.latitude != null || e.longitude != null)
       ? { lattitude: e.latitude, longtitude: e.longitude }
       : null,
@@ -247,6 +249,7 @@ function eventFieldData(input: EventInput) {
     amountofplayers: input.amountOfPlayers ?? null,
     latitude: input.latitude ?? null,
     longitude: input.longitude ?? null,
+    kids_program: input.kidsProgram ?? false,
   };
 }
 

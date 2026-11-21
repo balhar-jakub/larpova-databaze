@@ -45,6 +45,7 @@ const baseValues = {
     optionalLabels: [],
     newLabels: [],
     coverImage: '',
+    kidsProgram: false,
 }
 
 describe('event form validate', () => {

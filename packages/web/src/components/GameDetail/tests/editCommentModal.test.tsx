@@ -66,11 +66,12 @@ beforeEach(() => {
     savedCalls.length = 0
 })
 
-const renderModal = (oldText?: string) =>
+const renderModal = (oldText?: string, oldKidsReview?: boolean | null) =>
     render(
         <EditCommentModal
             gameId="g1"
             oldText={oldText ?? ''}
+            oldKidsReview={oldKidsReview}
             onHide={() => undefined}
             onLoad={() => undefined}
             onCommentSaved={() => { savedCalls.push(true) }}
@@ -84,7 +85,7 @@ describe('EditCommentModal', () => {
         fireEvent.change(screen.getByTestId('comment-input'), { target: { value: '<p>Nový komentář</p>' } })
         fireEvent.submit(document.querySelector('form')!)
 
-        await waitFor(() => expect(mutationCalls[0]?.variables).toEqual({ gameId: 'g1', comment: '<p>Nový komentář</p>' }))
+        await waitFor(() => expect(mutationCalls[0]?.variables).toEqual({ gameId: 'g1', comment: '<p>Nový komentář</p>', kidsReview: false }))
         expect(toasts[0]).toEqual({ text: translate(cs, 'GameDetail.commentAdded'), type: 'success' })
         expect(savedCalls).toEqual([true])
     })
@@ -101,5 +102,27 @@ describe('EditCommentModal', () => {
     it('renders the modal title', () => {
         renderModal()
         expect(screen.getByText(translate(cs, 'EditCommentModal.title'))).toBeTruthy()
+    })
+
+    it('sends kidsReview=true when the kids-program checkbox is ticked', async () => {
+        renderModal()
+
+        fireEvent.change(screen.getByTestId('comment-input'), { target: { value: '<p>Dětský program super</p>' } })
+        const checkbox = screen.getByRole('checkbox')
+        fireEvent.click(checkbox)
+        fireEvent.submit(document.querySelector('form')!)
+
+        await waitFor(() =>
+            expect(mutationCalls[0]?.variables).toEqual({
+                gameId: 'g1',
+                comment: '<p>Dětský program super</p>',
+                kidsReview: true,
+            }),
+        )
+    })
+
+    it('prefills kidsReview from the existing comment', async () => {
+        renderModal('<p>Starý text</p>', true)
+        expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(true)
     })
 })

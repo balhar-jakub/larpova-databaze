@@ -11,6 +11,7 @@ import {
     freeWeekends,
     googleCalendarUrl,
     groupEventsByWeek,
+    isCampEvent,
     nextEventId,
     relativeHint,
 } from '../calendarUtils'
@@ -35,7 +36,10 @@ const event = (
         web: null,
         registrationUrl: null,
         registrationOpen: false,
+        registrationStatus: null,
+        registrationOpensAt: null,
         amountOfPlayers: null,
+        kidsProgram: false,
         labels: [],
         games: [],
         ...extra,
@@ -157,7 +161,6 @@ describe('filterCalendarEvents', () => {
     })
 
     test('the open-registration filter keeps only sign-up-able events', () => {
-        // One event with an open registration and a link, one with the flag
         // but no link (a legacy row), one closed with a link.
         const signable = event('r1', 'Otevřený běh', at(2026, 10, 3), at(2026, 10, 3), {
             registrationUrl: 'https://example.test/form',
@@ -178,6 +181,32 @@ describe('filterCalendarEvents', () => {
         ).toEqual(['r1'])
         // Without the filter everything stays.
         expect(filterCalendarEvents([signable, noLink, closed], parseCalendarState({}), today)).toHaveLength(3)
+    })
+
+    test('isCampEvent detects tábor/kemp in name, place or labels', () => {
+        expect(isCampEvent(event('t1', 'Letní tábor Pán prstenů', null, null))).toBe(true)
+        expect(isCampEvent(event('t2', 'Víkendovka', null, null, { loc: ' tábořiště Kemp u lesa' }))).toBe(true)
+        expect(isCampEvent(event('t3', 'Vikingové', null, null, { labels: [{ __typename: 'Label', id: '9', name: 'camp 2026' }] }))).toBe(true)
+        expect(isCampEvent(event('t4', 'Běžný larp', null, null))).toBe(false)
+    })
+
+    test('family filters: kids program, camps and minimum rating combine', () => {
+        const game = (id: string, rating: number, ratings: number): CalendarEventDataFragment['games'][number] =>
+            ({ __typename: 'Game', id, name: `Hra ${id}`, year: 2026, averageRating: rating, amountOfRatings: ratings }) as CalendarEventDataFragment['games'][number]
+        const kids = event('f1', 'Rodinný larp', at(2026, 10, 3), at(2026, 10, 3), {
+            kidsProgram: true,
+            games: [game('g1', 85, 10)],
+        })
+        const camp = event('f2', 'Tábor pro děti', at(2026, 10, 4), at(2026, 10, 5), { kidsProgram: false })
+        const plain = event('f3', 'Dospělý larp', at(2026, 10, 6), at(2026, 10, 7), {
+            games: [game('g2', 40, 5)],
+        })
+        const all = [kids, camp, plain]
+
+        expect(filterCalendarEvents(all, parseCalendarState({ deti: '1' }), today).map((e) => e.id)).toEqual(['f1'])
+        expect(filterCalendarEvents(all, parseCalendarState({ tabor: '1' }), today).map((e) => e.id)).toEqual(['f2'])
+        expect(filterCalendarEvents(all, parseCalendarState({ minRating: '70' }), today).map((e) => e.id)).toEqual(['f1'])
+        expect(filterCalendarEvents(all, parseCalendarState({ deti: '1', minRating: '90' }), today)).toEqual([])
     })
 
     test('label filters can require all or any of the labels', () => {

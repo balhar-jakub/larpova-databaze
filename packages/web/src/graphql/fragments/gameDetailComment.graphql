@@ -4,6 +4,7 @@ fragment gameDetailComment on Comment {
     amountOfUpvotes
     comment
     isHidden
+    kidsReview
     user {
         id
         name

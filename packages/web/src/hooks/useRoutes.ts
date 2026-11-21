@@ -55,6 +55,8 @@ export const useRoutes = () => {
 
             calendar: (): Route => route('/kalendar'),
 
+            family: (): Route => route('/rodiny'),
+
             statistics: (): Route => route('/statistiky'),
 
             currentProfile: (): Route =>

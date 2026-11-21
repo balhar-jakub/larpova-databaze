@@ -2,6 +2,13 @@ import type { Prisma } from '@prisma/client';
 import type { Context } from '../context.js';
 import { normalizeGame } from './mappers.js';
 import { gameIdsForQuery } from './search.js';
+import { normalizeSeries } from './series.js';
+import { isAtLeastEditor } from '../auth/appUsers.js';
+
+/** Visible instalments of a series for this viewer (mirrors series.ts). */
+function instalmentsWhere(ctx: Context) {
+  return isAtLeastEditor(ctx) ? {} : { deleted: false };
+}
 
 /**
  * Catalog = the browse surface of the games list (replaces the ladder there).
@@ -55,6 +62,12 @@ export interface CatalogFilter {
   withComments?: boolean | null;
   withImage?: boolean | null;
   addedWithinDays?: number | null;
+  /** Games whose description mentions children/family/age (full-text over `description`). */
+  familyKeywords?: boolean | null;
+  /** Games with at least one kids-scoped review (`csld_comment.kids_review`). */
+  withKidsReviews?: boolean | null;
+  /** Games belonging to a series (recurring games) — the family view groups by series. */
+  inSeries?: boolean | null;
 }
 
 export interface CatalogArgs {
@@ -72,6 +85,17 @@ export interface CatalogArgs {
  */
 export const DURATION_KEYS = ['short', 'day', 'weekend', 'long'] as const;
 export type DurationKey = (typeof DURATION_KEYS)[number];
+
+/**
+ * Substrings that mark a game description as child/family-relevant. Matched
+ * case-insensitively against `csld_game.description` — the only place the
+ * "vhodné pro děti / věkové omezení" information lives today (a name search for
+ * "děti" finds only 5 of the 326 games whose description mentions it).
+ */
+export const FAMILY_KEYWORD_PATTERNS = [
+  'dětsk', ' pro děti', 'dítě', 'děti', 'rodinn', 'mladistv',
+  ' od ', ' let', 'věk', 'dětský program', 'program pro děti', 'hlídání dětí',
+] as const;
 
 const NO_DAYS: Prisma.csld_gameWhereInput = { OR: [{ days: null }, { days: 0 }] };
 
@@ -170,7 +194,7 @@ function labelWheres(filter: CatalogFilter): Prisma.csld_gameWhereInput[] {
 }
 
 /** Duration-bucket conditions: an OR over the selected buckets' ranges. */
-function durationWhere(filter: CatalogFilter): Prisma.csld_gameWhereInput | null {
+export function durationWhere(filter: CatalogFilter): Prisma.csld_gameWhereInput | null {
   if (!filter.durations?.length) return null;
   const buckets = DURATION_KEYS.filter((key) => filter.durations?.includes(key)).map(
     (key) => DURATION_WHERE[key],
@@ -197,6 +221,25 @@ function rangeWhere(from: number | null | undefined, to: number | null | undefin
  * Facets are counted with the same where, so the label counts always answer the
  * same question the list does ("kolik her odpovídá filtru").
  */
+
+/** Family-specific catalog guards (kids keywords / kids reviews / series membership),
+ * kept out of buildCatalogWhere so the where-builder stays at its registered complexity. */
+function familyGuards(filter: CatalogFilter): Prisma.csld_gameWhereInput[] {
+  // One row per family flag: [on, guard]. The keyword list is data-shaped (Czech
+  // inflections); kept in one place so the count and the filter never drift apart.
+  const rows: [boolean | null | undefined, Prisma.csld_gameWhereInput][] = [
+    [
+      filter.familyKeywords,
+      {
+        OR: FAMILY_KEYWORD_PATTERNS.map((p) => ({ description: { contains: p, mode: 'insensitive' as const } })),
+      },
+    ],
+    [filter.withKidsReviews, { csld_comment: { some: { is_hidden: false, kids_review: true } } }],
+    [filter.inSeries, { series_id: { not: null } }],
+  ];
+  return rows.filter(([on]) => on).map(([, guard]) => guard);
+}
+
 export function buildCatalogWhere(
   filter: CatalogFilter = {},
   options: WhereOptions = {},
@@ -205,10 +248,6 @@ export function buildCatalogWhere(
   const and: Prisma.csld_gameWhereInput[] = [{ deleted: false }];
 
   const query = filter.query?.trim();
-  if (query && Array.isArray(queryIds)) {
-    and.push({ id: { in: queryIds } });
-  }
-
   const authorIds = toIntIds(filter.authorIds);
   if (authorIds.length) {
     and.push({ csld_game_has_author: { some: { id_user: { in: authorIds } } } });
@@ -225,36 +264,28 @@ export function buildCatalogWhere(
     }
   }
 
+  // Scalar range/flag guards as rows: [predicate, guard] — one push per row keeps
+  // the builder's cyclomatic complexity flat (gate: max 10 for new code).
   const year = rangeWhere(filter.yearFrom, filter.yearTo);
-  if (year) {
-    and.push({ year });
-  }
-
   const players = rangeWhere(filter.playersFrom, filter.playersTo);
-  if (players) {
-    and.push({ players });
+  const rows: [unknown, Prisma.csld_gameWhereInput][] = [
+    [query && Array.isArray(queryIds), { id: { in: queryIds ?? [] } }],
+    [year, { year: year as NonNullable<typeof year> }],
+    [players, { players: players as NonNullable<typeof players> }],
+    [filter.minRating != null, { average_rating: { gte: filter.minRating ?? 0 } }],
+    [filter.minRatings != null, { amount_of_ratings: { gte: filter.minRatings ?? 0 } }],
+    [filter.withComments, { amount_of_comments: { gt: 0 } }],
+    [filter.withImage, { cover_image: { not: null } }],
+    [
+      filter.addedWithinDays != null && filter.addedWithinDays > 0,
+      { added: { gte: new Date(Date.now() - (filter.addedWithinDays ?? 0) * 24 * 60 * 60 * 1000) } },
+    ],
+  ];
+  for (const [on, guard] of rows) {
+    if (on) and.push(guard);
   }
 
-  if (filter.minRating != null) {
-    and.push({ average_rating: { gte: filter.minRating } });
-  }
-
-  if (filter.minRatings != null) {
-    and.push({ amount_of_ratings: { gte: filter.minRatings } });
-  }
-
-  if (filter.withComments) {
-    and.push({ amount_of_comments: { gt: 0 } });
-  }
-
-  if (filter.withImage) {
-    and.push({ cover_image: { not: null } });
-  }
-
-  if (filter.addedWithinDays != null && filter.addedWithinDays > 0) {
-    const from = new Date(Date.now() - filter.addedWithinDays * 24 * 60 * 60 * 1000);
-    and.push({ added: { gte: from } });
-  }
+  and.push(...familyGuards(filter));
 
   return { AND: and };
 }
@@ -474,5 +505,65 @@ export async function catalogResolver(
       .map((game) => normalizeGame(game)),
     totalAmount,
     facets,
+  };
+}
+
+/**
+ * TOP series for children/families: series that contain at least one game
+ * matching the (optional) catalog filter — `familyKeywords` by default — ranked
+ * by the series-wide Bayesian average rating (see `normalizeSeries`), rated
+ * series first, unrated last. The /rodiny view's "Žebříček TOP larpů pro děti".
+ */
+export async function topFamilySeriesResolver(
+  _parent: unknown,
+  args: { filter?: CatalogFilter | null; offset?: number | null; limit?: number | null },
+  ctx: Context,
+) {
+  const offset = Math.max(0, args.offset ?? 0);
+  const limit = Math.min(Math.max(1, args.limit ?? 10), 50);
+  const filter: CatalogFilter = { familyKeywords: true, minRatings: 3, ...(args.filter ?? {}) };
+  const where = buildCatalogWhere(filter, {}, null);
+
+  const seriesIds = (
+    await ctx.db.csld_game.findMany({
+      where,
+      select: { series_id: true },
+      distinct: ['series_id'],
+    })
+  )
+    .map((g) => g.series_id)
+    .filter((id): id is number => id != null);
+
+  if (!seriesIds.length) return { totalAmount: 0, series: [] };
+
+  const rows = await ctx.db.csld_series.findMany({
+    where: { id: { in: seriesIds }, deleted: false },
+    include: {
+      csld_game: {
+        where: instalmentsWhere(ctx),
+        orderBy: [{ year: 'asc' }, { id: 'asc' }],
+        include: {
+          csld_game_has_label: { include: { csld_label: true } },
+          csld_game_has_author: { include: { csld_csld_user: true } },
+          csld_game_has_group: { include: { csld_csld_group: true } },
+          csld_image_csld_game_cover_imageTocsld_image: true,
+        },
+      },
+    },
+  });
+
+  const series = rows
+    .map((r) => normalizeSeries(r))
+    .filter(Boolean)
+    .map((s: any) => ({
+      series: s,
+      hasRatings: (s.amountOfRatings ?? 0) > 0 ? 1 : 0,
+      score: bayesRating(s.averageRating, s.amountOfRatings),
+    }))
+    .sort((a, b) => b.hasRatings - a.hasRatings || b.score - a.score || a.series.id - b.series.id);
+
+  return {
+    totalAmount: series.length,
+    series: series.slice(offset, offset + limit).map((s) => s.series),
   };
 }

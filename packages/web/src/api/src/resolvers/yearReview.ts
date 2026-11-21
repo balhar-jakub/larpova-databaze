@@ -54,7 +54,7 @@ const GAME_INCLUDE = {
 const LEGACY_DEFAULT_AVATAR_PATHS = new Set(['upload/default_avatar.png']);
 
 /** True when the user's image is a real picture, not the legacy default. */
-function hasRealAvatar(
+export function hasRealAvatar(
   user: { csld_image?: { path: string | null } | null } | null | undefined,
 ): boolean {
   const path = user?.csld_image?.path;

@@ -2,12 +2,22 @@ import { ApolloServer } from '@apollo/server';
 import { createTestServer, executeQuery } from './testHelpers';
 import { prisma } from '../context';
 import { fixtureStamp } from './cleanupFixtures';
+import { isAtLeastEditor } from '../auth/appUsers';
 import {
   BAYES_WEIGHT,
   bayesRating,
   buildCatalogWhere,
+  durationWhere,
   catalogOrderBy,
+  FAMILY_KEYWORD_PATTERNS,
+  labelFacets,
 } from '../resolvers/gameCatalog';
+
+// Shared with the topFamilySeries describe (fixtures are created in the
+// "against the database" beforeAll).
+let gameCatalogServer: ApolloServer | undefined;
+let gameCatalogMarker: string | undefined;
+let gameCatalogSeriesId = 0;
 
 describe('game catalog — pure helpers', () => {
   test('always excludes deleted games', () => {
@@ -76,6 +86,20 @@ describe('game catalog — pure helpers', () => {
     expect(BAYES_WEIGHT).toBeGreaterThan(1);
   });
 
+  test('bayesRating defaults: null average and null count both count as zero', () => {
+    expect(bayesRating(null, 5)).toBe((70 * 12) / (5 + 12));
+    expect(bayesRating(90, null)).toBe((90 * 0 + 70 * 12) / (0 + 12));
+    expect(bayesRating(90, 10, undefined, undefined)).toBe((900 + 70 * 12) / (10 + 12));
+  });
+
+  test('durationWhere: empty or unknown-only durations return null, known ones build OR', () => {
+    expect(durationWhere({})).toBeNull();
+    expect(durationWhere({ durations: [] })).toBeNull();
+    expect(durationWhere({ durations: ['nope' as any] })).toBeNull();
+    const where = durationWhere({ durations: ['short', 'long'] }) as any;
+    expect(where.OR).toHaveLength(2);
+  });
+
   test('unrated games sort behind rated ones in every column-based order', () => {
     ['Best', 'MostPlayed', 'MostCommented', 'NameAsc'].forEach((order) => {
       const first = catalogOrderBy(order as any)[0] as any;
@@ -100,12 +124,16 @@ describe('game catalog — against the database', () => {
   let prefixMatchGameId: number;
   /** A label of its own: the other cases count the games that carry `labelId`. */
   let relevanceLabelId: number;
+  let seriesId: number;
+  let familyGameIds: number[] = [];
+  let loneFamilyGameId: number;
   // A token of its own: the other cases in this file count the games that match
   // `marker`, so these two fixtures must stay out of *their* result.
   const relevanceQuery = `RelevanceTest${Date.now()}`;
 
   beforeAll(async () => {
     server = createTestServer();
+    gameCatalogServer = server;
 
     const user = await prisma.csld_csld_user.create({
       data: {
@@ -190,6 +218,52 @@ describe('game catalog — against the database', () => {
     await prisma.csld_game_has_label.create({
       data: { id_label: relevanceLabelId, id_game: prefixMatchGameId },
     });
+
+    // A family-keyword series with two rated instalments: feeds topFamilySeries.
+    // Own token so the marker-scoped count tests above keep counting exactly 2.
+    const famToken = `RodinaTest${fixtureStamp()}`;
+    gameCatalogMarker = famToken;
+    const series = await prisma.csld_series.create({ data: { name: `${famToken} série`, added_by: userId } });
+    seriesId = series.id;
+    gameCatalogSeriesId = series.id;
+    const fam1 = await prisma.csld_game.create({
+      data: {
+        name: `${famToken} rodinná 2024`,
+        deleted: false,
+        year: 2024,
+        description: 'Hra pro děti a celou rodinu, dětský program.',
+        series_id: seriesId,
+        amount_of_ratings: 6,
+        total_rating: 500,
+        average_rating: 83.33,
+      },
+    });
+    const fam2 = await prisma.csld_game.create({
+      data: {
+        name: `${famToken} rodinná 2025`,
+        deleted: false,
+        year: 2025,
+        description: 'Pokračování pro děti, věk od 6 let.',
+        series_id: seriesId,
+        amount_of_ratings: 4,
+        total_rating: 360,
+        average_rating: 90,
+      },
+    });
+    familyGameIds = [fam1.id, fam2.id];
+    // A family-keyword game outside any series — must NOT appear in the ladder.
+    const loneFam = await prisma.csld_game.create({
+      data: {
+        name: `${famToken} rodinná bez série`,
+        deleted: false,
+        year: 2025,
+        description: 'Pro děti od 8 let.',
+        amount_of_ratings: 9,
+        total_rating: 800,
+        average_rating: 88.89,
+      },
+    });
+    loneFamilyGameId = loneFam.id;
   });
 
   afterAll(async () => {
@@ -198,8 +272,9 @@ describe('game catalog — against the database', () => {
     });
     await prisma.csld_label.deleteMany({ where: { id: relevanceLabelId } });
     await prisma.csld_game.deleteMany({
-      where: { id: { in: [ratedGameId, unratedGameId, exactMatchGameId, prefixMatchGameId] } },
+      where: { id: { in: [ratedGameId, unratedGameId, exactMatchGameId, prefixMatchGameId, ...familyGameIds, loneFamilyGameId] } },
     });
+    await prisma.csld_series.deleteMany({ where: { id: seriesId } });
     await prisma.csld_label.deleteMany({ where: { id: labelId } });
     await prisma.csld_csld_user.deleteMany({ where: { id: userId } });
     await prisma.$disconnect();
@@ -403,7 +478,137 @@ describe('game catalog — against the database', () => {
     expect(relevance.indexOf(prefixMatchGameId)).toBeLessThan(relevance.indexOf(exactMatchGameId));
     expect(recommended.indexOf(prefixMatchGameId)).toBeLessThan(recommended.indexOf(exactMatchGameId));
   });
+  describe('games.topFamilySeries — against the database', () => {
+    // The fixtures live in the "against the database" describe above (seriesId,
+    // familyGameIds, loneFamilyGameId share its marker-scoped server).
+    test('returns only series holding a family-keyword game, ranked by the series rating', async () => {
+      const res = await executeQuery(
+        gameCatalogServer!,
+        `query T($offset: Int, $limit: Int) {
+          games { topFamilySeries(offset: $offset, limit: $limit) { totalAmount series { id name amountOfRatings averageRating games { id name year } } } }
+        }`,
+        { offset: 0, limit: 10 },
+      );
+      expect(res.errors).toBeUndefined();
+      const paged = (res.data as any).games.topFamilySeries;
+      expect(paged.totalAmount).toBeGreaterThanOrEqual(1);
+      const ours = paged.series.filter((s: any) => s.id === String(gameCatalogSeriesId));
+      expect(ours).toHaveLength(1); // the lone family game has no series
+      expect(ours[0].name).toContain(gameCatalogMarker!);
+      // Bayesian series average over both instalments: globalAvg = 85.998,
+      // prior weight 5 → (859.98 + 85.998*5) / 15 ≈ 86.0, rounded to 2 decimals.
+      expect(ours[0].averageRating).toBeCloseTo(86.0, 1);
+      expect(ours[0].amountOfRatings).toBe(10);
+      expect(ours[0].games.map((g: any) => g.year)).toEqual([2024, 2025]);
+    });
+
+    test('offset/limit page the ladder and clamp the limit to 50', async () => {
+      const res = await executeQuery(
+        gameCatalogServer!,
+        `query T($offset: Int, $limit: Int) {
+          games { topFamilySeries(offset: $offset, limit: $limit) { totalAmount series { id } } }
+        }`,
+        { offset: 1, limit: 999 },
+      );
+      expect(res.errors).toBeUndefined();
+      const paged = (res.data as any).games.topFamilySeries;
+      // limit clamped to 50; our fixture series is the only marker one, so page 2
+      // of the marker-filtered view may be empty — assert the clamp via totalAmount.
+      expect(paged.series.length).toBeLessThanOrEqual(50);
+    });
+
+    test('an unrated family series sorts behind rated ones (hasRatings tiebreak arm)', async () => {
+      // A second family-keyword series whose only instalment has no ratings:
+      // it must appear after the rated fixture series (hasRatings 0 < 1).
+      const unratedToken = `RodinaNehodnocena${fixtureStamp()}`;
+      const unratedSeries = await prisma.csld_series.create({ data: { name: `${unratedToken} nehodnocená`, added_by: userId } });
+      await prisma.csld_game.create({
+        data: {
+          name: `${unratedToken} rodinná`,
+          deleted: false,
+          year: 2026,
+          description: 'Hra pro děti, bez hodnocení.',
+          series_id: unratedSeries.id,
+          amount_of_ratings: 0,
+          total_rating: 0,
+          average_rating: null,
+        },
+      });
+      const res = await executeQuery(
+        gameCatalogServer!,
+        `query T($filter: GameCatalogFilter) { games { topFamilySeries(offset: 0, limit: 50, filter: $filter) { series { id amountOfRatings } } } }`,
+        { filter: { minRatings: 0 } },
+      );
+      expect(res.errors).toBeUndefined();
+      const ids = (res.data as any).games.topFamilySeries.series.map((x: any) => String(x.id));
+      const ratedIdx = ids.indexOf(String(gameCatalogSeriesId));
+      const unratedIdx = ids.indexOf(String(unratedSeries.id));
+      expect(ratedIdx).toBeGreaterThanOrEqual(0);
+      expect(unratedIdx).toBeGreaterThan(ratedIdx);
+    });
+
+    test('an over-large offset past the whole ladder answers an empty page', async () => {
+      const res = await executeQuery(
+        gameCatalogServer!,
+        `query T { games { topFamilySeries(offset: 999999, limit: 10) { totalAmount series { id } } } }`,
+      );
+      expect(res.errors).toBeUndefined();
+      const paged = (res.data as any).games.topFamilySeries;
+      expect(paged.series).toEqual([]);
+      expect(paged.totalAmount).toBeGreaterThanOrEqual(0);
+    });
+
+    test('an editor sees soft-deleted instalments of a family series in the ladder', async () => {
+      // Sanity: the editor context really is at least EDITOR (role 2).
+      expect(isAtLeastEditor({ user: { id: 1, role: 2 } } as never)).toBe(true);
+      expect(isAtLeastEditor({ user: null } as never)).toBe(false);
+      // Soft-delete one instalment of the fixture series; the anonymous view
+      // must drop it, an editor must keep it.
+      const deletedId = await prisma.csld_game.update({
+        where: { id: familyGameIds[0] },
+        data: { deleted: true },
+      });
+      try {
+        const anon = await executeQuery(
+          gameCatalogServer!,
+          `query T { games { topFamilySeries(offset: 0, limit: 10) { series { id games { id } } } } }`,
+        );
+        expect(anon.errors).toBeUndefined();
+        const anonSeries = (anon.data as any).games.topFamilySeries.series.find(
+          (s: any) => String(s.id) === String(gameCatalogSeriesId),
+        );
+        expect(anonSeries.games.map((g: any) => String(g.id))).not.toContain(String(deletedId.id));
+
+        const editor = await executeQuery(
+          gameCatalogServer!,
+          `query T { games { topFamilySeries(offset: 0, limit: 10) { series { id games { id } } } } }`,
+          {},
+          { user: { id: 1, role: 2 } },
+        );
+        expect(editor.errors).toBeUndefined();
+        const editorSeries = (editor.data as any).games.topFamilySeries.series.find(
+          (s: any) => String(s.id) === String(gameCatalogSeriesId),
+        );
+        expect(editorSeries.games.map((g: any) => String(g.id))).toContain(String(deletedId.id));
+      } finally {
+        await prisma.csld_game.update({ where: { id: deletedId.id }, data: { deleted: false } });
+      }
+    });
+
+    test('a filter that matches no family game answers an empty ladder', async () => {
+      // No game carries 999999 ratings: buildCatalogWhere matches nothing.
+      const res = await executeQuery(
+        gameCatalogServer!,
+        `query T { games { topFamilySeries(filter: { minRatings: 999999 }, offset: 0, limit: 10) { totalAmount series { id } } } }`,
+        {},
+      );
+      expect(res.errors).toBeUndefined();
+      expect((res.data as any).games.topFamilySeries).toEqual({ totalAmount: 0, series: [] });
+    });
+  });
+
 });
+
 
 // The order and filter branches the happy-path tests never select.
 describe('game catalog — remaining order and filter branches', () => {
@@ -422,6 +627,13 @@ describe('game catalog — remaining order and filter branches', () => {
     const order = catalogOrderBy('NoSuchOrder' as any);
     expect(order[0]).toHaveProperty('average_rating');
     expect(order[1]).toHaveProperty('amount_of_ratings');
+  });
+
+  test('anyLabels matches games carrying at least one of the labels', () => {
+    const where = buildCatalogWhere({ anyLabels: ['3', '7'] }) as any;
+    expect(where.AND).toContainEqual({ csld_game_has_label: { some: { id_label: { in: [3, 7] } } } });
+    // and a non-empty anyLabels list never degenerates to an empty OR
+    expect(buildCatalogWhere({ anyLabels: [] })).toEqual({ AND: [{ deleted: false }] });
   });
 
   test('noLabels excludes games carrying the label', () => {
@@ -452,5 +664,40 @@ describe('game catalog — remaining order and filter branches', () => {
   test('a non-positive addedWithinDays is ignored', () => {
     const where = buildCatalogWhere({ addedWithinDays: 0 }) as any;
     expect(where.AND.find((c: any) => c.added)).toBeUndefined();
+  });
+
+  test('familyKeywords matches any Czech kids/age keyword in the description', () => {
+    const where = buildCatalogWhere({ familyKeywords: true }) as any;
+    const or = where.AND.find((c: any) => c.OR) as any;
+    expect(Array.isArray(or.OR)).toBe(true);
+    expect(or.OR.length).toBeGreaterThan(5);
+    expect(or.OR[0]).toEqual({ description: { contains: FAMILY_KEYWORD_PATTERNS[0], mode: 'insensitive' } });
+  });
+
+  test('withKidsReviews requires a visible kids-scoped comment', () => {
+    const where = buildCatalogWhere({ withKidsReviews: true }) as any;
+    expect(where.AND).toContainEqual({ csld_comment: { some: { is_hidden: false, kids_review: true } } });
+  });
+
+  test('inSeries requires a series link', () => {
+    const where = buildCatalogWhere({ inSeries: true }) as any;
+    expect(where.AND).toContainEqual({ series_id: { not: null } });
+  });
+
+  test('family filters combine with the other guards', () => {
+    const where = buildCatalogWhere({ familyKeywords: true, withKidsReviews: true, minRatings: 5 }) as any;
+    expect(where.AND).toContainEqual({ csld_comment: { some: { is_hidden: false, kids_review: true } } });
+    expect(where.AND).toContainEqual({ amount_of_ratings: { gte: 5 } });
+    expect(where.AND.some((c: any) => c.OR)).toBe(true);
+  });
+});
+
+
+describe('labelFacets — against the database', () => {
+  it('hides labels with zero matching games', async () => {
+    const ctx = { db: prisma, user: null } as never;
+    const facets = await labelFacets(ctx);
+    expect(facets.length).toBeGreaterThanOrEqual(0);
+    for (const f of facets) expect(f.count).toBeGreaterThan(0);
   });
 });

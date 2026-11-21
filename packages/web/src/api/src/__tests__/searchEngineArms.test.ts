@@ -1,6 +1,9 @@
 import { describe, it, expect } from '@jest/globals';
 import {
   editDistance,
+  foldSearchText,
+  mapEventRow,
+  resolveEventCoverImage,
   matchCandidate,
   searchCandidates,
   suggestQuery,
@@ -118,6 +121,50 @@ describe('suggestQuery tiebreak arms', () => {
     expect(suggestQuery('abc', [])).toBeNull();
     expect(suggestQuery('', vocabulary)).toBeNull();
     expect(suggestQuery(null, vocabulary)).toBeNull();
+  });
+});
+
+describe('foldSearchText and mapEventRow arms', () => {
+  it('foldSearchText handles null/undefined and folds diacritics', () => {
+    expect(foldSearchText(null)).toBe('');
+    expect(foldSearchText(undefined)).toBe('');
+    expect(foldSearchText('Novák Ďábel')).toBe('novak dabel');
+  });
+
+  it('mapEventRow maps kidsProgram default, location null and deleted-game filtering', () => {
+    const ctx = { user: null } as any;
+    const row = mapEventRow({
+      id: 1,
+      name: 'Akce',
+      latitude: null,
+      longitude: null,
+      event_has_labels: [{ csld_label: { id: 'l1' } }],
+      csld_game_has_event: [
+        { csld_game: { id: 10, deleted: true } },
+        { csld_game: { id: 11, deleted: false } },
+      ],
+    }, ctx);
+    expect(row.kidsProgram).toBe(false);
+    expect(row.location).toBeNull();
+    expect(row.labels).toEqual([{ id: 'l1' }]);
+    // anonymous viewer: the deleted game is filtered out
+    expect(row.games.map((g: any) => g.id)).toEqual([11]);
+    const editorRow = mapEventRow({
+      id: 2, name: 'Akce', csld_game_has_event: [{ csld_game: { id: 10, deleted: true } }],
+    }, { user: { role: 2 } } as any);
+    expect(editorRow.games.map((g: any) => g.id)).toEqual([10]);
+  });
+
+  it('resolveEventCoverImage prefers the event image, skips a bare FK, falls back to a game cover', () => {
+    expect(resolveEventCoverImage({ csld_image: { id: 'own' } })).toEqual({ id: 'own' });
+    expect(resolveEventCoverImage({ cover_image: 12 })).toBeNull();
+    expect(resolveEventCoverImage({
+      csld_game_has_event: [
+        { csld_game: { csld_image_csld_game_cover_imageTocsld_image: null } },
+        { csld_game: { csld_image_csld_game_cover_imageTocsld_image: { id: 'game-cover' } } },
+      ],
+    })).toEqual({ id: 'game-cover' });
+    expect(resolveEventCoverImage({})).toBeNull();
   });
 });
 

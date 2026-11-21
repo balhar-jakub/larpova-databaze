@@ -1,0 +1,27 @@
+query TopFamilySeries($filter: GameCatalogFilter, $offset: Int!, $limit: Int!) {
+    games {
+        topFamilySeries(filter: $filter, offset: $offset, limit: $limit) {
+            totalAmount
+            series {
+                id
+                name
+                amountOfGames
+                amountOfRatings
+                amountOfComments
+                averageRating
+                firstYear
+                lastYear
+                games {
+                    id
+                    name
+                    year
+                    averageRating
+                    amountOfRatings
+                    coverImage {
+                        id
+                    }
+                }
+            }
+        }
+    }
+}

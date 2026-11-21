@@ -10,6 +10,7 @@ fragment calendarEventData on Event {
     registrationStatus
     registrationOpensAt
     amountOfPlayers
+    kidsProgram
     coverImage {
         id
     }
@@ -20,5 +21,8 @@ fragment calendarEventData on Event {
     games {
         id
         name
+        year
+        averageRating
+        amountOfRatings
     }
 }

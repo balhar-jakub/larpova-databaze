@@ -107,6 +107,7 @@ const event = (id: string, over: Partial<CalendarEventDataFragment> = {}): Calen
     registrationOpen: false,
     registrationStatus: null,
     registrationOpensAt: null,
+    kidsProgram: false,
     ...over,
 })
 
@@ -218,6 +219,30 @@ describe('CalendarPanel', () => {
         clickFilterInput(translate(cs, 'Calendar.filters.registrationOpen'))
         lastCall = replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as never as unknown[] as never as { query: Record<string, string> }[]
         expect(lastCall[0].query.reg).toBe('1')
+    })
+
+    it('toggles the family filters: kids program, camps, minimum rating', async () => {
+        eventsAnswer = Promise.resolve(eventsData([
+            event('1', { kidsProgram: true, name: 'Rodinná akce' }),
+            event('2', { name: 'Tábor v lese' }),
+        ]))
+        render(<CalendarPanel initialQuery={{}} />)
+        await screen.findAllByText('Rodinná akce')
+
+        const lastQuery = () =>
+            (replaceMock.mock.calls[replaceMock.mock.calls.length - 1] as unknown as { query: Record<string, string> }[])[0].query
+
+        clickFilterInput(translate(cs, 'Calendar.filters.kidsProgram'))
+        expect(lastQuery().deti).toBe('1')
+
+        clickFilterInput(translate(cs, 'Calendar.filters.camps'))
+        expect(lastQuery().tabor).toBe('1')
+
+        // The minimum-rating select lives in the same filter group.
+        const group = screen.getByText(translate(cs, 'Calendar.filters.family')).closest('div')!
+        const select = group.querySelector('select')!
+        fireEvent.change(select, { target: { value: '70' } })
+        expect(lastQuery().minRating).toBe('70')
     })
 
     it('toggles a duration filter and a label checkbox', async () => {
@@ -570,8 +595,8 @@ describe('CalendarEventCard', () => {
                     loc: null,
                     amountOfPlayers: 120,
                     games: [
-                        { __typename: 'Game', id: 'g1', name: 'Krvavé časy' },
-                        { __typename: 'Game', id: 'g2', name: 'Země snů' },
+                        { __typename: 'Game', id: 'g1', name: 'Krvavé časy', year: 2024, averageRating: 80, amountOfRatings: 12 },
+                        { __typename: 'Game', id: 'g2', name: 'Země snů', year: 2025, averageRating: 0, amountOfRatings: 0 },
                     ],
                 })}
             />,

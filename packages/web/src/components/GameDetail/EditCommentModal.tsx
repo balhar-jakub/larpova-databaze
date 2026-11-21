@@ -6,6 +6,7 @@ import { Form as FinalForm } from 'react-final-form'
 import { useMutation } from '@apollo/client'
 import { editorStateToHtml } from '../common/form/richTextInputUtils'
 import FormRichTextInputField from '../common/form/FormRichTextInputField'
+import FormCheckBoxField from '../common/form/FormCheckBoxField'
 import SubmitButton from '../common/SubmitButton/SubmitButton'
 import {
     UpdateCommentMutation,
@@ -18,6 +19,7 @@ const updateCommentGql = require('./graphql/updateComment.graphql')
 interface Props {
     readonly gameId: string
     readonly oldText: string
+    readonly oldKidsReview?: boolean | null
     readonly onHide: () => void
     readonly onLoad: () => void
     readonly onCommentSaved: () => void
@@ -25,9 +27,10 @@ interface Props {
 
 interface FormValues {
     readonly comment: EditorState | string | undefined
+    readonly kidsReview: boolean
 }
 
-const EditCommentModal = ({ gameId, oldText, onHide, onLoad, onCommentSaved }: Props) => {
+const EditCommentModal = ({ gameId, oldText, oldKidsReview, onHide, onLoad, onCommentSaved }: Props) => {
     const { t } = useTranslation('common')
     const [createOrUpdateComment, { loading }] = useMutation<UpdateCommentMutation, UpdateCommentMutationVariables>(
         updateCommentGql,
@@ -37,12 +40,13 @@ const EditCommentModal = ({ gameId, oldText, onHide, onLoad, onCommentSaved }: P
     // Since we are lazy-load, call back (only!) when we are ready
     useEffect(onLoad, [])
 
-    const handleSave = async ({ comment }: FormValues) => {
+    const handleSave = async ({ comment, kidsReview }: FormValues) => {
         const markup = editorStateToHtml(comment) || ''
         const res = await createOrUpdateComment({
             variables: {
                 gameId,
                 comment: markup,
+                kidsReview: kidsReview ?? false,
             },
         })
         if (res.data) {
@@ -52,7 +56,7 @@ const EditCommentModal = ({ gameId, oldText, onHide, onLoad, onCommentSaved }: P
         }
     }
 
-    const initialValues = useMemo(() => ({ comment: oldText }), [oldText])
+    const initialValues = useMemo(() => ({ comment: oldText, kidsReview: oldKidsReview ?? false }), [oldText, oldKidsReview])
 
     return (
         <FinalForm<FormValues> onSubmit={handleSave} initialValues={initialValues}>
@@ -64,6 +68,11 @@ const EditCommentModal = ({ gameId, oldText, onHide, onLoad, onCommentSaved }: P
                         </Modal.Header>
                         <Modal.Body>
                             <FormRichTextInputField name="comment" autoFocus />
+                            <FormCheckBoxField
+                                name="kidsReview"
+                                label={t('EditCommentModal.kidsReview')}
+                                hint={t('EditCommentModal.kidsReviewHint')}
+                            />
                         </Modal.Body>
                         <Modal.Footer>
                             <Button variant="light" onClick={onHide} disabled={loading}>

@@ -12,6 +12,7 @@ query MoreComments($gameId: ID!, $commentsOffset: Int!, $commentsLimit: Int!) {
         currentUsersComment {
             id
             comment
+            kidsReview
         }
     }
 }

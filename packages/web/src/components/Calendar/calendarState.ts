@@ -50,6 +50,12 @@ export interface CalendarState {
     readonly labelMode: CalendarLabelMode
     /** Selected event sources. `['larp']` is the default: only larp events. */
     readonly sources: readonly CalendarSource[]
+    /** Only events flagged as having a kids/family program (event.kidsProgram). */
+    readonly kidsProgram: boolean
+    /** Only camps — events whose name/place/labels mention tábor/kemp. */
+    readonly camps: boolean
+    /** Minimum series-wide average rating of the event's games (0-100). */
+    readonly minRating: number
     /** Year selected in the history view. */
     readonly year?: number
     /**
@@ -76,6 +82,9 @@ export const DEFAULT_CALENDAR_STATE: CalendarState = {
     labels: [],
     labelMode: 'all',
     sources: ['larp'],
+    kidsProgram: false,
+    camps: false,
+    minRating: 0,
 }
 
 const first = (value?: string | string[]): string | undefined =>
@@ -108,6 +117,8 @@ const parseYear = (value?: string | string[]): number | undefined => {
     return Number.isInteger(parsed) && parsed > 1900 && parsed < 2200 ? parsed : undefined
 }
 
+const flag = (value?: string | string[]): boolean => ['1', 'true'].includes(first(value) ?? '')
+
 export function parseCalendarState(query: ParsedUrlQuery): CalendarState {
     const requestedView = first(query.v) as CalendarView | undefined
     const requestedWhen = first(query.kdy) as CalendarWhen | undefined
@@ -123,14 +134,17 @@ export function parseCalendarState(query: ParsedUrlQuery): CalendarState {
         month: parseMonth(query.m),
         durations: parseList(query.dd, CALENDAR_DURATIONS),
         places: parseList(query.dk, CALENDAR_PLACES),
-        withWeb: ['1', 'true'].includes(first(query.web) ?? ''),
-        registrationOpen: ['1', 'true'].includes(first(query.reg) ?? ''),
+        withWeb: flag(query.web),
+        registrationOpen: flag(query.reg),
         labels: parseIds(query.lb).length ? parseIds(query.lb) : legacyLabels,
         labelMode:
             first(query.lm) === 'any' || (!legacyRequired.length && legacyOptional.length) ? 'any' : 'all',
         sources: parseList(query.src, CALENDAR_SOURCES).length
             ? parseList(query.src, CALENDAR_SOURCES)
             : [...DEFAULT_CALENDAR_STATE.sources],
+        kidsProgram: flag(query.deti),
+        camps: flag(query.tabor),
+        minRating: Math.min(100, Math.max(0, Number(first(query.minRating)) || 0)),
         year: parseYear(query.r),
         query: first(query.q)?.trim() || undefined,
     }
@@ -139,25 +153,33 @@ export function parseCalendarState(query: ParsedUrlQuery): CalendarState {
 /** Defaults are omitted, so the same state always produces the same URL. */
 export function calendarStateToQuery(state: CalendarState): { [key: string]: string } {
     const query: { [key: string]: string } = {}
-
-    if (state.view !== 'vikendy') query.v = state.view
-    if (state.when !== 'all') query.kdy = state.when
-    if (state.month) query.m = state.month
-    if (state.durations.length) query.dd = [...state.durations].sort().join(',')
-    if (state.places.length) query.dk = [...state.places].sort().join(',')
-    if (state.withWeb) query.web = '1'
-    if (state.registrationOpen) query.reg = '1'
-    if (state.labels.length) query.lb = [...state.labels].sort().join(',')
-    if (state.labelMode !== 'all') query.lm = state.labelMode
-    // The default (larp only) is omitted; every other selection — including
-    // both sources, which serialises explicitly so it round-trips — is kept,
-    // so the same state always produces the same URL.
-    if (!isDefaultSources(state)) query.src = [...state.sources].sort().join(',')
-    if (state.year) query.r = String(state.year)
-    // A blank query never reaches the state (parse drops it, the input clears to
-    // undefined) — never serialise one either, so the URL stays canonical.
-    if (state.query && state.query.trim()) query.q = state.query
-
+    // One setter per optional field — a flat serializer, kept as a table of
+    // [predicate, key, value] rows so the gate's complexity stays flat too.
+    const rows: [boolean, string, string][] = [
+        [state.view !== 'vikendy', 'v', state.view],
+        [state.when !== 'all', 'kdy', state.when],
+        [Boolean(state.month), 'm', state.month ?? ''],
+        [state.durations.length > 0, 'dd', [...state.durations].sort().join(',')],
+        [state.places.length > 0, 'dk', [...state.places].sort().join(',')],
+        [state.withWeb, 'web', '1'],
+        [state.registrationOpen, 'reg', '1'],
+        [state.kidsProgram, 'deti', '1'],
+        [state.camps, 'tabor', '1'],
+        [state.minRating > 0, 'minRating', String(state.minRating)],
+        [state.labels.length > 0, 'lb', [...state.labels].sort().join(',')],
+        [state.labelMode !== 'all', 'lm', state.labelMode],
+        // The default (larp only) is omitted; every other selection — including
+        // both sources, which serialises explicitly so it round-trips — is kept,
+        // so the same state always produces the same URL.
+        [!isDefaultSources(state), 'src', [...state.sources].sort().join(',')],
+        [Boolean(state.year), 'r', String(state.year ?? '')],
+        // A blank query never reaches the state (parse drops it, the input clears to
+        // undefined) — never serialise one either, so the URL stays canonical.
+        [Boolean(state.query && state.query.trim()), 'q', state.query ?? ''],
+    ]
+    for (const [on, key, value] of rows) {
+        if (on) query[key] = value
+    }
     return query
 }
 

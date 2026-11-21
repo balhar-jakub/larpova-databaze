@@ -31,6 +31,7 @@ export interface FormValues {
     requiredLabels: string[]
     optionalLabels: string[]
     newLabels: NewLabel[]
+    kidsProgram: boolean
 }
 
 const timeRe = /^([0-9]+):([0-9]+)$/
@@ -123,6 +124,7 @@ export const createInputFromValues = (data: FormValues): CreateEventInput => ({
     labels: [...data.requiredLabels, ...data.optionalLabels],
     newLabels: data.newLabels,
     coverImage: convertFileInput(data.coverImage),
+    kidsProgram: data.kidsProgram ?? false,
 })
 
 const dateTimeRe = /^([-0-9]+)T([0-9]+:[0-9]+):/
@@ -152,7 +154,7 @@ const getTime = (dateTime: string | undefined | null) => {
     return match[2]
 }
 
-type LoadedEvent = Pick<Event, 'id' | 'name' | 'from' | 'to' | 'amountOfPlayers' | 'web' | 'registrationUrl' | 'registrationStatus' | 'registrationOpensAt' | 'loc' | 'description'> & {
+type LoadedEvent = Pick<Event, 'id' | 'name' | 'from' | 'to' | 'amountOfPlayers' | 'web' | 'registrationUrl' | 'registrationStatus' | 'registrationOpensAt' | 'loc' | 'description' | 'kidsProgram'> & {
     games?: Maybe<Array<Pick<Game, 'id' | 'name' | 'year'>>>
     labels?: Maybe<Array<Pick<Label, 'id' | 'name' | 'description' | 'isRequired'>>>
 }
@@ -191,6 +193,7 @@ export const toInitialValues = (event: LoadedEvent): FormValues => ({
     requiredLabels: (event.labels ?? []).filter(({ isRequired }) => isRequired).map(({ id }) => id),
     optionalLabels: (event.labels ?? []).filter(({ isRequired }) => !isRequired).map(({ id }) => id),
     newLabels: [],
+    kidsProgram: event.kidsProgram ?? false,
 })
 
 export const emptyInitialValues: FormValues = {
@@ -201,4 +204,5 @@ export const emptyInitialValues: FormValues = {
     requiredLabels: [],
     optionalLabels: [],
     newLabels: [],
+    kidsProgram: false,
 }

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { PrismaClient } from '@prisma/client';
 import { execFileSync } from 'node:child_process';
 import { fixtureStamp } from './cleanupFixtures';
+import { jaccardSimilarity } from '../scheduled/similarityEngine';
 
 /**
  * The nightly-batch cluster (similarityEngine + tasks.ts) consists of GLOBAL
@@ -139,6 +140,12 @@ afterAll(async () => {
 }, 60_000);
 
 describe('similarityEngine: the 5-factor Java-parity computation', () => {
+  it('jaccardSimilarity: empty-empty and empty-union both return 1', () => {
+    expect(jaccardSimilarity([], [])).toBe(1);
+    expect(jaccardSimilarity([], [1, 2])).toBe(0);
+    expect(jaccardSimilarity([1, 2], [2, 3])).toBeCloseTo(1 / 3, 5);
+  });
+
   it('ranks label-twins above label-foreign games', async () => {
     const { recalculateSimilarity } = await import('../scheduled/similarityEngine.js');
     const twin1 = await makeGame({ name: 'twin1', labels: [labelA, requiredLabel], totalRating: 5 });

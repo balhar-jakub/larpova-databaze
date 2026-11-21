@@ -2,6 +2,7 @@
     "PageHeader": {
         "csld": "Larpová databáze",
         "games": "Hry",
+        "family": "Pro rodiny",
         "calendar": "Kalendář akcí",
         "statistics": "Statistiky",
         "blog": "Články",
@@ -356,7 +357,9 @@
     "EditCommentModal": {
         "title": "Váš komentář",
         "cancel": "Storno",
-        "save": "Uložit"
+        "save": "Uložit",
+        "kidsReview": "Tato recenze se týká dětského programu",
+        "kidsReviewHint": "Zaškrtni, pokud hodnotíš dětskou část — rodiče pak tuto recenzi najdou v pohledu „Pro rodiny“."
     },
     "GroupDetail": {
         "createGroup": "Přidat skupinu",
@@ -533,7 +536,9 @@
         "addEventTab": "Přidat událost",
         "addGameTab": "Přidat hru",
         "eventCreated": "Událost byla vytvořena",
-        "eventUpdated": "Událost byla aktualizována"
+        "eventUpdated": "Událost byla aktualizována",
+        "kidsProgram": "Má dětský/rodinný program",
+        "kidsProgramHint": "Akce nabízí plnohodnotný program pro děti (ne jen hlídání v rámci většího larpu). Zaškrtnutím se akce zobrazí v pohledu „Pro rodiny“."
     },
     "LabelsEditColumn": {
         "labels": "Štítky",
@@ -675,7 +680,13 @@
             "source": "Zdroj",
             "source_larp": "Larpové akce",
             "source_other": "Ostatní akce ze sermiri.cz",
-            "sourceHint": "sermiri.cz = katalog šermířů a akcí: koncerty, průvody, burzy, historické slavnosti (většinou ne larpy)."
+            "sourceHint": "sermiri.cz = katalog šermířů a akcí: koncerty, průvody, burzy, historické slavnosti (většinou ne larpy).",
+            "family": "Pro děti a rodiny",
+            "kidsProgram": "S dětským/rodinným programem",
+            "camps": "Tábory",
+            "minRating": "Celkové hodnocení",
+            "minRatingAny": "libovolné",
+            "familyHint": "Dětský program = plnohodnotný program pro děti, ne jen hlídání v rámci většího larpu. Hodnocení počítáno přes všechny ročníky hry."
         },
         "monthGrid": {
             "legend": "Tyrkysový pruh = jednodenní akce, šedý pruh s tyrkysovým okrajem = akce na více dní (táhne se přes dny).",
@@ -1013,5 +1024,8 @@
         "yearAll": "Všechny",
         "yearCount": "{{amount}} komentářů",
         "emptyFiltered": "Žádný komentář neodpovídá této kombinaci filtrů."
+    },
+    "GameCommentPanel": {
+        "kidsReviewBadge": "recenze dětského programu"
     }
 }

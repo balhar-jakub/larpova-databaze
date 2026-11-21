@@ -89,6 +89,7 @@ describe('the route table', () => {
             href: '/games?ladderType=RecentAndMostPlayed',
             as: '/games/RecentAndMostPlayed',
         })
+        expect(routes.family()).toEqual({ href: '/rodiny', as: '/rodiny' })
     })
 
     test('statistics and the password flow', () => {

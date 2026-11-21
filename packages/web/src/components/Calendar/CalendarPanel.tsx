@@ -57,6 +57,7 @@ import {
     filterCalendarEvents,
     formatDate,
     freeWeekends,
+    isCampEvent,
     monthName,
     monthShort,
     nextEventId,
@@ -161,6 +162,15 @@ const useStyles = createUseStyles({
         textTransform: 'uppercase',
         letterSpacing: '.07em',
         color: darkTheme.textOnLightDark,
+    },
+    select: {
+        marginLeft: 8,
+        padding: '3px 6px',
+        borderRadius: 4,
+        border: `1px solid ${darkTheme.backgroundControl}`,
+        backgroundColor: darkTheme.backgroundRealWhite,
+        color: darkTheme.textOnLightDark,
+        fontSize: '0.78rem',
     },
     filter: {
         display: 'flex',
@@ -694,6 +704,47 @@ const CalendarPanel = ({ initialQuery }: Props) => {
                                         </label>
                                     ))}
                                     <p className={classes.hint}>{t('Calendar.filters.sourceHint')}</p>
+                                </div>
+
+                                <div className={classes.filterGroup}>
+                                    <h4 className={classes.filterTitle}>{t('Calendar.filters.family')}</h4>
+                                    <label className={classes.filter}>
+                                        <input
+                                            type="checkbox"
+                                            checked={state.kidsProgram}
+                                            onChange={() => updateState({ kidsProgram: !state.kidsProgram })}
+                                        />
+                                        <span>{t('Calendar.filters.kidsProgram')}</span>
+                                        <span className={classes.filterCount}>
+                                            {countFor((event) => Boolean(event.kidsProgram))}
+                                        </span>
+                                    </label>
+                                    <label className={classes.filter}>
+                                        <input
+                                            type="checkbox"
+                                            checked={state.camps}
+                                            onChange={() => updateState({ camps: !state.camps })}
+                                        />
+                                        <span>{t('Calendar.filters.camps')}</span>
+                                        <span className={classes.filterCount}>
+                                            {countFor((event) => isCampEvent(event))}
+                                        </span>
+                                    </label>
+                                    <label className={classes.filter}>
+                                        <span>{t('Calendar.filters.minRating')}</span>
+                                        <select
+                                            className={classes.select}
+                                            value={state.minRating}
+                                            onChange={(e) => updateState({ minRating: Number(e.target.value) })}
+                                        >
+                                            {[0, 50, 70, 90].map((v) => (
+                                                <option key={v} value={v}>
+                                                    {v === 0 ? t('Calendar.filters.minRatingAny') : `≥ ${v} / 100`}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    <p className={classes.hint}>{t('Calendar.filters.familyHint')}</p>
                                 </div>
 
                                 <div className={classes.filterGroup}>

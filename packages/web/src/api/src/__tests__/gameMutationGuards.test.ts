@@ -191,6 +191,29 @@ describe('setGamePlayedState arms', () => {
 });
 
 describe('createOrUpdateComment arms', () => {
+  it('persists the kidsReview flag on create and on update', async () => {
+    const KIDS_COMMENT = `mutation CK($g: ID!, $c: String!, $k: Boolean) { game { createOrUpdateComment(gameId: $g, comment: $c, kidsReview: $k) { id } } }`;
+    // Create a fresh comment on a game without one yet (the suite's fixture
+    // comment uses commentId — leave it alone).
+    const freshGame = await prisma.csld_game.create({
+      data: { name: `${marker} kids-hra`, deleted: false, year: 2026, added_by: userId, lang: 'cs' },
+    });
+    try {
+      const created = await executeQuery(server, KIDS_COMMENT, { g: String(freshGame.id), c: `dětská ${stamp}`, k: true }, meCtx());
+      expect(created.errors).toBeUndefined();
+      let row = await prisma.csld_comment.findFirst({ where: { game_id: freshGame.id, user_id: userId } });
+      expect(row!.kids_review).toBe(true);
+      // Update it with kidsReview=false → the flag flips.
+      const updated = await executeQuery(server, KIDS_COMMENT, { g: String(freshGame.id), c: `upravená ${stamp}`, k: false }, meCtx());
+      expect(updated.errors).toBeUndefined();
+      row = await prisma.csld_comment.findFirst({ where: { game_id: freshGame.id, user_id: userId } });
+      expect(row!.kids_review).toBe(false);
+    } finally {
+      await prisma.csld_comment.deleteMany({ where: { game_id: freshGame.id } });
+      await prisma.csld_game.deleteMany({ where: { id: freshGame.id } });
+    }
+  });
+
   it('updates an existing comment (no linkify of the empty string needed) and resets `added`', async () => {
     const before = await prisma.csld_comment.findUnique({ where: { id: commentId } });
     const res = await executeQuery(server, COMMENT, { g: String(gameId), c: `upravený ${stamp}` }, meCtx());

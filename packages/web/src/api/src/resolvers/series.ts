@@ -1,5 +1,5 @@
 import type { Context } from '../context.js';
-import { normalizeGame } from './mappers.js';
+import { normalizeGame, normalizeUserRef } from './mappers.js';
 import { isAtLeastEditor } from '../auth/appUsers.js';
 
 /**
@@ -55,8 +55,25 @@ export function normalizeSeries(row: any) {
     amountOfComments: games.reduce((sum: number, g: any) => sum + (g?.amountOfComments ?? 0), 0),
     firstYear: years.length ? Math.min(...years) : null,
     lastYear: years.length ? Math.max(...years) : null,
+    averageRating: seriesAverageRating(games),
     added: row.added instanceof Date ? row.added.toISOString() : row.added,
   };
+}
+
+/**
+ * Series-wide rating: Bayesian-style weighted average over instalments, so a
+ * series with one 10/10 instalment cannot outrank a proven classic with many
+ * ratings. Instalments without ratings contribute nothing.
+ */
+export function seriesAverageRating(games: any[]): number | null {
+  const rated = games.filter((g) => (g?.amountOfRatings ?? 0) > 0 && g?.averageRating != null);
+  const totalRatings = rated.reduce((s, g) => s + g.amountOfRatings, 0);
+  if (!totalRatings) return null; // covers both "nothing rated" and "all weights zero"
+  const prior = 5; // prior weight, same spirit as the catalog's Recommended order
+  const globalAvg =
+    rated.reduce((s, g) => s + g.averageRating * g.amountOfRatings, 0) / totalRatings;
+  const weighted = rated.reduce((s, g) => s + g.averageRating * g.amountOfRatings, 0);
+  return Math.round(((weighted + globalAvg * prior) / (totalRatings + prior)) * 100) / 100;
 }
 
 // ── Query resolvers ──────────────────────────────────────
@@ -114,4 +131,51 @@ export async function gameSeriesResolver(parent: any, _args: unknown, ctx: Conte
   const id = typeof seriesId === 'string' ? parseInt(seriesId, 10) : seriesId;
   if (isNaN(id)) return null;
   return loadSeries(id, ctx);
+}
+
+/**
+ * One flat review list for the whole series, newest first — what the family
+ * view shows instead of splitting reviews per instalment. Each comment keeps
+ * a link to its instalment so the year can be shown as a tag on the review.
+ */
+export async function seriesCommentsResolver(
+  _parent: unknown,
+  args: { seriesId: string; offset: number; limit: number },
+  ctx: Context,
+) {
+  try {
+    const id = parseInt(args.seriesId, 10);
+    if (isNaN(id)) return { comments: [], totalAmount: 0 };
+    const gameIds = (
+      await ctx.db.csld_game.findMany({
+        where: { series_id: id, ...instalmentsFilter(ctx) },
+        select: { id: true },
+      })
+    ).map((g) => g.id);
+    if (!gameIds.length) return { comments: [], totalAmount: 0 };
+    const where = { game_id: { in: gameIds }, is_hidden: false };
+    const comments = await ctx.db.csld_comment.findMany({
+      where,
+      orderBy: { added: 'desc' },
+      skip: args.offset ?? 0,
+      take: args.limit ?? 20,
+      include: { csld_csld_user: { include: { csld_image: true } }, csld_game: true },
+    });
+    const total = await ctx.db.csld_comment.count({ where });
+    return {
+      comments: comments.map((c) => ({
+        ...c,
+        amountOfUpvotes: c.amount_of_upvotes ?? 0,
+        amount_of_upvotes: c.amount_of_upvotes ?? 0,
+        kidsReview: (c as any).kids_review ?? false,
+        commentAsText: (c.comment ?? '').replace(/<[^>]*>/g, '').trim(),
+        user: normalizeUserRef(c.csld_csld_user),
+        game: normalizeGame(c.csld_game),
+      })),
+      totalAmount: total,
+    };
+  } catch (e) {
+    console.error('seriesComments resolver error:', e);
+    return { comments: [], totalAmount: 0 };
+  }
 }

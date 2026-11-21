@@ -142,6 +142,7 @@ export const GamePagedCommentsPanel = ({ gameId, commentsDisabled }: Props) => {
                     <EditCommentModal
                         gameId={gameId}
                         oldText={currentUsersComment || ''}
+                        oldKidsReview={query.data?.gameById?.currentUsersComment?.kidsReview}
                         onHide={() => setEditModalShown(false)}
                         onLoad={() => setEditModalLoaded(true)}
                         onCommentSaved={handleCommentSaved}

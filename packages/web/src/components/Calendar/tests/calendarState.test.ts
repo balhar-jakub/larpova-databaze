@@ -23,7 +23,21 @@ describe('parseCalendarState', () => {
         expect(state.registrationOpen).toBe(false)
         expect(state.labels).toEqual([])
         expect(state.year).toBeUndefined()
+        expect(state.kidsProgram).toBe(false)
+        expect(state.camps).toBe(false)
+        expect(state.minRating).toBe(0)
         expect(hasCalendarFilters(state)).toBe(false)
+    })
+
+    test('the family parameters (deti/tabor/minRating) parse and round-trip', () => {
+        const state = parseCalendarState({ deti: '1', tabor: 'true', minRating: '70' })
+        expect(state.kidsProgram).toBe(true)
+        expect(state.camps).toBe(true)
+        expect(state.minRating).toBe(70)
+        expect(calendarStateToQuery(state)).toEqual({ deti: '1', tabor: '1', minRating: '70' })
+        expect(parseCalendarState(calendarStateToQuery(state))).toEqual(state)
+        // Out-of-range rating clamps to 0..100.
+        expect(parseCalendarState({ minRating: '999' }).minRating).toBe(100)
     })
 
     test('the source parameter defaults to larp-only and parses a comma list sorted', () => {

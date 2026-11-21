@@ -12,6 +12,7 @@ query LoadEventForEdit($eventId: ID!) {
         registrationOpen
         registrationStatus
         registrationOpensAt
+        kidsProgram
         loc
         description
         games {

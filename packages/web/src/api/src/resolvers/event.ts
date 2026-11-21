@@ -25,6 +25,7 @@ export async function eventByIdResolver(
   return {
     ...row,
     amountOfPlayers: row.amountofplayers,
+    kidsProgram: (row as any).kids_program ?? false,
     location: (row.latitude != null || row.longitude != null)
       ? { lattitude: row.latitude, longtitude: row.longitude }
       : null,
@@ -50,6 +51,8 @@ export async function eventCalendarResolver(
     requiredLabels?: string[];
     otherLabels?: string[];
     query?: string;
+    /** When true, only events flagged with a children's/family program. */
+    kidsProgram?: boolean;
   },
   ctx: Context,
 ) {
@@ -59,6 +62,10 @@ export async function eventCalendarResolver(
   const andConditions: Prisma.eventWhereInput[] = [
     { deleted: false },
   ];
+
+  if (args.kidsProgram) {
+    andConditions.push({ kids_program: true });
+  }
 
   if (args.from) {
     andConditions.push({ from: { gte: new Date(args.from) } });

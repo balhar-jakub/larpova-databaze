@@ -7,9 +7,11 @@ type Query {
     eventById(eventId: ID!): Event
     "A series of recurring games (Florie, Zlenice…) by id."
     seriesById(seriesId: ID!): Series
+    "Series-wide comments across all instalments, newest first — one flat review list for the whole series, each comment tagged with the year of the instalment it belongs to."
+    seriesComments(seriesId: ID!, offset: Int!, limit: Int!): CommentsPaged!
     "Series whose name matches the text query — the picker of the game edit form."
     seriesByQuery(query: String!, offset: Int, limit: Int): [Series!]!
-    eventCalendar(offset: Int, limit: Int, from: String, to: String, requiredLabels: [ID!], otherLabels: [ID!], query: String): EventsPaged!
+    eventCalendar(offset: Int, limit: Int, from: String, to: String, requiredLabels: [ID!], otherLabels: [ID!], query: String, kidsProgram: Boolean): EventsPaged!
     eventCalendarStats(from: String, to: String): EventCalendarStats!
     "Year-by-year history of games, events and ratings — the data of the statistics page."
     statistics: Statistics!
@@ -277,6 +279,8 @@ type GamesQuery {
     ladder(ladderType: LadderType!, offset: Int, limit: Int, requiredLabels: [ID!], otherLabels: [ID!]): GamesPaged!
     "Browsable catalog with filters and facet counts — the replacement for the ladder tabs."
     catalog(filter: GameCatalogFilter, order: GameCatalogOrder, offset: Int, limit: Int): GameCatalogPaged!
+    "TOP series for children/families: series whose games mention kids/family/age, ranked by series-wide Bayesian average rating. Family-first ladder for the /rodiny view."
+    topFamilySeries(filter: GameCatalogFilter, offset: Int, limit: Int): SeriesPaged!
 }
 
 enum LadderType {
@@ -327,6 +331,12 @@ input GameCatalogFilter {
     withComments: Boolean
     withImage: Boolean
     addedWithinDays: Int
+    "Games whose description mentions children/family/age (insensitive substring match)."
+    familyKeywords: Boolean
+    "Games with at least one kids-scoped review."
+    withKidsReviews: Boolean
+    "Only games that belong to a series (recurring games)."
+    inSeries: Boolean
 }
 
 type GameCatalogLabelFacet {
@@ -334,6 +344,11 @@ type GameCatalogLabelFacet {
     name: String
     count: Int!
     isRequired: Boolean!
+}
+
+type SeriesPaged {
+    totalAmount: Int!
+    series: [Series!]!
 }
 
 type GameCatalogCount {
@@ -430,6 +445,8 @@ type Series {
     firstYear: Int
     "Latest instalment year, null when no instalment carries a year."
     lastYear: Int
+    "Bayesian average rating across all instalments — the series-wide score shown in the family view and TOP lists."
+    averageRating: Float
     added: String!
 }
 
@@ -460,6 +477,8 @@ type Event {
     registrationStatus: RegistrationStatus
     "When the organizer plans to open the sign-up; set only while the status is UPCOMING."
     registrationOpensAt: String
+    "True when the event offers a children's / family program (not just childcare inside a larger LARP). Editable in the event form; the family view lists these events."
+    kidsProgram: Boolean
     deleted: Boolean
     amountOfPlayers: Int
     from: String
@@ -528,6 +547,8 @@ type Comment {
     added: String
     isHidden: Boolean
     amountOfUpvotes: Int!
+    "True when the author scoped this review to the kids/children program of the game — the family view lists only these."
+    kidsReview: Boolean
     game: Game!
     user: User!
 }
@@ -612,7 +633,7 @@ type GameMutation {
     rateGame(gameId: ID!, rating: Int): Game!
     deleteGameRating(gameId: ID!, userId: ID): Game!
     setGamePlayedState(gameId: ID!, state: Int!): Game!
-    createOrUpdateComment(gameId: ID!, comment: String!): Game!
+    createOrUpdateComment(gameId: ID!, comment: String!, kidsReview: Boolean): Game!
     deleteComment(commentId: ID!): Game!
     setCommentVisible(commentId: ID!, visible: Boolean!): Game!
     setCommentLiked(commentId: ID!, liked: Boolean!): Game!
@@ -727,6 +748,7 @@ input CreateEventInput {
     latitude: Float
     longitude: Float
     coverImage: UploadedFileInput
+    kidsProgram: Boolean
 }
 
 input UpdateEventInput {
@@ -751,6 +773,7 @@ input UpdateEventInput {
     latitude: Float
     longitude: Float
     coverImage: UploadedFileInput
+    kidsProgram: Boolean
 }
 
 type AdminQuery {

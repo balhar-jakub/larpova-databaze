@@ -1,0 +1,33 @@
+query FamilyEvents($from: String, $kidsProgram: Boolean, $offset: Int!, $limit: Int!) {
+    eventCalendar(from: $from, kidsProgram: $kidsProgram, offset: $offset, limit: $limit) {
+        totalAmount
+        events {
+            id
+            name
+            from
+            to
+            loc
+            web
+            registrationUrl
+            registrationOpen
+            registrationStatus
+            registrationOpensAt
+            amountOfPlayers
+            kidsProgram
+            coverImage {
+                id
+            }
+            labels {
+                id
+                name
+            }
+            games {
+                id
+                name
+                coverImage {
+                    id
+                }
+            }
+        }
+    }
+}
